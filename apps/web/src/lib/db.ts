@@ -1,6 +1,12 @@
-import { createDb } from "@typeoff/db";
+import { createDb, type Database } from "@typeoff/db";
 
-const databaseUrl = process.env.DATABASE_URL;
-if (!databaseUrl) throw new Error("DATABASE_URL is not set");
+let _db: Database | null = null;
 
-export const db = createDb(databaseUrl);
+export function getDb(): Database {
+  if (!_db) {
+    const url = process.env.DATABASE_URL;
+    if (!url) throw new Error("DATABASE_URL is not set");
+    _db = createDb(url);
+  }
+  return _db;
+}

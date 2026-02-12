@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { SignJWT } from "jose";
 
-const secret = new TextEncoder().encode(process.env.AUTH_SECRET);
+export const dynamic = "force-dynamic";
 
 export async function GET() {
+  const secret = new TextEncoder().encode(process.env.AUTH_SECRET);
   const session = await auth();
 
   if (!session?.user?.id) {
