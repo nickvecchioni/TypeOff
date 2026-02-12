@@ -25,6 +25,7 @@ function CharacterInner({ char, isExtra }: CharacterProps) {
 
 export const Character = React.memo(CharacterInner, (prev, next) => {
   return (
+    prev.char.expected === next.char.expected &&
     prev.char.status === next.char.status &&
     prev.char.actual === next.char.actual &&
     prev.isExtra === next.isExtra

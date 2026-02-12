@@ -89,7 +89,7 @@ export function TypingTest() {
       {/* Restart hint */}
       {!isFinished && (
         <div className="focus-fade text-sm text-muted">
-          <kbd className="px-1.5 py-0.5 rounded bg-surface text-text text-xs">tab</kbd> to restart
+          <kbd className="px-1.5 py-0.5 rounded bg-surface text-text text-xs">shift</kbd> + <kbd className="px-1.5 py-0.5 rounded bg-surface text-text text-xs">tab</kbd> to restart
         </div>
       )}
     </div>

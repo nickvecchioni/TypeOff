@@ -305,8 +305,8 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     (e: React.KeyboardEvent | KeyboardEvent) => {
       if (status === "finished") return;
 
-      // Tab = restart
-      if (e.key === "Tab") {
+      // Shift+Tab = restart
+      if (e.key === "Tab" && e.shiftKey) {
         e.preventDefault();
         restart();
         return;
@@ -316,6 +316,12 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
       if (e.key === "Escape") {
         e.preventDefault();
         restart();
+        return;
+      }
+
+      // Plain Tab — ignore (don't lose focus)
+      if (e.key === "Tab") {
+        e.preventDefault();
         return;
       }
 
