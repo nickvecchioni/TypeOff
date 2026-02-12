@@ -1,0 +1,23 @@
+/** ~200 most common English words for typing tests */
+export const commonWords: string[] = [
+  "the", "be", "to", "of", "and", "a", "in", "that", "have", "i",
+  "it", "for", "not", "on", "with", "he", "as", "you", "do", "at",
+  "this", "but", "his", "by", "from", "they", "we", "say", "her", "she",
+  "or", "an", "will", "my", "one", "all", "would", "there", "their", "what",
+  "so", "up", "out", "if", "about", "who", "get", "which", "go", "me",
+  "when", "make", "can", "like", "time", "no", "just", "him", "know", "take",
+  "people", "into", "year", "your", "good", "some", "could", "them", "see", "other",
+  "than", "then", "now", "look", "only", "come", "its", "over", "think", "also",
+  "back", "after", "use", "two", "how", "our", "work", "first", "well", "way",
+  "even", "new", "want", "because", "any", "these", "give", "day", "most", "us",
+  "great", "between", "need", "large", "under", "never", "city", "home", "order", "long",
+  "hand", "high", "old", "place", "same", "keep", "help", "every", "start", "show",
+  "here", "life", "world", "still", "own", "point", "form", "each", "line", "right",
+  "move", "thing", "turn", "ask", "late", "run", "small", "name", "house", "part",
+  "while", "play", "next", "must", "might", "much", "head", "end", "through", "last",
+  "live", "state", "since", "left", "school", "more", "both", "found", "change", "off",
+  "does", "learn", "such", "should", "number", "side", "been", "real", "find", "before",
+  "few", "read", "where", "case", "little", "call", "why", "set", "try", "put",
+  "too", "man", "child", "again", "kind", "went", "many", "around", "write", "word",
+  "close", "sure", "let", "light", "far", "begin", "got", "being", "open", "bring",
+];

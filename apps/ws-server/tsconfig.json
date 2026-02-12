@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "paths": {
+      "@typeoff/shared": ["../../packages/shared/src"],
+      "@typeoff/db": ["../../packages/db/src"]
+    }
+  },
+  "include": ["src", "../../packages/shared/src", "../../packages/db/src"]
+}

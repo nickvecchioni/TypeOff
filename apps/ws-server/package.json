@@ -1,0 +1,23 @@
+{
+  "name": "@typeoff/ws-server",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@typeoff/db": "*",
+    "@typeoff/shared": "*",
+    "dotenv": "^16",
+    "jose": "^6",
+    "socket.io": "^4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.11",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}

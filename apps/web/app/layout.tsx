@@ -1,0 +1,43 @@
+import type { Metadata } from "next";
+import { JetBrains_Mono } from "next/font/google";
+import { SessionProvider } from "@/components/auth/SessionProvider";
+import { UserMenu } from "@/components/auth/UserMenu";
+import Link from "next/link";
+import "./globals.css";
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+});
+
+export const metadata: Metadata = {
+  title: "TypeOff",
+  description: "A buttery-smooth typing test",
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body className={`${jetbrainsMono.variable} font-mono antialiased`}>
+        <SessionProvider>
+          <nav className="flex items-center justify-between px-6 py-4">
+            <div className="flex items-center gap-6">
+              <Link href="/" className="text-accent font-bold hover:opacity-80 transition-opacity">
+                TypeOff
+              </Link>
+              <Link href="/race" className="text-sm text-muted hover:text-text transition-colors">
+                Race
+              </Link>
+            </div>
+            <UserMenu />
+          </nav>
+          {children}
+        </SessionProvider>
+      </body>
+    </html>
+  );
+}

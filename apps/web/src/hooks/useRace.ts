@@ -1,0 +1,147 @@
+"use client";
+
+import { useState, useCallback, useEffect, useRef } from "react";
+import type {
+  RaceState,
+  RacePlayerProgress,
+} from "@typeoff/shared";
+import { useSocket } from "./useSocket";
+
+export type RacePhase = "idle" | "queuing" | "countdown" | "racing" | "finished";
+
+export interface RaceResult {
+  playerId: string;
+  name: string;
+  placement: number;
+  wpm: number;
+  rawWpm: number;
+  accuracy: number;
+  eloChange: number | null;
+}
+
+export function useRace() {
+  const { connected, emit, on } = useSocket();
+  const [phase, setPhase] = useState<RacePhase>("idle");
+  const [queueCount, setQueueCount] = useState(0);
+  const [countdown, setCountdown] = useState(0);
+  const [raceState, setRaceState] = useState<RaceState | null>(null);
+  const [progress, setProgress] = useState<Record<string, RacePlayerProgress>>({});
+  const [results, setResults] = useState<RaceResult[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  // Keep track of own player id
+  const myPlayerIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const unsubs = [
+      on("queueUpdate", (data) => {
+        setQueueCount(data.count);
+      }),
+      on("raceStart", (data) => {
+        setRaceState(data);
+        setProgress(data.progress);
+        setCountdown(data.countdown);
+        setPhase("countdown");
+      }),
+      on("raceCountdown", (data) => {
+        setCountdown(data.countdown);
+        if (data.countdown <= 0) {
+          setPhase("racing");
+        }
+      }),
+      on("raceProgress", (data) => {
+        setProgress(data.progress);
+      }),
+      on("raceFinished", (data) => {
+        setResults(data.results);
+        setPhase("finished");
+      }),
+      on("error", (data) => {
+        setError(data.message);
+        setPhase("idle");
+      }),
+    ];
+
+    return () => unsubs.forEach((unsub) => unsub());
+  }, [on]);
+
+  const joinQueue = useCallback(
+    async (guestName?: string) => {
+      setError(null);
+      setPhase("queuing");
+
+      // Try to get auth token
+      let token: string | undefined;
+      try {
+        const res = await fetch("/api/ws-token");
+        if (res.ok) {
+          const data = await res.json();
+          token = data.token;
+        }
+      } catch {
+        // Guest mode
+      }
+
+      if (token) {
+        myPlayerIdRef.current = null; // Will be set from race state
+        emit("joinQueue", { token });
+      } else {
+        const name = guestName ?? "Guest";
+        myPlayerIdRef.current = null;
+        emit("joinQueue", { guestName: name });
+      }
+    },
+    [emit]
+  );
+
+  const leaveQueue = useCallback(() => {
+    emit("leaveQueue");
+    setPhase("idle");
+    setQueueCount(0);
+  }, [emit]);
+
+  const sendProgress = useCallback(
+    (data: {
+      wordIndex: number;
+      charIndex: number;
+      wpm: number;
+      progress: number;
+    }) => {
+      emit("raceProgress", data);
+    },
+    [emit]
+  );
+
+  const sendFinish = useCallback(
+    (data: { wpm: number; rawWpm: number; accuracy: number }) => {
+      emit("raceFinish", data);
+    },
+    [emit]
+  );
+
+  const reset = useCallback(() => {
+    setPhase("idle");
+    setRaceState(null);
+    setProgress({});
+    setResults([]);
+    setCountdown(0);
+    setQueueCount(0);
+    setError(null);
+  }, []);
+
+  return {
+    connected,
+    phase,
+    queueCount,
+    countdown,
+    raceState,
+    progress,
+    results,
+    error,
+    joinQueue,
+    leaveQueue,
+    sendProgress,
+    sendFinish,
+    reset,
+  };
+}

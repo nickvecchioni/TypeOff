@@ -1,0 +1,364 @@
+"use client";
+
+import { useState, useRef, useCallback, useMemo, useEffect } from "react";
+import {
+  type CharState,
+  type WordState,
+  type TestConfig,
+  type TestStats,
+  type EngineStatus,
+  type EngineAPI,
+  type WpmSample,
+  generateWords,
+  commonWords,
+} from "@typeoff/shared";
+
+const DEFAULT_CONFIG: TestConfig = { mode: "timed", duration: 30 };
+const WORD_POOL_SIZE = 200;
+
+export interface TypingEngine extends EngineAPI {
+  handleKeyDown: (e: React.KeyboardEvent) => void;
+}
+
+export interface ExternalConfig {
+  externalSeed?: number;
+  externalWordCount?: number;
+  mode?: "timed" | "wordcount";
+}
+
+function createWordStates(wordStrings: string[]): WordState[] {
+  return wordStrings.map((word) => ({
+    chars: word.split("").map((ch) => ({
+      expected: ch,
+      actual: null,
+      status: "idle" as const,
+    })),
+    extraChars: [],
+  }));
+}
+
+export function useTypingEngine(external?: ExternalConfig): TypingEngine {
+  const initialConfig: TestConfig = external?.mode === "wordcount"
+    ? { mode: "wordcount", duration: external.externalWordCount ?? 50 }
+    : DEFAULT_CONFIG;
+  const [config, setConfig] = useState<TestConfig>(initialConfig);
+  const [words, setWords] = useState<WordState[]>([]);
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [currentCharIndex, setCurrentCharIndex] = useState(0);
+  const [status, setStatus] = useState<EngineStatus>("idle");
+  const [timeElapsed, setTimeElapsed] = useState(0);
+  const [stats, setStats] = useState<TestStats | null>(null);
+
+  // Refs for stats counters — avoid re-render on every keystroke
+  const correctCharsRef = useRef(0);
+  const incorrectCharsRef = useRef(0);
+  const extraCharsRef = useRef(0);
+  const totalCharsRef = useRef(0);
+
+  // Generate words on mount (avoids hydration mismatch from Date.now() seed)
+  const initialized = useRef(false);
+  useEffect(() => {
+    if (!initialized.current) {
+      initialized.current = true;
+      const count = external?.externalWordCount ?? WORD_POOL_SIZE;
+      const seed = external?.externalSeed ?? undefined;
+      setWords(createWordStates(generateWords(commonWords, count, seed)));
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Timer refs
+  const startTimeRef = useRef(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const wpmHistoryRef = useRef<WpmSample[]>([]);
+
+  const timeLeft = useMemo(() => {
+    if (config.mode === "timed") {
+      return Math.max(0, config.duration - timeElapsed);
+    }
+    return 0;
+  }, [config, timeElapsed]);
+
+  // Live stats — only recompute on timeElapsed changes (1/sec), not per keystroke
+  const liveWpm = useMemo(() => {
+    if (timeElapsed === 0) return 0;
+    return Math.round((correctCharsRef.current / 5) / (timeElapsed / 60));
+  }, [timeElapsed]);
+
+  const liveAccuracy = useMemo(() => {
+    const total = correctCharsRef.current + incorrectCharsRef.current + extraCharsRef.current;
+    if (total === 0) return 100;
+    return Math.round((correctCharsRef.current / total) * 100);
+  }, [timeElapsed]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const stopTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  const finishTest = useCallback(() => {
+    stopTimer();
+    const elapsed = (performance.now() - startTimeRef.current) / 1000;
+    const correct = correctCharsRef.current;
+    const incorrect = incorrectCharsRef.current;
+    const extra = extraCharsRef.current;
+    const total = correct + incorrect + extra;
+    const wpm = elapsed > 0 ? Math.round((correct / 5) / (elapsed / 60)) : 0;
+    const rawWpm = elapsed > 0 ? Math.round((total / 5) / (elapsed / 60)) : 0;
+    const accuracy = total > 0 ? Math.round((correct / total) * 100) : 100;
+
+    setStats({
+      wpm,
+      rawWpm,
+      accuracy,
+      correctChars: correct,
+      incorrectChars: incorrect,
+      extraChars: extra,
+      totalChars: total,
+      time: Math.round(elapsed),
+      wpmHistory: wpmHistoryRef.current,
+    });
+    setStatus("finished");
+  }, [stopTimer]);
+
+  const startTimer = useCallback(() => {
+    startTimeRef.current = performance.now();
+    wpmHistoryRef.current = [];
+
+    timerRef.current = setInterval(() => {
+      const elapsed = (performance.now() - startTimeRef.current) / 1000;
+      const secs = Math.floor(elapsed);
+      setTimeElapsed(secs);
+
+      // Sample WPM every second
+      const correct = correctCharsRef.current;
+      const total = correct + incorrectCharsRef.current + extraCharsRef.current;
+      const wpm = elapsed > 0 ? Math.round((correct / 5) / (elapsed / 60)) : 0;
+      const raw = elapsed > 0 ? Math.round((total / 5) / (elapsed / 60)) : 0;
+      wpmHistoryRef.current.push({ elapsed: secs, wpm, raw });
+    }, 1000);
+  }, []);
+
+  // Check timed mode completion
+  useEffect(() => {
+    if (config.mode === "timed" && status === "typing" && timeElapsed >= config.duration) {
+      finishTest();
+    }
+  }, [config, status, timeElapsed, finishTest]);
+
+  const restart = useCallback(() => {
+    stopTimer();
+    const count = external?.externalWordCount ?? WORD_POOL_SIZE;
+    const seed = external?.externalSeed ?? undefined;
+    const newWords = createWordStates(generateWords(commonWords, count, seed));
+    setWords(newWords);
+    setCurrentWordIndex(0);
+    setCurrentCharIndex(0);
+    setStatus("idle");
+    setTimeElapsed(0);
+    setStats(null);
+    correctCharsRef.current = 0;
+    incorrectCharsRef.current = 0;
+    extraCharsRef.current = 0;
+    totalCharsRef.current = 0;
+    wpmHistoryRef.current = [];
+  }, [stopTimer]);
+
+  // Reset when config changes
+  useEffect(() => {
+    restart();
+  }, [config]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleCharacter = useCallback(
+    (char: string) => {
+      setWords((prev) => {
+        const word = prev[currentWordIndex];
+        if (!word) return prev;
+
+        const newWords = [...prev];
+        const newWord = {
+          chars: [...word.chars],
+          extraChars: [...word.extraChars],
+        };
+
+        if (currentCharIndex < word.chars.length) {
+          // Typing within the word
+          const expected = word.chars[currentCharIndex].expected;
+          const isCorrect = char === expected;
+          newWord.chars[currentCharIndex] = {
+            expected,
+            actual: char,
+            status: isCorrect ? "correct" : "incorrect",
+          };
+          if (isCorrect) {
+            correctCharsRef.current++;
+          } else {
+            incorrectCharsRef.current++;
+          }
+        } else {
+          // Extra characters beyond word length
+          newWord.extraChars.push({
+            expected: "",
+            actual: char,
+            status: "incorrect",
+          });
+          extraCharsRef.current++;
+        }
+
+        totalCharsRef.current++;
+        newWords[currentWordIndex] = newWord;
+        return newWords;
+      });
+
+      setCurrentCharIndex((prev) => prev + 1);
+    },
+    [currentWordIndex, currentCharIndex]
+  );
+
+  const handleBackspace = useCallback(() => {
+    if (currentCharIndex === 0) return; // No cross-word backspace
+
+    setWords((prev) => {
+      const word = prev[currentWordIndex];
+      if (!word) return prev;
+
+      const newWords = [...prev];
+      const newWord = {
+        chars: [...word.chars],
+        extraChars: [...word.extraChars],
+      };
+
+      const prevCharIdx = currentCharIndex - 1;
+
+      if (prevCharIdx >= word.chars.length) {
+        // Deleting an extra char
+        const removed = newWord.extraChars.pop();
+        if (removed) {
+          extraCharsRef.current--;
+          totalCharsRef.current--;
+        }
+      } else {
+        // Deleting a normal char
+        const charState = word.chars[prevCharIdx];
+        if (charState.status === "correct") {
+          correctCharsRef.current--;
+        } else if (charState.status === "incorrect") {
+          incorrectCharsRef.current--;
+        }
+        totalCharsRef.current--;
+        newWord.chars[prevCharIdx] = {
+          expected: charState.expected,
+          actual: null,
+          status: "idle",
+        };
+      }
+
+      newWords[currentWordIndex] = newWord;
+      return newWords;
+    });
+
+    setCurrentCharIndex((prev) => prev - 1);
+  }, [currentWordIndex, currentCharIndex]);
+
+  const handleSpace = useCallback(() => {
+    if (currentCharIndex === 0) return; // Don't skip empty words
+
+    // Count the space keystroke (standard WPM includes spaces between words)
+    correctCharsRef.current++;
+    totalCharsRef.current++;
+
+    // Mark remaining untyped chars in current word as incorrect
+    setWords((prev) => {
+      const word = prev[currentWordIndex];
+      if (!word) return prev;
+
+      const newWords = [...prev];
+      const newWord = { chars: [...word.chars], extraChars: [...word.extraChars] };
+      for (let i = currentCharIndex; i < word.chars.length; i++) {
+        if (word.chars[i].status === "idle") {
+          newWord.chars[i] = {
+            ...word.chars[i],
+            status: "incorrect",
+          };
+          incorrectCharsRef.current++;
+          totalCharsRef.current++;
+        }
+      }
+      newWords[currentWordIndex] = newWord;
+      return newWords;
+    });
+
+    const nextWordIndex = currentWordIndex + 1;
+
+    // In wordcount mode, check if we've finished all words
+    if (config.mode === "wordcount" && nextWordIndex >= config.duration) {
+      finishTest();
+      return;
+    }
+
+    setCurrentWordIndex(nextWordIndex);
+    setCurrentCharIndex(0);
+  }, [currentWordIndex, currentCharIndex, config, finishTest]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent | KeyboardEvent) => {
+      if (status === "finished") return;
+
+      // Tab = restart
+      if (e.key === "Tab") {
+        e.preventDefault();
+        restart();
+        return;
+      }
+
+      // Escape = restart
+      if (e.key === "Escape") {
+        e.preventDefault();
+        restart();
+        return;
+      }
+
+      // Ignore modifier combos (except Shift)
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+      // Start typing on first valid input
+      if (status === "idle" && e.key.length === 1) {
+        setStatus("typing");
+        startTimer();
+      }
+
+      if (status === "idle" && e.key !== "Backspace" && e.key.length !== 1) return;
+
+      if (e.key === "Backspace") {
+        e.preventDefault();
+        handleBackspace();
+      } else if (e.key === " ") {
+        e.preventDefault();
+        handleSpace();
+      } else if (e.key.length === 1) {
+        handleCharacter(e.key);
+      }
+    },
+    [status, restart, startTimer, handleBackspace, handleSpace, handleCharacter]
+  );
+
+  // Attach keydown handler to window for this hook's consumer to use
+  const keyDownRef = useRef(handleKeyDown);
+  keyDownRef.current = handleKeyDown;
+
+  return {
+    words,
+    currentWordIndex,
+    currentCharIndex,
+    status,
+    timeLeft,
+    config,
+    liveWpm,
+    liveAccuracy,
+    stats,
+    setConfig,
+    restart,
+    handleKeyDown: (e: React.KeyboardEvent) => keyDownRef.current(e),
+  };
+}
