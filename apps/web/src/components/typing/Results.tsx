@@ -59,7 +59,7 @@ export function Results({ stats, onRestart }: ResultsProps) {
         onClick={onRestart}
         className="text-muted hover:text-accent transition-colors text-sm"
       >
-        press <kbd className="px-1.5 py-0.5 rounded bg-surface text-text text-xs">shift</kbd> + <kbd className="px-1.5 py-0.5 rounded bg-surface text-text text-xs">tab</kbd> or click to restart
+        press <kbd className="px-1.5 py-0.5 rounded bg-surface text-text text-xs">tab</kbd> + <kbd className="px-1.5 py-0.5 rounded bg-surface text-text text-xs">enter</kbd> or click to restart
       </button>
     </div>
   );

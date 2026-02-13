@@ -22,7 +22,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${jetbrainsMono.variable} font-mono antialiased`}>
+      <body className={`${jetbrainsMono.variable} font-mono antialiased h-full flex flex-col`}>
         <SessionProvider>
           <nav className="flex items-center justify-between px-6 py-4">
             <div className="flex items-center gap-6">

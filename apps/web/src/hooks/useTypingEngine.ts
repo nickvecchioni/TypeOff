@@ -49,6 +49,9 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
   const [timeElapsed, setTimeElapsed] = useState(0);
   const [stats, setStats] = useState<TestStats | null>(null);
 
+  // Tab+Enter restart: Tab sets flag, Enter triggers
+  const tabPressedRef = useRef(false);
+
   // Refs for stats counters — avoid re-render on every keystroke
   const correctCharsRef = useRef(0);
   const incorrectCharsRef = useRef(0);
@@ -305,23 +308,27 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     (e: React.KeyboardEvent | KeyboardEvent) => {
       if (status === "finished") return;
 
-      // Shift+Tab = restart
-      if (e.key === "Tab" && e.shiftKey) {
+      // Tab+Enter = restart (Tab sets flag, Enter triggers)
+      if (e.key === "Tab") {
         e.preventDefault();
+        tabPressedRef.current = true;
+        return;
+      }
+
+      if (e.key === "Enter" && tabPressedRef.current) {
+        e.preventDefault();
+        tabPressedRef.current = false;
         restart();
         return;
       }
+
+      // Any other key clears the tab flag
+      tabPressedRef.current = false;
 
       // Escape = restart
       if (e.key === "Escape") {
         e.preventDefault();
         restart();
-        return;
-      }
-
-      // Plain Tab — ignore (don't lose focus)
-      if (e.key === "Tab") {
-        e.preventDefault();
         return;
       }
 
