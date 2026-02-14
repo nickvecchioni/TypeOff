@@ -131,9 +131,8 @@ export default async function ProfilePage({
               <thead>
                 <tr className="text-muted border-b border-surface">
                   <th className="pb-2">Date</th>
-                  <th className="pb-2">Place</th>
+                  <th className="pb-2">Result</th>
                   <th className="pb-2 text-right">WPM</th>
-                  <th className="pb-2 text-right">Accuracy</th>
                   <th className="pb-2 text-right">ELO</th>
                 </tr>
               </thead>
@@ -143,6 +142,7 @@ export default async function ProfilePage({
                     race.eloBefore != null && race.eloAfter != null
                       ? race.eloAfter - race.eloBefore
                       : null;
+                  const isWin = race.placement === 1;
                   return (
                     <tr
                       key={i}
@@ -153,18 +153,11 @@ export default async function ProfilePage({
                           ? new Date(race.finishedAt).toLocaleDateString()
                           : "-"}
                       </td>
-                      <td className="py-2">
-                        {race.placement
-                          ? `${ordinal(race.placement)} of ${race.playerCount}`
-                          : "-"}
+                      <td className={`py-2 font-bold ${isWin ? "text-correct" : "text-error"}`}>
+                        {race.placement ? (isWin ? "Win" : "Loss") : "-"}
                       </td>
                       <td className="py-2 text-right tabular-nums">
                         {race.wpm != null ? Math.round(race.wpm) : "-"}
-                      </td>
-                      <td className="py-2 text-right tabular-nums">
-                        {race.accuracy != null
-                          ? `${Math.round(race.accuracy)}%`
-                          : "-"}
                       </td>
                       <td className="py-2 text-right tabular-nums">
                         {eloChange != null ? (
