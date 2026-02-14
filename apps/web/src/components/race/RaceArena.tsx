@@ -93,7 +93,7 @@ export function RaceArena() {
         <RaceResults
           results={race.results}
           myPlayerId={myPlayerId}
-          onRaceAgain={race.reset}
+          onRaceAgain={race.raceAgain}
         />
       )}
     </div>

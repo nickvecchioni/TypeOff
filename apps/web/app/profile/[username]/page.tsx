@@ -210,30 +210,35 @@ function StatCard({
   );
 }
 
+const TIER_BAR_COLORS: Record<string, string> = {
+  bronze: "bg-rank-bronze",
+  silver: "bg-rank-silver",
+  gold: "bg-rank-gold",
+  platinum: "bg-rank-platinum",
+  diamond: "bg-rank-diamond",
+  master: "bg-rank-master",
+  grandmaster: "bg-rank-grandmaster",
+};
+
 function RankProgressBar({ elo }: { elo: number }) {
   const info = getRankInfo(elo);
   const progress = getRankProgress(elo);
   const nextElo = getNextDivisionElo(elo);
 
   if (info.tier === "grandmaster") {
-    return (
-      <div className="text-xs text-muted">
-        Grandmaster — no ceiling
-      </div>
-    );
+    return null;
   }
 
   return (
     <div className="w-full max-w-xs space-y-1">
-      <div className="flex justify-between text-xs text-muted">
-        <span>{info.label}</span>
-        {nextElo != null && (
-          <span className="tabular-nums">{nextElo - elo} ELO to next</span>
-        )}
-      </div>
+      {nextElo != null && (
+        <div className="text-xs text-muted text-right tabular-nums">
+          {nextElo - elo} ELO to next division
+        </div>
+      )}
       <div className="h-1.5 rounded-full bg-surface overflow-hidden">
         <div
-          className={`h-full rounded-full bg-rank-${info.tier} transition-all`}
+          className={`h-full rounded-full ${TIER_BAR_COLORS[info.tier]} transition-all`}
           style={{ width: `${Math.round(progress * 100)}%` }}
         />
       </div>

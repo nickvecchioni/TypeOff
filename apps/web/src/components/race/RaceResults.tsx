@@ -9,7 +9,7 @@ import { RankBadge } from "@/components/RankBadge";
 interface RaceResultsProps {
   results: RaceResult[];
   myPlayerId: string | null;
-  onRaceAgain: () => void;
+  onRaceAgain: (guestName?: string) => void;
 }
 
 export function RaceResults({ results, myPlayerId, onRaceAgain }: RaceResultsProps) {
@@ -24,7 +24,6 @@ export function RaceResults({ results, myPlayerId, onRaceAgain }: RaceResultsPro
               <th className="pb-2 w-10">#</th>
               <th className="pb-2">Player</th>
               <th className="pb-2 text-right w-16">WPM</th>
-              <th className="pb-2 text-right w-20 pl-3">Acc</th>
               <th className="pb-2 text-right w-16 pl-3">ELO</th>
             </tr>
           </thead>
@@ -78,9 +77,6 @@ export function RaceResults({ results, myPlayerId, onRaceAgain }: RaceResultsPro
                     {Math.round(result.wpm)}
                   </td>
                   <td className="py-2 text-right tabular-nums whitespace-nowrap pl-3">
-                    {Math.round(result.accuracy)}%
-                  </td>
-                  <td className="py-2 text-right tabular-nums whitespace-nowrap pl-3">
                     {result.eloChange != null ? (
                       <span
                         className={
@@ -106,7 +102,7 @@ export function RaceResults({ results, myPlayerId, onRaceAgain }: RaceResultsPro
       </div>
 
       <button
-        onClick={onRaceAgain}
+        onClick={() => onRaceAgain()}
         className="rounded-lg bg-accent/20 text-accent px-6 py-2 hover:bg-accent/30 transition-colors"
       >
         Race again

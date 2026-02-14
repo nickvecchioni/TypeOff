@@ -132,6 +132,18 @@ export function useRace() {
     setError(null);
   }, []);
 
+  const raceAgain = useCallback(
+    (guestName?: string) => {
+      setRaceState(null);
+      setProgress({});
+      setResults([]);
+      setCountdown(0);
+      setError(null);
+      joinQueue(guestName);
+    },
+    [joinQueue]
+  );
+
   return {
     connected,
     phase,
@@ -146,5 +158,6 @@ export function useRace() {
     sendProgress,
     sendFinish,
     reset,
+    raceAgain,
   };
 }
