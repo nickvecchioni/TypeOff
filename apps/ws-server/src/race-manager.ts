@@ -9,7 +9,7 @@ import type {
 } from "@typeoff/shared";
 import { calculateRaceElo, getRankTier, generateWords, commonWords } from "@typeoff/shared";
 import { createDb, races, raceParticipants, userStats, users } from "@typeoff/db";
-import { eq, sql } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import type { Matchmaker } from "./matchmaker.js";
 
 type TypedServer = Server<ClientToServerEvents, ServerToClientEvents>;
@@ -304,10 +304,15 @@ export class RaceManager {
       elo?: number;
     }> = [];
 
+    // Track per-player data for results
+    const eloChanges = new Map<string, number>();
+    const usernameMap = new Map<string, string>();
+    const eloAfterMap = new Map<string, number>();
+
     try {
       const db = createDb(process.env.DATABASE_URL!);
 
-      // Insert race record
+      // 1. Insert race record
       await db.insert(races).values({
         id: this.raceId,
         seed: this.seed,
@@ -317,27 +322,94 @@ export class RaceManager {
         finishedAt: new Date(),
       });
 
-      // Calculate ELO for authenticated (non-bot) players
-      const authPlayers = entries.filter((e) => !e.player.isGuest && !e.isBot);
-      let eloChanges = new Map<string, number>();
+      // 2. Insert participants and update stats FIRST (critical path)
+      for (const entry of entries) {
+        if (entry.isBot) continue;
 
+        const stats = entry.progress.finalStats!;
+        const placement = entry.progress.placement!;
+
+        // Insert participant record
+        await db.insert(raceParticipants).values({
+          raceId: this.raceId,
+          userId: entry.player.isGuest ? null : entry.player.id,
+          guestName: entry.player.isGuest ? entry.player.name : null,
+          placement,
+          wpm: stats.wpm,
+          rawWpm: stats.rawWpm,
+          accuracy: stats.accuracy,
+          finishedAt: new Date(),
+        });
+
+        // Update user stats for authenticated players
+        if (!entry.player.isGuest) {
+          const existing = await db
+            .select()
+            .from(userStats)
+            .where(eq(userStats.userId, entry.player.id));
+
+          if (existing.length === 0) {
+            await db.insert(userStats).values({
+              userId: entry.player.id,
+              racesPlayed: 1,
+              racesWon: placement === 1 ? 1 : 0,
+              avgWpm: stats.wpm,
+              maxWpm: stats.wpm,
+              avgAccuracy: stats.accuracy,
+            });
+          } else {
+            const s = existing[0];
+            const newPlayed = s.racesPlayed + 1;
+            await db
+              .update(userStats)
+              .set({
+                racesPlayed: newPlayed,
+                racesWon: s.racesWon + (placement === 1 ? 1 : 0),
+                avgWpm: (s.avgWpm * s.racesPlayed + stats.wpm) / newPlayed,
+                maxWpm: Math.max(s.maxWpm, stats.wpm),
+                avgAccuracy:
+                  (s.avgAccuracy * s.racesPlayed + stats.accuracy) / newPlayed,
+                updatedAt: new Date(),
+              })
+              .where(eq(userStats.userId, entry.player.id));
+          }
+
+          // Calibrate initial ELO after final placement race
+          if (this.placementRace === PLACEMENT_RACE_COUNT) {
+            const updatedStats = await db
+              .select()
+              .from(userStats)
+              .where(eq(userStats.userId, entry.player.id))
+              .limit(1);
+            if (updatedStats.length > 0) {
+              const avgWpm = updatedStats[0].avgWpm;
+              const initialElo = Math.min(1800, Math.max(600, Math.round(500 + avgWpm * 8.5)));
+              await db
+                .update(users)
+                .set({ eloRating: initialElo, rankTier: getRankTier(initialElo) })
+                .where(eq(users.id, entry.player.id));
+            }
+          }
+        }
+      }
+
+      // 3. Calculate ELO for ranked races (2+ authenticated players)
+      const authPlayers = entries.filter((e) => !e.player.isGuest && !e.isBot);
       if (authPlayers.length >= 2) {
-        // Load current stats for K-factor
         const playerIds = authPlayers.map((e) => e.player.id);
         const statsRows = await db
           .select()
           .from(userStats)
-          .where(sql`${userStats.userId} = ANY(${playerIds})`);
+          .where(inArray(userStats.userId, playerIds));
         const statsMap = new Map(statsRows.map((s) => [s.userId, s]));
 
-        // Load current ELO
         const userRows = await db
           .select({ id: users.id, eloRating: users.eloRating })
           .from(users)
-          .where(sql`${users.id} = ANY(${playerIds})`);
+          .where(inArray(users.id, playerIds));
         const eloMap = new Map(userRows.map((u) => [u.id, u.eloRating]));
 
-        eloChanges = calculateRaceElo(
+        const changes = calculateRaceElo(
           authPlayers.map((e) => ({
             id: e.player.id,
             elo: eloMap.get(e.player.id) ?? 1000,
@@ -346,8 +418,8 @@ export class RaceManager {
           }))
         );
 
-        // Update ELO and rank in users table
-        for (const [userId, change] of eloChanges) {
+        for (const [userId, change] of changes) {
+          eloChanges.set(userId, change);
           const currentElo = eloMap.get(userId) ?? 1000;
           const newElo = Math.max(0, currentElo + change);
           await db
@@ -355,134 +427,55 @@ export class RaceManager {
             .set({ eloRating: newElo, rankTier: getRankTier(newElo) })
             .where(eq(users.id, userId));
         }
-      }
 
-      // Load usernames for authenticated players
-      const authPlayerIds = entries
-        .filter((e) => !e.player.isGuest && !e.isBot)
-        .map((e) => e.player.id);
-      const usernameMap = new Map<string, string>();
-      const eloAfterMap = new Map<string, number>();
-      if (authPlayerIds.length > 0) {
-        const userRows = await db
-          .select({ id: users.id, username: users.username, eloRating: users.eloRating })
-          .from(users)
-          .where(sql`${users.id} = ANY(${authPlayerIds})`);
-        for (const row of userRows) {
-          if (row.username) usernameMap.set(row.id, row.username);
-          eloAfterMap.set(row.id, row.eloRating);
+        // Update participant records with elo data
+        for (const entry of authPlayers) {
+          const currentElo = eloMap.get(entry.player.id) ?? 1000;
+          const change = eloChanges.get(entry.player.id) ?? 0;
+          const newElo = Math.max(0, currentElo + change);
+          await db
+            .update(raceParticipants)
+            .set({ eloBefore: currentElo, eloAfter: newElo })
+            .where(eq(raceParticipants.raceId, this.raceId));
         }
       }
 
-      // Insert participant rows and update stats (skip bots for DB)
-      for (const entry of entries) {
-        const stats = entry.progress.finalStats!;
-        const placement = entry.progress.placement!;
-        const eloChange = eloChanges.get(entry.player.id) ?? null;
-
-        if (!entry.isBot) {
-          const eloBefore = entry.player.isGuest
-            ? null
-            : (eloChanges.has(entry.player.id)
-                ? (await db.select({ elo: users.eloRating }).from(users).where(eq(users.id, entry.player.id)))[0]?.elo ?? 1000
-                : null);
-
-          await db.insert(raceParticipants).values({
-            raceId: this.raceId,
-            userId: entry.player.isGuest ? null : entry.player.id,
-            guestName: entry.player.isGuest ? entry.player.name : null,
-            placement,
-            wpm: stats.wpm,
-            rawWpm: stats.rawWpm,
-            accuracy: stats.accuracy,
-            finishedAt: new Date(),
-            eloBefore: eloBefore != null ? eloBefore - (eloChange ?? 0) : null,
-            eloAfter: eloBefore ?? null,
-          });
-
-          // Update user stats for authenticated players
-          if (!entry.player.isGuest) {
-            const existing = await db
-              .select()
-              .from(userStats)
-              .where(eq(userStats.userId, entry.player.id));
-
-            let newPlayed = 1;
-            if (existing.length === 0) {
-              await db.insert(userStats).values({
-                userId: entry.player.id,
-                racesPlayed: 1,
-                racesWon: placement === 1 ? 1 : 0,
-                avgWpm: stats.wpm,
-                maxWpm: stats.wpm,
-                avgAccuracy: stats.accuracy,
-              });
-            } else {
-              const s = existing[0];
-              newPlayed = s.racesPlayed + 1;
-              await db
-                .update(userStats)
-                .set({
-                  racesPlayed: newPlayed,
-                  racesWon: s.racesWon + (placement === 1 ? 1 : 0),
-                  avgWpm: (s.avgWpm * s.racesPlayed + stats.wpm) / newPlayed,
-                  maxWpm: Math.max(s.maxWpm, stats.wpm),
-                  avgAccuracy:
-                    (s.avgAccuracy * s.racesPlayed + stats.accuracy) / newPlayed,
-                  updatedAt: new Date(),
-                })
-                .where(eq(userStats.userId, entry.player.id));
-            }
-
-            // Calibrate initial ELO after final placement race
-            if (this.placementRace === PLACEMENT_RACE_COUNT) {
-              const updatedStats = await db
-                .select()
-                .from(userStats)
-                .where(eq(userStats.userId, entry.player.id))
-                .limit(1);
-              if (updatedStats.length > 0) {
-                const avgWpm = updatedStats[0].avgWpm;
-                // Map WPM to ELO: ~60 WPM → 1000, scales linearly
-                const initialElo = Math.min(1800, Math.max(600, Math.round(500 + avgWpm * 8.5)));
-                await db
-                  .update(users)
-                  .set({ eloRating: initialElo, rankTier: getRankTier(initialElo) })
-                  .where(eq(users.id, entry.player.id));
-              }
-            }
+      // 4. Load display data (non-critical — if this fails, results still work)
+      try {
+        const authPlayerIds = entries
+          .filter((e) => !e.player.isGuest && !e.isBot)
+          .map((e) => e.player.id);
+        if (authPlayerIds.length > 0) {
+          const userRows = await db
+            .select({ id: users.id, username: users.username, eloRating: users.eloRating })
+            .from(users)
+            .where(inArray(users.id, authPlayerIds));
+          for (const row of userRows) {
+            if (row.username) usernameMap.set(row.id, row.username);
+            eloAfterMap.set(row.id, row.eloRating);
           }
         }
-
-        results.push({
-          playerId: entry.player.id,
-          name: entry.player.name,
-          username: usernameMap.get(entry.player.id),
-          placement,
-          wpm: stats.wpm,
-          rawWpm: stats.rawWpm,
-          accuracy: stats.accuracy,
-          eloChange,
-          elo: eloAfterMap.get(entry.player.id) ?? entry.player.elo,
-        });
+      } catch (displayErr) {
+        console.error("[race-manager] display data error:", displayErr);
       }
     } catch (err) {
       console.error("[race-manager] DB error:", err);
+    }
 
-      // Still return results even if DB fails
-      for (const entry of entries) {
-        const stats = entry.progress.finalStats!;
-        results.push({
-          playerId: entry.player.id,
-          name: entry.player.name,
-          placement: entry.progress.placement!,
-          wpm: stats.wpm,
-          rawWpm: stats.rawWpm,
-          accuracy: stats.accuracy,
-          eloChange: null,
-          elo: entry.player.elo,
-        });
-      }
+    // Build results array (always runs, even if DB failed)
+    for (const entry of entries) {
+      const stats = entry.progress.finalStats!;
+      results.push({
+        playerId: entry.player.id,
+        name: entry.player.name,
+        username: usernameMap.get(entry.player.id),
+        placement: entry.progress.placement!,
+        wpm: stats.wpm,
+        rawWpm: stats.rawWpm,
+        accuracy: stats.accuracy,
+        eloChange: eloChanges.get(entry.player.id) ?? null,
+        elo: eloAfterMap.get(entry.player.id) ?? entry.player.elo,
+      });
     }
 
     return results.sort((a, b) => a.placement - b.placement);

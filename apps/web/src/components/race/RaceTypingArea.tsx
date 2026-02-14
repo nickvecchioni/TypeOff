@@ -56,11 +56,19 @@ export function RaceTypingArea({
         wordIndex: engine.currentWordIndex,
         charIndex: engine.currentCharIndex,
       };
+
+      // Character-level progress for smooth race track
+      let typedChars = engine.currentCharIndex;
+      for (let i = 0; i < engine.currentWordIndex; i++) {
+        typedChars += engine.words[i]?.chars.length ?? 0;
+      }
+      const totalChars = engine.words.reduce((sum, w) => sum + w.chars.length, 0);
+
       onProgress({
         wordIndex: engine.currentWordIndex,
         charIndex: engine.currentCharIndex,
         wpm: engine.liveWpm,
-        progress: engine.currentWordIndex / wordCount,
+        progress: totalChars > 0 ? typedChars / totalChars : 0,
       });
     }
   }, [engine.currentWordIndex, engine.currentCharIndex, engine.status, engine.liveWpm, onProgress, wordCount]);

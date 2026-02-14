@@ -130,7 +130,7 @@ export class Matchmaker {
   }
 
   private checkQueue() {
-    if (this.queue.length < MAX_PLAYERS) return;
+    if (this.queue.length === 0) return;
 
     const now = Date.now();
     const matched = new Set<number>();

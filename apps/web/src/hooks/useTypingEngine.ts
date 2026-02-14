@@ -175,52 +175,47 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
 
   const handleCharacter = useCallback(
     (char: string) => {
-      setWords((prev) => {
-        const word = prev[currentWordIndex];
-        if (!word) return prev;
+      const word = words[currentWordIndex];
+      if (!word || currentCharIndex >= word.chars.length) return;
 
+      // Reject wrong character — exact typing required
+      if (char !== word.chars[currentCharIndex].expected) return;
+
+      setWords((prev) => {
         const newWords = [...prev];
         const newWord = {
-          chars: [...word.chars],
-          extraChars: [...word.extraChars],
+          chars: [...prev[currentWordIndex].chars],
+          extraChars: [],
         };
-
-        if (currentCharIndex < word.chars.length) {
-          // Typing within the word
-          const expected = word.chars[currentCharIndex].expected;
-          const isCorrect = char === expected;
-          newWord.chars[currentCharIndex] = {
-            expected,
-            actual: char,
-            status: isCorrect ? "correct" : "incorrect",
-          };
-          if (isCorrect) {
-            correctCharsRef.current++;
-          } else {
-            incorrectCharsRef.current++;
-          }
-        } else {
-          // Extra characters beyond word length
-          newWord.extraChars.push({
-            expected: "",
-            actual: char,
-            status: "incorrect",
-          });
-          extraCharsRef.current++;
-        }
-
-        totalCharsRef.current++;
+        newWord.chars[currentCharIndex] = {
+          expected: word.chars[currentCharIndex].expected,
+          actual: char,
+          status: "correct" as const,
+        };
         newWords[currentWordIndex] = newWord;
         return newWords;
       });
 
+      correctCharsRef.current++;
+      totalCharsRef.current++;
       setCurrentCharIndex((prev) => prev + 1);
+
+      // Auto-finish: last char of last word completes the test immediately
+      if (
+        currentCharIndex + 1 >= word.chars.length &&
+        config.mode === "wordcount" &&
+        currentWordIndex + 1 >= config.duration
+      ) {
+        finishTest();
+      }
     },
-    [currentWordIndex, currentCharIndex]
+    [words, currentWordIndex, currentCharIndex, config, finishTest]
   );
 
   const handleBackspace = useCallback(() => {
     if (currentCharIndex === 0) return; // No cross-word backspace
+
+    const prevIdx = currentCharIndex - 1;
 
     setWords((prev) => {
       const word = prev[currentWordIndex];
@@ -229,72 +224,34 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
       const newWords = [...prev];
       const newWord = {
         chars: [...word.chars],
-        extraChars: [...word.extraChars],
+        extraChars: [],
       };
-
-      const prevCharIdx = currentCharIndex - 1;
-
-      if (prevCharIdx >= word.chars.length) {
-        // Deleting an extra char
-        const removed = newWord.extraChars.pop();
-        if (removed) {
-          extraCharsRef.current--;
-          totalCharsRef.current--;
-        }
-      } else {
-        // Deleting a normal char
-        const charState = word.chars[prevCharIdx];
-        if (charState.status === "correct") {
-          correctCharsRef.current--;
-        } else if (charState.status === "incorrect") {
-          incorrectCharsRef.current--;
-        }
-        totalCharsRef.current--;
-        newWord.chars[prevCharIdx] = {
-          expected: charState.expected,
-          actual: null,
-          status: "idle",
-        };
-      }
-
+      newWord.chars[prevIdx] = {
+        expected: word.chars[prevIdx].expected,
+        actual: null,
+        status: "idle" as const,
+      };
       newWords[currentWordIndex] = newWord;
       return newWords;
     });
 
+    correctCharsRef.current--;
+    totalCharsRef.current--;
     setCurrentCharIndex((prev) => prev - 1);
   }, [currentWordIndex, currentCharIndex]);
 
   const handleSpace = useCallback(() => {
-    if (currentCharIndex === 0) return; // Don't skip empty words
+    // Only allow space when the current word is fully typed
+    const word = words[currentWordIndex];
+    if (!word || currentCharIndex < word.chars.length) return;
 
-    // Count the space keystroke (standard WPM includes spaces between words)
+    // Count the space keystroke
     correctCharsRef.current++;
     totalCharsRef.current++;
 
-    // Mark remaining untyped chars in current word as incorrect
-    setWords((prev) => {
-      const word = prev[currentWordIndex];
-      if (!word) return prev;
-
-      const newWords = [...prev];
-      const newWord = { chars: [...word.chars], extraChars: [...word.extraChars] };
-      for (let i = currentCharIndex; i < word.chars.length; i++) {
-        if (word.chars[i].status === "idle") {
-          newWord.chars[i] = {
-            ...word.chars[i],
-            status: "incorrect",
-          };
-          incorrectCharsRef.current++;
-          totalCharsRef.current++;
-        }
-      }
-      newWords[currentWordIndex] = newWord;
-      return newWords;
-    });
-
     const nextWordIndex = currentWordIndex + 1;
 
-    // In wordcount mode, check if we've finished all words
+    // Last word auto-finishes via handleCharacter, but keep as safety net
     if (config.mode === "wordcount" && nextWordIndex >= config.duration) {
       finishTest();
       return;
@@ -302,7 +259,7 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
 
     setCurrentWordIndex(nextWordIndex);
     setCurrentCharIndex(0);
-  }, [currentWordIndex, currentCharIndex, config, finishTest]);
+  }, [words, currentWordIndex, currentCharIndex, config, finishTest]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent | KeyboardEvent) => {
