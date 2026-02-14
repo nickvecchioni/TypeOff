@@ -1,6 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
+import { useSession } from "next-auth/react";
+import { RankBadge } from "@/components/RankBadge";
+import type { RankTier } from "@typeoff/shared";
 
 interface QueueScreenProps {
   isQueuing: boolean;
@@ -20,6 +23,7 @@ export function QueueScreen({
   isAuthenticated,
 }: QueueScreenProps) {
   const [guestName, setGuestName] = useState("");
+  const { data: session } = useSession();
 
   const handleJoin = () => {
     onJoin(isAuthenticated ? undefined : guestName || undefined);
@@ -28,6 +32,13 @@ export function QueueScreen({
   if (isQueuing) {
     return (
       <div className="flex flex-col items-center gap-6 animate-fade-in">
+        {session?.user && (
+          <RankBadge
+            tier={(session.user.rankTier as RankTier) ?? "bronze"}
+            elo={session.user.eloRating}
+            size="md"
+          />
+        )}
         <div className="text-2xl text-accent tabular-nums">{queueCount}</div>
         <p className="text-muted text-sm">
           {queueCount === 1 ? "player" : "players"} in queue

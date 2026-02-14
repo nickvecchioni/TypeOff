@@ -12,11 +12,13 @@ export type RacePhase = "idle" | "queuing" | "countdown" | "racing" | "finished"
 export interface RaceResult {
   playerId: string;
   name: string;
+  username?: string;
   placement: number;
   wpm: number;
   rawWpm: number;
   accuracy: number;
   eloChange: number | null;
+  elo?: number;
 }
 
 export function useRace() {

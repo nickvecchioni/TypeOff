@@ -15,6 +15,8 @@ export async function GET() {
   const token = await new SignJWT({
     sub: session.user.id,
     name: session.user.name ?? "Anonymous",
+    elo: session.user.eloRating ?? 1000,
+    username: session.user.username ?? null,
   })
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("5m")

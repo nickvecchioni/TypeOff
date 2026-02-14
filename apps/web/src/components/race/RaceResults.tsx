@@ -1,7 +1,10 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import type { RaceResult } from "@/hooks/useRace";
+import { getRankTier } from "@typeoff/shared";
+import { RankBadge } from "@/components/RankBadge";
 
 interface RaceResultsProps {
   results: RaceResult[];
@@ -28,6 +31,17 @@ export function RaceResults({ results, myPlayerId, onRaceAgain }: RaceResultsPro
           <tbody>
             {results.map((result) => {
               const isMe = result.playerId === myPlayerId;
+              const isGuest = result.playerId.startsWith("guest_") || result.playerId.startsWith("bot_");
+              const tier = getRankTier(result.elo ?? 1000);
+
+              const nameContent = (
+                <span className="flex items-center gap-2">
+                  {!isGuest && <RankBadge tier={tier} />}
+                  {result.name}
+                  {isMe && " (you)"}
+                </span>
+              );
+
               return (
                 <tr
                   key={result.playerId}
@@ -37,8 +51,16 @@ export function RaceResults({ results, myPlayerId, onRaceAgain }: RaceResultsPro
                 >
                   <td className="py-2 font-bold">{result.placement}</td>
                   <td className="py-2">
-                    {result.name}
-                    {isMe && " (you)"}
+                    {result.username && !isGuest ? (
+                      <Link
+                        href={`/profile/${result.username}`}
+                        className="hover:text-accent transition-colors"
+                      >
+                        {nameContent}
+                      </Link>
+                    ) : (
+                      nameContent
+                    )}
                   </td>
                   <td className="py-2 text-right tabular-nums">{result.wpm}</td>
                   <td className="py-2 text-right tabular-nums">

@@ -2,6 +2,8 @@
 
 import React from "react";
 import type { RacePlayer, RacePlayerProgress } from "@typeoff/shared";
+import { getRankTier } from "@typeoff/shared";
+import { RankBadge } from "@/components/RankBadge";
 
 interface RaceTrackProps {
   players: RacePlayer[];
@@ -29,7 +31,8 @@ export function RaceTrack({ players, progress, myPlayerId }: RaceTrackProps) {
         return (
           <div key={player.id} className="flex flex-col gap-1">
             <div className="flex justify-between text-sm">
-              <span className={isMe ? "text-accent font-bold" : "text-text"}>
+              <span className={`flex items-center gap-2 ${isMe ? "text-accent font-bold" : "text-text"}`}>
+                <RankBadge tier={getRankTier(player.elo)} />
                 {player.name}
                 {isMe && " (you)"}
                 {finished && p?.placement && ` #${p.placement}`}

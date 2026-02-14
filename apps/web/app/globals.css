@@ -10,6 +10,13 @@
   --color-current: #f5e0dc;
   --color-accent: #cba6f7;
 
+  --color-rank-bronze: #d97706;
+  --color-rank-silver: #9ca3af;
+  --color-rank-gold: #eab308;
+  --color-rank-platinum: #22d3ee;
+  --color-rank-diamond: #3b82f6;
+  --color-rank-master: #a855f7;
+
   --font-mono: "JetBrains Mono", monospace;
 
   --animate-blink: blink 1s step-end infinite;

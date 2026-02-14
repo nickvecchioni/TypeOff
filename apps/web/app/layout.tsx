@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono } from "next/font/google";
+import Link from "next/link";
 import { SessionProvider } from "@/components/auth/SessionProvider";
 import { UserMenu } from "@/components/auth/UserMenu";
 import "./globals.css";
@@ -25,9 +26,15 @@ export default function RootLayout({
         <SessionProvider>
           <nav className="flex items-center justify-between px-6 py-4">
             <div className="flex items-center gap-6">
-              <span className="text-accent font-bold">
+              <Link href="/" className="text-accent font-bold hover:text-accent/80 transition-colors">
                 TypeOff
-              </span>
+              </Link>
+              <Link
+                href="/leaderboard"
+                className="text-sm text-muted hover:text-text transition-colors"
+              >
+                Leaderboard
+              </Link>
             </div>
             <UserMenu />
           </nav>

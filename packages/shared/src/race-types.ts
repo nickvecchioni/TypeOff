@@ -64,11 +64,13 @@ export interface ServerToClientEvents {
     results: Array<{
       playerId: string;
       name: string;
+      username?: string;
       placement: number;
       wpm: number;
       rawWpm: number;
       accuracy: number;
       eloChange: number | null;
+      elo?: number;
     }>;
   }) => void;
   error: (data: { message: string }) => void;

@@ -25,7 +25,7 @@ export async function authenticateSocket(
       id: payload.sub!,
       name: (payload.name as string) ?? "Player",
       isGuest: false,
-      elo: 1000, // Will be loaded from DB in race manager
+      elo: (payload.elo as number) ?? 1000,
     };
   } catch {
     throw new Error("Invalid or expired token");

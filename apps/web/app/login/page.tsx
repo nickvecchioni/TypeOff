@@ -47,7 +47,7 @@ export default function LoginPage() {
       </div>
 
       <div className="mt-8">
-        <Link href="/race" className="text-muted hover:text-accent transition-colors text-sm">
+        <Link href="/" className="text-muted hover:text-accent transition-colors text-sm">
           Continue as guest
         </Link>
       </div>

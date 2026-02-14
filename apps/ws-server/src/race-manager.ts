@@ -28,9 +28,14 @@ const WORD_COUNT = 50;
 const FINISH_TIMEOUT_MS = 30_000;
 const PROGRESS_INTERVAL_MS = 100;
 
-const BOT_WPM_MIN = 40;
-const BOT_WPM_MAX = 80;
+const DEFAULT_BOT_WPM_MIN = 40;
+const DEFAULT_BOT_WPM_MAX = 80;
 const BOT_WPM_VARIANCE = 5;
+
+export interface BotWpmConfig {
+  botWpmMin: number;
+  botWpmMax: number;
+}
 
 export class RaceManager {
   readonly raceId: string;
@@ -49,7 +54,8 @@ export class RaceManager {
     private io: TypedServer,
     entries: Array<{ socket: TypedSocket; player: RacePlayer }>,
     private matchmaker: Matchmaker,
-    bots: RacePlayer[] = []
+    bots: RacePlayer[] = [],
+    botWpmConfig?: BotWpmConfig
   ) {
     this.raceId = crypto.randomUUID();
     this.seed = Math.floor(Math.random() * 2147483647);
@@ -79,8 +85,10 @@ export class RaceManager {
     }
 
     // Add bot players (keyed by player id, null socket)
+    const wpmMin = botWpmConfig?.botWpmMin ?? DEFAULT_BOT_WPM_MIN;
+    const wpmMax = botWpmConfig?.botWpmMax ?? DEFAULT_BOT_WPM_MAX;
     for (const bot of bots) {
-      const targetWpm = BOT_WPM_MIN + Math.random() * (BOT_WPM_MAX - BOT_WPM_MIN);
+      const targetWpm = wpmMin + Math.random() * (wpmMax - wpmMin);
       this.players.set(bot.id, {
         socket: null,
         player: bot,
@@ -282,11 +290,13 @@ export class RaceManager {
     const results: Array<{
       playerId: string;
       name: string;
+      username?: string;
       placement: number;
       wpm: number;
       rawWpm: number;
       accuracy: number;
       eloChange: number | null;
+      elo?: number;
     }> = [];
 
     try {
@@ -339,6 +349,23 @@ export class RaceManager {
             .update(users)
             .set({ eloRating: newElo, rankTier: getRankTier(newElo) })
             .where(eq(users.id, userId));
+        }
+      }
+
+      // Load usernames for authenticated players
+      const authPlayerIds = entries
+        .filter((e) => !e.player.isGuest && !e.isBot)
+        .map((e) => e.player.id);
+      const usernameMap = new Map<string, string>();
+      const eloAfterMap = new Map<string, number>();
+      if (authPlayerIds.length > 0) {
+        const userRows = await db
+          .select({ id: users.id, username: users.username, eloRating: users.eloRating })
+          .from(users)
+          .where(sql`${users.id} = ANY(${authPlayerIds})`);
+        for (const row of userRows) {
+          if (row.username) usernameMap.set(row.id, row.username);
+          eloAfterMap.set(row.id, row.eloRating);
         }
       }
 
@@ -406,11 +433,13 @@ export class RaceManager {
         results.push({
           playerId: entry.player.id,
           name: entry.player.name,
+          username: usernameMap.get(entry.player.id),
           placement,
           wpm: stats.wpm,
           rawWpm: stats.rawWpm,
           accuracy: stats.accuracy,
           eloChange,
+          elo: eloAfterMap.get(entry.player.id) ?? entry.player.elo,
         });
       }
     } catch (err) {
@@ -427,6 +456,7 @@ export class RaceManager {
           rawWpm: stats.rawWpm,
           accuracy: stats.accuracy,
           eloChange: null,
+          elo: entry.player.elo,
         });
       }
     }

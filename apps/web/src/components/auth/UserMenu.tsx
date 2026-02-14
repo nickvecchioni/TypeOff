@@ -2,6 +2,8 @@
 
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
+import { RankBadge } from "@/components/RankBadge";
+import type { RankTier } from "@typeoff/shared";
 
 export function UserMenu() {
   const { data: session, status } = useSession();
@@ -21,9 +23,22 @@ export function UserMenu() {
     );
   }
 
+  const profileHref = session.user.username
+    ? `/profile/${session.user.username}`
+    : "#";
+
   return (
     <div className="flex items-center gap-3">
-      <span className="text-sm text-text">{session.user.name}</span>
+      <RankBadge
+        tier={(session.user.rankTier as RankTier) ?? "bronze"}
+        elo={session.user.eloRating}
+      />
+      <Link
+        href={profileHref}
+        className="text-sm text-text hover:text-accent transition-colors"
+      >
+        {session.user.name}
+      </Link>
       {session.user.image && (
         <img
           src={session.user.image}
