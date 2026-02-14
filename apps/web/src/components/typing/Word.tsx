@@ -14,19 +14,20 @@ interface WordProps {
 
 const WordInner = forwardRef<HTMLSpanElement, WordProps>(
   function WordInner({ word, isActive, charIndex, isTyping }, ref) {
-    // Check if word was completed with errors
-    const hasErrors =
-      !isActive &&
-      (word.chars.some((c) => c.status === "incorrect") ||
-        word.extraChars.length > 0 ||
-        word.chars.some((c) => c.status === "idle" && word.chars[0].status !== "idle"));
+    const hasErrors = word.chars.some((c) => c.status === "incorrect");
 
     return (
       <span
         ref={ref}
         className={`relative inline-block mr-[1ch] ${
-          isActive ? "border-b-2 border-accent/50" : ""
-        } ${hasErrors ? "border-b-2 border-error/50" : ""}`}
+          isActive
+            ? hasErrors
+              ? "border-b-2 border-error bg-error/5 rounded-sm"
+              : "border-b-2 border-accent/50"
+            : hasErrors
+            ? "border-b-2 border-error/50"
+            : ""
+        }`}
       >
         {word.chars.map((char, i) => (
           <Character key={i} char={char} />

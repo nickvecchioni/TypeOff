@@ -7,6 +7,7 @@ import { eq, desc } from "drizzle-orm";
 import type { RankTier } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
 import { UsernameEditor } from "./username-editor";
+import { SignOutButton } from "./sign-out-button";
 
 export default async function ProfilePage({
   params,
@@ -186,6 +187,12 @@ export default async function ProfilePage({
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {isOwn && (
+          <div className="pt-4">
+            <SignOutButton />
           </div>
         )}
       </div>

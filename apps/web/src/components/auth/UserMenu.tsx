@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { RankBadge } from "@/components/RankBadge";
 import type { RankTier } from "@typeoff/shared";
@@ -69,12 +69,6 @@ export function UserMenu() {
       >
         {session.user.username ?? "set username"}
       </Link>
-      <button
-        onClick={() => signOut()}
-        className="text-sm text-muted hover:text-error transition-colors"
-      >
-        Sign out
-      </button>
     </div>
   );
 }

@@ -31,66 +31,46 @@ export default async function LeaderboardPage() {
 
   return (
     <main className="flex-1 overflow-y-auto px-6 py-8">
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-lg mx-auto">
         <h1 className="text-2xl font-bold text-accent mb-6">Leaderboard</h1>
 
-        <table className="w-full text-left text-sm">
-          <thead>
-            <tr className="text-muted border-b border-surface">
-              <th className="pb-2 w-12">#</th>
-              <th className="pb-2">Player</th>
-              <th className="pb-2 text-right">ELO</th>
-              <th className="pb-2 text-right">Rank</th>
-              <th className="pb-2 text-right">Races</th>
-              <th className="pb-2 text-right">Avg WPM</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row, i) => {
-              const rank = i + 1;
-              const isMe = session?.user?.id === row.id;
-              const podiumColor = rank <= 3 ? PODIUM_COLORS[rank - 1] : "";
+        <div className="space-y-2">
+          {rows.map((row, i) => {
+            const rank = i + 1;
+            const isMe = session?.user?.id === row.id;
+            const podiumColor = rank <= 3 ? PODIUM_COLORS[rank - 1] : "text-muted";
 
-              return (
-                <tr
-                  key={row.id}
-                  className={`border-b border-surface/50 ${
-                    isMe ? "bg-accent/5 text-accent" : "text-text"
-                  }`}
-                >
-                  <td className={`py-2 font-bold ${podiumColor}`}>{rank}</td>
-                  <td className="py-2">
-                    <Link
-                      href={`/profile/${row.username}`}
-                      className="hover:text-accent transition-colors"
-                    >
-                      {row.username}
-                    </Link>
-                  </td>
-                  <td className="py-2 text-right tabular-nums font-bold">
-                    {row.eloRating}
-                  </td>
-                  <td className="py-2 text-right">
-                    <RankBadge tier={row.rankTier as RankTier} />
-                  </td>
-                  <td className="py-2 text-right tabular-nums text-muted">
-                    {row.racesPlayed ?? 0}
-                  </td>
-                  <td className="py-2 text-right tabular-nums text-muted">
-                    {row.avgWpm != null ? Math.round(row.avgWpm) : 0}
-                  </td>
-                </tr>
-              );
-            })}
-            {rows.length === 0 && (
-              <tr>
-                <td colSpan={6} className="py-8 text-center text-muted">
-                  No players yet. Be the first!
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+            return (
+              <Link
+                key={row.id}
+                href={`/profile/${row.username}`}
+                className={`flex items-center gap-3 rounded-lg px-4 py-3 transition-colors ${
+                  isMe
+                    ? "bg-accent/10 ring-1 ring-accent/20"
+                    : "bg-surface hover:bg-surface/80"
+                }`}
+              >
+                <span className={`w-6 text-sm font-bold ${podiumColor} tabular-nums`}>
+                  {rank}
+                </span>
+                <RankBadge tier={row.rankTier as RankTier} />
+                <span className={`flex-1 truncate text-sm font-medium ${isMe ? "text-accent" : "text-text"}`}>
+                  {row.username}
+                </span>
+                <div className="flex items-center gap-4 text-sm tabular-nums">
+                  <span className="text-text font-bold">{row.eloRating}</span>
+                  <span className="text-muted w-12 text-right">{row.avgWpm != null ? Math.round(row.avgWpm) : 0} wpm</span>
+                  <span className="text-muted/60 w-8 text-right">{row.racesPlayed ?? 0}</span>
+                </div>
+              </Link>
+            );
+          })}
+          {rows.length === 0 && (
+            <div className="py-12 text-center text-muted">
+              No players yet. Be the first!
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );
