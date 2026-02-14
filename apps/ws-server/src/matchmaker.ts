@@ -18,6 +18,12 @@ interface QueueEntry {
 const MIN_PLAYERS = 2;
 const MAX_PLAYERS = 5;
 const QUEUE_WAIT_MS = 10_000;
+const BOT_WAIT_MS = 20_000;
+
+const BOT_NAMES = [
+  "SpeedyBot", "TypeRacer", "KeyMaster", "SwiftKeys",
+  "QuickType", "FlashFingers", "TurboTypist", "NimbleBot",
+];
 
 export class Matchmaker {
   private queue: QueueEntry[] = [];
@@ -88,10 +94,20 @@ export class Matchmaker {
   }
 
   private checkQueue() {
-    if (this.queue.length < MIN_PLAYERS) return;
+    if (this.queue.length === 0) return;
 
     const oldest = this.queue[0];
-    if (Date.now() - oldest.joinedAt >= QUEUE_WAIT_MS) {
+    const waited = Date.now() - oldest.joinedAt;
+
+    // Solo player waited long enough — inject a bot
+    if (this.queue.length === 1 && waited >= BOT_WAIT_MS) {
+      const entry = this.queue.splice(0, 1)[0];
+      this.startRaceWithBot(entry);
+      this.broadcastQueueCount();
+      return;
+    }
+
+    if (this.queue.length >= MIN_PLAYERS && waited >= QUEUE_WAIT_MS) {
       const batch = this.queue.splice(0, Math.min(this.queue.length, MAX_PLAYERS));
       this.startRace(batch);
       this.broadcastQueueCount();
@@ -106,6 +122,21 @@ export class Matchmaker {
       this.socketToRace.set(entry.socket.id, race.raceId);
     }
 
+    race.start();
+  }
+
+  private startRaceWithBot(entry: QueueEntry) {
+    const botName = BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)];
+    const bot: RacePlayer = {
+      id: `bot_${crypto.randomUUID()}`,
+      name: botName,
+      isGuest: true,
+      elo: 1000,
+    };
+
+    const race = new RaceManager(this.io, [entry], this, [bot]);
+    this.races.set(race.raceId, race);
+    this.socketToRace.set(entry.socket.id, race.raceId);
     race.start();
   }
 

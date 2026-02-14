@@ -7,7 +7,7 @@ import type {
   RaceState,
   RaceStatus,
 } from "@typeoff/shared";
-import { calculateRaceElo, getRankTier } from "@typeoff/shared";
+import { calculateRaceElo, getRankTier, generateWords, commonWords } from "@typeoff/shared";
 import { createDb, races, raceParticipants, userStats, users } from "@typeoff/db";
 import { eq, sql } from "drizzle-orm";
 import type { Matchmaker } from "./matchmaker.js";
@@ -16,15 +16,21 @@ type TypedServer = Server<ClientToServerEvents, ServerToClientEvents>;
 type TypedSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
 
 interface PlayerEntry {
-  socket: TypedSocket;
+  socket: TypedSocket | null;
   player: RacePlayer;
   progress: RacePlayerProgress;
+  isBot: boolean;
+  botTargetWpm: number;
 }
 
 const COUNTDOWN_SECONDS = 5;
 const WORD_COUNT = 50;
 const FINISH_TIMEOUT_MS = 30_000;
 const PROGRESS_INTERVAL_MS = 100;
+
+const BOT_WPM_MIN = 40;
+const BOT_WPM_MAX = 80;
+const BOT_WPM_VARIANCE = 5;
 
 export class RaceManager {
   readonly raceId: string;
@@ -37,15 +43,22 @@ export class RaceManager {
   private finishTimer: ReturnType<typeof setTimeout> | null = null;
   private finishTimeoutEnd: number | null = null;
   private startedAt: Date | null = null;
+  private totalChars = 0;
 
   constructor(
     private io: TypedServer,
     entries: Array<{ socket: TypedSocket; player: RacePlayer }>,
-    private matchmaker: Matchmaker
+    private matchmaker: Matchmaker,
+    bots: RacePlayer[] = []
   ) {
     this.raceId = crypto.randomUUID();
     this.seed = Math.floor(Math.random() * 2147483647);
 
+    // Compute total character count for bot simulation
+    const words = generateWords(commonWords, WORD_COUNT, this.seed);
+    this.totalChars = words.reduce((sum, w) => sum + w.length, 0) + (WORD_COUNT - 1);
+
+    // Add real players first (Map insertion order matters for guest identification)
     for (const entry of entries) {
       this.players.set(entry.socket.id, {
         socket: entry.socket,
@@ -60,6 +73,29 @@ export class RaceManager {
           placement: null,
           finalStats: null,
         },
+        isBot: false,
+        botTargetWpm: 0,
+      });
+    }
+
+    // Add bot players (keyed by player id, null socket)
+    for (const bot of bots) {
+      const targetWpm = BOT_WPM_MIN + Math.random() * (BOT_WPM_MAX - BOT_WPM_MIN);
+      this.players.set(bot.id, {
+        socket: null,
+        player: bot,
+        progress: {
+          playerId: bot.id,
+          wordIndex: 0,
+          charIndex: 0,
+          wpm: 0,
+          progress: 0,
+          finished: false,
+          placement: null,
+          finalStats: null,
+        },
+        isBot: true,
+        botTargetWpm: targetWpm,
       });
     }
   }
@@ -68,9 +104,9 @@ export class RaceManager {
     this.status = "countdown";
     let countdown = COUNTDOWN_SECONDS;
 
-    // Join all sockets to a room
+    // Join all sockets to a room (skip bots)
     for (const entry of this.players.values()) {
-      entry.socket.join(this.raceId);
+      entry.socket?.join(this.raceId);
     }
 
     // Send initial race state
@@ -146,8 +182,10 @@ export class RaceManager {
 
     this.players.delete(socketId);
 
-    if (this.players.size === 0) {
-      this.cleanup();
+    // End race if no real players remain
+    const hasRealPlayers = [...this.players.values()].some((p) => !p.isBot);
+    if (!hasRealPlayers) {
+      this.endRace();
     }
   }
 
@@ -157,8 +195,55 @@ export class RaceManager {
 
     // Broadcast progress at 10Hz
     this.progressTimer = setInterval(() => {
+      this.tickBots();
       this.broadcastProgress();
     }, PROGRESS_INTERVAL_MS);
+  }
+
+  private tickBots() {
+    for (const entry of this.players.values()) {
+      if (!entry.isBot || entry.progress.finished) continue;
+
+      // Per-tick WPM jitter for natural feel
+      const jitter = (Math.random() - 0.5) * 2 * BOT_WPM_VARIANCE;
+      const effectiveWpm = Math.max(10, entry.botTargetWpm + jitter);
+
+      // WPM = (chars / 5) / minutes → chars/min = WPM * 5
+      // At 100ms intervals: chars/tick = (WPM * 5) / (60 * 10)
+      const charsPerTick = (effectiveWpm * 5) / 600;
+      const progressPerTick = charsPerTick / this.totalChars;
+
+      entry.progress.progress = Math.min(1, entry.progress.progress + progressPerTick);
+      entry.progress.wpm = Math.round(effectiveWpm);
+      entry.progress.wordIndex = Math.floor(entry.progress.progress * WORD_COUNT);
+
+      if (entry.progress.progress >= 1) {
+        entry.progress.progress = 1;
+        entry.progress.finished = true;
+        entry.progress.placement = this.nextPlacement++;
+        entry.progress.wordIndex = WORD_COUNT;
+        entry.progress.finalStats = {
+          wpm: Math.round(entry.botTargetWpm),
+          rawWpm: Math.round(entry.botTargetWpm),
+          accuracy: 95 + Math.random() * 5,
+        };
+
+        // First finisher starts the finish timeout
+        if (entry.progress.placement === 1) {
+          this.finishTimeoutEnd = Date.now() + FINISH_TIMEOUT_MS;
+          this.finishTimer = setTimeout(() => this.endRace(), FINISH_TIMEOUT_MS);
+        }
+
+        // Check if all players finished
+        const allFinished = [...this.players.values()].every(
+          (p) => p.progress.finished
+        );
+        if (allFinished) {
+          this.endRace();
+          return;
+        }
+      }
+    }
   }
 
   private broadcastProgress() {
@@ -217,8 +302,8 @@ export class RaceManager {
         finishedAt: new Date(),
       });
 
-      // Calculate ELO for authenticated players
-      const authPlayers = entries.filter((e) => !e.player.isGuest);
+      // Calculate ELO for authenticated (non-bot) players
+      const authPlayers = entries.filter((e) => !e.player.isGuest && !e.isBot);
       let eloChanges = new Map<string, number>();
 
       if (authPlayers.length >= 2) {
@@ -257,61 +342,64 @@ export class RaceManager {
         }
       }
 
-      // Insert participant rows and update stats
+      // Insert participant rows and update stats (skip bots for DB)
       for (const entry of entries) {
         const stats = entry.progress.finalStats!;
         const placement = entry.progress.placement!;
         const eloChange = eloChanges.get(entry.player.id) ?? null;
-        const eloBefore = entry.player.isGuest
-          ? null
-          : (eloChanges.has(entry.player.id)
-              ? (await db.select({ elo: users.eloRating }).from(users).where(eq(users.id, entry.player.id)))[0]?.elo ?? 1000
-              : null);
 
-        await db.insert(raceParticipants).values({
-          raceId: this.raceId,
-          userId: entry.player.isGuest ? null : entry.player.id,
-          guestName: entry.player.isGuest ? entry.player.name : null,
-          placement,
-          wpm: stats.wpm,
-          rawWpm: stats.rawWpm,
-          accuracy: stats.accuracy,
-          finishedAt: new Date(),
-          eloBefore: eloBefore != null ? eloBefore - (eloChange ?? 0) : null,
-          eloAfter: eloBefore ?? null,
-        });
+        if (!entry.isBot) {
+          const eloBefore = entry.player.isGuest
+            ? null
+            : (eloChanges.has(entry.player.id)
+                ? (await db.select({ elo: users.eloRating }).from(users).where(eq(users.id, entry.player.id)))[0]?.elo ?? 1000
+                : null);
 
-        // Update user stats for authenticated players
-        if (!entry.player.isGuest) {
-          const existing = await db
-            .select()
-            .from(userStats)
-            .where(eq(userStats.userId, entry.player.id));
+          await db.insert(raceParticipants).values({
+            raceId: this.raceId,
+            userId: entry.player.isGuest ? null : entry.player.id,
+            guestName: entry.player.isGuest ? entry.player.name : null,
+            placement,
+            wpm: stats.wpm,
+            rawWpm: stats.rawWpm,
+            accuracy: stats.accuracy,
+            finishedAt: new Date(),
+            eloBefore: eloBefore != null ? eloBefore - (eloChange ?? 0) : null,
+            eloAfter: eloBefore ?? null,
+          });
 
-          if (existing.length === 0) {
-            await db.insert(userStats).values({
-              userId: entry.player.id,
-              racesPlayed: 1,
-              racesWon: placement === 1 ? 1 : 0,
-              avgWpm: stats.wpm,
-              maxWpm: stats.wpm,
-              avgAccuracy: stats.accuracy,
-            });
-          } else {
-            const s = existing[0];
-            const newPlayed = s.racesPlayed + 1;
-            await db
-              .update(userStats)
-              .set({
-                racesPlayed: newPlayed,
-                racesWon: s.racesWon + (placement === 1 ? 1 : 0),
-                avgWpm: (s.avgWpm * s.racesPlayed + stats.wpm) / newPlayed,
-                maxWpm: Math.max(s.maxWpm, stats.wpm),
-                avgAccuracy:
-                  (s.avgAccuracy * s.racesPlayed + stats.accuracy) / newPlayed,
-                updatedAt: new Date(),
-              })
+          // Update user stats for authenticated players
+          if (!entry.player.isGuest) {
+            const existing = await db
+              .select()
+              .from(userStats)
               .where(eq(userStats.userId, entry.player.id));
+
+            if (existing.length === 0) {
+              await db.insert(userStats).values({
+                userId: entry.player.id,
+                racesPlayed: 1,
+                racesWon: placement === 1 ? 1 : 0,
+                avgWpm: stats.wpm,
+                maxWpm: stats.wpm,
+                avgAccuracy: stats.accuracy,
+              });
+            } else {
+              const s = existing[0];
+              const newPlayed = s.racesPlayed + 1;
+              await db
+                .update(userStats)
+                .set({
+                  racesPlayed: newPlayed,
+                  racesWon: s.racesWon + (placement === 1 ? 1 : 0),
+                  avgWpm: (s.avgWpm * s.racesPlayed + stats.wpm) / newPlayed,
+                  maxWpm: Math.max(s.maxWpm, stats.wpm),
+                  avgAccuracy:
+                    (s.avgAccuracy * s.racesPlayed + stats.accuracy) / newPlayed,
+                  updatedAt: new Date(),
+                })
+                .where(eq(userStats.userId, entry.player.id));
+            }
           }
         }
 
@@ -351,9 +439,12 @@ export class RaceManager {
     if (this.progressTimer) clearInterval(this.progressTimer);
     if (this.finishTimer) clearTimeout(this.finishTimer);
 
-    const socketIds = [...this.players.keys()];
-    for (const entry of this.players.values()) {
-      entry.socket.leave(this.raceId);
+    const socketIds: string[] = [];
+    for (const [key, entry] of this.players.entries()) {
+      if (entry.socket) {
+        entry.socket.leave(this.raceId);
+        socketIds.push(key);
+      }
     }
     this.matchmaker.cleanupRace(this.raceId, socketIds);
   }
