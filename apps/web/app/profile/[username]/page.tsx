@@ -5,6 +5,7 @@ import { getDb } from "@/lib/db";
 import { users, userStats, raceParticipants, races } from "@typeoff/db";
 import { eq, desc } from "drizzle-orm";
 import type { RankTier } from "@typeoff/shared";
+import { getRankInfo, getRankProgress, getNextDivisionElo } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
 import { UsernameEditor } from "./username-editor";
 import { SignOutButton } from "./sign-out-button";
@@ -88,6 +89,7 @@ export default async function ProfilePage({
             elo={user.eloRating}
             size="md"
           />
+          <RankProgressBar elo={user.eloRating} />
           {user.peakEloRating > user.eloRating && (
             <div className="flex items-center gap-2 text-sm text-muted">
               <span>Peak:</span>
@@ -211,6 +213,37 @@ function StatCard({
     <div className="rounded-lg bg-surface px-4 py-3 text-center">
       <div className="text-xl font-bold text-text tabular-nums">{value}</div>
       <div className="text-xs text-muted mt-1">{label}</div>
+    </div>
+  );
+}
+
+function RankProgressBar({ elo }: { elo: number }) {
+  const info = getRankInfo(elo);
+  const progress = getRankProgress(elo);
+  const nextElo = getNextDivisionElo(elo);
+
+  if (info.tier === "grandmaster") {
+    return (
+      <div className="text-xs text-muted">
+        Grandmaster — no ceiling
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full max-w-xs space-y-1">
+      <div className="flex justify-between text-xs text-muted">
+        <span>{info.label}</span>
+        {nextElo != null && (
+          <span className="tabular-nums">{nextElo - elo} ELO to next</span>
+        )}
+      </div>
+      <div className="h-1.5 rounded-full bg-surface overflow-hidden">
+        <div
+          className={`h-full rounded-full bg-rank-${info.tier} transition-all`}
+          style={{ width: `${Math.round(progress * 100)}%` }}
+        />
+      </div>
     </div>
   );
 }

@@ -4,22 +4,90 @@ export type RankTier =
   | "gold"
   | "platinum"
   | "diamond"
-  | "master";
+  | "master"
+  | "grandmaster";
 
-const RANK_THRESHOLDS: [number, RankTier][] = [
-  [1800, "master"],
-  [1500, "diamond"],
-  [1300, "platinum"],
-  [1100, "gold"],
-  [900, "silver"],
-  [0, "bronze"],
+export interface RankInfo {
+  tier: RankTier;
+  division: number | null; // 3 = entry, 2 = mid, 1 = top. null for Grandmaster.
+  label: string; // e.g. "Diamond II", "Grandmaster"
+}
+
+/** Major tier thresholds — order matters (highest first) */
+const RANK_TIERS: { tier: RankTier; min: number; max: number }[] = [
+  { tier: "grandmaster", min: 2200, max: Infinity },
+  { tier: "master", min: 1800, max: 2199 },
+  { tier: "diamond", min: 1500, max: 1799 },
+  { tier: "platinum", min: 1300, max: 1499 },
+  { tier: "gold", min: 1100, max: 1299 },
+  { tier: "silver", min: 900, max: 1099 },
+  { tier: "bronze", min: 0, max: 899 },
 ];
 
+const DIVISION_LABELS = ["III", "II", "I"];
+
+/** Get the major tier for an ELO rating (for DB storage) */
 export function getRankTier(elo: number): RankTier {
-  for (const [threshold, tier] of RANK_THRESHOLDS) {
-    if (elo >= threshold) return tier;
+  for (const t of RANK_TIERS) {
+    if (elo >= t.min) return t.tier;
   }
   return "bronze";
+}
+
+/** Get full rank info including division */
+export function getRankInfo(elo: number): RankInfo {
+  for (const t of RANK_TIERS) {
+    if (elo >= t.min) {
+      if (t.tier === "grandmaster") {
+        return { tier: "grandmaster", division: null, label: "Grandmaster" };
+      }
+      const range = t.max - t.min + 1;
+      const offset = elo - t.min;
+      const third = range / 3;
+      let div: number;
+      if (offset >= 2 * third) div = 1;
+      else if (offset >= third) div = 2;
+      else div = 3;
+      const name = t.tier.charAt(0).toUpperCase() + t.tier.slice(1);
+      return {
+        tier: t.tier,
+        division: div,
+        label: `${name} ${DIVISION_LABELS[div - 1]}`,
+      };
+    }
+  }
+  return { tier: "bronze", division: 3, label: "Bronze III" };
+}
+
+/** Progress within current division (0-1) */
+export function getRankProgress(elo: number): number {
+  for (const t of RANK_TIERS) {
+    if (elo >= t.min) {
+      if (t.tier === "grandmaster") return 1;
+      const range = t.max - t.min + 1;
+      const third = range / 3;
+      const offset = elo - t.min;
+      const divOffset = offset % third;
+      return divOffset / third;
+    }
+  }
+  return 0;
+}
+
+/** ELO needed for next division/tier promotion. null if Grandmaster. */
+export function getNextDivisionElo(elo: number): number | null {
+  for (const t of RANK_TIERS) {
+    if (elo >= t.min) {
+      if (t.tier === "grandmaster") return null;
+      const range = t.max - t.min + 1;
+      const third = range / 3;
+      const offset = elo - t.min;
+      if (offset >= 2 * third) return t.max + 1; // promote to next tier
+      if (offset >= third) return t.min + Math.ceil(2 * third);
+      return t.min + Math.ceil(third);
+    }
+  }
+  return 300; // next Bronze division
 }
 
 /**

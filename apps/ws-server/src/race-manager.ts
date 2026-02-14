@@ -368,7 +368,7 @@ export class RaceManager {
               .limit(1);
             if (updatedStats.length > 0) {
               const avgWpm = updatedStats[0].avgWpm;
-              const initialElo = Math.min(1800, Math.max(600, Math.round(500 + avgWpm * 8.5)));
+              const initialElo = Math.min(2200, Math.max(600, Math.round(500 + avgWpm * 8.5)));
               const initialTier = getRankTier(initialElo);
               await db
                 .update(users)

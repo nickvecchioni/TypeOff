@@ -47,7 +47,7 @@ export function UserMenu() {
 
   return (
     <div className="flex items-center gap-3">
-      <div className="relative">
+      <Link href={profileHref} className="relative">
         <RankBadge
           tier={(session.user.rankTier as RankTier) ?? "bronze"}
           elo={session.user.eloRating}
@@ -62,7 +62,7 @@ export function UserMenu() {
             {eloChange}
           </span>
         )}
-      </div>
+      </Link>
       <Link
         href={profileHref}
         className="text-sm text-text hover:text-accent transition-colors"

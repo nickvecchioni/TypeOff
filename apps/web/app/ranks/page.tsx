@@ -2,40 +2,53 @@ import Link from "next/link";
 
 const RANK_TIERS = [
   {
+    name: "Grandmaster",
+    range: "2200+",
+    color: "border-rank-grandmaster text-rank-grandmaster",
+    flavor: "The pinnacle. Reserved for the fastest typists on the planet.",
+    divisions: null,
+  },
+  {
     name: "Master",
-    range: "1800+",
+    range: "1800 – 2199",
     color: "border-rank-master text-rank-master",
     flavor: "The apex. You type faster than most people think.",
+    divisions: "III → II → I (each ~133 ELO)",
   },
   {
     name: "Diamond",
     range: "1500 – 1799",
     color: "border-rank-diamond text-rank-diamond",
     flavor: "Elite speed and consistency. Competitors fear your lobby.",
+    divisions: "III → II → I (each 100 ELO)",
   },
   {
     name: "Platinum",
     range: "1300 – 1499",
     color: "border-rank-platinum text-rank-platinum",
     flavor: "Serious skill. You're outpacing the majority.",
+    divisions: "III → II → I (each ~67 ELO)",
   },
   {
     name: "Gold",
     range: "1100 – 1299",
     color: "border-rank-gold text-rank-gold",
     flavor: "Above average and climbing. Keep the momentum.",
+    divisions: "III → II → I (each ~67 ELO)",
   },
   {
     name: "Silver",
     range: "900 – 1099",
     color: "border-rank-silver text-rank-silver",
     flavor: "Solid foundation. Your fingers are warming up.",
+    divisions: "III → II → I (each ~67 ELO)",
   },
   {
     name: "Bronze",
     range: "0 – 899",
     color: "border-rank-bronze text-rank-bronze",
     flavor: "Everyone starts here. Every race makes you faster.",
+    divisions: "III → II → I (each 300 ELO)",
   },
 ];
 
@@ -47,7 +60,7 @@ export default function RanksPage() {
         <div>
           <h1 className="text-2xl font-bold text-accent">Rank System</h1>
           <p className="text-muted mt-2">
-            Every race changes your ELO. Climb from Bronze to Master.
+            Every race changes your ELO. Climb from Bronze III to Grandmaster.
           </p>
         </div>
 
@@ -67,8 +80,26 @@ export default function RanksPage() {
                 </span>
               </div>
               <p className="text-sm text-text/70 mt-1">{tier.flavor}</p>
+              {tier.divisions && (
+                <p className="text-xs text-muted mt-1">
+                  Divisions: {tier.divisions}
+                </p>
+              )}
             </div>
           ))}
+        </div>
+
+        {/* Divisions */}
+        <div>
+          <h2 className="text-lg font-bold text-text mb-3">Divisions</h2>
+          <div className="space-y-3 text-sm text-text/80">
+            <p>
+              Each rank (except Grandmaster) has three divisions: III, II, and I.
+              Division III is the entry point, I is the top. Promote through
+              divisions by winning races, and when you clear Division I you
+              advance to the next rank.
+            </p>
+          </div>
         </div>
 
         {/* How ELO Works */}
@@ -95,7 +126,8 @@ export default function RanksPage() {
           <h2 className="text-lg font-bold text-text mb-3">Placement Races</h2>
           <p className="text-sm text-text/80 mb-4">
             Before you get a rank, you play 3 calibration races against
-            adaptive bots. Your average speed determines your starting ELO.
+            adaptive bots. Your average speed determines your starting ELO —
+            up to Grandmaster for elite typists.
           </p>
           <div className="flex items-center gap-0">
             {[1, 2, 3].map((step) => (
@@ -132,7 +164,7 @@ export default function RanksPage() {
             Tips for Climbing
           </h2>
           <ul className="space-y-2 text-sm text-text/80 list-disc list-inside">
-            <li>Accuracy is everything — one mistake ends the race</li>
+            <li>Accuracy is everything — mistakes cost time</li>
             <li>Warm up before ranked</li>
             <li>Common words repeat — pattern recognition &gt; raw speed</li>
             <li>Stay consistent, don&apos;t tilt</li>
