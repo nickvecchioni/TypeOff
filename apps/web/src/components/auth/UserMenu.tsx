@@ -67,15 +67,8 @@ export function UserMenu() {
         href={profileHref}
         className="text-sm text-text hover:text-accent transition-colors"
       >
-        {session.user.name}
+        {session.user.username ?? "set username"}
       </Link>
-      {session.user.image && (
-        <img
-          src={session.user.image}
-          alt=""
-          className="w-8 h-8 rounded-full"
-        />
-      )}
       <button
         onClick={() => signOut()}
         className="text-sm text-muted hover:text-error transition-colors"

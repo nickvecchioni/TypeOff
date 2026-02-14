@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { getDb } from "@/lib/db";
 import { users, userStats } from "@typeoff/db";
-import { desc, isNotNull, sql } from "drizzle-orm";
+import { desc, eq, isNotNull } from "drizzle-orm";
 import type { RankTier } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
 
@@ -16,15 +16,13 @@ export default async function LeaderboardPage() {
     .select({
       id: users.id,
       username: users.username,
-      name: users.name,
-      image: users.image,
       eloRating: users.eloRating,
       rankTier: users.rankTier,
       racesPlayed: userStats.racesPlayed,
       avgWpm: userStats.avgWpm,
     })
     .from(users)
-    .leftJoin(userStats, sql`${users.id} = ${userStats.userId}`)
+    .leftJoin(userStats, eq(users.id, userStats.userId))
     .where(isNotNull(users.username))
     .orderBy(desc(users.eloRating))
     .limit(100);
@@ -64,16 +62,9 @@ export default async function LeaderboardPage() {
                   <td className="py-2">
                     <Link
                       href={`/profile/${row.username}`}
-                      className="flex items-center gap-2 hover:text-accent transition-colors"
+                      className="hover:text-accent transition-colors"
                     >
-                      {row.image && (
-                        <img
-                          src={row.image}
-                          alt=""
-                          className="w-6 h-6 rounded-full"
-                        />
-                      )}
-                      <span>{row.username}</span>
+                      {row.username}
                     </Link>
                   </td>
                   <td className="py-2 text-right tabular-nums font-bold">

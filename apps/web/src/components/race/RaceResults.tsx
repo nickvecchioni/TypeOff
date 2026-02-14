@@ -34,11 +34,12 @@ export function RaceResults({ results, myPlayerId, onRaceAgain }: RaceResultsPro
               const isGuest = result.playerId.startsWith("guest_") || result.playerId.startsWith("bot_");
               const tier = getRankTier(result.elo ?? 1000);
 
+              const displayName = result.username ?? result.name;
               const nameContent = (
                 <span className="flex items-center gap-2 truncate">
                   {!isGuest && <RankBadge tier={tier} />}
                   <span className="truncate">
-                    {result.name}
+                    {displayName}
                     {isMe && " (you)"}
                   </span>
                 </span>

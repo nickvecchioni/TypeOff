@@ -21,8 +21,6 @@ export default async function ProfilePage({
     .select({
       id: users.id,
       username: users.username,
-      name: users.name,
-      image: users.image,
       eloRating: users.eloRating,
       rankTier: users.rankTier,
     })
@@ -72,33 +70,21 @@ export default async function ProfilePage({
     <main className="flex-1 overflow-y-auto px-6 py-8">
       <div className="max-w-2xl mx-auto space-y-8">
         {/* Header */}
-        <div className="flex items-center gap-4">
-          {user.image && (
-            <img
-              src={user.image}
-              alt=""
-              className="w-16 h-16 rounded-full"
-            />
-          )}
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-3">
-              {isOwn ? (
-                <UsernameEditor currentUsername={user.username ?? ""} />
-              ) : (
-                <h1 className="text-xl font-bold text-text">
-                  {user.username}
-                </h1>
-              )}
-            </div>
-            {user.name && user.name !== user.username && (
-              <span className="text-sm text-muted">{user.name}</span>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-3">
+            {isOwn ? (
+              <UsernameEditor currentUsername={user.username ?? ""} />
+            ) : (
+              <h1 className="text-xl font-bold text-text">
+                {user.username}
+              </h1>
             )}
-            <RankBadge
-              tier={user.rankTier as RankTier}
-              elo={user.eloRating}
-              size="md"
-            />
           </div>
+          <RankBadge
+            tier={user.rankTier as RankTier}
+            elo={user.eloRating}
+            size="md"
+          />
         </div>
 
         {/* Stats Grid */}

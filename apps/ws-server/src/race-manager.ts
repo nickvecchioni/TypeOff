@@ -245,12 +245,16 @@ export class RaceManager {
 
     if (this.progressTimer) clearInterval(this.progressTimer);
 
-    // Give unfinished players their placement
+    // Give unfinished players their placement with current progress stats
     for (const entry of this.players.values()) {
       if (!entry.progress.finished) {
         entry.progress.finished = true;
         entry.progress.placement = this.nextPlacement++;
-        entry.progress.finalStats = { wpm: 0, rawWpm: 0, accuracy: 0 };
+        entry.progress.finalStats = {
+          wpm: entry.progress.wpm,
+          rawWpm: entry.progress.wpm,
+          accuracy: 100,
+        };
       }
     }
 
