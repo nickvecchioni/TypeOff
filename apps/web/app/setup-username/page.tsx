@@ -1,12 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 
 export default function SetupUsernamePage() {
-  const { update: updateSession } = useSession();
-  const router = useRouter();
   const [username, setUsername] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -37,8 +33,8 @@ export default function SetupUsernamePage() {
         return;
       }
 
-      await updateSession();
-      router.replace("/");
+      // Hard navigate so the session cookie is read fresh
+      window.location.href = "/";
     } catch {
       setError("Network error");
     } finally {
