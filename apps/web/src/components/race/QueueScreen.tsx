@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { RankBadge } from "@/components/RankBadge";
 import type { RankTier } from "@typeoff/shared";
@@ -64,7 +65,7 @@ export function QueueScreen({
         <h1 className="text-3xl sm:text-4xl font-bold text-text">
           Competitive typing, <span className="text-accent">ranked.</span>
         </h1>
-        <p className="text-muted text-sm sm:text-base max-w-md">
+        <p className="text-muted text-sm sm:text-base whitespace-nowrap">
           Race 1v1 in real-time. Climb from Bronze to Grandmaster.
         </p>
       </div>
@@ -124,7 +125,7 @@ export function QueueScreen({
 
         {!isAuthenticated && (
           <p className="text-xs text-muted">
-            Sign in to track your rank and climb the leaderboard
+            <Link href="/login" className="text-accent hover:text-accent/80 transition-colors">Sign in</Link> to track your rank and climb the leaderboard
           </p>
         )}
       </div>

@@ -10,12 +10,33 @@ interface RaceResultsProps {
   results: RaceResult[];
   myPlayerId: string | null;
   onRaceAgain: (guestName?: string) => void;
+  placementRace?: number;
+  placementTotal?: number;
 }
 
-export function RaceResults({ results, myPlayerId, onRaceAgain }: RaceResultsProps) {
+export function RaceResults({ results, myPlayerId, onRaceAgain, placementRace, placementTotal }: RaceResultsProps) {
+  const isPlacement = placementRace != null && placementTotal != null;
+
   return (
     <div className="flex flex-col items-center gap-8 animate-fade-in w-full">
-      <h2 className="text-2xl font-bold text-accent">Race Results</h2>
+      {isPlacement ? (
+        <div className="flex flex-col items-center gap-1">
+          <h2 className="text-2xl font-bold text-accent">Placement {placementRace} of {placementTotal}</h2>
+          {/* Progress dots */}
+          <div className="flex items-center gap-2 mt-2">
+            {Array.from({ length: placementTotal }, (_, i) => (
+              <div
+                key={i}
+                className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                  i < placementRace ? "bg-accent" : "bg-surface"
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+      ) : (
+        <h2 className="text-2xl font-bold text-accent">Race Results</h2>
+      )}
 
       <div className="w-full max-w-lg">
         <table className="w-full text-left table-fixed">
@@ -24,7 +45,9 @@ export function RaceResults({ results, myPlayerId, onRaceAgain }: RaceResultsPro
               <th className="pb-2 w-10">#</th>
               <th className="pb-2">Player</th>
               <th className="pb-2 text-right w-16">WPM</th>
-              <th className="pb-2 text-right w-16 pl-3">ELO</th>
+              {!isPlacement && (
+                <th className="pb-2 text-right w-16 pl-3">ELO</th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -37,7 +60,7 @@ export function RaceResults({ results, myPlayerId, onRaceAgain }: RaceResultsPro
               const showStreak = result.placement === 1 && result.streak != null && result.streak >= 3;
               const nameContent = (
                 <span className="flex items-center gap-2 truncate">
-                  {!isGuest && <RankBadge tier={tier} />}
+                  {!isGuest && !isPlacement && <RankBadge tier={tier} />}
                   <span className="truncate">
                     {displayName}
                     {isMe && " (you)"}
@@ -76,24 +99,26 @@ export function RaceResults({ results, myPlayerId, onRaceAgain }: RaceResultsPro
                   <td className="py-2 text-right tabular-nums whitespace-nowrap">
                     {Math.round(result.wpm)}
                   </td>
-                  <td className="py-2 text-right tabular-nums whitespace-nowrap pl-3">
-                    {result.eloChange != null ? (
-                      <span
-                        className={
-                          result.eloChange > 0
-                            ? "text-correct"
-                            : result.eloChange < 0
-                            ? "text-error"
-                            : "text-muted"
-                        }
-                      >
-                        {result.eloChange > 0 ? "+" : ""}
-                        {result.eloChange}
-                      </span>
-                    ) : (
-                      <span className="text-muted">-</span>
-                    )}
-                  </td>
+                  {!isPlacement && (
+                    <td className="py-2 text-right tabular-nums whitespace-nowrap pl-3">
+                      {result.eloChange != null ? (
+                        <span
+                          className={
+                            result.eloChange > 0
+                              ? "text-correct"
+                              : result.eloChange < 0
+                              ? "text-error"
+                              : "text-muted"
+                          }
+                        >
+                          {result.eloChange > 0 ? "+" : ""}
+                          {result.eloChange}
+                        </span>
+                      ) : (
+                        <span className="text-muted">-</span>
+                      )}
+                    </td>
+                  )}
                 </tr>
               );
             })}
@@ -105,7 +130,7 @@ export function RaceResults({ results, myPlayerId, onRaceAgain }: RaceResultsPro
         onClick={() => onRaceAgain()}
         className="rounded-lg bg-accent/20 text-accent px-6 py-2 hover:bg-accent/30 transition-colors"
       >
-        Race again
+        {isPlacement ? "Next Placement" : "Race again"}
       </button>
     </div>
   );

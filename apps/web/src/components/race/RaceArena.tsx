@@ -8,6 +8,7 @@ import { CountdownOverlay } from "./CountdownOverlay";
 import { RaceTrack } from "./RaceTrack";
 import { RaceTypingArea } from "./RaceTypingArea";
 import { RaceResults } from "./RaceResults";
+import { PlacementReveal } from "./PlacementReveal";
 
 export function RaceArena() {
   const { data: session, update: updateSession } = useSession();
@@ -26,7 +27,8 @@ export function RaceArena() {
   // Refresh session and dispatch ELO change event when race finishes
   const sessionRefreshed = React.useRef(false);
   React.useEffect(() => {
-    if (race.phase === "finished" && !sessionRefreshed.current) {
+    const isFinished = race.phase === "finished" || race.phase === "placed";
+    if (isFinished && !sessionRefreshed.current) {
       sessionRefreshed.current = true;
       if (session?.user?.id && race.results.length > 0) {
         const myResult = race.results.find((r) => r.playerId === session.user.id);
@@ -37,7 +39,7 @@ export function RaceArena() {
         }
         updateSession();
       }
-    } else if (race.phase !== "finished") {
+    } else if (!isFinished) {
       sessionRefreshed.current = false;
     }
   }, [race.phase, race.results, session?.user?.id, updateSession]);
@@ -94,8 +96,21 @@ export function RaceArena() {
           results={race.results}
           myPlayerId={myPlayerId}
           onRaceAgain={race.raceAgain}
+          placementRace={race.placementRace}
+          placementTotal={race.placementTotal}
         />
       )}
+
+      {race.phase === "placed" && (() => {
+        const myResult = race.results.find((r) => r.playerId === myPlayerId);
+        const elo = myResult?.elo ?? 1000;
+        return (
+          <PlacementReveal
+            elo={elo}
+            onContinue={race.raceAgain}
+          />
+        );
+      })()}
     </div>
   );
 }

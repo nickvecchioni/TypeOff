@@ -74,6 +74,8 @@ export interface ServerToClientEvents {
       elo?: number;
       streak?: number;
     }>;
+    placementRace?: number;
+    placementTotal?: number;
   }) => void;
   error: (data: { message: string }) => void;
 }

@@ -261,7 +261,12 @@ export class RaceManager {
     // Persist to DB and calculate ELO
     const results = await this.persistResults();
 
-    this.io.to(this.raceId).emit("raceFinished", { results });
+    this.io.to(this.raceId).emit("raceFinished", {
+      results,
+      ...(this.placementRace != null
+        ? { placementRace: this.placementRace, placementTotal: PLACEMENT_RACE_COUNT }
+        : {}),
+    });
     this.cleanup();
   }
 

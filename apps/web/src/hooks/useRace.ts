@@ -7,7 +7,7 @@ import type {
 } from "@typeoff/shared";
 import { useSocket } from "./useSocket";
 
-export type RacePhase = "idle" | "queuing" | "countdown" | "racing" | "finished";
+export type RacePhase = "idle" | "queuing" | "countdown" | "racing" | "finished" | "placed";
 
 export interface RaceResult {
   playerId: string;
@@ -30,6 +30,8 @@ export function useRace() {
   const [raceState, setRaceState] = useState<RaceState | null>(null);
   const [progress, setProgress] = useState<Record<string, RacePlayerProgress>>({});
   const [results, setResults] = useState<RaceResult[]>([]);
+  const [placementRace, setPlacementRace] = useState<number | undefined>();
+  const [placementTotal, setPlacementTotal] = useState<number | undefined>();
   const [error, setError] = useState<string | null>(null);
 
   // Keep track of own player id
@@ -57,7 +59,14 @@ export function useRace() {
       }),
       on("raceFinished", (data) => {
         setResults(data.results);
-        setPhase("finished");
+        setPlacementRace(data.placementRace);
+        setPlacementTotal(data.placementTotal);
+        // Show rank reveal screen after final placement race
+        if (data.placementRace != null && data.placementTotal != null && data.placementRace >= data.placementTotal) {
+          setPhase("placed");
+        } else {
+          setPhase("finished");
+        }
       }),
       on("error", (data) => {
         setError(data.message);
@@ -127,6 +136,8 @@ export function useRace() {
     setRaceState(null);
     setProgress({});
     setResults([]);
+    setPlacementRace(undefined);
+    setPlacementTotal(undefined);
     setCountdown(0);
     setQueueCount(0);
     setError(null);
@@ -137,6 +148,8 @@ export function useRace() {
       setRaceState(null);
       setProgress({});
       setResults([]);
+      setPlacementRace(undefined);
+      setPlacementTotal(undefined);
       setCountdown(0);
       setError(null);
       joinQueue(guestName);
@@ -152,6 +165,8 @@ export function useRace() {
     raceState,
     progress,
     results,
+    placementRace,
+    placementTotal,
     error,
     joinQueue,
     leaveQueue,
