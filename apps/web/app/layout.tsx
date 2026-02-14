@@ -28,7 +28,11 @@ export default function RootLayout({
           <UsernameGuard>
             <nav className="flex items-center justify-between px-6 py-4">
               <div className="flex items-center gap-6">
-                <Link href="/" className="text-accent font-bold hover:text-accent/80 transition-colors">
+                <Link href="/" className="flex items-center gap-2 text-accent font-bold hover:text-accent/80 transition-colors">
+                  <svg width="20" height="20" viewBox="0 0 32 32" fill="none" aria-hidden>
+                    <path d="M8 7 L14 16 L8 25" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <line x1="16" y1="25" x2="24" y2="25" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round"/>
+                  </svg>
                   TypeOff
                 </Link>
                 <Link
