@@ -35,6 +35,7 @@ export interface RaceState {
   wordCount: number;
   countdown: number; // seconds remaining in countdown
   finishTimeoutEnd: number | null; // timestamp when race force-ends
+  placementRace?: number; // 1-3 during placement, undefined for ranked
 }
 
 /** Client → Server events */

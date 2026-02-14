@@ -44,11 +44,17 @@ export function RaceArena() {
         <CountdownOverlay
           countdown={race.countdown}
           playerCount={race.raceState.players.length}
+          placementRace={race.raceState.placementRace}
         />
       )}
 
       {race.phase === "racing" && race.raceState && (
         <>
+          {race.raceState.placementRace != null && (
+            <div className="text-xs text-muted">
+              Placement Race {race.raceState.placementRace} of 3
+            </div>
+          )}
           <RaceTrack
             players={race.raceState.players}
             progress={race.progress}

@@ -37,6 +37,8 @@ export interface BotWpmConfig {
   botWpmMax: number;
 }
 
+const PLACEMENT_RACE_COUNT = 3;
+
 export class RaceManager {
   readonly raceId: string;
   private status: RaceStatus = "waiting";
@@ -49,14 +51,17 @@ export class RaceManager {
   private finishTimeoutEnd: number | null = null;
   private startedAt: Date | null = null;
   private totalChars = 0;
+  private placementRace?: number;
 
   constructor(
     private io: TypedServer,
     entries: Array<{ socket: TypedSocket; player: RacePlayer }>,
     private matchmaker: Matchmaker,
     bots: RacePlayer[] = [],
-    botWpmConfig?: BotWpmConfig
+    botWpmConfig?: BotWpmConfig,
+    placementRace?: number,
   ) {
+    this.placementRace = placementRace;
     this.raceId = crypto.randomUUID();
     this.seed = Math.floor(Math.random() * 2147483647);
 
@@ -233,7 +238,7 @@ export class RaceManager {
         entry.progress.finalStats = {
           wpm: Math.round(entry.botTargetWpm),
           rawWpm: Math.round(entry.botTargetWpm),
-          accuracy: 95 + Math.random() * 5,
+          accuracy: Math.round(95 + Math.random() * 5),
         };
 
         // First finisher starts the finish timeout
@@ -402,6 +407,7 @@ export class RaceManager {
               .from(userStats)
               .where(eq(userStats.userId, entry.player.id));
 
+            let newPlayed = 1;
             if (existing.length === 0) {
               await db.insert(userStats).values({
                 userId: entry.player.id,
@@ -413,7 +419,7 @@ export class RaceManager {
               });
             } else {
               const s = existing[0];
-              const newPlayed = s.racesPlayed + 1;
+              newPlayed = s.racesPlayed + 1;
               await db
                 .update(userStats)
                 .set({
@@ -426,6 +432,24 @@ export class RaceManager {
                   updatedAt: new Date(),
                 })
                 .where(eq(userStats.userId, entry.player.id));
+            }
+
+            // Calibrate initial ELO after final placement race
+            if (this.placementRace === PLACEMENT_RACE_COUNT) {
+              const updatedStats = await db
+                .select()
+                .from(userStats)
+                .where(eq(userStats.userId, entry.player.id))
+                .limit(1);
+              if (updatedStats.length > 0) {
+                const avgWpm = updatedStats[0].avgWpm;
+                // Map WPM to ELO: ~60 WPM → 1000, scales linearly
+                const initialElo = Math.min(1800, Math.max(600, Math.round(500 + avgWpm * 8.5)));
+                await db
+                  .update(users)
+                  .set({ eloRating: initialElo, rankTier: getRankTier(initialElo) })
+                  .where(eq(users.id, entry.player.id));
+              }
             }
           }
         }
@@ -497,6 +521,7 @@ export class RaceManager {
       wordCount: WORD_COUNT,
       countdown: 0,
       finishTimeoutEnd: this.finishTimeoutEnd,
+      placementRace: this.placementRace,
     };
   }
 }

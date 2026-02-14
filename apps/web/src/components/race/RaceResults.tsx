@@ -18,14 +18,14 @@ export function RaceResults({ results, myPlayerId, onRaceAgain }: RaceResultsPro
       <h2 className="text-2xl font-bold text-accent">Race Results</h2>
 
       <div className="w-full max-w-lg">
-        <table className="w-full text-left">
+        <table className="w-full text-left table-fixed">
           <thead>
             <tr className="text-muted text-sm border-b border-surface">
-              <th className="pb-2 w-12">#</th>
+              <th className="pb-2 w-10">#</th>
               <th className="pb-2">Player</th>
-              <th className="pb-2 text-right">WPM</th>
-              <th className="pb-2 text-right">Accuracy</th>
-              <th className="pb-2 text-right">ELO</th>
+              <th className="pb-2 text-right w-16">WPM</th>
+              <th className="pb-2 text-right w-20 pl-3">Acc</th>
+              <th className="pb-2 text-right w-16 pl-3">ELO</th>
             </tr>
           </thead>
           <tbody>
@@ -35,10 +35,12 @@ export function RaceResults({ results, myPlayerId, onRaceAgain }: RaceResultsPro
               const tier = getRankTier(result.elo ?? 1000);
 
               const nameContent = (
-                <span className="flex items-center gap-2">
+                <span className="flex items-center gap-2 truncate">
                   {!isGuest && <RankBadge tier={tier} />}
-                  {result.name}
-                  {isMe && " (you)"}
+                  <span className="truncate">
+                    {result.name}
+                    {isMe && " (you)"}
+                  </span>
                 </span>
               );
 
@@ -50,7 +52,7 @@ export function RaceResults({ results, myPlayerId, onRaceAgain }: RaceResultsPro
                   }`}
                 >
                   <td className="py-2 font-bold">{result.placement}</td>
-                  <td className="py-2">
+                  <td className="py-2 overflow-hidden">
                     {result.username && !isGuest ? (
                       <Link
                         href={`/profile/${result.username}`}
@@ -62,11 +64,13 @@ export function RaceResults({ results, myPlayerId, onRaceAgain }: RaceResultsPro
                       nameContent
                     )}
                   </td>
-                  <td className="py-2 text-right tabular-nums">{result.wpm}</td>
-                  <td className="py-2 text-right tabular-nums">
-                    {result.accuracy}%
+                  <td className="py-2 text-right tabular-nums whitespace-nowrap">
+                    {Math.round(result.wpm)}
                   </td>
-                  <td className="py-2 text-right tabular-nums">
+                  <td className="py-2 text-right tabular-nums whitespace-nowrap pl-3">
+                    {Math.round(result.accuracy)}%
+                  </td>
+                  <td className="py-2 text-right tabular-nums whitespace-nowrap pl-3">
                     {result.eloChange != null ? (
                       <span
                         className={

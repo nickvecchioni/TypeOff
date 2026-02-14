@@ -27,7 +27,7 @@ io.on("connection", (socket) => {
   socket.on("joinQueue", async (data) => {
     try {
       const player = await authenticateSocket(data, socket.id);
-      matchmaker.addToQueue(socket, player);
+      await matchmaker.addToQueue(socket, player);
     } catch (err) {
       socket.emit("error", {
         message: err instanceof Error ? err.message : "Auth failed",
