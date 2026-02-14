@@ -46,13 +46,3 @@ body {
 .no-ligatures {
   font-variant-ligatures: none;
 }
-
-/* Focus mode: fade non-essential UI */
-.focus-fade {
-  transition: opacity 0.3s ease;
-}
-
-.focus-active .focus-fade {
-  opacity: 0.2;
-  pointer-events: none;
-}

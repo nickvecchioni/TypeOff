@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { JetBrains_Mono } from "next/font/google";
 import { SessionProvider } from "@/components/auth/SessionProvider";
 import { UserMenu } from "@/components/auth/UserMenu";
-import Link from "next/link";
 import "./globals.css";
 
 const jetbrainsMono = JetBrains_Mono({
@@ -12,7 +11,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "TypeOff",
-  description: "A buttery-smooth typing test",
+  description: "Race your friends in real-time typing battles",
 };
 
 export default function RootLayout({
@@ -26,12 +25,9 @@ export default function RootLayout({
         <SessionProvider>
           <nav className="flex items-center justify-between px-6 py-4">
             <div className="flex items-center gap-6">
-              <Link href="/" className="text-accent font-bold hover:opacity-80 transition-opacity">
+              <span className="text-accent font-bold">
                 TypeOff
-              </Link>
-              <Link href="/race" className="text-sm text-muted hover:text-text transition-colors">
-                Race
-              </Link>
+              </span>
             </div>
             <UserMenu />
           </nav>
