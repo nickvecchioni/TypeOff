@@ -10,7 +10,7 @@ import { RaceTypingArea } from "./RaceTypingArea";
 import { RaceResults } from "./RaceResults";
 
 export function RaceArena() {
-  const { data: session } = useSession();
+  const { data: session, update: updateSession } = useSession();
   const race = useRace();
 
   // Derive own player ID from race state
@@ -22,6 +22,25 @@ export function RaceArena() {
     const guest = players.find((p) => p.isGuest);
     return guest?.id ?? null;
   }, [race.raceState, session]);
+
+  // Refresh session and dispatch ELO change event when race finishes
+  const sessionRefreshed = React.useRef(false);
+  React.useEffect(() => {
+    if (race.phase === "finished" && !sessionRefreshed.current) {
+      sessionRefreshed.current = true;
+      if (session?.user?.id && race.results.length > 0) {
+        const myResult = race.results.find((r) => r.playerId === session.user.id);
+        if (myResult?.eloChange != null) {
+          window.dispatchEvent(
+            new CustomEvent("elo-change", { detail: { change: myResult.eloChange } })
+          );
+        }
+        updateSession();
+      }
+    } else if (race.phase !== "finished") {
+      sessionRefreshed.current = false;
+    }
+  }, [race.phase, race.results, session?.user?.id, updateSession]);
 
   return (
     <div className="flex flex-col items-center gap-8 w-full max-w-3xl mx-auto">

@@ -21,6 +21,7 @@
 
   --animate-blink: blink 1s step-end infinite;
   --animate-fade-in: fade-in 0.2s ease-out;
+  --animate-elo-pop: elo-pop 2.5s ease-out forwards;
 }
 
 @keyframes blink {
@@ -31,6 +32,13 @@
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes elo-pop {
+  0% { opacity: 0; transform: translateY(0); }
+  15% { opacity: 1; transform: translateY(-4px); }
+  70% { opacity: 1; transform: translateY(-12px); }
+  100% { opacity: 0; transform: translateY(-20px); }
 }
 
 html, body {

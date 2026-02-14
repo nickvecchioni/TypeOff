@@ -25,7 +25,6 @@ interface PlayerEntry {
 
 const COUNTDOWN_SECONDS = 5;
 const WORD_COUNT = 50;
-const FINISH_TIMEOUT_MS = 30_000;
 const PROGRESS_INTERVAL_MS = 100;
 
 const DEFAULT_BOT_WPM_MIN = 40;
@@ -47,8 +46,6 @@ export class RaceManager {
   private nextPlacement = 1;
   private countdownTimer: ReturnType<typeof setInterval> | null = null;
   private progressTimer: ReturnType<typeof setInterval> | null = null;
-  private finishTimer: ReturnType<typeof setTimeout> | null = null;
-  private finishTimeoutEnd: number | null = null;
   private startedAt: Date | null = null;
   private totalChars = 0;
   private placementRace?: number;
@@ -164,22 +161,8 @@ export class RaceManager {
     entry.progress.progress = 1;
     entry.progress.finalStats = data;
 
-    // First finisher starts the finish timeout
-    if (entry.progress.placement === 1) {
-      this.finishTimeoutEnd = Date.now() + FINISH_TIMEOUT_MS;
-      this.finishTimer = setTimeout(() => this.endRace(), FINISH_TIMEOUT_MS);
-    }
-
-    // Broadcast progress immediately
-    this.broadcastProgress();
-
-    // Check if all players finished
-    const allFinished = [...this.players.values()].every(
-      (p) => p.progress.finished
-    );
-    if (allFinished) {
-      this.endRace();
-    }
+    // 1v1: race ends as soon as one player finishes
+    this.endRace();
   }
 
   handleDisconnect(socketId: string) {
@@ -241,20 +224,9 @@ export class RaceManager {
           accuracy: Math.round(95 + Math.random() * 5),
         };
 
-        // First finisher starts the finish timeout
-        if (entry.progress.placement === 1) {
-          this.finishTimeoutEnd = Date.now() + FINISH_TIMEOUT_MS;
-          this.finishTimer = setTimeout(() => this.endRace(), FINISH_TIMEOUT_MS);
-        }
-
-        // Check if all players finished
-        const allFinished = [...this.players.values()].every(
-          (p) => p.progress.finished
-        );
-        if (allFinished) {
-          this.endRace();
-          return;
-        }
+        // 1v1: race ends as soon as one player finishes
+        this.endRace();
+        return;
       }
     }
   }
@@ -272,7 +244,6 @@ export class RaceManager {
     this.status = "finished";
 
     if (this.progressTimer) clearInterval(this.progressTimer);
-    if (this.finishTimer) clearTimeout(this.finishTimer);
 
     // Give unfinished players their placement
     for (const entry of this.players.values()) {
@@ -393,9 +364,11 @@ export class RaceManager {
         }
       }
 
-      // 3. Calculate ELO for ranked races (2+ authenticated players)
+      // 3. Calculate ELO for non-placement races (includes bot opponents)
       const authPlayers = entries.filter((e) => !e.player.isGuest && !e.isBot);
-      if (authPlayers.length >= 2) {
+      const botEntries = entries.filter((e) => e.isBot);
+
+      if (!this.placementRace && authPlayers.length >= 1) {
         const playerIds = authPlayers.map((e) => e.player.id);
         const statsRows = await db
           .select()
@@ -409,16 +382,27 @@ export class RaceManager {
           .where(inArray(users.id, playerIds));
         const eloMap = new Map(userRows.map((u) => [u.id, u.eloRating]));
 
-        const changes = calculateRaceElo(
-          authPlayers.map((e) => ({
+        // Include bots as virtual opponents for ELO calculation
+        const eloInput = [
+          ...authPlayers.map((e) => ({
             id: e.player.id,
             elo: eloMap.get(e.player.id) ?? 1000,
             placement: e.progress.placement!,
             gamesPlayed: statsMap.get(e.player.id)?.racesPlayed ?? 0,
-          }))
-        );
+          })),
+          ...botEntries.map((e) => ({
+            id: e.player.id,
+            elo: e.player.elo,
+            placement: e.progress.placement!,
+            gamesPlayed: 30, // Bots use experienced K-factor
+          })),
+        ];
 
+        const changes = calculateRaceElo(eloInput);
+
+        // Only apply ELO changes to real players
         for (const [userId, change] of changes) {
+          if (botEntries.some((b) => b.player.id === userId)) continue;
           eloChanges.set(userId, change);
           const currentElo = eloMap.get(userId) ?? 1000;
           const newElo = Math.max(0, currentElo + change);
@@ -484,7 +468,6 @@ export class RaceManager {
   private cleanup() {
     if (this.countdownTimer) clearInterval(this.countdownTimer);
     if (this.progressTimer) clearInterval(this.progressTimer);
-    if (this.finishTimer) clearTimeout(this.finishTimer);
 
     const socketIds: string[] = [];
     for (const [key, entry] of this.players.entries()) {
@@ -513,7 +496,7 @@ export class RaceManager {
       seed: this.seed,
       wordCount: WORD_COUNT,
       countdown: 0,
-      finishTimeoutEnd: this.finishTimeoutEnd,
+      finishTimeoutEnd: null,
       placementRace: this.placementRace,
     };
   }
