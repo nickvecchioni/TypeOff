@@ -19,6 +19,7 @@ export interface RaceResult {
   accuracy: number;
   eloChange: number | null;
   elo?: number;
+  streak?: number;
 }
 
 export function useRace() {

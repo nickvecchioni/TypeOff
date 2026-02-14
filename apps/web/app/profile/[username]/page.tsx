@@ -23,6 +23,8 @@ export default async function ProfilePage({
       username: users.username,
       eloRating: users.eloRating,
       rankTier: users.rankTier,
+      peakEloRating: users.peakEloRating,
+      peakRankTier: users.peakRankTier,
     })
     .from(users)
     .where(eq(users.username, username))
@@ -85,10 +87,19 @@ export default async function ProfilePage({
             elo={user.eloRating}
             size="md"
           />
+          {user.peakEloRating > user.eloRating && (
+            <div className="flex items-center gap-2 text-sm text-muted">
+              <span>Peak:</span>
+              <RankBadge
+                tier={user.peakRankTier as RankTier}
+                elo={user.peakEloRating}
+              />
+            </div>
+          )}
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <StatCard label="Races" value={stats?.racesPlayed ?? 0} />
           <StatCard label="Win Rate" value={`${winRate}%`} />
           <StatCard
@@ -98,6 +109,14 @@ export default async function ProfilePage({
           <StatCard
             label="Best WPM"
             value={stats ? Math.round(stats.maxWpm) : 0}
+          />
+          <StatCard
+            label="Streak"
+            value={stats?.currentStreak ?? 0}
+          />
+          <StatCard
+            label="Best Streak"
+            value={stats?.maxStreak ?? 0}
           />
         </div>
 

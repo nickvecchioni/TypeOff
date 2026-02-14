@@ -24,6 +24,8 @@ export const users = pgTable("users", {
   username: text("username").unique(),
   eloRating: integer("elo_rating").notNull().default(1000),
   rankTier: text("rank_tier").notNull().default("bronze"),
+  peakEloRating: integer("peak_elo_rating").notNull().default(1000),
+  peakRankTier: text("peak_rank_tier").notNull().default("bronze"),
 });
 
 export const accounts = pgTable(
@@ -102,6 +104,8 @@ export const userStats = pgTable("user_stats", {
   avgWpm: real("avg_wpm").notNull().default(0),
   maxWpm: real("max_wpm").notNull().default(0),
   avgAccuracy: real("avg_accuracy").notNull().default(0),
+  currentStreak: integer("current_streak").notNull().default(0),
+  maxStreak: integer("max_streak").notNull().default(0),
   updatedAt: timestamp("updated_at", { mode: "date" })
     .notNull()
     .$defaultFn(() => new Date()),

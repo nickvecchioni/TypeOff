@@ -35,6 +35,7 @@ export function RaceResults({ results, myPlayerId, onRaceAgain }: RaceResultsPro
               const tier = getRankTier(result.elo ?? 1000);
 
               const displayName = result.username ?? result.name;
+              const showStreak = result.placement === 1 && result.streak != null && result.streak >= 3;
               const nameContent = (
                 <span className="flex items-center gap-2 truncate">
                   {!isGuest && <RankBadge tier={tier} />}
@@ -42,6 +43,14 @@ export function RaceResults({ results, myPlayerId, onRaceAgain }: RaceResultsPro
                     {displayName}
                     {isMe && " (you)"}
                   </span>
+                  {showStreak && (
+                    <span className="text-orange-400 flex items-center gap-0.5 shrink-0" title={`${result.streak} win streak`}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="shrink-0">
+                        <path d="M12 23c-3.866 0-7-2.686-7-6 0-1.665.753-3.488 2.127-5.244.883-1.128 1.873-2.1 2.873-3.006V2l4.386 4.506c.953.979 1.893 2.09 2.614 3.25C18.36 11.715 19 13.578 19 15.5 19 19.642 16.09 23 12 23z" />
+                      </svg>
+                      <span className="text-xs font-bold tabular-nums">{result.streak}</span>
+                    </span>
+                  )}
                 </span>
               );
 

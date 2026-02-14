@@ -72,6 +72,7 @@ export interface ServerToClientEvents {
       accuracy: number;
       eloChange: number | null;
       elo?: number;
+      streak?: number;
     }>;
   }) => void;
   error: (data: { message: string }) => void;

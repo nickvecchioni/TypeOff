@@ -277,12 +277,14 @@ export class RaceManager {
       accuracy: number;
       eloChange: number | null;
       elo?: number;
+      streak?: number;
     }> = [];
 
     // Track per-player data for results
     const eloChanges = new Map<string, number>();
     const usernameMap = new Map<string, string>();
     const eloAfterMap = new Map<string, number>();
+    const streakMap = new Map<string, number>();
 
     try {
       const db = createDb(process.env.DATABASE_URL!);
@@ -324,6 +326,8 @@ export class RaceManager {
             .where(eq(userStats.userId, entry.player.id));
 
           if (existing.length === 0) {
+            const newStreak = placement === 1 ? 1 : 0;
+            streakMap.set(entry.player.id, newStreak);
             await db.insert(userStats).values({
               userId: entry.player.id,
               racesPlayed: 1,
@@ -331,10 +335,14 @@ export class RaceManager {
               avgWpm: stats.wpm,
               maxWpm: stats.wpm,
               avgAccuracy: stats.accuracy,
+              currentStreak: newStreak,
+              maxStreak: newStreak,
             });
           } else {
             const s = existing[0];
             const newPlayed = s.racesPlayed + 1;
+            const newStreak = placement === 1 ? s.currentStreak + 1 : 0;
+            streakMap.set(entry.player.id, newStreak);
             await db
               .update(userStats)
               .set({
@@ -344,6 +352,8 @@ export class RaceManager {
                 maxWpm: Math.max(s.maxWpm, stats.wpm),
                 avgAccuracy:
                   (s.avgAccuracy * s.racesPlayed + stats.accuracy) / newPlayed,
+                currentStreak: newStreak,
+                maxStreak: Math.max(s.maxStreak, newStreak),
                 updatedAt: new Date(),
               })
               .where(eq(userStats.userId, entry.player.id));
@@ -359,9 +369,15 @@ export class RaceManager {
             if (updatedStats.length > 0) {
               const avgWpm = updatedStats[0].avgWpm;
               const initialElo = Math.min(1800, Math.max(600, Math.round(500 + avgWpm * 8.5)));
+              const initialTier = getRankTier(initialElo);
               await db
                 .update(users)
-                .set({ eloRating: initialElo, rankTier: getRankTier(initialElo) })
+                .set({
+                  eloRating: initialElo,
+                  rankTier: initialTier,
+                  peakEloRating: initialElo,
+                  peakRankTier: initialTier,
+                })
                 .where(eq(users.id, entry.player.id));
             }
           }
@@ -381,10 +397,11 @@ export class RaceManager {
         const statsMap = new Map(statsRows.map((s) => [s.userId, s]));
 
         const userRows = await db
-          .select({ id: users.id, eloRating: users.eloRating })
+          .select({ id: users.id, eloRating: users.eloRating, peakEloRating: users.peakEloRating })
           .from(users)
           .where(inArray(users.id, playerIds));
         const eloMap = new Map(userRows.map((u) => [u.id, u.eloRating]));
+        const peakEloMap = new Map(userRows.map((u) => [u.id, u.peakEloRating]));
 
         // Include bots as virtual opponents for ELO calculation
         const eloInput = [
@@ -410,9 +427,18 @@ export class RaceManager {
           eloChanges.set(userId, change);
           const currentElo = eloMap.get(userId) ?? 1000;
           const newElo = Math.max(0, currentElo + change);
+          const peakElo = peakEloMap.get(userId) ?? 1000;
+          const updateData: Record<string, unknown> = {
+            eloRating: newElo,
+            rankTier: getRankTier(newElo),
+          };
+          if (newElo > peakElo) {
+            updateData.peakEloRating = newElo;
+            updateData.peakRankTier = getRankTier(newElo);
+          }
           await db
             .update(users)
-            .set({ eloRating: newElo, rankTier: getRankTier(newElo) })
+            .set(updateData)
             .where(eq(users.id, userId));
         }
 
@@ -446,6 +472,24 @@ export class RaceManager {
       } catch (displayErr) {
         console.error("[race-manager] display data error:", displayErr);
       }
+
+      // 5. Load streak data for results
+      try {
+        const authPlayerIds = entries
+          .filter((e) => !e.player.isGuest && !e.isBot)
+          .map((e) => e.player.id);
+        if (authPlayerIds.length > 0 && streakMap.size === 0) {
+          const streakRows = await db
+            .select({ userId: userStats.userId, currentStreak: userStats.currentStreak })
+            .from(userStats)
+            .where(inArray(userStats.userId, authPlayerIds));
+          for (const row of streakRows) {
+            streakMap.set(row.userId, row.currentStreak);
+          }
+        }
+      } catch (streakErr) {
+        console.error("[race-manager] streak data error:", streakErr);
+      }
     } catch (err) {
       console.error("[race-manager] DB error:", err);
     }
@@ -453,6 +497,7 @@ export class RaceManager {
     // Build results array (always runs, even if DB failed)
     for (const entry of entries) {
       const stats = entry.progress.finalStats!;
+      const streak = streakMap.get(entry.player.id);
       results.push({
         playerId: entry.player.id,
         name: entry.player.name,
@@ -463,6 +508,7 @@ export class RaceManager {
         accuracy: stats.accuracy,
         eloChange: eloChanges.get(entry.player.id) ?? null,
         elo: eloAfterMap.get(entry.player.id) ?? entry.player.elo,
+        streak: streak !== undefined ? streak : undefined,
       });
     }
 
