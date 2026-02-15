@@ -37,7 +37,7 @@ export function RaceArena() {
             new CustomEvent("elo-change", { detail: { change: myResult.eloChange } })
           );
         }
-        updateSession();
+        updateSession({});
       }
     } else if (!isFinished) {
       sessionRefreshed.current = false;

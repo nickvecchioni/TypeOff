@@ -35,6 +35,16 @@ export default async function LeaderboardPage() {
         <h1 className="text-2xl font-bold text-accent mb-6">Leaderboard</h1>
 
         <div className="space-y-2">
+          <div className="flex items-center gap-3 px-4 py-1 text-xs text-muted uppercase tracking-wider">
+            <span className="w-6">#</span>
+            <span className="w-[4.5rem]">Rank</span>
+            <span className="flex-1">Player</span>
+            <div className="flex items-center gap-4 text-xs tabular-nums">
+              <span className="font-bold">Elo</span>
+              <span className="w-12 text-right">Wpm</span>
+              <span className="w-8 text-right">Races</span>
+            </div>
+          </div>
           {rows.map((row, i) => {
             const rank = i + 1;
             const isMe = session?.user?.id === row.id;
