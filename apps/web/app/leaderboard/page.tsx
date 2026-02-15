@@ -60,7 +60,7 @@ export default async function LeaderboardPage() {
             <span className={`w-6 text-sm font-bold ${podiumColor} tabular-nums`}>
               {rank}
             </span>
-            <RankBadge tier={row.rankTier as RankTier} />
+            <RankBadge tier={row.rankTier as RankTier} elo={row.eloRating} />
             <span className={`flex-1 truncate text-sm font-medium ${isMe ? "text-accent" : "text-text"}`}>
               {row.username}
             </span>

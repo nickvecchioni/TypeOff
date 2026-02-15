@@ -22,11 +22,13 @@ interface RankBadgeProps {
 export function RankBadge({ tier, elo, size = "sm" }: RankBadgeProps) {
   const sizeClasses = size === "md" ? "text-sm px-3 py-1" : "text-sm px-2.5 py-0.5";
   const info = elo != null ? getRankInfo(elo) : null;
+  // Use ELO-derived tier for colors when available (DB tier may be stale)
+  const colorTier = info ? info.tier : tier;
   const displayLabel = info ? info.label : tier.charAt(0).toUpperCase() + tier.slice(1);
 
   return (
     <span
-      className={`rounded-full font-bold inline-flex items-center gap-1 ${sizeClasses} ${TIER_CLASSES[tier]}`}
+      className={`rounded-full font-bold inline-flex items-center gap-1 ${sizeClasses} ${TIER_CLASSES[colorTier]}`}
     >
       {displayLabel}
       {elo != null && <span className="tabular-nums">{elo}</span>}
