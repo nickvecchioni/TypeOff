@@ -15,8 +15,6 @@ const POOL_OPTIONS: { label: string; value: WordPool | undefined }[] = [
   { label: "easy", value: "common" },
   { label: "medium", value: "medium" },
   { label: "hard", value: "hard" },
-  { label: "quotes", value: "quotes" },
-  { label: "code", value: "code" },
 ];
 
 export function ModeSelector({
