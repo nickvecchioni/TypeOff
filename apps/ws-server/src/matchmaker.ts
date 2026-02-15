@@ -17,7 +17,7 @@ interface QueueEntry {
   joinedAt: number;
 }
 
-const MAX_PLAYERS = 2; // 1v1
+const MAX_PLAYERS = 4;
 const PLACEMENT_RACES = 3;
 const ELO_WINDOW_INITIAL = 100;
 const ELO_WINDOW_EXPAND = 50;
@@ -59,7 +59,7 @@ export class Matchmaker {
     this.queue.push({ socket, player, joinedAt: Date.now() });
     this.broadcastQueueCount();
 
-    // If we have 2 players, try to match immediately
+    // If we have enough players, try to match immediately
     if (this.queue.length >= MAX_PLAYERS) {
       this.checkQueue();
     }
@@ -135,7 +135,7 @@ export class Matchmaker {
     const now = Date.now();
     const matched = new Set<number>();
 
-    // Process queue entries oldest first
+    // Process queue entries oldest first — try to build groups of up to MAX_PLAYERS
     for (let i = 0; i < this.queue.length; i++) {
       if (matched.has(i)) continue;
 
@@ -143,26 +143,34 @@ export class Matchmaker {
       const waited = now - entry.joinedAt;
       const window = this.getEloWindow(waited);
 
-      // Find best ELO-compatible opponent
-      let bestIdx = -1;
-      let bestDist = Infinity;
+      // Collect ELO-compatible players for this group
+      const group: number[] = [i];
       for (let j = 0; j < this.queue.length; j++) {
         if (j === i || matched.has(j)) continue;
         const dist = Math.abs(entry.player.elo - this.queue[j].player.elo);
-        if (dist <= window && dist < bestDist) {
-          bestDist = dist;
-          bestIdx = j;
+        if (dist <= window) {
+          group.push(j);
+          if (group.length >= MAX_PLAYERS) break;
         }
       }
 
-      if (bestIdx !== -1) {
-        matched.add(i);
-        matched.add(bestIdx);
-        this.startRace([this.queue[i], this.queue[bestIdx]]);
-      } else if (waited >= BOT_WAIT_MS) {
-        // No match found after waiting — inject ELO-scaled bot
-        matched.add(i);
-        this.startRaceWithBot(entry);
+      // Start race if we have enough players or waited long enough
+      if (group.length >= MAX_PLAYERS) {
+        // Full lobby — start immediately
+        for (const idx of group) matched.add(idx);
+        this.startRace(group.map((idx) => this.queue[idx]));
+      } else if (waited >= BOT_WAIT_MS && group.length >= 1) {
+        // Waited long enough — start with bots filling remaining slots
+        for (const idx of group) matched.add(idx);
+        const entries = group.map((idx) => this.queue[idx]);
+        const botCount = MAX_PLAYERS - entries.length;
+        this.startRaceWithBots(entries, botCount);
+      } else if (waited >= MIN_WAIT_FOR_PAIR_MS && group.length >= 2) {
+        // At least 2 humans and waited a while — start with bots
+        for (const idx of group) matched.add(idx);
+        const entries = group.map((idx) => this.queue[idx]);
+        const botCount = MAX_PLAYERS - entries.length;
+        this.startRaceWithBots(entries, botCount);
       }
     }
 
@@ -223,26 +231,32 @@ export class Matchmaker {
     race.start();
   }
 
-  private startRaceWithBot(entry: QueueEntry) {
-    const playerElo = entry.player.elo;
+  private startRaceWithBots(entries: QueueEntry[], botCount: number) {
+    // Average ELO of human players for bot scaling
+    const avgElo = entries.reduce((sum, e) => sum + e.player.elo, 0) / entries.length;
 
-    // Bot WPM scales with player ELO: base = 30 + (elo/1800) * 70
-    const baseWpm = 30 + (playerElo / 1800) * 70;
+    const bots: RacePlayer[] = [];
+    for (let i = 0; i < botCount; i++) {
+      const botName = BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)];
+      const botElo = avgElo + Math.round((Math.random() - 0.5) * 100);
+      bots.push({
+        id: `bot_${crypto.randomUUID()}`,
+        name: botName,
+        isGuest: true,
+        elo: Math.max(0, botElo),
+      });
+    }
+
+    // Bot WPM scales with average ELO: base = 30 + (elo/1800) * 70
+    const baseWpm = 30 + (avgElo / 1800) * 70;
     const botWpmMin = Math.max(20, baseWpm - 10);
     const botWpmMax = baseWpm + 10;
 
-    const botName = BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)];
-    const botElo = playerElo + Math.round((Math.random() - 0.5) * 100);
-    const bot: RacePlayer = {
-      id: `bot_${crypto.randomUUID()}`,
-      name: botName,
-      isGuest: true,
-      elo: Math.max(0, botElo),
-    };
-
-    const race = new RaceManager(this.io, [entry], this, [bot], { botWpmMin, botWpmMax });
+    const race = new RaceManager(this.io, entries, this, bots, { botWpmMin, botWpmMax });
     this.races.set(race.raceId, race);
-    this.socketToRace.set(entry.socket.id, race.raceId);
+    for (const entry of entries) {
+      this.socketToRace.set(entry.socket.id, race.raceId);
+    }
     race.start();
   }
 

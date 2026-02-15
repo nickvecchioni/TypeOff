@@ -66,7 +66,7 @@ export function QueueScreen({
           Competitive typing, <span className="text-accent">ranked.</span>
         </h1>
         <p className="text-muted text-sm sm:text-base whitespace-nowrap">
-          Race 1v1 in real-time. Climb from Bronze to Grandmaster.
+          Race in real-time. Climb from Bronze to Grandmaster.
         </p>
       </div>
 
@@ -76,7 +76,7 @@ export function QueueScreen({
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent">
             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
           </svg>
-          Real-time 1v1
+          Real-time FFA
         </span>
         <span className="w-px h-3 bg-surface" />
         <span className="flex items-center gap-1.5">

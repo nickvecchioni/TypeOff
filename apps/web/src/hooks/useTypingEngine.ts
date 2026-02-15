@@ -9,7 +9,9 @@ import {
   type EngineStatus,
   type EngineAPI,
   type WpmSample,
+  type WordPool,
   generateWords,
+  generateFromPool,
   commonWords,
 } from "@typeoff/shared";
 
@@ -24,6 +26,7 @@ export interface ExternalConfig {
   externalSeed?: number;
   externalWordCount?: number;
   mode?: "timed" | "wordcount";
+  wordPool?: WordPool;
 }
 
 function createWordStates(wordStrings: string[]): WordState[] {
@@ -65,7 +68,11 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
       initialized.current = true;
       const count = external?.externalWordCount ?? WORD_POOL_SIZE;
       const seed = external?.externalSeed ?? undefined;
-      setWords(createWordStates(generateWords(commonWords, count, seed)));
+      const pool = external?.wordPool ?? config.wordPool;
+      const wordStrings = pool
+        ? generateFromPool(pool, count, seed)
+        : generateWords(commonWords, count, seed);
+      setWords(createWordStates(wordStrings));
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -154,7 +161,11 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     stopTimer();
     const count = external?.externalWordCount ?? WORD_POOL_SIZE;
     const seed = external?.externalSeed ?? undefined;
-    const newWords = createWordStates(generateWords(commonWords, count, seed));
+    const pool = external?.wordPool ?? config.wordPool;
+    const wordStrings = pool
+      ? generateFromPool(pool, count, seed)
+      : generateWords(commonWords, count, seed);
+    const newWords = createWordStates(wordStrings);
     setWords(newWords);
     setCurrentWordIndex(0);
     setCurrentCharIndex(0);

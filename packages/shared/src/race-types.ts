@@ -33,6 +33,7 @@ export interface RaceState {
   progress: Record<string, RacePlayerProgress>;
   seed: number;
   wordCount: number;
+  wordPool?: import("./words").WordPool;
   countdown: number; // seconds remaining in countdown
   finishTimeoutEnd: number | null; // timestamp when race force-ends
   placementRace?: number; // 1-3 during placement, undefined for ranked
@@ -60,7 +61,7 @@ export interface ServerToClientEvents {
   queueUpdate: (data: { count: number }) => void;
   raceStart: (data: RaceState) => void;
   raceCountdown: (data: { countdown: number }) => void;
-  raceProgress: (data: { progress: Record<string, RacePlayerProgress> }) => void;
+  raceProgress: (data: { progress: Record<string, RacePlayerProgress>; finishTimeoutEnd?: number }) => void;
   raceFinished: (data: {
     results: Array<{
       playerId: string;

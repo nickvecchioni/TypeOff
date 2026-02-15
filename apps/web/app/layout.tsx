@@ -47,6 +47,12 @@ export default function RootLayout({
                 >
                   Ranks
                 </Link>
+                <Link
+                  href="/practice"
+                  className="text-sm text-muted hover:text-text transition-colors"
+                >
+                  Practice
+                </Link>
               </div>
               <UserMenu />
             </nav>

@@ -16,6 +16,7 @@ export type TestMode = "timed" | "wordcount";
 export interface TestConfig {
   mode: TestMode;
   duration: number; // seconds for timed, word count for wordcount
+  wordPool?: import("./words").WordPool;
 }
 
 export type EngineStatus = "idle" | "typing" | "finished";

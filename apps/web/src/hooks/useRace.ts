@@ -32,6 +32,7 @@ export function useRace() {
   const [results, setResults] = useState<RaceResult[]>([]);
   const [placementRace, setPlacementRace] = useState<number | undefined>();
   const [placementTotal, setPlacementTotal] = useState<number | undefined>();
+  const [finishTimeoutEnd, setFinishTimeoutEnd] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Keep track of own player id
@@ -56,6 +57,9 @@ export function useRace() {
       }),
       on("raceProgress", (data) => {
         setProgress(data.progress);
+        if (data.finishTimeoutEnd != null) {
+          setFinishTimeoutEnd(data.finishTimeoutEnd);
+        }
       }),
       on("raceFinished", (data) => {
         setResults(data.results);
@@ -140,6 +144,7 @@ export function useRace() {
     setPlacementTotal(undefined);
     setCountdown(0);
     setQueueCount(0);
+    setFinishTimeoutEnd(null);
     setError(null);
   }, []);
 
@@ -151,6 +156,7 @@ export function useRace() {
       setPlacementRace(undefined);
       setPlacementTotal(undefined);
       setCountdown(0);
+      setFinishTimeoutEnd(null);
       setError(null);
       joinQueue(guestName);
     },
@@ -167,6 +173,7 @@ export function useRace() {
     results,
     placementRace,
     placementTotal,
+    finishTimeoutEnd,
     error,
     joinQueue,
     leaveQueue,

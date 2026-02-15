@@ -1,12 +1,15 @@
 "use client";
 
-import React, { useRef, useEffect, useCallback } from "react";
+import React, { useRef, useEffect, useCallback, useState } from "react";
 import { useTypingEngine } from "@/hooks/useTypingEngine";
 import { WordDisplay } from "@/components/typing/WordDisplay";
+import type { WordPool } from "@typeoff/shared";
 
 interface RaceTypingAreaProps {
   seed: number;
   wordCount: number;
+  wordPool?: WordPool;
+  finishTimeoutEnd?: number | null;
   onProgress: (data: {
     wordIndex: number;
     charIndex: number;
@@ -24,6 +27,8 @@ interface RaceTypingAreaProps {
 export function RaceTypingArea({
   seed,
   wordCount,
+  wordPool,
+  finishTimeoutEnd,
   onProgress,
   onFinish,
   disabled,
@@ -32,6 +37,7 @@ export function RaceTypingArea({
     externalSeed: seed,
     externalWordCount: wordCount,
     mode: "wordcount",
+    wordPool,
   });
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -97,21 +103,44 @@ export function RaceTypingArea({
     [engine.handleKeyDown]
   );
 
+  // Finish timeout countdown
+  const [timeoutRemaining, setTimeoutRemaining] = useState<number | null>(null);
+  useEffect(() => {
+    if (!finishTimeoutEnd || engine.status === "finished") {
+      setTimeoutRemaining(null);
+      return;
+    }
+    const tick = () => {
+      const remaining = Math.max(0, Math.ceil((finishTimeoutEnd - Date.now()) / 1000));
+      setTimeoutRemaining(remaining);
+    };
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [finishTimeoutEnd, engine.status]);
+
   return (
-    <div
-      ref={containerRef}
-      tabIndex={0}
-      onKeyDown={disabled ? undefined : handleKeyDown}
-      className="w-full outline-none cursor-default select-none"
-      role="textbox"
-      aria-label="Race typing area"
-    >
-      <WordDisplay
-        words={engine.words}
-        currentWordIndex={engine.currentWordIndex}
-        currentCharIndex={engine.currentCharIndex}
-        isTyping={engine.status === "typing"}
-      />
+    <div className="w-full relative">
+      {timeoutRemaining != null && timeoutRemaining > 0 && (
+        <div className="text-center text-sm text-muted mb-3 tabular-nums">
+          Time remaining: <span className="text-accent font-bold">{timeoutRemaining}s</span>
+        </div>
+      )}
+      <div
+        ref={containerRef}
+        tabIndex={0}
+        onKeyDown={disabled ? undefined : handleKeyDown}
+        className="w-full outline-none cursor-default select-none"
+        role="textbox"
+        aria-label="Race typing area"
+      >
+        <WordDisplay
+          words={engine.words}
+          currentWordIndex={engine.currentWordIndex}
+          currentCharIndex={engine.currentCharIndex}
+          isTyping={engine.status === "typing"}
+        />
+      </div>
     </div>
   );
 }

@@ -84,6 +84,8 @@ export function RaceArena() {
           <RaceTypingArea
             seed={race.raceState.seed}
             wordCount={race.raceState.wordCount}
+            wordPool={race.raceState.wordPool}
+            finishTimeoutEnd={race.finishTimeoutEnd}
             onProgress={race.sendProgress}
             onFinish={race.sendFinish}
             disabled={false}

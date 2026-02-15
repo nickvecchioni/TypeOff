@@ -20,7 +20,7 @@ export function RaceTrack({ players, progress, myPlayerId }: RaceTrackProps) {
   });
 
   return (
-    <div className="flex flex-col gap-3 w-full">
+    <div className="flex flex-col gap-2 w-full">
       {sorted.map((player) => {
         const p = progress[player.id];
         const pct = (p?.progress ?? 0) * 100;

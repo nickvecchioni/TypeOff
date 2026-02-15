@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import type { TestConfig, TestMode } from "@typeoff/shared";
+import type { TestConfig, TestMode, WordPool } from "@typeoff/shared";
 
 interface ModeSelectorProps {
   config: TestConfig;
@@ -11,6 +11,11 @@ interface ModeSelectorProps {
 
 const TIME_OPTIONS = [15, 30, 60, 120];
 const WORD_OPTIONS = [10, 25, 50, 100];
+const POOL_OPTIONS: { label: string; value: WordPool | undefined }[] = [
+  { label: "easy", value: "common" },
+  { label: "medium", value: "medium" },
+  { label: "hard", value: "hard" },
+];
 
 export function ModeSelector({
   config,
@@ -25,12 +30,18 @@ export function ModeSelector({
     onConfigChange({
       mode,
       duration: mode === "timed" ? 30 : 25,
+      wordPool: config.wordPool,
     });
   };
 
   const handleDurationChange = (duration: number) => {
     if (disabled) return;
     onConfigChange({ ...config, duration });
+  };
+
+  const handlePoolChange = (pool: WordPool | undefined) => {
+    if (disabled) return;
+    onConfigChange({ ...config, wordPool: pool });
   };
 
   return (
@@ -73,6 +84,25 @@ export function ModeSelector({
             } disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             {opt}
+          </button>
+        ))}
+      </div>
+
+      <span className="w-px h-4 bg-surface" />
+
+      <div className="flex items-center gap-1">
+        {POOL_OPTIONS.map((opt) => (
+          <button
+            key={opt.label}
+            onClick={() => handlePoolChange(opt.value)}
+            disabled={disabled}
+            className={`rounded-md px-3 py-1 transition-colors ${
+              config.wordPool === opt.value
+                ? "text-accent"
+                : "text-muted hover:text-text"
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
+          >
+            {opt.label}
           </button>
         ))}
       </div>

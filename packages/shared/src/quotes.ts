@@ -1,0 +1,48 @@
+/** Famous quotes and sentences with punctuation and capitalization */
+export const quotes: string[] = [
+  "The only way to do great work is to love what you do.",
+  "In the middle of difficulty lies opportunity.",
+  "Life is what happens when you are busy making other plans.",
+  "The greatest glory in living lies not in never falling, but in rising every time we fall.",
+  "The future belongs to those who believe in the beauty of their dreams.",
+  "It is during our darkest moments that we must focus to see the light.",
+  "The purpose of our lives is to be happy.",
+  "Get busy living or get busy dying.",
+  "You only live once, but if you do it right, once is enough.",
+  "Many of life's failures are people who did not realize how close they were to success when they gave up.",
+  "If you look at what you have in life, you will always have more.",
+  "Life is either a daring adventure or nothing at all.",
+  "The mind is everything. What you think you become.",
+  "Strive not to be a success, but rather to be of value.",
+  "The best time to plant a tree was twenty years ago. The second best time is now.",
+  "Your time is limited, so do not waste it living someone else's life.",
+  "If you set your goals ridiculously high and it is a failure, you will fail above everyone else's success.",
+  "The only impossible journey is the one you never begin.",
+  "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+  "Believe you can and you are halfway there.",
+  "The secret of getting ahead is getting started.",
+  "It always seems impossible until it is done.",
+  "Do not go where the path may lead, go instead where there is no path and leave a trail.",
+  "Everything you have ever wanted is on the other side of fear.",
+  "The best revenge is massive success.",
+  "What we think, we become.",
+  "The only limit to our realization of tomorrow will be our doubts of today.",
+  "Creativity is intelligence having fun.",
+  "Do what you can, with what you have, where you are.",
+  "It does not matter how slowly you go as long as you do not stop.",
+  "Act as if what you do makes a difference. It does.",
+  "What lies behind us and what lies before us are tiny matters compared to what lies within us.",
+  "Happiness is not something ready made. It comes from your own actions.",
+  "The way to get started is to quit talking and begin doing.",
+  "If you want to lift yourself up, lift up someone else.",
+  "We may encounter many defeats but we must not be defeated.",
+  "Whether you think you can or you think you cannot, you are right.",
+  "The best and most beautiful things in the world cannot be seen or even touched. They must be felt with the heart.",
+  "Whoever is happy will make others happy too.",
+  "You must be the change you wish to see in the world.",
+];
+
+/** Split a quote into words by spaces */
+export function quoteToWords(quote: string): string[] {
+  return quote.split(" ");
+}
