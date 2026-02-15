@@ -44,15 +44,15 @@ export function TypingTest() {
         isTyping ? "focus-active" : ""
       }`}
     >
-      {/* Mode selector + PB */}
+      {/* PB + Mode selector */}
       {!isFinished && (
         <div className="focus-fade flex flex-col items-center gap-2">
+          <PersonalBest config={config} />
           <ModeSelector
             config={config}
             onConfigChange={setConfig}
             disabled={isTyping}
           />
-          <PersonalBest config={config} />
         </div>
       )}
 

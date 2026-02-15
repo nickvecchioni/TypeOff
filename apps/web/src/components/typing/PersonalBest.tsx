@@ -39,11 +39,11 @@ export function PersonalBest({ config }: { config: TestConfig }) {
     return () => window.removeEventListener("solo-result-saved", handler);
   }, [fetchPb]);
 
-  if (!session?.user || pb === null) return null;
+  if (!session?.user) return null;
 
   return (
     <div className="text-sm text-muted tabular-nums">
-      pb: <span className="text-text">{pb} wpm</span>
+      pb: <span className="text-text">{pb !== null ? `${pb} wpm` : "n/a"}</span>
     </div>
   );
 }
