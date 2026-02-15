@@ -164,7 +164,7 @@ export default function RanksPage() {
             Tips for Climbing
           </h2>
           <ul className="space-y-2 text-sm text-text/80 list-disc list-inside">
-            <li>Accuracy is everything — mistakes cost time</li>
+            <li>Stay accurate — mistakes cost time</li>
             <li>Warm up before ranked</li>
             <li>Common words repeat — pattern recognition &gt; raw speed</li>
             <li>Stay consistent, don&apos;t tilt</li>

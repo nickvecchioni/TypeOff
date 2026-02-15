@@ -25,7 +25,6 @@ export async function GET(request: Request) {
       duration: soloResults.duration,
       wordPool: soloResults.wordPool,
       wpm: sql<number>`max(${soloResults.wpm})`.as("wpm"),
-      accuracy: soloResults.accuracy,
       time: soloResults.time,
       createdAt: soloResults.createdAt,
     })
@@ -35,7 +34,6 @@ export async function GET(request: Request) {
       soloResults.mode,
       soloResults.duration,
       soloResults.wordPool,
-      soloResults.accuracy,
       soloResults.time,
       soloResults.createdAt
     )

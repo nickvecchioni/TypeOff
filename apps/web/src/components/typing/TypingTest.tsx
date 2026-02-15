@@ -20,7 +20,6 @@ export function TypingTest() {
     timeLeft,
     config,
     liveWpm,
-    liveAccuracy,
     stats,
     setConfig,
     restart,
@@ -60,7 +59,6 @@ export function TypingTest() {
       {!isFinished && (
         <StatsBar
           wpm={liveWpm}
-          accuracy={liveAccuracy}
           timeLeft={timeLeft}
           config={config}
           visible={isTyping}

@@ -9,7 +9,6 @@ interface LeaderboardRow {
   userId: string;
   username: string;
   wpm: number;
-  accuracy: number;
   createdAt: string;
 }
 
@@ -90,7 +89,6 @@ export function SoloLeaderboard() {
           <span className="w-6">#</span>
           <span className="flex-1">Player</span>
           <span className="w-16 text-right">WPM</span>
-          <span className="w-16 text-right">Accuracy</span>
           <span className="w-20 text-right">Date</span>
         </div>
         {loading ? (
@@ -129,9 +127,6 @@ export function SoloLeaderboard() {
                 </span>
                 <span className="w-16 text-right text-sm font-bold text-text tabular-nums">
                   {Math.round(row.wpm)}
-                </span>
-                <span className="w-16 text-right text-sm text-muted tabular-nums">
-                  {Math.round(row.accuracy)}%
                 </span>
                 <span className="w-20 text-right text-sm text-muted/60">
                   {new Date(row.createdAt).toLocaleDateString()}

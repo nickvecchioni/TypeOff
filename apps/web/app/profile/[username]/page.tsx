@@ -189,7 +189,6 @@ export default async function ProfilePage({
                   <th className="pb-2">Mode</th>
                   <th className="pb-2">Duration</th>
                   <th className="pb-2 text-right">Best WPM</th>
-                  <th className="pb-2 text-right">Accuracy</th>
                   <th className="pb-2 text-right">Date</th>
                 </tr>
               </thead>
@@ -205,9 +204,6 @@ export default async function ProfilePage({
                     </td>
                     <td className="py-2 text-right font-bold text-accent tabular-nums">
                       {Math.round(pb.wpm)}
-                    </td>
-                    <td className="py-2 text-right text-muted tabular-nums">
-                      {Math.round(pb.accuracy)}%
                     </td>
                     <td className="py-2 text-right text-muted">
                       {new Date(pb.createdAt).toLocaleDateString()}

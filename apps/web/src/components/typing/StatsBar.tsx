@@ -5,13 +5,12 @@ import type { TestConfig } from "@typeoff/shared";
 
 interface StatsBarProps {
   wpm: number;
-  accuracy: number;
   timeLeft: number;
   config: TestConfig;
   visible: boolean;
 }
 
-export function StatsBar({ wpm, accuracy, timeLeft, config, visible }: StatsBarProps) {
+export function StatsBar({ wpm, timeLeft, config, visible }: StatsBarProps) {
   if (!visible) return null;
 
   return (
@@ -21,10 +20,6 @@ export function StatsBar({ wpm, accuracy, timeLeft, config, visible }: StatsBarP
       )}
       <span className="text-text">
         {wpm} <span className="text-muted text-sm">wpm</span>
-      </span>
-      <span className="text-text">
-        {accuracy}
-        <span className="text-muted text-sm">%</span>
       </span>
     </div>
   );

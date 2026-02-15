@@ -68,20 +68,11 @@ export function Results({ stats, onRestart, config }: ResultsProps) {
       )}
 
       {/* Big numbers */}
-      <div className="flex items-baseline gap-16">
-        <div className="text-center">
-          <div className="text-8xl font-bold text-accent tabular-nums">
-            {stats.wpm}
-          </div>
-          <div className="text-base text-muted mt-1">wpm</div>
+      <div className="text-center">
+        <div className="text-8xl font-bold text-accent tabular-nums">
+          {stats.wpm}
         </div>
-        <div className="text-center">
-          <div className="text-8xl font-bold text-text tabular-nums">
-            {stats.accuracy}
-            <span className="text-5xl text-muted">%</span>
-          </div>
-          <div className="text-base text-muted mt-1">accuracy</div>
-        </div>
+        <div className="text-base text-muted mt-1">wpm</div>
       </div>
 
       {/* PB context */}

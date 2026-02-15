@@ -133,7 +133,7 @@ export function RaceResults({ results, myPlayerId, onRaceAgain, placementRace, p
         if (!myResult) return null;
         return (
           <div className="flex flex-col items-center gap-4 w-full max-w-lg">
-            <div className="grid grid-cols-3 gap-6 text-center w-full">
+            <div className="grid grid-cols-2 gap-6 text-center w-full">
               <div>
                 <div className="text-2xl font-bold text-accent tabular-nums">
                   {Math.round(myResult.wpm)}
@@ -145,13 +145,6 @@ export function RaceResults({ results, myPlayerId, onRaceAgain, placementRace, p
                   {Math.round(myResult.rawWpm)}
                 </div>
                 <div className="text-xs text-muted">raw wpm</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-text tabular-nums">
-                  {Math.round(myResult.accuracy)}
-                  <span className="text-lg text-muted">%</span>
-                </div>
-                <div className="text-xs text-muted">accuracy</div>
               </div>
             </div>
             {myResult.wpmHistory && myResult.wpmHistory.length >= 2 && (

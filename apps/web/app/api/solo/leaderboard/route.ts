@@ -19,7 +19,6 @@ export async function GET(request: Request) {
       userId: soloResults.userId,
       username: users.username,
       wpm: sql<number>`max(${soloResults.wpm})`.as("best_wpm"),
-      accuracy: soloResults.accuracy,
       createdAt: soloResults.createdAt,
     })
     .from(soloResults)
@@ -33,7 +32,6 @@ export async function GET(request: Request) {
     .groupBy(
       soloResults.userId,
       users.username,
-      soloResults.accuracy,
       soloResults.createdAt
     )
     .orderBy(desc(sql`max(${soloResults.wpm})`))

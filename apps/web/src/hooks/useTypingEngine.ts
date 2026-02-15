@@ -96,12 +96,6 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     return Math.round((correctCharsRef.current / 5) / (timeElapsed / 60));
   }, [timeElapsed]);
 
-  const liveAccuracy = useMemo(() => {
-    const total = correctCharsRef.current + incorrectCharsRef.current + extraCharsRef.current;
-    if (total === 0) return 100;
-    return Math.round((correctCharsRef.current / total) * 100);
-  }, [timeElapsed]); // eslint-disable-line react-hooks/exhaustive-deps
-
   const stopTimer = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -355,7 +349,6 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     timeLeft,
     config,
     liveWpm,
-    liveAccuracy,
     stats,
     setConfig,
     restart,

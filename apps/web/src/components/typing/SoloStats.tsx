@@ -8,7 +8,6 @@ interface PbRow {
   duration: number;
   wordPool: string | null;
   wpm: number;
-  accuracy: number;
   time: number;
   createdAt: string;
 }
@@ -19,7 +18,6 @@ interface RecentResult {
   duration: number;
   wordPool: string | null;
   wpm: number;
-  accuracy: number;
   time: number;
   isPb: boolean;
   createdAt: string;
@@ -90,14 +88,9 @@ export function SoloStats() {
                   >
                     <div className="text-xs text-muted mb-1">{d}s</div>
                     {pb ? (
-                      <>
-                        <div className="text-lg font-bold text-accent tabular-nums">
-                          {Math.round(pb.wpm)}
-                        </div>
-                        <div className="text-xs text-muted tabular-nums">
-                          {Math.round(pb.accuracy)}%
-                        </div>
-                      </>
+                      <div className="text-lg font-bold text-accent tabular-nums">
+                        {Math.round(pb.wpm)}
+                      </div>
                     ) : (
                       <div className="text-lg text-muted/30">-</div>
                     )}
@@ -120,14 +113,9 @@ export function SoloStats() {
                   >
                     <div className="text-xs text-muted mb-1">{d}</div>
                     {pb ? (
-                      <>
-                        <div className="text-lg font-bold text-accent tabular-nums">
-                          {Math.round(pb.wpm)}
-                        </div>
-                        <div className="text-xs text-muted tabular-nums">
-                          {Math.round(pb.accuracy)}%
-                        </div>
-                      </>
+                      <div className="text-lg font-bold text-accent tabular-nums">
+                        {Math.round(pb.wpm)}
+                      </div>
                     ) : (
                       <div className="text-lg text-muted/30">-</div>
                     )}
@@ -148,7 +136,6 @@ export function SoloStats() {
               <tr className="text-muted border-b border-surface">
                 <th className="pb-2">Mode</th>
                 <th className="pb-2 text-right">WPM</th>
-                <th className="pb-2 text-right">Accuracy</th>
                 <th className="pb-2 text-right">Date</th>
               </tr>
             </thead>
@@ -166,9 +153,6 @@ export function SoloStats() {
                   </td>
                   <td className="py-2 text-right tabular-nums font-medium">
                     {Math.round(r.wpm)}
-                  </td>
-                  <td className="py-2 text-right tabular-nums text-muted">
-                    {Math.round(r.accuracy)}%
                   </td>
                   <td className="py-2 text-right text-muted">
                     {new Date(r.createdAt).toLocaleDateString()}
