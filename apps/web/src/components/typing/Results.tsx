@@ -59,28 +59,28 @@ export function Results({ stats, onRestart, config }: ResultsProps) {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="flex flex-col items-center gap-8 animate-fade-in">
+    <div className="flex flex-col items-center gap-10 animate-fade-in w-full max-w-2xl mx-auto">
+      {/* NEW PB badge */}
+      {saveState.isPb && (
+        <div className="text-lg font-bold text-rank-gold bg-rank-gold/10 border border-rank-gold/30 rounded-full px-4 py-1">
+          NEW PB!
+        </div>
+      )}
+
       {/* Big numbers */}
-      <div className="flex items-baseline gap-12">
-        <div className="text-center relative">
-          <div className="text-6xl font-bold text-accent tabular-nums">
+      <div className="flex items-baseline gap-16">
+        <div className="text-center">
+          <div className="text-8xl font-bold text-accent tabular-nums">
             {stats.wpm}
           </div>
-          <div className="text-sm text-muted mt-1">wpm</div>
-          {saveState.isPb && (
-            <div className="absolute -top-3 -right-16 animate-bounce">
-              <span className="text-sm font-bold text-rank-gold bg-rank-gold/10 border border-rank-gold/30 rounded-full px-2 py-0.5">
-                NEW PB!
-              </span>
-            </div>
-          )}
+          <div className="text-base text-muted mt-1">wpm</div>
         </div>
         <div className="text-center">
-          <div className="text-6xl font-bold text-text tabular-nums">
+          <div className="text-8xl font-bold text-text tabular-nums">
             {stats.accuracy}
-            <span className="text-3xl text-muted">%</span>
+            <span className="text-5xl text-muted">%</span>
           </div>
-          <div className="text-sm text-muted mt-1">accuracy</div>
+          <div className="text-base text-muted mt-1">accuracy</div>
         </div>
       </div>
 
@@ -92,24 +92,24 @@ export function Results({ stats, onRestart, config }: ResultsProps) {
       )}
 
       {/* Detail grid */}
-      <div className="grid grid-cols-4 gap-6 text-center">
+      <div className="grid grid-cols-4 gap-8 text-center">
         <div>
-          <div className="text-lg text-text tabular-nums">{stats.rawWpm}</div>
-          <div className="text-xs text-muted">raw wpm</div>
+          <div className="text-2xl text-text tabular-nums">{stats.rawWpm}</div>
+          <div className="text-sm text-muted">raw wpm</div>
         </div>
         <div>
-          <div className="text-lg text-text tabular-nums">{stats.correctChars}</div>
-          <div className="text-xs text-muted">correct</div>
+          <div className="text-2xl text-text tabular-nums">{stats.correctChars}</div>
+          <div className="text-sm text-muted">correct</div>
         </div>
         <div>
-          <div className="text-lg text-text tabular-nums">
+          <div className="text-2xl text-text tabular-nums">
             {stats.incorrectChars + stats.extraChars}
           </div>
-          <div className="text-xs text-muted">errors</div>
+          <div className="text-sm text-muted">errors</div>
         </div>
         <div>
-          <div className="text-lg text-text tabular-nums">{stats.time}s</div>
-          <div className="text-xs text-muted">time</div>
+          <div className="text-2xl text-text tabular-nums">{stats.time}s</div>
+          <div className="text-sm text-muted">time</div>
         </div>
       </div>
 
