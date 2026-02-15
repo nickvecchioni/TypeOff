@@ -15,7 +15,7 @@ import {
   commonWords,
 } from "@typeoff/shared";
 
-const DEFAULT_CONFIG: TestConfig = { mode: "timed", duration: 30 };
+const DEFAULT_CONFIG: TestConfig = { mode: "timed", duration: 30, wordPool: "common" };
 const WORD_POOL_SIZE = 200;
 
 export interface TypingEngine extends EngineAPI {
@@ -66,9 +66,11 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
   useEffect(() => {
     if (!initialized.current) {
       initialized.current = true;
-      const count = external?.externalWordCount ?? WORD_POOL_SIZE;
-      const seed = external?.externalSeed ?? undefined;
       const pool = external?.wordPool ?? config.wordPool;
+      const seed = external?.externalSeed ?? undefined;
+      const count =
+        external?.externalWordCount ??
+        (config.mode === "wordcount" ? config.duration : WORD_POOL_SIZE);
       const wordStrings = pool
         ? generateFromPool(pool, count, seed)
         : generateWords(commonWords, count, seed);
@@ -159,9 +161,12 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
 
   const restart = useCallback(() => {
     stopTimer();
-    const count = external?.externalWordCount ?? WORD_POOL_SIZE;
-    const seed = external?.externalSeed ?? undefined;
     const pool = external?.wordPool ?? config.wordPool;
+    const seed = external?.externalSeed ?? undefined;
+    // In wordcount mode, generate exactly the requested number of words
+    const count =
+      external?.externalWordCount ??
+      (config.mode === "wordcount" ? config.duration : WORD_POOL_SIZE);
     const wordStrings = pool
       ? generateFromPool(pool, count, seed)
       : generateWords(commonWords, count, seed);
@@ -177,7 +182,7 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     extraCharsRef.current = 0;
     totalCharsRef.current = 0;
     wpmHistoryRef.current = [];
-  }, [stopTimer]);
+  }, [stopTimer, config]);
 
   // Reset when config changes
   useEffect(() => {

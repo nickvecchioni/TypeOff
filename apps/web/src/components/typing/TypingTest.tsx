@@ -6,6 +6,7 @@ import { WordDisplay } from "./WordDisplay";
 import { ModeSelector } from "./ModeSelector";
 import { StatsBar } from "./StatsBar";
 import { Results } from "./Results";
+import { PersonalBest } from "./PersonalBest";
 
 export function TypingTest() {
   const engine = useTypingEngine();
@@ -43,14 +44,15 @@ export function TypingTest() {
         isTyping ? "focus-active" : ""
       }`}
     >
-      {/* Mode selector */}
+      {/* Mode selector + PB */}
       {!isFinished && (
-        <div className="focus-fade">
+        <div className="focus-fade flex flex-col items-center gap-2">
           <ModeSelector
             config={config}
             onConfigChange={setConfig}
             disabled={isTyping}
           />
+          <PersonalBest config={config} />
         </div>
       )}
 
