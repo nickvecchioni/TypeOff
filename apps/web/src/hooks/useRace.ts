@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import type {
   RaceState,
   RacePlayerProgress,
+  WpmSample,
 } from "@typeoff/shared";
 import { useSocket } from "./useSocket";
 
@@ -20,6 +21,7 @@ export interface RaceResult {
   eloChange: number | null;
   elo?: number;
   streak?: number;
+  wpmHistory?: WpmSample[];
 }
 
 export function useRace() {

@@ -20,6 +20,7 @@ interface RaceTypingAreaProps {
     wpm: number;
     rawWpm: number;
     accuracy: number;
+    wpmHistory?: import("@typeoff/shared").WpmSample[];
   }) => void;
   disabled: boolean;
 }
@@ -87,6 +88,7 @@ export function RaceTypingArea({
         wpm: engine.stats.wpm,
         rawWpm: engine.stats.rawWpm,
         accuracy: engine.stats.accuracy,
+        wpmHistory: engine.stats.wpmHistory,
       });
     }
   }, [engine.status, engine.stats, onFinish]);

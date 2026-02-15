@@ -80,10 +80,24 @@ export const hardWords: string[] = [
   "quintessential", "ramification", "substantiate", "superfluous", "surreptitious", "tenacious", "turbulent", "unilateral", "verbose", "zealous",
 ];
 
-export type WordPool = "common" | "medium" | "hard";
+/** ~30 code-like strings with brackets, semicolons, camelCase */
+export const codeSnippets: string[] = [
+  "const x = 42;", "function main() {", "return result;", "if (err !== null) {",
+  "for (let i = 0;", "console.log(data);", "import { useState }", "export default App;",
+  "async function fetch()", "await Promise.all([", "try { parse(json)", "} catch (e) {",
+  "const arr = [];", "obj.key = value;", "map.set(id, item);", "arr.push(newItem);",
+  "str.split(' ');", "Math.floor(x / 2)", "JSON.stringify(obj)", "event.preventDefault();",
+  "document.getElementById", "el.classList.add('active')", "setTimeout(() => {", "clearInterval(timer);",
+  "new Map<string, number>()", "interface Props {", "type Result = Ok | Err;", "enum Status { Active }",
+  "const [a, ...rest] = arr;", "Object.keys(config).forEach",
+];
+
+export type WordPool = "common" | "medium" | "hard" | "quotes" | "code";
 
 export const wordPools: Record<WordPool, string[]> = {
   common: commonWords,
   medium: mediumWords,
   hard: hardWords,
+  quotes: [], // handled specially via quotes module
+  code: codeSnippets,
 };

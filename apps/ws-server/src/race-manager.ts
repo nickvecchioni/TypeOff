@@ -6,12 +6,16 @@ import type {
   RacePlayerProgress,
   RaceState,
   RaceStatus,
+  WpmSample,
 } from "@typeoff/shared";
 import { calculateRaceElo, getRankTier, generateFromPool } from "@typeoff/shared";
 import type { WordPool } from "@typeoff/shared";
-import { createDb, races, raceParticipants, userStats, users } from "@typeoff/db";
-import { eq, inArray } from "drizzle-orm";
-import type { Matchmaker } from "./matchmaker.js";
+import { createDb, races, raceParticipants, userStats, users, challenges, challengeProgress } from "@typeoff/db";
+import { eq, inArray, and, gte, lte } from "drizzle-orm";
+export interface RaceOwner {
+  cleanupRace(raceId: string, socketIds: string[]): void;
+}
+import { checkAchievements } from "./achievement-checker.js";
 
 type TypedServer = Server<ClientToServerEvents, ServerToClientEvents>;
 type TypedSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
@@ -22,10 +26,14 @@ interface PlayerEntry {
   progress: RacePlayerProgress;
   isBot: boolean;
   botTargetWpm: number;
+  wpmHistory?: WpmSample[];
+  lastProgressTime: number;
+  progressEventsInWindow: number;
+  progressWindowStart: number;
 }
 
 const COUNTDOWN_SECONDS = 5;
-const WORD_COUNT = 50;
+const WORD_COUNT_OPTIONS = [25, 50, 75];
 const PROGRESS_INTERVAL_MS = 100;
 
 const DEFAULT_BOT_WPM_MIN = 40;
@@ -54,28 +62,36 @@ export class RaceManager {
   private finishTimeoutEnd: number | null = null;
   private finishTimeoutTimer: ReturnType<typeof setTimeout> | null = null;
   private wordPool: WordPool;
+  private wordCount: number;
+  private expectedWords: string[] = [];
+  private playerFlags = new Map<string, string[]>();
 
   constructor(
     private io: TypedServer,
     entries: Array<{ socket: TypedSocket; player: RacePlayer }>,
-    private matchmaker: Matchmaker,
+    private owner: RaceOwner,
     bots: RacePlayer[] = [],
     botWpmConfig?: BotWpmConfig,
     placementRace?: number,
+    private isLobbyRace: boolean = false,
   ) {
     this.placementRace = placementRace;
     this.raceId = crypto.randomUUID();
     this.seed = Math.floor(Math.random() * 2147483647);
 
     // Pick a random word pool using the race seed
-    const pools: WordPool[] = ["common", "medium", "hard"];
+    const pools: WordPool[] = ["common", "medium", "hard", "quotes", "code"];
     this.wordPool = pools[this.seed % pools.length];
 
-    // Compute total character count for bot simulation
-    const words = generateFromPool(this.wordPool, WORD_COUNT, this.seed);
-    this.totalChars = words.reduce((sum, w) => sum + w.length, 0) + (WORD_COUNT - 1);
+    // Pick a random word count
+    this.wordCount = WORD_COUNT_OPTIONS[this.seed % WORD_COUNT_OPTIONS.length];
+
+    // Store expected words for anti-cheat and compute total character count for bot simulation
+    this.expectedWords = generateFromPool(this.wordPool, this.wordCount, this.seed);
+    this.totalChars = this.expectedWords.reduce((sum, w) => sum + w.length, 0) + (this.wordCount - 1);
 
     // Add real players first (Map insertion order matters for guest identification)
+    const now = Date.now();
     for (const entry of entries) {
       this.players.set(entry.socket.id, {
         socket: entry.socket,
@@ -92,6 +108,9 @@ export class RaceManager {
         },
         isBot: false,
         botTargetWpm: 0,
+        lastProgressTime: now,
+        progressEventsInWindow: 0,
+        progressWindowStart: now,
       });
     }
 
@@ -115,6 +134,9 @@ export class RaceManager {
         },
         isBot: true,
         botTargetWpm: targetWpm,
+        lastProgressTime: now,
+        progressEventsInWindow: 0,
+        progressWindowStart: now,
       });
     }
   }
@@ -145,6 +167,12 @@ export class RaceManager {
     }, 1000);
   }
 
+  private addFlag(playerId: string, reason: string) {
+    const existing = this.playerFlags.get(playerId) ?? [];
+    existing.push(reason);
+    this.playerFlags.set(playerId, existing);
+  }
+
   handleProgress(
     socketId: string,
     data: { wordIndex: number; charIndex: number; wpm: number; progress: number }
@@ -152,7 +180,7 @@ export class RaceManager {
     const entry = this.players.get(socketId);
     if (!entry || this.status !== "racing" || entry.progress.finished) return;
 
-    const validated = this.validateProgress(data);
+    const validated = this.validateProgress(data, entry);
     entry.progress.wordIndex = validated.wordIndex;
     entry.progress.charIndex = validated.charIndex;
     entry.progress.wpm = validated.wpm;
@@ -161,18 +189,19 @@ export class RaceManager {
 
   handleFinish(
     socketId: string,
-    data: { wpm: number; rawWpm: number; accuracy: number }
+    data: { wpm: number; rawWpm: number; accuracy: number; wpmHistory?: WpmSample[]; keystrokeTimings?: number[] }
   ) {
     const entry = this.players.get(socketId);
     if (!entry || this.status !== "racing" || entry.progress.finished) return;
 
-    const rejection = this.validateFinish(data, entry.socket);
+    const rejection = this.validateFinish(data, entry);
     if (rejection) return;
 
     entry.progress.finished = true;
     entry.progress.placement = this.nextPlacement++;
     entry.progress.progress = 1;
     entry.progress.finalStats = data;
+    if (data.wpmHistory) entry.wpmHistory = data.wpmHistory;
 
     // Check if all players finished
     const allFinished = [...this.players.values()].every((p) => p.progress.finished);
@@ -206,19 +235,55 @@ export class RaceManager {
     }
   }
 
-  private validateProgress(data: { wordIndex: number; charIndex: number; wpm: number; progress: number }) {
-    return {
-      wordIndex: data.wordIndex,
-      charIndex: data.charIndex,
-      wpm: Math.min(data.wpm, 350),
-      progress: Math.max(0, Math.min(1, data.progress)),
-    };
+  private validateProgress(
+    data: { wordIndex: number; charIndex: number; wpm: number; progress: number },
+    entry: PlayerEntry,
+  ) {
+    const now = Date.now();
+    let { wordIndex, charIndex, wpm, progress } = data;
+
+    // Clamp basic values
+    wpm = Math.min(wpm, 350);
+    progress = Math.max(0, Math.min(1, progress));
+
+    // Reject going backwards in word index
+    if (wordIndex < entry.progress.wordIndex) {
+      this.addFlag(entry.player.id, "wordIndex regression");
+      wordIndex = entry.progress.wordIndex;
+    }
+
+    // Reject exceeding word count
+    if (wordIndex > this.wordCount) {
+      this.addFlag(entry.player.id, "wordIndex exceeds wordCount");
+      wordIndex = this.wordCount;
+    }
+
+    // Reject progress regression
+    if (progress < entry.progress.progress) {
+      this.addFlag(entry.player.id, "progress regression");
+      progress = entry.progress.progress;
+    }
+
+    // Rate limit: flag if >20 progress events per second
+    if (now - entry.progressWindowStart > 1000) {
+      entry.progressEventsInWindow = 0;
+      entry.progressWindowStart = now;
+    }
+    entry.progressEventsInWindow++;
+    if (entry.progressEventsInWindow > 20) {
+      this.addFlag(entry.player.id, "excessive progress rate");
+    }
+    entry.lastProgressTime = now;
+
+    return { wordIndex, charIndex, wpm, progress };
   }
 
   private validateFinish(
-    data: { wpm: number; rawWpm: number; accuracy: number },
-    socket: TypedSocket | null
+    data: { wpm: number; rawWpm: number; accuracy: number; wpmHistory?: WpmSample[]; keystrokeTimings?: number[] },
+    entry: PlayerEntry,
   ): string | null {
+    const socket = entry.socket;
+
     if (data.wpm > 300) {
       socket?.emit("error", { message: "Invalid finish: WPM exceeds maximum" });
       return "wpm too high";
@@ -244,6 +309,46 @@ export class RaceManager {
         return "too fast";
       }
     }
+
+    // Cross-validate wpmHistory if provided (flag, don't reject)
+    if (data.wpmHistory && data.wpmHistory.length > 1) {
+      // Check monotonically increasing elapsed
+      for (let i = 1; i < data.wpmHistory.length; i++) {
+        if (data.wpmHistory[i].elapsed < data.wpmHistory[i - 1].elapsed) {
+          this.addFlag(entry.player.id, "wpmHistory elapsed not monotonic");
+          break;
+        }
+      }
+      // Check no wpm > 350
+      if (data.wpmHistory.some((s) => s.wpm > 350)) {
+        this.addFlag(entry.player.id, "wpmHistory wpm exceeds 350");
+      }
+      // Check final sample's elapsed roughly matches actual race duration
+      if (this.startedAt) {
+        const actualDuration = (Date.now() - this.startedAt.getTime()) / 1000;
+        const lastSample = data.wpmHistory[data.wpmHistory.length - 1];
+        if (Math.abs(lastSample.elapsed - actualDuration) > actualDuration * 0.3) {
+          this.addFlag(entry.player.id, "wpmHistory duration mismatch");
+        }
+      }
+    }
+
+    // Validate keystroke timings if provided (flag, don't reject)
+    if (data.keystrokeTimings && data.keystrokeTimings.length > 5) {
+      const timings = data.keystrokeTimings;
+      // Flag if any gaps are 0ms
+      if (timings.some((t) => t === 0)) {
+        this.addFlag(entry.player.id, "keystroke timing has 0ms gap");
+      }
+      // Flag if stddev is suspiciously low (< 10ms suggests bot/macro)
+      const mean = timings.reduce((a, b) => a + b, 0) / timings.length;
+      const variance = timings.reduce((sum, t) => sum + (t - mean) ** 2, 0) / timings.length;
+      const stddev = Math.sqrt(variance);
+      if (stddev < 10) {
+        this.addFlag(entry.player.id, "keystroke timing stddev < 10ms (bot/macro)");
+      }
+    }
+
     return null;
   }
 
@@ -273,13 +378,13 @@ export class RaceManager {
 
       entry.progress.progress = Math.min(1, entry.progress.progress + progressPerTick);
       entry.progress.wpm = Math.round(effectiveWpm);
-      entry.progress.wordIndex = Math.floor(entry.progress.progress * WORD_COUNT);
+      entry.progress.wordIndex = Math.floor(entry.progress.progress * this.wordCount);
 
       if (entry.progress.progress >= 1) {
         entry.progress.progress = 1;
         entry.progress.finished = true;
         entry.progress.placement = this.nextPlacement++;
-        entry.progress.wordIndex = WORD_COUNT;
+        entry.progress.wordIndex = this.wordCount;
         entry.progress.finalStats = {
           wpm: Math.round(entry.botTargetWpm),
           rawWpm: Math.round(entry.botTargetWpm),
@@ -355,6 +460,7 @@ export class RaceManager {
       eloChange: number | null;
       elo?: number;
       streak?: number;
+      wpmHistory?: WpmSample[];
     }> = [];
 
     // Track per-player data for results
@@ -370,7 +476,8 @@ export class RaceManager {
       await db.insert(races).values({
         id: this.raceId,
         seed: this.seed,
-        wordCount: WORD_COUNT,
+        wordCount: this.wordCount,
+        wordPool: this.wordPool,
         playerCount: entries.length,
         startedAt: this.startedAt ?? new Date(),
         finishedAt: new Date(),
@@ -383,7 +490,8 @@ export class RaceManager {
         const stats = entry.progress.finalStats!;
         const placement = entry.progress.placement!;
 
-        // Insert participant record
+        // Insert participant record (with anti-cheat flags if any)
+        const flags = this.playerFlags.get(entry.player.id);
         await db.insert(raceParticipants).values({
           raceId: this.raceId,
           userId: entry.player.isGuest ? null : entry.player.id,
@@ -393,6 +501,8 @@ export class RaceManager {
           rawWpm: stats.rawWpm,
           accuracy: stats.accuracy,
           finishedAt: new Date(),
+          flagged: flags != null && flags.length > 0,
+          flagReason: flags?.join("; ") ?? null,
         });
 
         // Update user stats for authenticated players
@@ -461,11 +571,11 @@ export class RaceManager {
         }
       }
 
-      // 3. Calculate ELO for non-placement races (includes bot opponents)
+      // 3. Calculate ELO for non-placement, non-lobby races (includes bot opponents)
       const authPlayers = entries.filter((e) => !e.player.isGuest && !e.isBot);
       const botEntries = entries.filter((e) => e.isBot);
 
-      if (!this.placementRace && authPlayers.length >= 1) {
+      if (!this.placementRace && !this.isLobbyRace && authPlayers.length >= 1) {
         const playerIds = authPlayers.map((e) => e.player.id);
         const statsRows = await db
           .select()
@@ -531,7 +641,93 @@ export class RaceManager {
         }
       }
 
-      // 4. Load display data (non-critical — if this fails, results still work)
+      // 4. Update challenge progress (non-critical)
+      try {
+        const now = new Date();
+        const activeChallenges = await db
+          .select()
+          .from(challenges)
+          .where(and(lte(challenges.startedAt, now), gte(challenges.endedAt, now)));
+
+        for (const entry of entries) {
+          if (entry.isBot || entry.player.isGuest) continue;
+          const userId = entry.player.id;
+          const stats = entry.progress.finalStats!;
+          const placement = entry.progress.placement!;
+          const streak = streakMap.get(userId) ?? 0;
+
+          for (const challenge of activeChallenges) {
+            let increment = 0;
+            let isMaxMetric = false;
+
+            switch (challenge.metric) {
+              case "races":
+                increment = 1;
+                break;
+              case "wins":
+                increment = placement === 1 ? 1 : 0;
+                break;
+              case "wpm":
+                isMaxMetric = true;
+                increment = Math.round(stats.wpm);
+                break;
+              case "accuracy":
+                isMaxMetric = true;
+                increment = Math.round(stats.accuracy);
+                break;
+              case "streak":
+                isMaxMetric = true;
+                increment = streak;
+                break;
+            }
+
+            if (increment <= 0 && !isMaxMetric) continue;
+
+            // Upsert progress
+            const existing = await db
+              .select()
+              .from(challengeProgress)
+              .where(
+                and(
+                  eq(challengeProgress.challengeId, challenge.id),
+                  eq(challengeProgress.userId, userId)
+                )
+              )
+              .limit(1);
+
+            if (existing.length === 0) {
+              const value = isMaxMetric ? increment : increment;
+              const completed = value >= challenge.target;
+              await db.insert(challengeProgress).values({
+                challengeId: challenge.id,
+                userId,
+                currentValue: value,
+                completed,
+                completedAt: completed ? new Date() : null,
+              });
+            } else {
+              const row = existing[0];
+              if (row.completed) continue;
+              const newValue = isMaxMetric
+                ? Math.max(row.currentValue, increment)
+                : row.currentValue + increment;
+              const completed = newValue >= challenge.target;
+              await db
+                .update(challengeProgress)
+                .set({
+                  currentValue: newValue,
+                  completed,
+                  completedAt: completed ? new Date() : null,
+                })
+                .where(eq(challengeProgress.id, row.id));
+            }
+          }
+        }
+      } catch (challengeErr) {
+        console.error("[race-manager] challenge progress error:", challengeErr);
+      }
+
+      // 5. Load display data
       try {
         const authPlayerIds = entries
           .filter((e) => !e.player.isGuest && !e.isBot)
@@ -586,7 +782,43 @@ export class RaceManager {
         eloChange: eloChanges.get(entry.player.id) ?? null,
         elo: eloAfterMap.get(entry.player.id) ?? entry.player.elo,
         streak: streak !== undefined ? streak : undefined,
+        wpmHistory: !entry.isBot ? entry.wpmHistory : undefined,
       });
+    }
+
+    // Check achievements for authenticated players (fire-and-forget)
+    for (const entry of entries) {
+      if (entry.isBot || entry.player.isGuest) continue;
+      const finalStats = entry.progress.finalStats!;
+      const streak = streakMap.get(entry.player.id) ?? 0;
+      const result = results.find((r) => r.playerId === entry.player.id);
+
+      // Load latest stats for total counts
+      try {
+        const db = createDb(process.env.DATABASE_URL!);
+        const statsRows = await db
+          .select({ racesPlayed: userStats.racesPlayed, racesWon: userStats.racesWon })
+          .from(userStats)
+          .where(eq(userStats.userId, entry.player.id))
+          .limit(1);
+        const s = statsRows[0];
+
+        checkAchievements(
+          {
+            userId: entry.player.id,
+            placement: entry.progress.placement!,
+            wpm: finalStats.wpm,
+            accuracy: finalStats.accuracy,
+            newElo: result?.elo ?? entry.player.elo,
+            currentStreak: streak,
+            racesPlayed: s?.racesPlayed ?? 0,
+            racesWon: s?.racesWon ?? 0,
+          },
+          entry.socket,
+        ).catch((err) => console.error("[race-manager] achievement check error:", err));
+      } catch (err) {
+        console.error("[race-manager] achievement data error:", err);
+      }
     }
 
     return results.sort((a, b) => a.placement - b.placement);
@@ -604,7 +836,31 @@ export class RaceManager {
         socketIds.push(key);
       }
     }
-    this.matchmaker.cleanupRace(this.raceId, socketIds);
+    this.owner.cleanupRace(this.raceId, socketIds);
+  }
+
+  getSpectatorState(): RaceState {
+    return this.getState();
+  }
+
+  getRaceStatus(): RaceStatus {
+    return this.status;
+  }
+
+  getPlayerList(): RacePlayer[] {
+    return [...this.players.values()].map((e) => e.player);
+  }
+
+  getRaceId(): string {
+    return this.raceId;
+  }
+
+  addSpectator(socket: TypedSocket) {
+    socket.join(this.raceId);
+  }
+
+  removeSpectator(socket: TypedSocket) {
+    socket.leave(this.raceId);
   }
 
   private getState(): RaceState {
@@ -622,7 +878,7 @@ export class RaceManager {
       players,
       progress,
       seed: this.seed,
-      wordCount: WORD_COUNT,
+      wordCount: this.wordCount,
       wordPool: this.wordPool,
       countdown: 0,
       finishTimeoutEnd: this.finishTimeoutEnd,

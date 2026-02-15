@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { RaceResult } from "@/hooks/useRace";
 import { getRankTier } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
+import { WpmChart } from "@/components/typing/WpmChart";
 
 interface RaceResultsProps {
   results: RaceResult[];
@@ -125,6 +126,40 @@ export function RaceResults({ results, myPlayerId, onRaceAgain, placementRace, p
           </tbody>
         </table>
       </div>
+
+      {/* Own performance details */}
+      {(() => {
+        const myResult = results.find((r) => r.playerId === myPlayerId);
+        if (!myResult) return null;
+        return (
+          <div className="flex flex-col items-center gap-4 w-full max-w-lg">
+            <div className="grid grid-cols-3 gap-6 text-center w-full">
+              <div>
+                <div className="text-2xl font-bold text-accent tabular-nums">
+                  {Math.round(myResult.wpm)}
+                </div>
+                <div className="text-xs text-muted">wpm</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-text tabular-nums">
+                  {Math.round(myResult.rawWpm)}
+                </div>
+                <div className="text-xs text-muted">raw wpm</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-text tabular-nums">
+                  {Math.round(myResult.accuracy)}
+                  <span className="text-lg text-muted">%</span>
+                </div>
+                <div className="text-xs text-muted">accuracy</div>
+              </div>
+            </div>
+            {myResult.wpmHistory && myResult.wpmHistory.length >= 2 && (
+              <WpmChart samples={myResult.wpmHistory} />
+            )}
+          </div>
+        );
+      })()}
 
       <button
         onClick={() => onRaceAgain()}

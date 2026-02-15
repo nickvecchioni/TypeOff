@@ -4,6 +4,7 @@ import Link from "next/link";
 import { SessionProvider } from "@/components/auth/SessionProvider";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { UsernameGuard } from "@/components/auth/UsernameGuard";
+import { AchievementToast } from "@/components/AchievementToast";
 import "./globals.css";
 
 const jetbrainsMono = JetBrains_Mono({
@@ -53,10 +54,29 @@ export default function RootLayout({
                 >
                   Practice
                 </Link>
+                <Link
+                  href="/lobby"
+                  className="text-sm text-muted hover:text-text transition-colors"
+                >
+                  Lobby
+                </Link>
+                <Link
+                  href="/tournament"
+                  className="text-sm text-muted hover:text-text transition-colors"
+                >
+                  Tournament
+                </Link>
+                <Link
+                  href="/spectate"
+                  className="text-sm text-muted hover:text-text transition-colors"
+                >
+                  Watch
+                </Link>
               </div>
               <UserMenu />
             </nav>
             {children}
+            <AchievementToast />
           </UsernameGuard>
         </SessionProvider>
       </body>

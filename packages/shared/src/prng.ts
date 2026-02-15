@@ -34,9 +34,9 @@ export function generateWords(
   return words;
 }
 
-/** Generate words from a named pool or quotes */
+/** Generate words from a named pool */
 export function generateFromPool(
-  pool: WordPool | "quotes",
+  pool: WordPool,
   count: number,
   seed?: number
 ): string[] {
@@ -44,6 +44,9 @@ export function generateFromPool(
     const rng = mulberry32(seed ?? Date.now());
     const idx = Math.floor(rng() * quotes.length);
     return quoteToWords(quotes[idx]);
+  }
+  if (pool === "code") {
+    return generateWords(wordPools.code, count, seed);
   }
   return generateWords(wordPools[pool], count, seed);
 }

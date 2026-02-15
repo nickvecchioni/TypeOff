@@ -5,3 +5,5 @@ export * from "./quotes";
 export * from "./race-types";
 export * from "./elo";
 export * from "./username";
+export * from "./achievements";
+export * from "./challenge-templates";

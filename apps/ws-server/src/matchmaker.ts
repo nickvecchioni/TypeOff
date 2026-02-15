@@ -3,8 +3,10 @@ import type {
   ClientToServerEvents,
   ServerToClientEvents,
   RacePlayer,
+  WpmSample,
 } from "@typeoff/shared";
 import { RaceManager } from "./race-manager.js";
+import type { RaceOwner } from "./race-manager.js";
 import { createDb, userStats } from "@typeoff/db";
 import { eq } from "drizzle-orm";
 
@@ -31,7 +33,7 @@ const BOT_NAMES = [
   "QuickType", "FlashFingers", "TurboTypist", "NimbleBot",
 ];
 
-export class Matchmaker {
+export class Matchmaker implements RaceOwner {
   private queue: QueueEntry[] = [];
   private races = new Map<string, RaceManager>();
   private socketToRace = new Map<string, string>();
@@ -85,7 +87,7 @@ export class Matchmaker {
 
   handleFinish(
     socketId: string,
-    data: { wpm: number; rawWpm: number; accuracy: number }
+    data: { wpm: number; rawWpm: number; accuracy: number; wpmHistory?: WpmSample[] }
   ) {
     const raceId = this.socketToRace.get(socketId);
     if (!raceId) return;
@@ -258,6 +260,25 @@ export class Matchmaker {
       this.socketToRace.set(entry.socket.id, race.raceId);
     }
     race.start();
+  }
+
+  getActiveRaces() {
+    const active: Array<{ raceId: string; players: import("@typeoff/shared").RacePlayer[]; status: import("@typeoff/shared").RaceStatus }> = [];
+    for (const race of this.races.values()) {
+      const status = race.getRaceStatus();
+      if (status === "racing" || status === "countdown") {
+        active.push({
+          raceId: race.getRaceId(),
+          players: race.getPlayerList(),
+          status,
+        });
+      }
+    }
+    return active;
+  }
+
+  getRace(raceId: string): RaceManager | undefined {
+    return this.races.get(raceId);
   }
 
   private broadcastQueueCount() {
