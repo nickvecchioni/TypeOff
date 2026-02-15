@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 
 export default function SetupUsernamePage() {
+  const { update } = useSession();
   const [username, setUsername] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -33,7 +35,8 @@ export default function SetupUsernamePage() {
         return;
       }
 
-      // Hard navigate so the session cookie is read fresh
+      // Force JWT refresh so session picks up the new username
+      await update();
       window.location.href = "/";
     } catch {
       setError("Network error");
