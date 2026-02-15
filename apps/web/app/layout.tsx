@@ -49,28 +49,16 @@ export default function RootLayout({
                   Ranks
                 </Link>
                 <Link
-                  href="/practice"
+                  href="/solo"
                   className="text-sm text-muted hover:text-text transition-colors"
                 >
-                  Practice
+                  Solo
                 </Link>
                 <Link
                   href="/lobby"
                   className="text-sm text-muted hover:text-text transition-colors"
                 >
                   Lobby
-                </Link>
-                <Link
-                  href="/tournament"
-                  className="text-sm text-muted hover:text-text transition-colors"
-                >
-                  Tournament
-                </Link>
-                <Link
-                  href="/spectate"
-                  className="text-sm text-muted hover:text-text transition-colors"
-                >
-                  Watch
                 </Link>
               </div>
               <UserMenu />

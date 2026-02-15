@@ -67,7 +67,7 @@ export function TypingTest() {
 
       {/* Typing area or results */}
       {isFinished && stats ? (
-        <Results stats={stats} onRestart={restart} />
+        <Results stats={stats} onRestart={restart} config={config} />
       ) : (
         <div
           ref={containerRef}

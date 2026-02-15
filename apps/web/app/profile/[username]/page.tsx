@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
-import { users, userStats, raceParticipants, races, seasonSnapshots, seasons, userAchievements } from "@typeoff/db";
+import { users, userStats, raceParticipants, races, seasonSnapshots, seasons, userAchievements, soloResults } from "@typeoff/db";
 import { eq, desc, and } from "drizzle-orm";
 import type { RankTier } from "@typeoff/shared";
 import { getRankInfo, getRankProgress, getNextDivisionElo, ACHIEVEMENTS, ACHIEVEMENT_MAP } from "@typeoff/shared";
@@ -89,6 +89,28 @@ export default async function ProfilePage({
 
   const unlockedSet = new Set(unlockedAchievements.map((a) => a.achievementId));
 
+  // Load solo PBs — for each (mode, duration), find the best WPM
+  const allSoloResults = await db
+    .select({
+      mode: soloResults.mode,
+      duration: soloResults.duration,
+      wpm: soloResults.wpm,
+      accuracy: soloResults.accuracy,
+      createdAt: soloResults.createdAt,
+    })
+    .from(soloResults)
+    .where(eq(soloResults.userId, user.id))
+    .orderBy(desc(soloResults.wpm));
+
+  const soloPbMap = new Map<string, typeof allSoloResults[0]>();
+  for (const row of allSoloResults) {
+    const key = `${row.mode}:${row.duration}`;
+    if (!soloPbMap.has(key)) {
+      soloPbMap.set(key, row);
+    }
+  }
+  const soloPbs = Array.from(soloPbMap.values());
+
   // Check if this is own profile
   const { auth } = await import("@/lib/auth");
   const session = await auth();
@@ -156,6 +178,46 @@ export default async function ProfilePage({
             value={stats?.maxStreak ?? 0}
           />
         </div>
+
+        {/* Solo Personal Bests */}
+        {soloPbs.length > 0 && (
+          <div>
+            <h2 className="text-lg font-bold text-text mb-4">Solo Personal Bests</h2>
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="text-muted border-b border-surface">
+                  <th className="pb-2">Mode</th>
+                  <th className="pb-2">Duration</th>
+                  <th className="pb-2 text-right">Best WPM</th>
+                  <th className="pb-2 text-right">Accuracy</th>
+                  <th className="pb-2 text-right">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {soloPbs.map((pb) => (
+                  <tr
+                    key={`${pb.mode}:${pb.duration}`}
+                    className="border-b border-surface/50 text-text"
+                  >
+                    <td className="py-2 capitalize">{pb.mode === "wordcount" ? "Words" : "Time"}</td>
+                    <td className="py-2 text-muted tabular-nums">
+                      {pb.mode === "timed" ? `${pb.duration}s` : `${pb.duration} words`}
+                    </td>
+                    <td className="py-2 text-right font-bold text-accent tabular-nums">
+                      {Math.round(pb.wpm)}
+                    </td>
+                    <td className="py-2 text-right text-muted tabular-nums">
+                      {Math.round(pb.accuracy)}%
+                    </td>
+                    <td className="py-2 text-right text-muted">
+                      {new Date(pb.createdAt).toLocaleDateString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {/* Race History */}
         {recentRaces.length > 0 && (

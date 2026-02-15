@@ -1,24 +1,79 @@
 "use client";
 
-import React from "react";
-import type { TestStats } from "@typeoff/shared";
+import React, { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import type { TestStats, TestConfig } from "@typeoff/shared";
 import { WpmChart } from "./WpmChart";
 
 interface ResultsProps {
   stats: TestStats;
   onRestart: () => void;
+  config?: TestConfig;
 }
 
-export function Results({ stats, onRestart }: ResultsProps) {
+export function Results({ stats, onRestart, config }: ResultsProps) {
+  const { data: session } = useSession();
+  const [saveState, setSaveState] = useState<{
+    saving: boolean;
+    saved: boolean;
+    isPb: boolean;
+    previousBest: number | null;
+  }>({ saving: false, saved: false, isPb: false, previousBest: null });
+
+  useEffect(() => {
+    if (!session?.user || !config) return;
+
+    setSaveState((s) => ({ ...s, saving: true }));
+
+    fetch("/api/solo/results", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        mode: config.mode,
+        duration: config.duration,
+        wordPool: config.wordPool ?? null,
+        wpm: stats.wpm,
+        rawWpm: stats.rawWpm,
+        accuracy: stats.accuracy,
+        correctChars: stats.correctChars,
+        incorrectChars: stats.incorrectChars,
+        extraChars: stats.extraChars,
+        totalChars: stats.totalChars,
+        time: stats.time,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setSaveState({
+          saving: false,
+          saved: true,
+          isPb: data.isPb ?? false,
+          previousBest: data.previousBest ?? null,
+        });
+        // Dispatch event so SoloStats can refetch
+        window.dispatchEvent(new Event("solo-result-saved"));
+      })
+      .catch(() => {
+        setSaveState((s) => ({ ...s, saving: false }));
+      });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div className="flex flex-col items-center gap-8 animate-fade-in">
       {/* Big numbers */}
       <div className="flex items-baseline gap-12">
-        <div className="text-center">
+        <div className="text-center relative">
           <div className="text-6xl font-bold text-accent tabular-nums">
             {stats.wpm}
           </div>
           <div className="text-sm text-muted mt-1">wpm</div>
+          {saveState.isPb && (
+            <div className="absolute -top-3 -right-16 animate-bounce">
+              <span className="text-sm font-bold text-rank-gold bg-rank-gold/10 border border-rank-gold/30 rounded-full px-2 py-0.5">
+                NEW PB!
+              </span>
+            </div>
+          )}
         </div>
         <div className="text-center">
           <div className="text-6xl font-bold text-text tabular-nums">
@@ -28,6 +83,13 @@ export function Results({ stats, onRestart }: ResultsProps) {
           <div className="text-sm text-muted mt-1">accuracy</div>
         </div>
       </div>
+
+      {/* PB context */}
+      {saveState.isPb && saveState.previousBest !== null && (
+        <div className="text-sm text-muted">
+          Previous best: <span className="text-text tabular-nums">{Math.round(saveState.previousBest)} wpm</span>
+        </div>
+      )}
 
       {/* Detail grid */}
       <div className="grid grid-cols-4 gap-6 text-center">
@@ -53,6 +115,13 @@ export function Results({ stats, onRestart }: ResultsProps) {
 
       {/* WPM chart */}
       <WpmChart samples={stats.wpmHistory} />
+
+      {/* Sign-in prompt for guests */}
+      {!session?.user && config && (
+        <div className="text-sm text-muted/60">
+          Sign in to save results
+        </div>
+      )}
 
       {/* Restart hint */}
       <button

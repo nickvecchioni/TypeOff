@@ -227,6 +227,30 @@ export const friendships = pgTable("friendships", {
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
 });
 
+// ─── Solo Results ──────────────────────────────────────────────────
+
+export const soloResults = pgTable("solo_results", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  mode: text("mode").notNull(), // "timed" | "wordcount"
+  duration: integer("duration").notNull(), // seconds for timed, word count for wordcount
+  wordPool: text("word_pool"), // "common" | "medium" | "hard" | "quotes" | "code" | null
+  wpm: real("wpm").notNull(),
+  rawWpm: real("raw_wpm").notNull(),
+  accuracy: real("accuracy").notNull(),
+  correctChars: integer("correct_chars").notNull(),
+  incorrectChars: integer("incorrect_chars").notNull(),
+  extraChars: integer("extra_chars").notNull(),
+  totalChars: integer("total_chars").notNull(),
+  time: integer("time").notNull(), // actual elapsed seconds
+  isPb: boolean("is_pb").notNull().default(false),
+  createdAt: timestamp("created_at", { mode: "date" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
 // ─── Player Stats ───────────────────────────────────────────────────
 
 export const userStats = pgTable("user_stats", {
