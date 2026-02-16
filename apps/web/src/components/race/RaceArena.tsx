@@ -61,6 +61,7 @@ export function RaceArena() {
           countdown={race.countdown}
           playerCount={race.raceState.players.length}
           placementRace={race.raceState.placementRace}
+          players={race.raceState.players}
         />
       )}
 

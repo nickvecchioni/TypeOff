@@ -1,18 +1,24 @@
 "use client";
 
 import React from "react";
+import type { RacePlayer } from "@typeoff/shared";
 
 interface CountdownOverlayProps {
   countdown: number;
   playerCount: number;
   placementRace?: number;
+  players?: RacePlayer[];
 }
 
 export function CountdownOverlay({
   countdown,
   playerCount,
   placementRace,
+  players,
 }: CountdownOverlayProps) {
+  const botCount = players?.filter((p) => p.id.startsWith("bot_")).length ?? 0;
+  const humanCount = playerCount - botCount;
+
   return (
     <div className="flex flex-col items-center gap-6 animate-fade-in">
       {placementRace != null ? (
@@ -38,9 +44,18 @@ export function CountdownOverlay({
           )}
         </div>
       ) : (
-        <p className="text-muted text-sm">
-          {playerCount} {playerCount === 1 ? "player" : "players"} matched
-        </p>
+        <div className="flex flex-col items-center gap-1">
+          <p className="text-muted text-sm">
+            {playerCount} {playerCount === 1 ? "player" : "players"} matched
+          </p>
+          {botCount > 0 && (
+            <p className="text-muted/60 text-xs">
+              {botCount === playerCount - 1
+                ? "Racing against bots"
+                : `includes ${botCount} ${botCount === 1 ? "bot" : "bots"}`}
+            </p>
+          )}
+        </div>
       )}
       <div className="text-8xl font-bold text-accent tabular-nums">
         {countdown > 0 ? countdown : "GO!"}

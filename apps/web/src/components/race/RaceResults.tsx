@@ -54,7 +54,8 @@ export function RaceResults({ results, myPlayerId, onRaceAgain, placementRace, p
           <tbody>
             {results.map((result) => {
               const isMe = result.playerId === myPlayerId;
-              const isGuest = result.playerId.startsWith("guest_") || result.playerId.startsWith("bot_");
+              const isBot = result.playerId.startsWith("bot_");
+              const isGuest = result.playerId.startsWith("guest_") || isBot;
               const tier = getRankTier(result.elo ?? 1000);
 
               const displayName = result.username ?? result.name;
@@ -66,6 +67,7 @@ export function RaceResults({ results, myPlayerId, onRaceAgain, placementRace, p
                     {displayName}
                     {isMe && " (you)"}
                   </span>
+                  {isBot && <span className="text-xs text-muted bg-surface rounded px-1.5 py-0.5 shrink-0">BOT</span>}
                   {showStreak && (
                     <span className="text-orange-400 flex items-center gap-0.5 shrink-0" title={`${result.streak} win streak`}>
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="shrink-0">

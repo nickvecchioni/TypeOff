@@ -26,6 +26,7 @@ export function RaceTrack({ players, progress, myPlayerId, isPlacement }: RaceTr
         const p = progress[player.id];
         const pct = (p?.progress ?? 0) * 100;
         const isMe = player.id === myPlayerId;
+        const isBot = player.id.startsWith("bot_");
         const wpm = p?.wpm ?? 0;
         const finished = p?.finished ?? false;
 
@@ -33,8 +34,9 @@ export function RaceTrack({ players, progress, myPlayerId, isPlacement }: RaceTr
           <div key={player.id} className="flex flex-col gap-1">
             <div className="flex justify-between text-sm">
               <span className={`flex items-center gap-2 ${isMe ? "text-accent font-bold" : "text-text"}`}>
-                {!isPlacement && <RankBadge tier={getRankTier(player.elo)} />}
+                {!isPlacement && !isBot && <RankBadge tier={getRankTier(player.elo)} />}
                 {player.name}
+                {isBot && <span className="text-xs text-muted bg-surface rounded px-1.5 py-0.5 font-normal">BOT</span>}
                 {isMe && " (you)"}
                 {finished && p?.placement && ` #${p.placement}`}
               </span>
