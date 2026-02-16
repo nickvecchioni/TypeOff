@@ -115,12 +115,12 @@ export class Matchmaker implements RaceOwner {
   private async getPlayerStats(userId: string) {
     try {
       const db = createDb(process.env.DATABASE_URL!);
-      const rows = await db
-        .select()
-        .from(userStats)
-        .where(eq(userStats.userId, userId))
-        .limit(1);
-      return rows[0] ?? null;
+      const result = await Promise.race([
+        db.select().from(userStats).where(eq(userStats.userId, userId)).limit(1),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+      ]);
+      if (!result) return null;
+      return result[0] ?? null;
     } catch {
       return null;
     }

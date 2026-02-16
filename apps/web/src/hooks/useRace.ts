@@ -46,6 +46,10 @@ export function useRace() {
         setQueueCount(data.count);
       }),
       on("raceStart", (data) => {
+        if (queueTimeoutRef.current) {
+          clearTimeout(queueTimeoutRef.current);
+          queueTimeoutRef.current = null;
+        }
         setRaceState(data);
         setProgress(data.progress);
         setCountdown(data.countdown);
@@ -75,6 +79,10 @@ export function useRace() {
         }
       }),
       on("error", (data) => {
+        if (queueTimeoutRef.current) {
+          clearTimeout(queueTimeoutRef.current);
+          queueTimeoutRef.current = null;
+        }
         setError(data.message);
         setPhase("idle");
       }),
@@ -82,6 +90,8 @@ export function useRace() {
 
     return () => unsubs.forEach((unsub) => unsub());
   }, [on]);
+
+  const queueTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const joinQueue = useCallback(
     async () => {
@@ -102,6 +112,13 @@ export function useRace() {
       if (token) {
         myPlayerIdRef.current = null; // Will be set from race state
         emit("joinQueue", { token });
+
+        // Safety timeout: if no race starts within 15s, reset
+        if (queueTimeoutRef.current) clearTimeout(queueTimeoutRef.current);
+        queueTimeoutRef.current = setTimeout(() => {
+          setError("Failed to join race. Please try again.");
+          setPhase("idle");
+        }, 15_000);
       } else {
         setError("Sign in required to play");
         setPhase("idle");
@@ -111,6 +128,10 @@ export function useRace() {
   );
 
   const leaveQueue = useCallback(() => {
+    if (queueTimeoutRef.current) {
+      clearTimeout(queueTimeoutRef.current);
+      queueTimeoutRef.current = null;
+    }
     emit("leaveQueue");
     setPhase("idle");
     setQueueCount(0);

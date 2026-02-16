@@ -38,7 +38,8 @@ io.on("connection", (socket) => {
   socket.on("joinQueue", async (data) => {
     try {
       const player = await authenticateSocket(data, socket.id);
-      await socialManager.trackConnection(socket, player.id);
+      // Fire-and-forget: don't block queue join on friend notifications
+      socialManager.trackConnection(socket, player.id).catch(() => {});
       await matchmaker.addToQueue(socket, player);
     } catch (err) {
       socket.emit("error", {
