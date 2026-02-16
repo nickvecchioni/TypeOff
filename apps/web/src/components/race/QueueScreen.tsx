@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { useSession, signIn } from "next-auth/react";
 import { RankBadge } from "@/components/RankBadge";
 import type { RankTier } from "@typeoff/shared";
@@ -67,7 +68,7 @@ export function QueueScreen({
       </div>
 
       {/* CTA */}
-      <div className="flex flex-col items-center gap-4">
+      <div className="flex flex-col items-center gap-3">
         {session?.user ? (
           <button
             onClick={onJoin}
@@ -84,6 +85,12 @@ export function QueueScreen({
             Sign Up
           </button>
         )}
+        <Link
+          href="/solo"
+          className="text-sm text-muted hover:text-text transition-colors"
+        >
+          or <span className="underline underline-offset-2 decoration-muted/50">play solo</span>
+        </Link>
       </div>
     </div>
   );

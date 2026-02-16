@@ -120,64 +120,80 @@ export default async function ProfilePage({
       ? Math.round((stats.racesWon / stats.racesPlayed) * 100)
       : 0;
 
+  const rankInfo = user.placementsCompleted ? getRankInfo(user.eloRating) : null;
+
   return (
-    <main className="flex-1 overflow-y-auto px-6 py-8">
-      <div className="max-w-2xl mx-auto space-y-8 animate-fade-in">
-        {/* Header */}
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-3">
-            {isOwn ? (
-              <UsernameEditor currentUsername={user.username ?? ""} />
-            ) : (
-              <>
-                <h1 className="text-xl font-bold text-text">
-                  {user.username}
-                </h1>
-                {session?.user?.id && (
-                  <AddFriendButton targetUserId={user.id} />
+    <main className="flex-1 overflow-y-auto px-6 py-10">
+      <div className="max-w-3xl mx-auto space-y-10 animate-fade-in">
+
+        {/* ── Hero ──────────────────────────────────────────── */}
+        <div className="relative rounded-xl bg-surface/60 ring-1 ring-white/[0.04] px-8 py-8 overflow-hidden">
+          {/* Rank-colored top edge */}
+          {rankInfo && (
+            <div
+              className={`absolute inset-x-0 top-0 h-px bg-rank-${rankInfo.tier}`}
+              style={{ opacity: 0.5 }}
+            />
+          )}
+
+          <div className="relative flex flex-col gap-4">
+            {/* Username row */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                {isOwn ? (
+                  <UsernameEditor currentUsername={user.username ?? ""} />
+                ) : (
+                  <h1 className="text-2xl font-bold text-text tracking-tight">
+                    {user.username}
+                  </h1>
                 )}
-              </>
+                <RankBadge
+                  tier={user.rankTier as RankTier}
+                  elo={user.eloRating}
+                  size="md"
+                  placementsCompleted={user.placementsCompleted}
+                />
+              </div>
+              {!isOwn && session?.user?.id && (
+                <AddFriendButton targetUserId={user.id} />
+              )}
+            </div>
+
+            {/* Rank progress */}
+            {user.placementsCompleted && (
+              <div className="flex items-center gap-4">
+                <RankProgressBar elo={user.eloRating} />
+                {user.peakEloRating > user.eloRating && (
+                  <div className="flex items-center gap-2 text-xs text-muted shrink-0">
+                    <span>Peak</span>
+                    <RankBadge
+                      tier={user.peakRankTier as RankTier}
+                      elo={user.peakEloRating}
+                    />
+                  </div>
+                )}
+              </div>
             )}
           </div>
-          <RankBadge
-            tier={user.rankTier as RankTier}
-            elo={user.eloRating}
-            size="md"
-            placementsCompleted={user.placementsCompleted}
-          />
-          {user.placementsCompleted && (
-            <>
-              <RankProgressBar elo={user.eloRating} />
-              {user.peakEloRating > user.eloRating && (
-                <div className="flex items-center gap-2 text-sm text-muted">
-                  <span>Peak:</span>
-                  <RankBadge
-                    tier={user.peakRankTier as RankTier}
-                    elo={user.peakEloRating}
-                  />
-                </div>
-              )}
-            </>
-          )}
         </div>
 
-        {/* Key Stats */}
+        {/* ── WPM Hero Stats ───────────────────────────────── */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="rounded-lg bg-surface px-4 py-4 text-center">
-            <div className="text-3xl font-black text-accent tabular-nums">
+          <div className="rounded-xl bg-surface/60 ring-1 ring-white/[0.04] px-6 py-6 text-center">
+            <div className="text-4xl font-black text-accent tabular-nums text-glow-accent">
               {stats ? Math.round(stats.avgWpm) : 0}
             </div>
-            <div className="text-xs text-muted mt-1">avg wpm</div>
+            <div className="text-xs text-muted mt-2 uppercase tracking-wider">avg wpm</div>
           </div>
-          <div className="rounded-lg bg-surface px-4 py-4 text-center">
-            <div className="text-3xl font-black text-accent tabular-nums">
+          <div className="rounded-xl bg-surface/60 ring-1 ring-white/[0.04] px-6 py-6 text-center">
+            <div className="text-4xl font-black text-accent tabular-nums text-glow-accent">
               {stats ? Math.round(stats.maxWpm) : 0}
             </div>
-            <div className="text-xs text-muted mt-1">best wpm</div>
+            <div className="text-xs text-muted mt-2 uppercase tracking-wider">best wpm</div>
           </div>
         </div>
 
-        {/* Details */}
+        {/* ── Detail Stats ─────────────────────────────────── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <StatCard label="Races" value={stats?.racesPlayed ?? 0} />
           <StatCard label="Win Rate" value={`${winRate}%`} />
@@ -185,176 +201,199 @@ export default async function ProfilePage({
           <StatCard label="Best Streak" value={stats?.maxStreak ?? 0} />
         </div>
 
-        {/* Solo Personal Bests */}
+        {/* ── Solo Personal Bests ──────────────────────────── */}
         {soloPbs.length > 0 && (
-          <div>
-            <h2 className="text-xs font-bold text-muted uppercase tracking-wider mb-3">Solo Personal Bests</h2>
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="text-muted border-b border-surface">
-                  <th className="pb-2">Mode</th>
-                  <th className="pb-2">Duration</th>
-                  <th className="pb-2 text-right">Best WPM</th>
-                  <th className="pb-2 text-right">Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {soloPbs.map((pb) => (
-                  <tr
-                    key={`${pb.mode}:${pb.duration}`}
-                    className="border-b border-surface/50 text-text"
-                  >
-                    <td className="py-2 capitalize">{pb.mode === "wordcount" ? "Words" : "Time"}</td>
-                    <td className="py-2 text-muted tabular-nums">
+          <section>
+            <SectionHeader>Solo Personal Bests</SectionHeader>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {soloPbs.map((pb) => (
+                <div
+                  key={`${pb.mode}:${pb.duration}`}
+                  className="rounded-lg bg-surface/60 ring-1 ring-white/[0.04] px-5 py-4 flex items-center justify-between"
+                >
+                  <div>
+                    <div className="text-sm text-text">
+                      {pb.mode === "wordcount" ? "Words" : "Time"}
+                    </div>
+                    <div className="text-xs text-muted tabular-nums">
                       {pb.mode === "timed" ? `${pb.duration}s` : `${pb.duration} words`}
-                    </td>
-                    <td className="py-2 text-right font-bold text-accent tabular-nums">
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xl font-bold text-accent tabular-nums">
                       {Math.round(pb.wpm)}
-                    </td>
-                    <td className="py-2 text-right text-muted">
+                    </div>
+                    <div className="text-xs text-muted">
                       {new Date(pb.createdAt).toLocaleDateString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
         )}
 
-        {/* Race History */}
+        {/* ── Race History ─────────────────────────────────── */}
         {recentRaces.length > 0 && (
-          <div>
-            <h2 className="text-xs font-bold text-muted uppercase tracking-wider mb-3">Race History</h2>
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="text-muted border-b border-surface">
-                  <th className="pb-2">Date</th>
-                  <th className="pb-2">Result</th>
-                  <th className="pb-2 text-right">WPM</th>
-                  <th className="pb-2 text-right">ELO</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentRaces.map((race, i) => {
-                  const eloChange =
-                    race.eloBefore != null && race.eloAfter != null
-                      ? race.eloAfter - race.eloBefore
-                      : null;
-                  const isWin = race.placement === 1;
-                  return (
-                    <tr
-                      key={i}
-                      className="border-b border-surface/50 text-text"
-                    >
-                      <td className="py-2 text-muted">
-                        {race.finishedAt
-                          ? new Date(race.finishedAt).toLocaleDateString()
-                          : "-"}
-                      </td>
-                      <td className={`py-2 font-bold ${isWin ? "text-correct" : "text-error"}`}>
-                        {race.placement ? (isWin ? "Win" : "Loss") : "-"}
-                      </td>
-                      <td className="py-2 text-right tabular-nums">
-                        {race.wpm != null ? Math.round(race.wpm) : "-"}
-                      </td>
-                      <td className="py-2 text-right tabular-nums">
-                        {eloChange != null ? (
-                          <span
-                            className={
-                              eloChange > 0
-                                ? "text-correct"
-                                : eloChange < 0
-                                ? "text-error"
-                                : "text-muted"
-                            }
-                          >
-                            {eloChange > 0 ? "+" : ""}
-                            {eloChange}
+          <section>
+            <SectionHeader>Race History</SectionHeader>
+            <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] overflow-hidden">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="text-xs text-muted uppercase tracking-wider border-b border-white/[0.04]">
+                    <th className="px-5 py-3 font-medium">Date</th>
+                    <th className="px-5 py-3 font-medium">Result</th>
+                    <th className="px-5 py-3 font-medium text-right">WPM</th>
+                    <th className="px-5 py-3 font-medium text-right">ELO</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentRaces.map((race, i) => {
+                    const eloChange =
+                      race.eloBefore != null && race.eloAfter != null
+                        ? race.eloAfter - race.eloBefore
+                        : null;
+                    const isWin = race.placement === 1;
+                    return (
+                      <tr
+                        key={i}
+                        className="border-b border-white/[0.03] last:border-0 hover:bg-white/[0.02] transition-colors"
+                      >
+                        <td className="px-5 py-3 text-muted tabular-nums">
+                          {race.finishedAt
+                            ? new Date(race.finishedAt).toLocaleDateString()
+                            : "-"}
+                        </td>
+                        <td className="px-5 py-3">
+                          <span className="inline-flex items-center gap-2">
+                            <span className={`inline-block w-2 h-2 rounded-full ${isWin ? "bg-correct" : "bg-error"}`} />
+                            <span className={`font-bold ${isWin ? "text-correct" : "text-error"}`}>
+                              {race.placement ? (isWin ? "Win" : "Loss") : "-"}
+                            </span>
                           </span>
-                        ) : (
-                          <span className="text-muted">-</span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                        </td>
+                        <td className="px-5 py-3 text-right tabular-nums text-text">
+                          {race.wpm != null ? Math.round(race.wpm) : "-"}
+                        </td>
+                        <td className="px-5 py-3 text-right tabular-nums">
+                          {eloChange != null ? (
+                            <span
+                              className={`font-medium ${
+                                eloChange > 0
+                                  ? "text-correct"
+                                  : eloChange < 0
+                                  ? "text-error"
+                                  : "text-muted"
+                              }`}
+                            >
+                              {eloChange > 0 ? "+" : ""}
+                              {eloChange}
+                            </span>
+                          ) : (
+                            <span className="text-muted">-</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </section>
         )}
 
-        {/* Achievements */}
+        {/* ── Achievements ─────────────────────────────────── */}
         {ACHIEVEMENTS.length > 0 && (
-          <div>
-            <h2 className="text-xs font-bold text-muted uppercase tracking-wider mb-3">Achievements</h2>
-            <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
+          <section>
+            <SectionHeader>
+              Achievements
+              <span className="text-accent ml-2 text-xs font-normal normal-case tracking-normal">
+                {unlockedAchievements.length}/{ACHIEVEMENTS.length}
+              </span>
+            </SectionHeader>
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
               {ACHIEVEMENTS.map((achievement) => {
                 const unlocked = unlockedSet.has(achievement.id);
                 return (
                   <div
                     key={achievement.id}
-                    className={`rounded-lg p-3 text-center transition-colors ${
+                    className={`group relative rounded-lg px-3 py-4 text-center transition-all duration-200 ${
                       unlocked
-                        ? "bg-surface"
-                        : "bg-surface/30 opacity-40"
+                        ? "bg-surface/60 ring-1 ring-white/[0.06] hover:ring-accent/20 hover:bg-surface"
+                        : "bg-surface/20 ring-1 ring-white/[0.02] opacity-35 grayscale"
                     }`}
                     title={`${achievement.title}: ${achievement.description}`}
                   >
-                    <div className="text-2xl">{achievement.icon}</div>
-                    <div className="text-xs text-muted mt-1 truncate">
+                    <div className={`text-2xl ${unlocked ? "" : "saturate-0"}`}>
+                      {achievement.icon}
+                    </div>
+                    <div className={`text-xs mt-2 truncate ${unlocked ? "text-text/80" : "text-muted"}`}>
                       {achievement.title}
                     </div>
                   </div>
                 );
               })}
             </div>
-          </div>
+          </section>
         )}
 
-        {/* Season History */}
+        {/* ── Season History ───────────────────────────────── */}
         {seasonHistory.length > 0 && (
-          <div>
-            <h2 className="text-xs font-bold text-muted uppercase tracking-wider mb-3">Season History</h2>
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="text-muted border-b border-surface">
-                  <th className="pb-2">Season</th>
-                  <th className="pb-2 text-right">ELO</th>
-                  <th className="pb-2 text-right">Peak</th>
-                  <th className="pb-2 text-right">Races</th>
-                  <th className="pb-2 text-right">Wins</th>
-                </tr>
-              </thead>
-              <tbody>
-                {seasonHistory.map((s) => (
-                  <tr
-                    key={s.seasonNumber}
-                    className="border-b border-surface/50 text-text"
-                  >
-                    <td className="py-2">
-                      <span className="flex items-center gap-2">
-                        <RankBadge tier={s.finalRankTier as RankTier} />
-                        {s.seasonName}
-                      </span>
-                    </td>
-                    <td className="py-2 text-right tabular-nums">{s.finalElo}</td>
-                    <td className="py-2 text-right tabular-nums">{s.peakElo}</td>
-                    <td className="py-2 text-right tabular-nums">{s.racesPlayed}</td>
-                    <td className="py-2 text-right tabular-nums">{s.racesWon}</td>
+          <section>
+            <SectionHeader>Season History</SectionHeader>
+            <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] overflow-hidden">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="text-xs text-muted uppercase tracking-wider border-b border-white/[0.04]">
+                    <th className="px-5 py-3 font-medium">Season</th>
+                    <th className="px-5 py-3 font-medium text-right">ELO</th>
+                    <th className="px-5 py-3 font-medium text-right">Peak</th>
+                    <th className="px-5 py-3 font-medium text-right">Races</th>
+                    <th className="px-5 py-3 font-medium text-right">Wins</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {seasonHistory.map((s) => (
+                    <tr
+                      key={s.seasonNumber}
+                      className="border-b border-white/[0.03] last:border-0 hover:bg-white/[0.02] transition-colors"
+                    >
+                      <td className="px-5 py-3">
+                        <span className="flex items-center gap-2">
+                          <RankBadge tier={s.finalRankTier as RankTier} />
+                          <span className="text-text">{s.seasonName}</span>
+                        </span>
+                      </td>
+                      <td className="px-5 py-3 text-right tabular-nums text-text">{s.finalElo}</td>
+                      <td className="px-5 py-3 text-right tabular-nums text-muted">{s.peakElo}</td>
+                      <td className="px-5 py-3 text-right tabular-nums text-muted">{s.racesPlayed}</td>
+                      <td className="px-5 py-3 text-right tabular-nums text-muted">{s.racesWon}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
         )}
 
         {isOwn && (
-          <div className="pt-4">
+          <div className="pt-4 border-t border-white/[0.04]">
             <SignOutButton />
           </div>
         )}
       </div>
     </main>
+  );
+}
+
+/* ── Helper Components ──────────────────────────────────── */
+
+function SectionHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="text-xs font-bold text-muted uppercase tracking-wider mb-4 flex items-center gap-3">
+      {children}
+      <span className="flex-1 h-px bg-white/[0.04]" />
+    </h2>
   );
 }
 
@@ -366,7 +405,7 @@ function StatCard({
   value: string | number;
 }) {
   return (
-    <div className="rounded-lg bg-surface px-4 py-3 text-center">
+    <div className="rounded-lg bg-surface/60 ring-1 ring-white/[0.04] px-4 py-3 text-center">
       <div className="text-xl font-bold text-text tabular-nums">{value}</div>
       <div className="text-xs text-muted mt-1">{label}</div>
     </div>
@@ -393,7 +432,7 @@ function RankProgressBar({ elo }: { elo: number }) {
   }
 
   return (
-    <div className="w-full max-w-xs space-y-1">
+    <div className="flex-1 min-w-0 space-y-1">
       {nextElo != null && (
         <div className="text-xs text-muted text-right tabular-nums">
           {nextElo - elo} ELO to next division
@@ -407,10 +446,4 @@ function RankProgressBar({ elo }: { elo: number }) {
       </div>
     </div>
   );
-}
-
-function ordinal(n: number): string {
-  const s = ["th", "st", "nd", "rd"];
-  const v = n % 100;
-  return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
