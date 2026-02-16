@@ -4,6 +4,7 @@ import Link from "next/link";
 import { SessionProvider } from "@/components/auth/SessionProvider";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { UsernameGuard } from "@/components/auth/UsernameGuard";
+import { AuthNavLinks } from "@/components/auth/AuthNavLinks";
 import { SocketProvider } from "@/hooks/useSocket";
 import { AchievementToast } from "@/components/AchievementToast";
 import "./globals.css";
@@ -50,18 +51,7 @@ export default function RootLayout({
                 >
                   Ranks
                 </Link>
-                <Link
-                  href="/solo"
-                  className="text-sm text-muted hover:text-text transition-colors"
-                >
-                  Solo
-                </Link>
-                <Link
-                  href="/lobby"
-                  className="text-sm text-muted hover:text-text transition-colors"
-                >
-                  Lobby
-                </Link>
+                <AuthNavLinks />
               </div>
               <UserMenu />
             </nav>

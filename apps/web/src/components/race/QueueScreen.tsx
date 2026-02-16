@@ -59,33 +59,22 @@ export function QueueScreen({
           Competitive typing, <span className="text-accent">ranked.</span>
         </h1>
         <p className="text-muted text-sm sm:text-base whitespace-nowrap">
-          Race in real-time. Climb from Bronze to Grandmaster.
+          Race in real-time. Climb from{" "}
+          <span className="text-rank-bronze font-bold">Bronze</span> to{" "}
+          <span className="text-rank-grandmaster font-bold">Grandmaster</span>.
         </p>
       </div>
 
       {/* Feature pills */}
-      <div className="flex items-center gap-4 text-xs text-muted">
-        <span className="flex items-center gap-1.5">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent">
-            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-          </svg>
-          Real-time FFA
+      <div className="flex items-center gap-3 text-xs">
+        <span className="rounded-full bg-surface px-3 py-1.5 text-muted">
+          Live multiplayer
         </span>
-        <span className="w-px h-3 bg-surface" />
-        <span className="flex items-center gap-1.5">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent">
-            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-            <polyline points="17 6 23 6 23 12" />
-          </svg>
+        <span className="rounded-full bg-surface px-3 py-1.5 text-muted">
           ELO ranked
         </span>
-        <span className="w-px h-3 bg-surface" />
-        <span className="flex items-center gap-1.5">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent">
-            <circle cx="12" cy="8" r="5" />
-            <path d="M20 21a8 8 0 0 0-16 0" />
-          </svg>
-          7 rank tiers
+        <span className="rounded-full bg-surface px-3 py-1.5 text-muted">
+          Bronze → Grandmaster
         </span>
       </div>
 
