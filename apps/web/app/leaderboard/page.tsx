@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { getDb } from "@/lib/db";
 import { users, userStats } from "@typeoff/db";
-import { desc, eq, isNotNull } from "drizzle-orm";
+import { and, desc, eq, isNotNull } from "drizzle-orm";
 import type { RankTier } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
 import { LeaderboardTabs } from "@/components/LeaderboardTabs";
@@ -24,7 +24,7 @@ export default async function LeaderboardPage() {
     })
     .from(users)
     .leftJoin(userStats, eq(users.id, userStats.userId))
-    .where(isNotNull(users.username))
+    .where(and(isNotNull(users.username), eq(users.placementsCompleted, true)))
     .orderBy(desc(users.eloRating))
     .limit(100);
 

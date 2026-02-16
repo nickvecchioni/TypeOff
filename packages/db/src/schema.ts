@@ -26,6 +26,7 @@ export const users = pgTable("users", {
   rankTier: text("rank_tier").notNull().default("bronze"),
   peakEloRating: integer("peak_elo_rating").notNull().default(1000),
   peakRankTier: text("peak_rank_tier").notNull().default("bronze"),
+  placementsCompleted: boolean("placements_completed").notNull().default(false),
 });
 
 export const accounts = pgTable(

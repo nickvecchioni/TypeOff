@@ -51,8 +51,9 @@ export function UserMenu() {
         <RankBadge
           tier={(session.user.rankTier as RankTier) ?? "bronze"}
           elo={session.user.eloRating}
+          placementsCompleted={session.user.placementsCompleted}
         />
-        {eloChange != null && (
+        {session.user.placementsCompleted && eloChange != null && (
           <span
             className={`absolute -top-5 left-1/2 -translate-x-1/2 text-xs font-bold whitespace-nowrap animate-elo-pop ${
               eloChange > 0 ? "text-correct" : "text-error"

@@ -11,10 +11,8 @@ interface StatsBarProps {
 }
 
 export function StatsBar({ wpm, timeLeft, config, visible }: StatsBarProps) {
-  if (!visible) return null;
-
   return (
-    <div className="flex items-center gap-6 text-2xl tabular-nums animate-fade-in">
+    <div className={`flex items-center gap-6 text-2xl tabular-nums transition-opacity duration-150 ${visible ? "opacity-100" : "opacity-0"}`}>
       {config.mode === "timed" && (
         <span className="text-accent font-bold">{timeLeft}</span>
       )}

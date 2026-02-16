@@ -38,6 +38,7 @@ export function QueueScreen({
             tier={(session.user.rankTier as RankTier) ?? "bronze"}
             elo={session.user.eloRating}
             size="md"
+            placementsCompleted={session.user.placementsCompleted}
           />
         )}
         <div className="text-2xl text-accent tabular-nums">{queueCount}</div>

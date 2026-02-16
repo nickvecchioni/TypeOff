@@ -10,6 +10,7 @@ declare module "next-auth" {
       eloRating: number;
       rankTier: RankTier;
       username: string | null;
+      placementsCompleted: boolean;
     };
   }
 }
@@ -20,5 +21,6 @@ declare module "next-auth/jwt" {
     eloRating?: number;
     rankTier?: RankTier;
     username?: string | null;
+    placementsCompleted?: boolean;
   }
 }

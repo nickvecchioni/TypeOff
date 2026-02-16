@@ -9,9 +9,10 @@ interface RaceTrackProps {
   players: RacePlayer[];
   progress: Record<string, RacePlayerProgress>;
   myPlayerId: string | null;
+  isPlacement?: boolean;
 }
 
-export function RaceTrack({ players, progress, myPlayerId }: RaceTrackProps) {
+export function RaceTrack({ players, progress, myPlayerId, isPlacement }: RaceTrackProps) {
   // Sort by progress descending
   const sorted = [...players].sort((a, b) => {
     const pa = progress[a.id]?.progress ?? 0;
@@ -32,7 +33,7 @@ export function RaceTrack({ players, progress, myPlayerId }: RaceTrackProps) {
           <div key={player.id} className="flex flex-col gap-1">
             <div className="flex justify-between text-sm">
               <span className={`flex items-center gap-2 ${isMe ? "text-accent font-bold" : "text-text"}`}>
-                <RankBadge tier={getRankTier(player.elo)} />
+                {!isPlacement && <RankBadge tier={getRankTier(player.elo)} />}
                 {player.name}
                 {isMe && " (you)"}
                 {finished && p?.placement && ` #${p.placement}`}

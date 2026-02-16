@@ -79,12 +79,15 @@ export class RaceManager {
     this.raceId = crypto.randomUUID();
     this.seed = Math.floor(Math.random() * 2147483647);
 
-    // Pick a random word pool using the race seed
-    const pools: WordPool[] = ["common", "medium", "hard"];
-    this.wordPool = pools[this.seed % pools.length];
-
-    // Pick a random word count
-    this.wordCount = WORD_COUNT_OPTIONS[this.seed % WORD_COUNT_OPTIONS.length];
+    // Placement races use easy, short word sets; normal races randomize
+    if (this.placementRace) {
+      this.wordPool = "common";
+      this.wordCount = 20;
+    } else {
+      const pools: WordPool[] = ["common", "medium", "hard"];
+      this.wordPool = pools[this.seed % pools.length];
+      this.wordCount = WORD_COUNT_OPTIONS[this.seed % WORD_COUNT_OPTIONS.length];
+    }
 
     // Store expected words for anti-cheat and compute total character count for bot simulation
     this.expectedWords = generateFromPool(this.wordPool, this.wordCount, this.seed);
@@ -571,6 +574,7 @@ export class RaceManager {
                   rankTier: initialTier,
                   peakEloRating: initialElo,
                   peakRankTier: initialTier,
+                  placementsCompleted: true,
                 })
                 .where(eq(users.id, entry.player.id));
             }

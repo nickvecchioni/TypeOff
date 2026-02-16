@@ -9,7 +9,6 @@ import { RaceTrack } from "./RaceTrack";
 import { RaceTypingArea } from "./RaceTypingArea";
 import { RaceResults } from "./RaceResults";
 import { PlacementReveal } from "./PlacementReveal";
-import { ChallengesBanner } from "../ChallengesBanner";
 
 export function RaceArena() {
   const { data: session, update: updateSession } = useSession();
@@ -51,10 +50,6 @@ export function RaceArena() {
 
   return (
     <div className="flex flex-col items-center gap-8 w-full max-w-3xl mx-auto">
-      {!isInPlacement && (race.phase === "idle" || race.phase === "queuing") && (
-        <ChallengesBanner />
-      )}
-
       {race.error && (
         <div className="text-error text-sm">{race.error}</div>
       )}
@@ -89,6 +84,7 @@ export function RaceArena() {
             players={race.raceState.players}
             progress={race.progress}
             myPlayerId={myPlayerId}
+            isPlacement={isInPlacement}
           />
           <RaceTypingArea
             seed={race.raceState.seed}

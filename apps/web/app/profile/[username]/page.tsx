@@ -28,6 +28,7 @@ export default async function ProfilePage({
       rankTier: users.rankTier,
       peakEloRating: users.peakEloRating,
       peakRankTier: users.peakRankTier,
+      placementsCompleted: users.placementsCompleted,
     })
     .from(users)
     .where(eq(users.username, username))
@@ -144,16 +145,21 @@ export default async function ProfilePage({
             tier={user.rankTier as RankTier}
             elo={user.eloRating}
             size="md"
+            placementsCompleted={user.placementsCompleted}
           />
-          <RankProgressBar elo={user.eloRating} />
-          {user.peakEloRating > user.eloRating && (
-            <div className="flex items-center gap-2 text-sm text-muted">
-              <span>Peak:</span>
-              <RankBadge
-                tier={user.peakRankTier as RankTier}
-                elo={user.peakEloRating}
-              />
-            </div>
+          {user.placementsCompleted && (
+            <>
+              <RankProgressBar elo={user.eloRating} />
+              {user.peakEloRating > user.eloRating && (
+                <div className="flex items-center gap-2 text-sm text-muted">
+                  <span>Peak:</span>
+                  <RankBadge
+                    tier={user.peakRankTier as RankTier}
+                    elo={user.peakEloRating}
+                  />
+                </div>
+              )}
+            </>
           )}
         </div>
 
