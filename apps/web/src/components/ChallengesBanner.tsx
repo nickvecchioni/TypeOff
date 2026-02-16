@@ -48,7 +48,7 @@ function ChallengeCard({ challenge, label }: { challenge: Challenge; label: stri
   const pct = Math.round(progress * 100);
 
   return (
-    <div className="flex-1 rounded-lg bg-surface px-4 py-3">
+    <div className="flex-1 rounded-lg bg-surface border border-surface-bright/50 px-4 py-3">
       <div className="flex items-center justify-between mb-1">
         <span className="text-xs text-accent font-bold uppercase tracking-wider">
           {label}

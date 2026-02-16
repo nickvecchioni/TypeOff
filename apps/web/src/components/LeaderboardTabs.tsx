@@ -15,7 +15,7 @@ export function LeaderboardTabs({
   return (
     <div>
       {/* Tab bar */}
-      <div className="flex gap-1 rounded-lg bg-surface p-1 mb-6 w-fit">
+      <div className="flex gap-1 rounded-lg bg-surface border border-surface-bright/50 p-1 mb-6 w-fit">
         {TABS.map((t) => (
           <button
             key={t}

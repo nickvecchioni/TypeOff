@@ -50,10 +50,10 @@ export default async function LeaderboardPage() {
           <Link
             key={row.id}
             href={`/profile/${row.username}`}
-            className={`grid grid-cols-[2.5rem_1fr_4rem_4rem] items-center gap-4 rounded-lg px-5 py-3.5 transition-colors ${
+            className={`grid grid-cols-[2.5rem_1fr_4rem_4rem] items-center gap-4 rounded-lg px-5 py-3.5 transition-all duration-200 ${
               isMe
-                ? "bg-accent/10 ring-1 ring-accent/20"
-                : "bg-surface hover:bg-surface/80"
+                ? "bg-accent/10 border border-accent/20"
+                : "bg-surface border border-transparent hover:border-surface-bright"
             }`}
           >
             <span className={`text-sm font-bold ${podiumColor} tabular-nums`}>
@@ -86,7 +86,7 @@ export default async function LeaderboardPage() {
   return (
     <main className="flex-1 overflow-y-auto px-6 py-8">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold text-accent mb-6">Leaderboard</h1>
+        <h1 className="text-2xl font-black text-accent mb-6">Leaderboard</h1>
         <LeaderboardTabs raceContent={raceContent} />
       </div>
     </main>

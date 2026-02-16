@@ -43,19 +43,19 @@ export function RankUpOverlay() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-bg/80"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-bg/85 backdrop-blur-sm"
       onClick={dismiss}
     >
       <div
-        className={`flex flex-col items-center gap-4 rounded-xl bg-surface px-10 py-8 shadow-2xl transition-all duration-500 ${
+        className={`flex flex-col items-center gap-5 rounded-2xl border border-surface-bright bg-surface px-12 py-10 shadow-2xl transition-all duration-500 ${
           visible ? "opacity-100 scale-100" : "opacity-0 scale-75"
         }`}
         onClick={(e) => e.stopPropagation()}
       >
-        <span className="text-xs text-muted uppercase tracking-widest">
+        <span className="text-xs text-muted uppercase tracking-[0.2em] font-bold">
           {isUp ? "Rank Up" : "Rank Down"}
         </span>
-        <h2 className={`text-2xl font-black uppercase tracking-wide text-rank-${data.tier}`}>
+        <h2 className={`text-3xl font-black uppercase tracking-wide text-rank-${data.tier}`}>
           {info.label}
         </h2>
         <div className={isUp ? "animate-rank-up-glow" : ""}>

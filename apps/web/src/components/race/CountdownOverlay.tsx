@@ -17,7 +17,6 @@ export function CountdownOverlay({
   players,
 }: CountdownOverlayProps) {
   const botCount = players?.filter((p) => p.id.startsWith("bot_")).length ?? 0;
-  const humanCount = playerCount - botCount;
 
   return (
     <div className="flex flex-col items-center gap-6 animate-fade-in">
@@ -31,8 +30,8 @@ export function CountdownOverlay({
             {Array.from({ length: 3 }, (_, i) => (
               <div
                 key={i}
-                className={`w-2.5 h-2.5 rounded-full ${
-                  i < placementRace ? "bg-accent" : "bg-surface"
+                className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                  i < placementRace ? "bg-accent shadow-[0_0_6px_rgba(167,139,250,0.4)]" : "bg-surface-bright"
                 }`}
               />
             ))}
@@ -57,7 +56,10 @@ export function CountdownOverlay({
           )}
         </div>
       )}
-      <div className="text-8xl font-bold text-accent tabular-nums">
+      <div
+        key={countdown}
+        className="text-8xl font-black text-accent tabular-nums text-glow-accent animate-count-pulse"
+      >
         {countdown > 0 ? countdown : "GO!"}
       </div>
       <p className="text-muted text-sm">Get ready to type...</p>

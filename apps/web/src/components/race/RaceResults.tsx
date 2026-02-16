@@ -19,10 +19,10 @@ export function RaceResults({ results, myPlayerId, onRaceAgain, placementRace, p
   const isPlacement = placementRace != null && placementTotal != null;
 
   return (
-    <div className="flex flex-col items-center gap-8 animate-fade-in w-full">
+    <div className="flex flex-col items-center gap-8 w-full">
       {isPlacement ? (
-        <div className="flex flex-col items-center gap-1">
-          <h2 className="text-2xl font-bold text-accent">Placement {placementRace} of {placementTotal}</h2>
+        <div className="flex flex-col items-center gap-1 animate-slide-up">
+          <h2 className="text-2xl font-black text-accent">Placement {placementRace} of {placementTotal}</h2>
           {/* Progress dots */}
           <div className="flex items-center gap-2 mt-2">
             {Array.from({ length: placementTotal }, (_, i) => (
@@ -36,7 +36,7 @@ export function RaceResults({ results, myPlayerId, onRaceAgain, placementRace, p
           </div>
         </div>
       ) : (
-        <h2 className="text-2xl font-bold text-accent">Race Results</h2>
+        <h2 className="text-2xl font-black text-accent animate-slide-up">Race Results</h2>
       )}
 
       <div className="w-full max-w-lg">
@@ -158,7 +158,7 @@ export function RaceResults({ results, myPlayerId, onRaceAgain, placementRace, p
 
       <button
         onClick={() => onRaceAgain()}
-        className="rounded-lg bg-accent/20 text-accent px-6 py-2 hover:bg-accent/30 transition-colors"
+        className="rounded-xl border border-accent/30 bg-accent/15 text-accent px-8 py-3 font-bold hover:bg-accent/25 hover:border-accent/50 hover:shadow-[0_0_24px_rgba(167,139,250,0.2)] transition-all duration-200"
       >
         {isPlacement ? "Next Placement" : "Race again"}
       </button>

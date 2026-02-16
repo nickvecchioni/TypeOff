@@ -42,12 +42,15 @@ export function RaceTrack({ players, progress, myPlayerId, isPlacement }: RaceTr
               </span>
               <span className="text-muted tabular-nums">{wpm} wpm</span>
             </div>
-            <div className="h-3 rounded-full bg-surface overflow-hidden">
+            <div className="h-3 rounded-full bg-surface-bright/50 overflow-hidden">
               <div
                 className={`h-full rounded-full transition-[width] duration-100 ease-linear ${
-                  isMe ? "bg-accent" : "bg-muted"
+                  isMe ? "bg-accent" : "bg-muted/60"
                 } ${finished ? "opacity-70" : ""}`}
-                style={{ width: `${Math.min(100, pct)}%` }}
+                style={{
+                  width: `${Math.min(100, pct)}%`,
+                  ...(isMe && !finished ? { boxShadow: "0 0 12px rgba(167, 139, 250, 0.3)" } : {}),
+                }}
               />
             </div>
           </div>

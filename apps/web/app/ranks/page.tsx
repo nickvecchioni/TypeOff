@@ -72,7 +72,7 @@ export default function RanksPage() {
       <div className="max-w-2xl mx-auto space-y-10">
         {/* Hero */}
         <div>
-          <h1 className="text-2xl font-bold text-accent">Rank System</h1>
+          <h1 className="text-2xl font-black text-accent">Rank System</h1>
           <p className="text-muted mt-2">
             Every race changes your ELO. Climb from Bronze III to Grandmaster.
           </p>
@@ -195,7 +195,7 @@ export default function RanksPage() {
         <div className="pt-2 pb-8">
           <Link
             href="/"
-            className="inline-block rounded-lg bg-accent/20 text-accent px-6 py-2 hover:bg-accent/30 transition-colors font-bold"
+            className="inline-block rounded-xl border border-accent/30 bg-accent/15 text-accent px-8 py-3 font-bold hover:bg-accent/25 hover:border-accent/50 hover:shadow-[0_0_24px_rgba(167,139,250,0.2)] transition-all duration-200"
           >
             Start racing
           </Link>

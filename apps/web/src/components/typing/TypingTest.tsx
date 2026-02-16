@@ -98,7 +98,10 @@ export function TypingTest({ onStatusChange }: TypingTestProps) {
       {/* Restart hint */}
       {!isFinished && (
         <div className="focus-fade text-sm text-muted">
-          <kbd className="px-1.5 py-0.5 rounded bg-surface text-text text-xs">tab</kbd> + <kbd className="px-1.5 py-0.5 rounded bg-surface text-text text-xs">enter</kbd> to restart
+          <kbd className="px-1.5 py-0.5 rounded border border-surface-bright bg-surface text-text text-xs">tab</kbd>
+          {" + "}
+          <kbd className="px-1.5 py-0.5 rounded border border-surface-bright bg-surface text-text text-xs">enter</kbd>
+          {" "}to restart
         </div>
       )}
     </div>

@@ -1,15 +1,18 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #0d1117;
-  --color-surface: #161b22;
-  --color-text: #e6edf3;
-  --color-muted: #8b949e;
+  /* Core palette — "Midnight Arena" */
+  --color-bg: #0c0c12;
+  --color-surface: #16161e;
+  --color-surface-bright: #222230;
+  --color-text: #e8e8ed;
+  --color-muted: #71717a;
   --color-correct: #3fb950;
   --color-error: #f85149;
   --color-current: #f0f6fc;
-  --color-accent: #9b7ee8;
+  --color-accent: #a78bfa;
 
+  /* Rank colors */
   --color-rank-bronze: #d97706;
   --color-rank-silver: #9ca3af;
   --color-rank-gold: #eab308;
@@ -21,10 +24,14 @@
   --font-mono: "JetBrains Mono", monospace;
 
   --animate-blink: blink 1s step-end infinite;
-  --animate-fade-in: fade-in 0.2s ease-out;
+  --animate-fade-in: fade-in 0.3s ease-out;
+  --animate-slide-up: slide-up 0.5s ease-out both;
   --animate-elo-pop: elo-pop 2.5s ease-out forwards;
   --animate-rank-up-glow: rank-up-glow 1.5s ease-in-out infinite;
+  --animate-count-pulse: count-pulse 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+/* ── Animations ──────────────────────────────────────────── */
 
 @keyframes blink {
   0%, 100% { opacity: 1; }
@@ -32,13 +39,18 @@
 }
 
 @keyframes fade-in {
-  from { opacity: 0; transform: translateY(4px); }
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes rank-up-glow {
   0%, 100% { filter: brightness(1) drop-shadow(0 0 0 transparent); }
-  50% { filter: brightness(1.2) drop-shadow(0 0 12px currentColor); }
+  50% { filter: brightness(1.2) drop-shadow(0 0 16px currentColor); }
 }
 
 @keyframes elo-pop {
@@ -47,6 +59,19 @@
   70% { opacity: 1; transform: translateY(-12px); }
   100% { opacity: 0; transform: translateY(-20px); }
 }
+
+@keyframes count-pulse {
+  0% { transform: scale(1.3); opacity: 0; filter: blur(4px); }
+  50% { opacity: 1; filter: blur(0); }
+  100% { transform: scale(1); opacity: 1; filter: blur(0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ── Base ────────────────────────────────────────────────── */
 
 html, body {
   height: 100%;
@@ -73,9 +98,51 @@ button, [role="button"], a {
   font-variant-ligatures: none;
 }
 
+/* ── Focus mode ──────────────────────────────────────────── */
+
 .focus-fade {
-  transition: opacity 150ms ease-out;
+  transition: opacity 200ms ease-out;
 }
 .focus-active .focus-fade {
-  opacity: 0.1;
+  opacity: 0.06;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-surface-bright);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-muted);
+}
+
+/* ── Glow utilities ──────────────────────────────────────── */
+
+.glow-accent {
+  box-shadow: 0 0 20px rgba(167, 139, 250, 0.15), 0 0 60px rgba(167, 139, 250, 0.05);
+}
+
+.glow-accent-strong {
+  box-shadow: 0 0 24px rgba(167, 139, 250, 0.25), 0 0 80px rgba(167, 139, 250, 0.08);
+}
+
+.text-glow-accent {
+  text-shadow: 0 0 24px rgba(167, 139, 250, 0.5), 0 0 48px rgba(167, 139, 250, 0.2);
+}
+
+.text-glow-gold {
+  text-shadow: 0 0 20px rgba(234, 179, 8, 0.4), 0 0 40px rgba(234, 179, 8, 0.15);
+}
+
+/* ── Nav logo hover ──────────────────────────────────────── */
+
+.nav-logo:hover .nav-logo-text {
+  text-shadow: 0 0 20px rgba(167, 139, 250, 0.5), 0 0 40px rgba(167, 139, 250, 0.2);
 }

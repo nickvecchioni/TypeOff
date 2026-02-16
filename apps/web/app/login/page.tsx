@@ -5,13 +5,13 @@ import { signIn } from "next-auth/react";
 export default function LoginPage() {
   return (
     <main className="flex-1 flex flex-col items-center justify-center px-4">
-      <h1 className="text-3xl font-bold text-accent mb-2">TypeOff</h1>
-      <p className="text-muted mb-10">Sign in to track your stats and ELO</p>
+      <h1 className="text-4xl font-black text-accent text-glow-accent mb-3">TypeOff</h1>
+      <p className="text-muted mb-12">Sign in to track your stats and ELO</p>
 
       <div className="flex flex-col gap-3 w-full max-w-xs">
         <button
           onClick={() => signIn("google", { callbackUrl: "/" })}
-          className="flex items-center justify-center gap-2 rounded-lg bg-surface px-4 py-3 text-text hover:bg-accent/20 transition-colors"
+          className="flex items-center justify-center gap-3 rounded-xl border border-surface-bright bg-surface px-4 py-3.5 text-text hover:bg-surface-bright hover:border-accent/30 transition-all duration-200"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path

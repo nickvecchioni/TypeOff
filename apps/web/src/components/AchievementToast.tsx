@@ -32,11 +32,11 @@ export function AchievementToast() {
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className="flex items-center gap-3 bg-surface rounded-lg px-4 py-3 shadow-lg animate-fade-in"
+          className="flex items-center gap-3 rounded-xl border border-surface-bright bg-surface/95 backdrop-blur-sm px-4 py-3 shadow-lg animate-slide-up"
         >
           <span className="text-2xl">{toast.icon}</span>
           <div>
-            <div className="text-xs text-muted uppercase tracking-wider">Achievement Unlocked</div>
+            <div className="text-xs text-accent uppercase tracking-wider font-bold">Achievement Unlocked</div>
             <div className="text-sm font-bold text-text">{toast.title}</div>
           </div>
         </div>

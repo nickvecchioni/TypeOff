@@ -28,6 +28,12 @@ export function WpmChart({ samples }: WpmChartProps) {
       .map((s, i) => `${i === 0 ? "M" : "L"} ${scaleX(s.elapsed)} ${scaleY(s[key])}`)
       .join(" ");
 
+  // Area fill path (close at bottom)
+  const areaPath =
+    toPath("wpm") +
+    ` L ${scaleX(samples[samples.length - 1].elapsed)} ${PADDING.top + innerHeight}` +
+    ` L ${scaleX(samples[0].elapsed)} ${PADDING.top + innerHeight} Z`;
+
   // Y-axis ticks
   const yTicks = Array.from({ length: 5 }, (_, i) =>
     Math.round((maxWpm * 1.1 * i) / 4)
@@ -40,6 +46,13 @@ export function WpmChart({ samples }: WpmChartProps) {
       role="img"
       aria-label="WPM over time chart"
     >
+      <defs>
+        <linearGradient id="wpmGradient" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.2" />
+          <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+
       {/* Grid lines */}
       {yTicks.map((tick) => (
         <g key={tick}>
@@ -48,7 +61,7 @@ export function WpmChart({ samples }: WpmChartProps) {
             x2={CHART_WIDTH - PADDING.right}
             y1={scaleY(tick)}
             y2={scaleY(tick)}
-            stroke="var(--color-surface)"
+            stroke="var(--color-surface-bright)"
             strokeWidth={1}
           />
           <text
@@ -63,13 +76,17 @@ export function WpmChart({ samples }: WpmChartProps) {
         </g>
       ))}
 
+      {/* Area fill under WPM line */}
+      <path d={areaPath} fill="url(#wpmGradient)" />
+
       {/* Raw WPM line */}
       <path
         d={toPath("raw")}
         fill="none"
         stroke="var(--color-muted)"
         strokeWidth={1.5}
-        strokeOpacity={0.5}
+        strokeOpacity={0.3}
+        strokeDasharray="4 4"
       />
 
       {/* WPM line */}
@@ -78,6 +95,8 @@ export function WpmChart({ samples }: WpmChartProps) {
         fill="none"
         stroke="var(--color-accent)"
         strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
 
       {/* Dots on WPM line */}

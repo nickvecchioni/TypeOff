@@ -22,10 +22,10 @@ export function PlacementReveal({ elo, onContinue }: PlacementRevealProps) {
   return (
     <div className="flex flex-col items-center gap-8 animate-fade-in">
       <div className="flex flex-col items-center gap-2">
-        <span className="text-muted text-sm uppercase tracking-widest">
+        <span className="text-accent text-sm uppercase tracking-[0.2em] font-bold">
           Placements Complete
         </span>
-        <h2 className="text-2xl font-bold text-text">
+        <h2 className="text-3xl font-black text-text">
           You have been ranked
         </h2>
       </div>
@@ -47,7 +47,7 @@ export function PlacementReveal({ elo, onContinue }: PlacementRevealProps) {
 
       <button
         onClick={onContinue}
-        className="rounded-lg bg-accent/20 text-accent px-8 py-3 font-bold hover:bg-accent/30 transition-colors"
+        className="rounded-xl border border-accent/30 bg-accent/15 text-accent px-10 py-3.5 font-bold hover:bg-accent/25 hover:border-accent/50 hover:shadow-[0_0_24px_rgba(167,139,250,0.2)] transition-all duration-200"
       >
         Start Ranked
       </button>
