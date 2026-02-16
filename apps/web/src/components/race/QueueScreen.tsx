@@ -86,7 +86,7 @@ export function QueueScreen({
             disabled={!connected}
             className="rounded-lg bg-accent/20 text-accent px-10 py-3.5 text-lg font-bold hover:bg-accent/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Find Race
+            {session.user.placementsCompleted ? "Find Race" : "Start Placements"}
           </button>
         ) : (
           <button
