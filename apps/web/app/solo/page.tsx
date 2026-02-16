@@ -12,7 +12,7 @@ export default function SoloPage() {
         typingStatus === "typing" ? "focus-active" : ""
       }`}
     >
-      <div className={`${typingStatus === "finished" ? "flex-1 justify-center py-8" : "pt-[18vh]"} w-full flex flex-col items-center`}>
+      <div className={`${typingStatus === "finished" ? "flex-1 justify-center py-8" : "pt-[18vh]"} w-full flex flex-col items-center animate-fade-in`}>
         <TypingTest onStatusChange={setTypingStatus} />
       </div>
     </main>

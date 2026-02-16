@@ -59,7 +59,6 @@ export function Results({ stats, onRestart, config }: ResultsProps) {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const statItems = [
-    { value: `${stats.accuracy}%`, label: "accuracy" },
     { value: stats.correctChars, label: "correct" },
     { value: stats.misstypedChars, label: "errors" },
     { value: `${stats.time}s`, label: "time" },
@@ -92,7 +91,7 @@ export function Results({ stats, onRestart, config }: ResultsProps) {
       )}
 
       {/* Detail grid — staggered */}
-      <div className="grid grid-cols-4 gap-8 text-center">
+      <div className="grid grid-cols-3 gap-8 text-center">
         {statItems.map((item, i) => (
           <div
             key={item.label}

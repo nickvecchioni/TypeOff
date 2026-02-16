@@ -10,7 +10,7 @@
   --color-correct: #3fb950;
   --color-error: #f85149;
   --color-current: #f0f6fc;
-  --color-accent: #7dd3fc;
+  --color-accent: #38bdf8;
 
   /* Rank colors */
   --color-rank-bronze: #d97706;
@@ -125,15 +125,15 @@ button, [role="button"], a {
 /* ── Glow utilities ──────────────────────────────────────── */
 
 .glow-accent {
-  box-shadow: 0 0 20px rgba(125, 211, 252, 0.15), 0 0 60px rgba(125, 211, 252, 0.05);
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.15), 0 0 60px rgba(56, 189, 248, 0.05);
 }
 
 .glow-accent-strong {
-  box-shadow: 0 0 24px rgba(125, 211, 252, 0.25), 0 0 80px rgba(125, 211, 252, 0.08);
+  box-shadow: 0 0 24px rgba(56, 189, 248, 0.25), 0 0 80px rgba(56, 189, 248, 0.08);
 }
 
 .text-glow-accent {
-  text-shadow: 0 0 24px rgba(125, 211, 252, 0.5), 0 0 48px rgba(125, 211, 252, 0.2);
+  text-shadow: 0 0 24px rgba(56, 189, 248, 0.5), 0 0 48px rgba(56, 189, 248, 0.2);
 }
 
 .text-glow-gold {
@@ -143,5 +143,5 @@ button, [role="button"], a {
 /* ── Nav logo hover ──────────────────────────────────────── */
 
 .nav-logo:hover .nav-logo-text {
-  text-shadow: 0 0 20px rgba(125, 211, 252, 0.5), 0 0 40px rgba(125, 211, 252, 0.2);
+  text-shadow: 0 0 20px rgba(56, 189, 248, 0.5), 0 0 40px rgba(56, 189, 248, 0.2);
 }

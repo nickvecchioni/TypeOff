@@ -49,7 +49,7 @@ export function RaceTrack({ players, progress, myPlayerId, isPlacement }: RaceTr
                 } ${finished ? "opacity-70" : ""}`}
                 style={{
                   width: `${Math.min(100, pct)}%`,
-                  ...(isMe && !finished ? { boxShadow: "0 0 12px rgba(125, 211, 252, 0.3)" } : {}),
+                  ...(isMe && !finished ? { boxShadow: "0 0 12px rgba(56, 189, 248, 0.3)" } : {}),
                 }}
               />
             </div>

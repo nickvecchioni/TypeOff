@@ -50,7 +50,6 @@ export default async function ProfilePage({
     .select({
       placement: raceParticipants.placement,
       wpm: raceParticipants.wpm,
-      accuracy: raceParticipants.accuracy,
       eloBefore: raceParticipants.eloBefore,
       eloAfter: raceParticipants.eloAfter,
       finishedAt: raceParticipants.finishedAt,
@@ -96,7 +95,6 @@ export default async function ProfilePage({
       mode: soloResults.mode,
       duration: soloResults.duration,
       wpm: soloResults.wpm,
-      accuracy: soloResults.accuracy,
       createdAt: soloResults.createdAt,
     })
     .from(soloResults)

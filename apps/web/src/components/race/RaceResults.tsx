@@ -135,19 +135,11 @@ export function RaceResults({ results, myPlayerId, onRaceAgain, placementRace, p
         if (!myResult) return null;
         return (
           <div className="flex flex-col items-center gap-4 w-full max-w-lg">
-            <div className="grid grid-cols-2 gap-6 text-center w-full">
-              <div>
-                <div className="text-2xl font-bold text-accent tabular-nums">
-                  {Math.round(myResult.wpm)}
-                </div>
-                <div className="text-xs text-muted">wpm</div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-accent tabular-nums">
+                {Math.round(myResult.wpm)}
               </div>
-              <div>
-                <div className="text-2xl font-bold text-text tabular-nums">
-                  {Math.round(myResult.rawWpm)}
-                </div>
-                <div className="text-xs text-muted">raw wpm</div>
-              </div>
+              <div className="text-xs text-muted">wpm</div>
             </div>
             {myResult.wpmHistory && myResult.wpmHistory.length >= 2 && (
               <WpmChart samples={myResult.wpmHistory} />
@@ -158,7 +150,7 @@ export function RaceResults({ results, myPlayerId, onRaceAgain, placementRace, p
 
       <button
         onClick={() => onRaceAgain()}
-        className="rounded-xl border border-accent/30 bg-accent/15 text-accent px-8 py-3 font-bold hover:bg-accent/25 hover:border-accent/50 hover:shadow-[0_0_24px_rgba(125,211,252,0.2)] transition-all duration-200"
+        className="rounded-xl border border-accent/30 bg-accent/15 text-accent px-8 py-3 font-bold hover:bg-accent/25 hover:border-accent/50 hover:shadow-[0_0_24px_rgba(56,189,248,0.2)] transition-all duration-200"
       >
         {isPlacement ? "Next Placement" : "Race again"}
       </button>
