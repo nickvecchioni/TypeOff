@@ -53,12 +53,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user) {
         token.id = user.id;
       }
-      // Refresh from DB on sign-in, explicit update, or every 30s
+      // Refresh from DB on sign-in, explicit update, missing username, or every 30s
       const now = Date.now();
       const lastRefresh = (token.eloRefreshedAt as number) ?? 0;
       const shouldRefresh =
         trigger === "signIn" ||
         trigger === "update" ||
+        !token.username ||
         now - lastRefresh > 30_000;
 
       if (shouldRefresh && token.id) {
