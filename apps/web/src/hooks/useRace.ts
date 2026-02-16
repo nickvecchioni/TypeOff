@@ -50,6 +50,7 @@ export function useRace() {
           clearTimeout(queueTimeoutRef.current);
           queueTimeoutRef.current = null;
         }
+        setError(null);
         setRaceState(data);
         setProgress(data.progress);
         setCountdown(data.countdown);
