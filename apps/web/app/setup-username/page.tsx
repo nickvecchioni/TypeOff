@@ -1,22 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 
 export default function SetupUsernamePage() {
-  const { data: session, update } = useSession();
-  const router = useRouter();
+  const { update } = useSession();
   const [username, setUsername] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-
-  // Navigate once the session actually reflects the new username
-  useEffect(() => {
-    if (saving && session?.user?.username) {
-      router.replace("/");
-    }
-  }, [saving, session, router]);
 
   const isValid =
     /^[a-z0-9-]+$/.test(username) &&
@@ -44,8 +35,9 @@ export default function SetupUsernamePage() {
         return;
       }
 
-      // Trigger JWT refresh — useEffect above navigates when session updates
+      // Refresh JWT token, then hard-navigate so the fresh session is loaded
       await update();
+      window.location.href = "/";
     } catch {
       setError("Network error");
       setSaving(false);

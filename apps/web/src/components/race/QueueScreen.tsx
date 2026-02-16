@@ -74,7 +74,7 @@ export function QueueScreen({
           ELO ranked
         </span>
         <span className="rounded-full bg-surface px-3 py-1.5 text-muted">
-          Bronze → Grandmaster
+          Solo practice
         </span>
       </div>
 

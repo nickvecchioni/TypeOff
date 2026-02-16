@@ -10,10 +10,20 @@ interface TestAccount {
   rankTier: string;
 }
 
+interface UserRow {
+  id: string;
+  username: string | null;
+  email: string;
+  eloRating: number;
+  rankTier: string;
+  placementsCompleted: boolean;
+}
+
 export default function AdminPage() {
   const [secret, setSecret] = useState("");
   const [authenticated, setAuthenticated] = useState(false);
   const [accounts, setAccounts] = useState<TestAccount[]>([]);
+  const [realUsers, setRealUsers] = useState<UserRow[]>([]);
   const [newUsername, setNewUsername] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -30,6 +40,15 @@ export default function AdminPage() {
     setAccounts(await res.json());
   }, [secret]);
 
+  const fetchUsers = useCallback(async () => {
+    const res = await fetch(
+      `/api/admin/users?adminSecret=${encodeURIComponent(secret)}`
+    );
+    if (res.ok) {
+      setRealUsers(await res.json());
+    }
+  }, [secret]);
+
   const handleAuth = async () => {
     setError("");
     const res = await fetch(
@@ -41,6 +60,13 @@ export default function AdminPage() {
     }
     setAuthenticated(true);
     setAccounts(await res.json());
+    // Also fetch real users
+    const usersRes = await fetch(
+      `/api/admin/users?adminSecret=${encodeURIComponent(secret)}`
+    );
+    if (usersRes.ok) {
+      setRealUsers(await usersRes.json());
+    }
   };
 
   const handleCreate = async () => {
@@ -222,6 +248,52 @@ export default function AdminPage() {
                     >
                       Delete
                     </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* Registered Users */}
+      <h2 className="text-xl font-bold text-accent mt-12 mb-6">
+        Registered Users ({realUsers.length})
+      </h2>
+      <div className="w-full max-w-lg">
+        {realUsers.length === 0 ? (
+          <p className="text-muted text-sm text-center">No registered users</p>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-muted text-left border-b border-surface">
+                <th className="pb-2">Username</th>
+                <th className="pb-2">Email</th>
+                <th className="pb-2">ELO</th>
+                <th className="pb-2">Rank</th>
+              </tr>
+            </thead>
+            <tbody>
+              {realUsers.map((u) => (
+                <tr key={u.id} className="border-b border-surface/50">
+                  <td className="py-2.5">
+                    {u.username ? (
+                      <a
+                        href={`/profile/${u.username}`}
+                        className="text-accent hover:text-accent/80 transition-colors"
+                      >
+                        {u.username}
+                      </a>
+                    ) : (
+                      <span className="text-muted">—</span>
+                    )}
+                  </td>
+                  <td className="py-2.5 text-muted">{u.email}</td>
+                  <td className="py-2.5 tabular-nums">{u.eloRating}</td>
+                  <td className="py-2.5">
+                    <span className={`text-rank-${u.rankTier} capitalize`}>
+                      {u.rankTier}
+                    </span>
                   </td>
                 </tr>
               ))}
