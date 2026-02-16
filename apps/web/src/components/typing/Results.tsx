@@ -59,7 +59,7 @@ export function Results({ stats, onRestart, config }: ResultsProps) {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="flex flex-col items-center gap-10 animate-fade-in w-full max-w-2xl mx-auto">
+    <div className="flex flex-col items-center gap-6 animate-fade-in w-full max-w-2xl mx-auto">
       {/* NEW PB badge */}
       {saveState.isPb && (
         <div className="text-lg font-bold text-rank-gold bg-rank-gold/10 border border-rank-gold/30 rounded-full px-4 py-1">
@@ -85,8 +85,8 @@ export function Results({ stats, onRestart, config }: ResultsProps) {
       {/* Detail grid */}
       <div className="grid grid-cols-4 gap-8 text-center">
         <div>
-          <div className="text-2xl text-text tabular-nums">{stats.rawWpm}</div>
-          <div className="text-sm text-muted">raw wpm</div>
+          <div className="text-2xl text-text tabular-nums">{stats.accuracy}%</div>
+          <div className="text-sm text-muted">accuracy</div>
         </div>
         <div>
           <div className="text-2xl text-text tabular-nums">{stats.correctChars}</div>
@@ -94,7 +94,7 @@ export function Results({ stats, onRestart, config }: ResultsProps) {
         </div>
         <div>
           <div className="text-2xl text-text tabular-nums">
-            {stats.incorrectChars + stats.extraChars}
+            {stats.misstypedChars}
           </div>
           <div className="text-sm text-muted">errors</div>
         </div>

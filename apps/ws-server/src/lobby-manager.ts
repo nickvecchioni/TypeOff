@@ -53,9 +53,16 @@ export class LobbyManager implements RaceOwner {
   }
 
   joinLobby(socket: TypedSocket, player: RacePlayer, code: string) {
-    const lobby = this.lobbies.get(code.toUpperCase());
+    const normalizedCode = code.toUpperCase();
+    const lobby = this.lobbies.get(normalizedCode);
     if (!lobby) {
       socket.emit("lobbyError", { message: "Lobby not found" });
+      return;
+    }
+
+    // Already in this lobby — just re-send state
+    if (lobby.players.has(socket.id)) {
+      socket.emit("lobbyUpdate", this.getLobbyState(lobby));
       return;
     }
 
@@ -69,14 +76,14 @@ export class LobbyManager implements RaceOwner {
       return;
     }
 
-    // Remove from any existing lobby
+    // Remove from any other lobby
     this.leaveLobby(socket);
 
     lobby.players.set(socket.id, { socket, player });
-    this.socketToLobby.set(socket.id, code.toUpperCase());
-    socket.join(`lobby:${code.toUpperCase()}`);
+    this.socketToLobby.set(socket.id, normalizedCode);
+    socket.join(`lobby:${normalizedCode}`);
 
-    this.io.to(`lobby:${code.toUpperCase()}`).emit("lobbyUpdate", this.getLobbyState(lobby));
+    this.io.to(`lobby:${normalizedCode}`).emit("lobbyUpdate", this.getLobbyState(lobby));
   }
 
   leaveLobby(socket: TypedSocket) {

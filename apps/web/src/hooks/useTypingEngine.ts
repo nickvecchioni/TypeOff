@@ -59,6 +59,7 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
   const correctCharsRef = useRef(0);
   const incorrectCharsRef = useRef(0);
   const extraCharsRef = useRef(0);
+  const misstypedCharsRef = useRef(0);
   const totalCharsRef = useRef(0);
 
   // Generate words on mount (avoids hydration mismatch from Date.now() seed)
@@ -109,6 +110,7 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     const correct = correctCharsRef.current;
     const incorrect = incorrectCharsRef.current;
     const extra = extraCharsRef.current;
+    const mistyped = misstypedCharsRef.current;
     const total = correct + incorrect + extra;
     const wpm = elapsed > 0 ? Math.round((correct / 5) / (elapsed / 60)) : 0;
     const rawWpm = elapsed > 0 ? Math.round((total / 5) / (elapsed / 60)) : 0;
@@ -121,6 +123,7 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
       correctChars: correct,
       incorrectChars: incorrect,
       extraChars: extra,
+      misstypedChars: mistyped,
       totalChars: total,
       time: Math.round(elapsed),
       wpmHistory: wpmHistoryRef.current,
@@ -174,6 +177,7 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     correctCharsRef.current = 0;
     incorrectCharsRef.current = 0;
     extraCharsRef.current = 0;
+    misstypedCharsRef.current = 0;
     totalCharsRef.current = 0;
     wpmHistoryRef.current = [];
   }, [stopTimer, config]);
@@ -209,6 +213,7 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
         correctCharsRef.current++;
       } else {
         incorrectCharsRef.current++;
+        misstypedCharsRef.current++;
       }
       totalCharsRef.current++;
       setCurrentCharIndex((prev) => prev + 1);

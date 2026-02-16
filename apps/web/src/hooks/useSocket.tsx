@@ -1,6 +1,14 @@
 "use client";
 
-import { useRef, useEffect, useCallback, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useRef,
+  useEffect,
+  useCallback,
+  useState,
+  type ReactNode,
+} from "react";
 import { io, Socket } from "socket.io-client";
 import type {
   ClientToServerEvents,
@@ -11,7 +19,14 @@ type TypedSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? "http://localhost:3001";
 
-export function useSocket() {
+interface SocketContextValue {
+  connected: boolean;
+  socketRef: React.RefObject<TypedSocket | null>;
+}
+
+const SocketContext = createContext<SocketContextValue | null>(null);
+
+export function SocketProvider({ children }: { children: ReactNode }) {
   const socketRef = useRef<TypedSocket | null>(null);
   const [connected, setConnected] = useState(false);
 
@@ -33,6 +48,21 @@ export function useSocket() {
     };
   }, []);
 
+  return (
+    <SocketContext value={{ connected, socketRef }}>
+      {children}
+    </SocketContext>
+  );
+}
+
+export function useSocket() {
+  const ctx = useContext(SocketContext);
+  if (!ctx) {
+    throw new Error("useSocket must be used within a SocketProvider");
+  }
+
+  const { connected, socketRef } = ctx;
+
   const emit = useCallback(
     <E extends keyof ClientToServerEvents>(
       event: E,
@@ -40,7 +70,7 @@ export function useSocket() {
     ) => {
       socketRef.current?.emit(event, ...args);
     },
-    []
+    [socketRef]
   );
 
   const on = useCallback(
@@ -53,7 +83,7 @@ export function useSocket() {
         socketRef.current?.off(event, handler as any);
       };
     },
-    []
+    [socketRef]
   );
 
   return { connected, emit, on, socket: socketRef };

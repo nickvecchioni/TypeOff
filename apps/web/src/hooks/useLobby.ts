@@ -51,8 +51,7 @@ export function useLobby() {
       }),
       on("lobbyUpdate", (data) => {
         setLobby(data);
-        // If we're in finished phase and lobby updates, it means race cleanup happened
-        if (phase === "finished") {
+        if (phase === "idle" || phase === "finished") {
           setPhase("waiting");
           setRaceState(null);
           setProgress({});

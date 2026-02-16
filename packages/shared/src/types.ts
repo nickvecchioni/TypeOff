@@ -34,6 +34,7 @@ export interface TestStats {
   correctChars: number;
   incorrectChars: number;
   extraChars: number;
+  misstypedChars: number;
   totalChars: number;
   time: number;
   wpmHistory: WpmSample[];

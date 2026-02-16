@@ -4,6 +4,7 @@ import Link from "next/link";
 import { SessionProvider } from "@/components/auth/SessionProvider";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { UsernameGuard } from "@/components/auth/UsernameGuard";
+import { SocketProvider } from "@/hooks/useSocket";
 import { AchievementToast } from "@/components/AchievementToast";
 import "./globals.css";
 
@@ -26,6 +27,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${jetbrainsMono.variable} font-mono antialiased h-full flex flex-col`}>
         <SessionProvider>
+          <SocketProvider>
           <UsernameGuard>
             <nav className="flex items-center justify-between px-6 py-4">
               <div className="flex items-center gap-6">
@@ -66,6 +68,7 @@ export default function RootLayout({
             {children}
             <AchievementToast />
           </UsernameGuard>
+          </SocketProvider>
         </SessionProvider>
       </body>
     </html>
