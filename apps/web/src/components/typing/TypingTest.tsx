@@ -8,7 +8,11 @@ import { StatsBar } from "./StatsBar";
 import { Results } from "./Results";
 import { PersonalBest } from "./PersonalBest";
 
-export function TypingTest() {
+interface TypingTestProps {
+  onStatusChange?: (status: "idle" | "typing" | "finished") => void;
+}
+
+export function TypingTest({ onStatusChange }: TypingTestProps) {
   const engine = useTypingEngine();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -25,6 +29,11 @@ export function TypingTest() {
     restart,
     handleKeyDown,
   } = engine;
+
+  // Notify parent of status changes
+  useEffect(() => {
+    onStatusChange?.(status);
+  }, [status, onStatusChange]);
 
   // Keep focus on container so keydown events fire
   useEffect(() => {

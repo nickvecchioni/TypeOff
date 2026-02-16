@@ -4,51 +4,65 @@ const RANK_TIERS = [
   {
     name: "Grandmaster",
     range: "2200+",
-    color: "border-rank-grandmaster text-rank-grandmaster",
+    text: "text-rank-grandmaster",
+    card: "bg-gradient-to-r from-rank-grandmaster/10 to-rank-grandmaster/3 ring-1 ring-rank-grandmaster/30 shadow-[0_0_24px_rgba(239,68,68,0.2)]",
     flavor: "The pinnacle. Reserved for the fastest typists on the planet.",
     divisions: null,
+    featured: true,
   },
   {
     name: "Master",
     range: "1800 – 2199",
-    color: "border-rank-master text-rank-master",
+    text: "text-rank-master",
+    card: "bg-rank-master/6 ring-1 ring-rank-master/25 shadow-[0_0_16px_rgba(168,85,247,0.12)]",
     flavor: "The apex. You type faster than most people think.",
     divisions: "III → II → I (each ~133 ELO)",
+    featured: false,
   },
   {
     name: "Diamond",
     range: "1500 – 1799",
-    color: "border-rank-diamond text-rank-diamond",
+    text: "text-rank-diamond",
+    card: "bg-rank-diamond/6 ring-1 ring-rank-diamond/25 shadow-[0_0_16px_rgba(59,130,246,0.12)]",
     flavor: "Elite speed and consistency. Competitors fear your lobby.",
     divisions: "III → II → I (each 100 ELO)",
+    featured: false,
   },
   {
     name: "Platinum",
     range: "1300 – 1499",
-    color: "border-rank-platinum text-rank-platinum",
+    text: "text-rank-platinum",
+    card: "bg-rank-platinum/5 ring-1 ring-rank-platinum/15",
     flavor: "Serious skill. You're outpacing the majority.",
     divisions: "III → II → I (each ~67 ELO)",
+    featured: false,
   },
   {
     name: "Gold",
     range: "1100 – 1299",
-    color: "border-rank-gold text-rank-gold",
+    text: "text-rank-gold",
+    card: "bg-rank-gold/5 ring-1 ring-rank-gold/15",
     flavor: "Above average and climbing. Keep the momentum.",
     divisions: "III → II → I (each ~67 ELO)",
+    featured: false,
   },
   {
     name: "Silver",
     range: "900 – 1099",
-    color: "border-rank-silver text-rank-silver",
+    text: "text-rank-silver",
+    card: "bg-rank-silver/5 ring-1 ring-rank-silver/15",
     flavor: "Solid foundation. Your fingers are warming up.",
     divisions: "III → II → I (each ~67 ELO)",
+    featured: false,
   },
   {
     name: "Bronze",
     range: "0 – 899",
-    color: "border-rank-bronze text-rank-bronze",
+    text: "text-rank-bronze",
+    card: "bg-rank-bronze/5 ring-1 ring-rank-bronze/15",
     flavor: "Everyone starts here. Every race makes you faster.",
     divisions: "III → II → I (each 300 ELO)",
+    featured: false,
   },
 ];
 
@@ -69,10 +83,16 @@ export default function RanksPage() {
           {RANK_TIERS.map((tier) => (
             <div
               key={tier.name}
-              className={`bg-surface rounded-lg p-4 border-l-4 ${tier.color.split(" ")[0]}`}
+              className={`rounded-lg ${tier.card} ${
+                tier.featured ? "p-5" : "p-4"
+              }`}
             >
               <div className="flex items-baseline justify-between">
-                <span className={`text-lg font-bold ${tier.color.split(" ")[1]}`}>
+                <span
+                  className={`font-bold ${tier.text} ${
+                    tier.featured ? "text-xl" : "text-lg"
+                  }`}
+                >
                   {tier.name}
                 </span>
                 <span className="text-muted tabular-nums text-sm">

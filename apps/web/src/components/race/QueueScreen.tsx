@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import { RankBadge } from "@/components/RankBadge";
 import type { RankTier } from "@typeoff/shared";
 
@@ -91,13 +91,22 @@ export function QueueScreen({
 
       {/* CTA */}
       <div className="flex flex-col items-center gap-4">
-        <button
-          onClick={onJoin}
-          disabled={!connected}
-          className="rounded-lg bg-accent/20 text-accent px-10 py-3.5 text-lg font-bold hover:bg-accent/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Find Race
-        </button>
+        {session?.user ? (
+          <button
+            onClick={onJoin}
+            disabled={!connected}
+            className="rounded-lg bg-accent/20 text-accent px-10 py-3.5 text-lg font-bold hover:bg-accent/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Find Race
+          </button>
+        ) : (
+          <button
+            onClick={() => signIn("google", { callbackUrl: "/" })}
+            className="rounded-lg bg-accent/20 text-accent px-10 py-3.5 text-lg font-bold hover:bg-accent/30 transition-colors"
+          >
+            Sign Up
+          </button>
+        )}
       </div>
     </div>
   );
