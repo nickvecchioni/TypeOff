@@ -1,6 +1,6 @@
 # TypeOff
 
-Competitive typing game — ranked multiplayer with ELO matchmaking, solo practice, tournaments, seasons.
+Competitive typing game — ranked multiplayer with ELO matchmaking and solo practice.
 
 ## Monorepo layout
 
@@ -46,7 +46,7 @@ Core state machine for both solo and race modes. Key design:
 
 Neon Serverless Postgres with Drizzle ORM. Uses `@neondatabase/serverless` HTTP driver.
 
-Key tables: `users`, `races`, `raceParticipants`, `userStats`, `seasons`, `seasonSnapshots`, `soloResults`, `userAchievements`, `challenges`, `challengeProgress`, `tournaments`, `friendships`.
+Key tables: `users`, `races`, `raceParticipants`, `userStats`, `soloResults`, `friendships`.
 
 Schema changes: edit `packages/db/src/schema.ts`, then `npm run db:push --workspace=packages/db`.
 
@@ -54,7 +54,7 @@ Schema changes: edit `packages/db/src/schema.ts`, then `npm run db:push --worksp
 
 Socket.io with typed events (defined in `packages/shared/src/race-types.ts`).
 
-Modules: `matchmaker.ts` (ELO-based queue), `race-manager.ts` (race lifecycle), `lobby-manager.ts` (private rooms), `tournament-manager.ts` (brackets), `social-manager.ts` (online status), `achievement-checker.ts`.
+Modules: `matchmaker.ts` (ELO-based queue), `race-manager.ts` (race lifecycle), `lobby-manager.ts` (private rooms), `social-manager.ts` (online status), `achievement-checker.ts`.
 
 ELO: K=32 for first 30 games, K=16 after. Matchmaking expands ±50 ELO every 5s (max ±400). Bot opponents after 20s timeout. 3 placement races before ranked.
 

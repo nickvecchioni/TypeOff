@@ -70,14 +70,6 @@ Starts both the Next.js app and WebSocket server via Turborepo.
 
 **Private lobbies** — Create rooms with 6-character codes, invite friends, lobby chat.
 
-**Tournaments** — Bracket-based elimination with configurable player counts.
-
-**Seasons** — Periodic resets with historical snapshots of peak ELO and stats.
-
-**Achievements** — Milestone, rank, performance, and streak categories with real-time unlock toasts.
-
-**Daily/weekly challenges** — Speed targets, volume goals, win streaks.
-
 **Social** — Friend system with requests, online status, and profile pages with full race history.
 
 ## Architecture notes

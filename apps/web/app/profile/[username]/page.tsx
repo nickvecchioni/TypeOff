@@ -2,10 +2,10 @@ export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
-import { users, userStats, raceParticipants, races, seasonSnapshots, seasons, userAchievements, soloResults } from "@typeoff/db";
+import { users, userStats, raceParticipants, races, soloResults } from "@typeoff/db";
 import { eq, desc, and } from "drizzle-orm";
 import type { RankTier } from "@typeoff/shared";
-import { getRankInfo, getRankProgress, getNextDivisionElo, ACHIEVEMENTS, ACHIEVEMENT_MAP } from "@typeoff/shared";
+import { getRankInfo, getRankProgress, getNextDivisionElo } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
 import { UsernameEditor } from "./username-editor";
 import { SignOutButton } from "./sign-out-button";
@@ -60,34 +60,6 @@ export default async function ProfilePage({
     .where(eq(raceParticipants.userId, user.id))
     .orderBy(desc(raceParticipants.finishedAt))
     .limit(20);
-
-  // Load season history
-  const seasonHistory = await db
-    .select({
-      seasonNumber: seasons.number,
-      seasonName: seasons.name,
-      finalElo: seasonSnapshots.finalElo,
-      finalRankTier: seasonSnapshots.finalRankTier,
-      peakElo: seasonSnapshots.peakElo,
-      peakRankTier: seasonSnapshots.peakRankTier,
-      racesPlayed: seasonSnapshots.racesPlayed,
-      racesWon: seasonSnapshots.racesWon,
-    })
-    .from(seasonSnapshots)
-    .innerJoin(seasons, eq(seasonSnapshots.seasonId, seasons.id))
-    .where(eq(seasonSnapshots.userId, user.id))
-    .orderBy(desc(seasons.number));
-
-  // Load achievements
-  const unlockedAchievements = await db
-    .select({
-      achievementId: userAchievements.achievementId,
-      unlockedAt: userAchievements.unlockedAt,
-    })
-    .from(userAchievements)
-    .where(eq(userAchievements.userId, user.id));
-
-  const unlockedSet = new Set(unlockedAchievements.map((a) => a.achievementId));
 
   // Load solo PBs — for each (mode, duration), find the best WPM
   const allSoloResults = await db
@@ -296,80 +268,6 @@ export default async function ProfilePage({
                       </tr>
                     );
                   })}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        )}
-
-        {/* ── Achievements ─────────────────────────────────── */}
-        {ACHIEVEMENTS.length > 0 && (
-          <section>
-            <SectionHeader>
-              Achievements
-              <span className="text-accent ml-2 text-xs font-normal normal-case tracking-normal">
-                {unlockedAchievements.length}/{ACHIEVEMENTS.length}
-              </span>
-            </SectionHeader>
-            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-              {ACHIEVEMENTS.map((achievement) => {
-                const unlocked = unlockedSet.has(achievement.id);
-                return (
-                  <div
-                    key={achievement.id}
-                    className={`group relative rounded-lg px-3 py-4 text-center transition-all duration-200 ${
-                      unlocked
-                        ? "bg-surface/60 ring-1 ring-white/[0.06] hover:ring-accent/20 hover:bg-surface"
-                        : "bg-surface/20 ring-1 ring-white/[0.02] opacity-35 grayscale"
-                    }`}
-                    title={`${achievement.title}: ${achievement.description}`}
-                  >
-                    <div className={`text-2xl ${unlocked ? "" : "saturate-0"}`}>
-                      {achievement.icon}
-                    </div>
-                    <div className={`text-xs mt-2 truncate ${unlocked ? "text-text/80" : "text-muted"}`}>
-                      {achievement.title}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {/* ── Season History ───────────────────────────────── */}
-        {seasonHistory.length > 0 && (
-          <section>
-            <SectionHeader>Season History</SectionHeader>
-            <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] overflow-hidden">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="text-xs text-muted uppercase tracking-wider border-b border-white/[0.04]">
-                    <th className="px-5 py-3 font-medium">Season</th>
-                    <th className="px-5 py-3 font-medium text-right">ELO</th>
-                    <th className="px-5 py-3 font-medium text-right">Peak</th>
-                    <th className="px-5 py-3 font-medium text-right">Races</th>
-                    <th className="px-5 py-3 font-medium text-right">Wins</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {seasonHistory.map((s) => (
-                    <tr
-                      key={s.seasonNumber}
-                      className="border-b border-white/[0.03] last:border-0 hover:bg-white/[0.02] transition-colors"
-                    >
-                      <td className="px-5 py-3">
-                        <span className="flex items-center gap-2">
-                          <RankBadge tier={s.finalRankTier as RankTier} />
-                          <span className="text-text">{s.seasonName}</span>
-                        </span>
-                      </td>
-                      <td className="px-5 py-3 text-right tabular-nums text-text">{s.finalElo}</td>
-                      <td className="px-5 py-3 text-right tabular-nums text-muted">{s.peakElo}</td>
-                      <td className="px-5 py-3 text-right tabular-nums text-muted">{s.racesPlayed}</td>
-                      <td className="px-5 py-3 text-right tabular-nums text-muted">{s.racesWon}</td>
-                    </tr>
-                  ))}
                 </tbody>
               </table>
             </div>

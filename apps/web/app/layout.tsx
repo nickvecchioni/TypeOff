@@ -6,7 +6,6 @@ import { UserMenu } from "@/components/auth/UserMenu";
 import { UsernameGuard } from "@/components/auth/UsernameGuard";
 import { AuthNavLinks } from "@/components/auth/AuthNavLinks";
 import { SocketProvider } from "@/hooks/useSocket";
-import { AchievementToast } from "@/components/AchievementToast";
 import { RankUpOverlay } from "@/components/RankUpOverlay";
 import "./globals.css";
 
@@ -68,7 +67,6 @@ export default function RootLayout({
             <div className="relative z-10 flex-1 flex flex-col">
               {children}
             </div>
-            <AchievementToast />
             <RankUpOverlay />
           </UsernameGuard>
           </SocketProvider>

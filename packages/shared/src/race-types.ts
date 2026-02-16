@@ -46,32 +46,6 @@ export interface LobbyState {
   players: RacePlayer[];
 }
 
-/** Tournament types */
-export interface TournamentState {
-  id: string;
-  name: string;
-  status: "open" | "in_progress" | "finished";
-  maxPlayers: number;
-  currentRound: number;
-  players: Array<{ userId: string; name: string; seed: number | null; eliminatedRound: number | null }>;
-  createdBy: string;
-}
-
-export interface TournamentMatch {
-  id: string;
-  round: number;
-  matchIndex: number;
-  player1: { id: string; name: string } | null;
-  player2: { id: string; name: string } | null;
-  winnerId: string | null;
-  status: "pending" | "racing" | "finished";
-}
-
-export interface TournamentBracket {
-  tournamentId: string;
-  rounds: TournamentMatch[][];
-}
-
 /** Client → Server events */
 export interface ClientToServerEvents {
   joinQueue: (data: { token?: string }) => void;
@@ -98,13 +72,6 @@ export interface ClientToServerEvents {
   listActiveRaces: () => void;
   spectateRace: (data: { raceId: string }) => void;
   stopSpectating: () => void;
-  // Tournament events
-  createTournament: (data: { name: string; maxPlayers?: number }) => void;
-  joinTournament: (data: { tournamentId: string }) => void;
-  leaveTournament: () => void;
-  startTournament: () => void;
-  readyForMatch: (data: { matchId: string }) => void;
-  listTournaments: () => void;
   // Lobby chat
   lobbyChat: (data: { message: string }) => void;
 }
@@ -132,7 +99,6 @@ export interface ServerToClientEvents {
     placementRace?: number;
     placementTotal?: number;
   }) => void;
-  achievementUnlocked: (data: { achievementId: string; title: string; icon: string }) => void;
   // Lobby events
   lobbyCreated: (data: LobbyState) => void;
   lobbyUpdate: (data: LobbyState) => void;
@@ -142,14 +108,6 @@ export interface ServerToClientEvents {
   activeRaces: (data: { races: Array<{ raceId: string; players: RacePlayer[]; status: RaceStatus }> }) => void;
   spectateStarted: (data: RaceState) => void;
   error: (data: { message: string }) => void;
-  // Tournament events
-  tournamentCreated: (data: TournamentState) => void;
-  tournamentUpdate: (data: TournamentState) => void;
-  tournamentBracket: (data: TournamentBracket) => void;
-  tournamentMatchStart: (data: { matchId: string; raceState: RaceState }) => void;
-  tournamentError: (data: { message: string }) => void;
-  tournamentFinished: (data: { tournamentId: string; results: Array<{ userId: string; name: string; placement: number }> }) => void;
-  tournamentList: (data: { tournaments: TournamentState[] }) => void;
   // Social events
   friendStatus: (data: { userId: string; online: boolean }) => void;
   lobbyChatMessage: (data: { playerId: string; name: string; message: string; timestamp: number }) => void;

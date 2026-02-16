@@ -10,12 +10,11 @@ import type {
 } from "@typeoff/shared";
 import { calculateRaceElo, getRankTier, generateFromPool } from "@typeoff/shared";
 import type { WordPool } from "@typeoff/shared";
-import { createDb, races, raceParticipants, userStats, users, challenges, challengeProgress } from "@typeoff/db";
-import { eq, inArray, and, gte, lte } from "drizzle-orm";
+import { createDb, races, raceParticipants, userStats, users } from "@typeoff/db";
+import { eq, inArray, and } from "drizzle-orm";
 export interface RaceOwner {
   cleanupRace(raceId: string, socketIds: string[]): void;
 }
-import { checkAchievements } from "./achievement-checker.js";
 
 type TypedServer = Server<ClientToServerEvents, ServerToClientEvents>;
 type TypedSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
@@ -657,93 +656,7 @@ export class RaceManager {
         }
       }
 
-      // 4. Update challenge progress (non-critical)
-      try {
-        const now = new Date();
-        const activeChallenges = await db
-          .select()
-          .from(challenges)
-          .where(and(lte(challenges.startedAt, now), gte(challenges.endedAt, now)));
-
-        for (const entry of entries) {
-          if (entry.isBot || entry.player.isGuest) continue;
-          const userId = entry.player.id;
-          const stats = entry.progress.finalStats!;
-          const placement = entry.progress.placement!;
-          const streak = streakMap.get(userId) ?? 0;
-
-          for (const challenge of activeChallenges) {
-            let increment = 0;
-            let isMaxMetric = false;
-
-            switch (challenge.metric) {
-              case "races":
-                increment = 1;
-                break;
-              case "wins":
-                increment = placement === 1 ? 1 : 0;
-                break;
-              case "wpm":
-                isMaxMetric = true;
-                increment = Math.round(stats.wpm);
-                break;
-              case "accuracy":
-                isMaxMetric = true;
-                increment = Math.round(stats.accuracy);
-                break;
-              case "streak":
-                isMaxMetric = true;
-                increment = streak;
-                break;
-            }
-
-            if (increment <= 0 && !isMaxMetric) continue;
-
-            // Upsert progress
-            const existing = await db
-              .select()
-              .from(challengeProgress)
-              .where(
-                and(
-                  eq(challengeProgress.challengeId, challenge.id),
-                  eq(challengeProgress.userId, userId)
-                )
-              )
-              .limit(1);
-
-            if (existing.length === 0) {
-              const value = isMaxMetric ? increment : increment;
-              const completed = value >= challenge.target;
-              await db.insert(challengeProgress).values({
-                challengeId: challenge.id,
-                userId,
-                currentValue: value,
-                completed,
-                completedAt: completed ? new Date() : null,
-              });
-            } else {
-              const row = existing[0];
-              if (row.completed) continue;
-              const newValue = isMaxMetric
-                ? Math.max(row.currentValue, increment)
-                : row.currentValue + increment;
-              const completed = newValue >= challenge.target;
-              await db
-                .update(challengeProgress)
-                .set({
-                  currentValue: newValue,
-                  completed,
-                  completedAt: completed ? new Date() : null,
-                })
-                .where(eq(challengeProgress.id, row.id));
-            }
-          }
-        }
-      } catch (challengeErr) {
-        console.error("[race-manager] challenge progress error:", challengeErr);
-      }
-
-      // 5. Load display data
+      // 4. Load display data
       try {
         const authPlayerIds = entries
           .filter((e) => !e.player.isGuest && !e.isBot)
@@ -762,7 +675,7 @@ export class RaceManager {
         console.error("[race-manager] display data error:", displayErr);
       }
 
-      // 5. Load streak data for results
+      // 5. Load streak data
       try {
         const authPlayerIds = entries
           .filter((e) => !e.player.isGuest && !e.isBot)
@@ -800,41 +713,6 @@ export class RaceManager {
         streak: streak !== undefined ? streak : undefined,
         wpmHistory: !entry.isBot ? entry.wpmHistory : undefined,
       });
-    }
-
-    // Check achievements for authenticated players (fire-and-forget)
-    for (const entry of entries) {
-      if (entry.isBot || entry.player.isGuest) continue;
-      const finalStats = entry.progress.finalStats!;
-      const streak = streakMap.get(entry.player.id) ?? 0;
-      const result = results.find((r) => r.playerId === entry.player.id);
-
-      // Load latest stats for total counts
-      try {
-        const db = createDb(process.env.DATABASE_URL!);
-        const statsRows = await db
-          .select({ racesPlayed: userStats.racesPlayed, racesWon: userStats.racesWon })
-          .from(userStats)
-          .where(eq(userStats.userId, entry.player.id))
-          .limit(1);
-        const s = statsRows[0];
-
-        checkAchievements(
-          {
-            userId: entry.player.id,
-            placement: entry.progress.placement!,
-            wpm: finalStats.wpm,
-            accuracy: finalStats.accuracy,
-            newElo: result?.elo ?? entry.player.elo,
-            currentStreak: streak,
-            racesPlayed: s?.racesPlayed ?? 0,
-            racesWon: s?.racesWon ?? 0,
-          },
-          entry.socket,
-        ).catch((err) => console.error("[race-manager] achievement check error:", err));
-      } catch (err) {
-        console.error("[race-manager] achievement data error:", err);
-      }
     }
 
     return results.sort((a, b) => a.placement - b.placement);
