@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function SetupUsernamePage() {
   const { update } = useSession();
+  const router = useRouter();
   const [username, setUsername] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -37,7 +39,7 @@ export default function SetupUsernamePage() {
 
       // Force JWT refresh so session picks up the new username
       await update();
-      window.location.href = "/";
+      router.replace("/");
     } catch {
       setError("Network error");
     } finally {
