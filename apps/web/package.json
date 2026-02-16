@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "echo '=== SHARED TYPES ===' && head -55 ../../packages/shared/src/types.ts && echo '=== SHARED PKG ===' && cat ../../packages/shared/package.json && echo '=== NODE_MODULES LINK ===' && ls -la ../../node_modules/@typeoff/shared && echo '=== NM TYPES ===' && head -55 ../../node_modules/@typeoff/shared/src/types.ts 2>/dev/null || echo 'not found' && next build",
+    "build": "next build",
     "start": "next start -H 0.0.0.0",
     "lint": "next lint"
   },

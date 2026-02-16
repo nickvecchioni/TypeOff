@@ -26,7 +26,6 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 
   // Performance
   { id: "speed-demon", title: "Speed Demon", description: "Achieve 100+ WPM in a race", icon: "💨", category: "performance" },
-  { id: "perfectionist", title: "Perfectionist", description: "Finish a race with 100% accuracy", icon: "✨", category: "performance" },
 ];
 
 export const ACHIEVEMENT_MAP = new Map<string, AchievementDef>(

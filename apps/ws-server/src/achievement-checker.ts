@@ -61,7 +61,6 @@ export async function checkAchievements(
 
     // Performance checks
     check("speed-demon", raceData.wpm >= 100);
-    check("perfectionist", raceData.accuracy >= 100);
 
     // Insert new achievements and emit toasts
     for (const id of newlyUnlocked) {

@@ -80,7 +80,7 @@ export class RaceManager {
     this.seed = Math.floor(Math.random() * 2147483647);
 
     // Pick a random word pool using the race seed
-    const pools: WordPool[] = ["common", "medium", "hard", "quotes", "code"];
+    const pools: WordPool[] = ["common", "medium", "hard"];
     this.wordPool = pools[this.seed % pools.length];
 
     // Pick a random word count
@@ -202,6 +202,13 @@ export class RaceManager {
     entry.progress.progress = 1;
     entry.progress.finalStats = data;
     if (data.wpmHistory) entry.wpmHistory = data.wpmHistory;
+
+    // In placement races (all opponents are bots), end immediately when the human finishes
+    if (this.placementRace) {
+      if (this.finishTimeoutTimer) clearTimeout(this.finishTimeoutTimer);
+      this.endRace();
+      return;
+    }
 
     // Check if all players finished
     const allFinished = [...this.players.values()].every((p) => p.progress.finished);

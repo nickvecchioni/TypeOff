@@ -47,7 +47,6 @@ export interface EngineAPI {
   timeLeft: number;
   config: TestConfig;
   liveWpm: number;
-  liveAccuracy: number;
   stats: TestStats | null;
   setConfig: (config: TestConfig) => void;
   restart: () => void;

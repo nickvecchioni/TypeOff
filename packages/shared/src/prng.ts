@@ -1,6 +1,5 @@
 import type { WordPool } from "./words";
 import { wordPools } from "./words";
-import { quotes, quoteToWords } from "./quotes";
 
 /** Mulberry32 seeded PRNG — fast, deterministic, good distribution */
 export function mulberry32(seed: number): () => number {
@@ -40,13 +39,5 @@ export function generateFromPool(
   count: number,
   seed?: number
 ): string[] {
-  if (pool === "quotes") {
-    const rng = mulberry32(seed ?? Date.now());
-    const idx = Math.floor(rng() * quotes.length);
-    return quoteToWords(quotes[idx]);
-  }
-  if (pool === "code") {
-    return generateWords(wordPools.code, count, seed);
-  }
   return generateWords(wordPools[pool], count, seed);
 }
