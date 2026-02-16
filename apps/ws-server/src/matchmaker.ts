@@ -51,7 +51,9 @@ export class Matchmaker implements RaceOwner {
     if (!player.isGuest) {
       const stats = await this.getPlayerStats(player.id);
       const racesPlayed = stats?.racesPlayed ?? 0;
+      console.log(`[matchmaker] player ${player.id} racesPlayed=${racesPlayed} isGuest=${player.isGuest}`);
       if (racesPlayed < PLACEMENT_RACES) {
+        console.log(`[matchmaker] starting placement race ${racesPlayed + 1} for ${player.id}`);
         this.startPlacementRace(socket, player, racesPlayed + 1, stats);
         return;
       }

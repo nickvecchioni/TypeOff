@@ -153,10 +153,12 @@ export class RaceManager {
       entry.socket?.join(this.raceId);
     }
 
-    // Send initial race state
+    // Send initial race state directly to each socket (avoids room-join race condition)
     const state = this.getState();
     state.countdown = countdown;
-    this.io.to(this.raceId).emit("raceStart", state);
+    for (const entry of this.players.values()) {
+      entry.socket?.emit("raceStart", state);
+    }
 
     this.countdownTimer = setInterval(() => {
       countdown--;
