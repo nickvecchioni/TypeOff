@@ -150,7 +150,7 @@ export function RaceResults({ results, myPlayerId, onRaceAgain, placementRace, p
 
       <button
         onClick={() => onRaceAgain()}
-        className="rounded-xl border border-accent/30 bg-accent/15 text-accent px-8 py-3 font-bold hover:bg-accent/25 hover:border-accent/50 hover:shadow-[0_0_24px_rgba(56,189,248,0.2)] transition-all duration-200"
+        className="rounded-lg border border-accent/30 bg-accent/15 text-accent px-8 py-3 font-bold hover:bg-accent/25 hover:border-accent/50 transition-colors"
       >
         {isPlacement ? "Next Placement" : "Race again"}
       </button>

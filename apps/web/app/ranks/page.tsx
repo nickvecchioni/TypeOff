@@ -5,7 +5,7 @@ const RANK_TIERS = [
     name: "Grandmaster",
     range: "2200+",
     text: "text-rank-grandmaster",
-    card: "bg-gradient-to-r from-rank-grandmaster/10 to-rank-grandmaster/3 ring-1 ring-rank-grandmaster/30 shadow-[0_0_24px_rgba(239,68,68,0.2)]",
+    card: "bg-gradient-to-r from-rank-grandmaster/10 to-rank-grandmaster/3 ring-1 ring-rank-grandmaster/30",
     flavor: "The pinnacle. Reserved for the fastest typists on the planet.",
     divisions: null,
     featured: true,
@@ -14,7 +14,7 @@ const RANK_TIERS = [
     name: "Master",
     range: "1800 – 2199",
     text: "text-rank-master",
-    card: "bg-rank-master/6 ring-1 ring-rank-master/25 shadow-[0_0_16px_rgba(168,85,247,0.12)]",
+    card: "bg-rank-master/6 ring-1 ring-rank-master/25",
     flavor: "The apex. You type faster than most people think.",
     divisions: "III → II → I (each ~133 ELO)",
     featured: false,
@@ -23,7 +23,7 @@ const RANK_TIERS = [
     name: "Diamond",
     range: "1500 – 1799",
     text: "text-rank-diamond",
-    card: "bg-rank-diamond/6 ring-1 ring-rank-diamond/25 shadow-[0_0_16px_rgba(59,130,246,0.12)]",
+    card: "bg-rank-diamond/6 ring-1 ring-rank-diamond/25",
     flavor: "Elite speed and consistency. Competitors fear your lobby.",
     divisions: "III → II → I (each 100 ELO)",
     featured: false,
@@ -111,7 +111,7 @@ export default function RanksPage() {
 
         {/* Divisions */}
         <div>
-          <h2 className="text-lg font-bold text-text mb-3">Divisions</h2>
+          <h2 className="text-xs font-bold text-muted uppercase tracking-wider mb-3">Divisions</h2>
           <div className="space-y-3 text-sm text-text/80">
             <p>
               Each rank (except Grandmaster) has three divisions: III, II, and I.
@@ -124,7 +124,7 @@ export default function RanksPage() {
 
         {/* How ELO Works */}
         <div>
-          <h2 className="text-lg font-bold text-text mb-3">How ELO Works</h2>
+          <h2 className="text-xs font-bold text-muted uppercase tracking-wider mb-3">How ELO Works</h2>
           <div className="space-y-3 text-sm text-text/80">
             <p>
               Win a race and your ELO goes up. Lose and it goes down. Simple.
@@ -143,7 +143,7 @@ export default function RanksPage() {
 
         {/* Placement Races */}
         <div>
-          <h2 className="text-lg font-bold text-text mb-3">Placement Races</h2>
+          <h2 className="text-xs font-bold text-muted uppercase tracking-wider mb-3">Placement Races</h2>
           <p className="text-sm text-text/80 mb-4">
             Before you get a rank, you play 3 calibration races against
             adaptive bots. Your average speed determines your starting ELO —
@@ -169,7 +169,7 @@ export default function RanksPage() {
 
         {/* Matchmaking */}
         <div>
-          <h2 className="text-lg font-bold text-text mb-3">Matchmaking</h2>
+          <h2 className="text-xs font-bold text-muted uppercase tracking-wider mb-3">Matchmaking</h2>
           <p className="text-sm text-text/80">
             You&apos;re matched with players close to your skill level. If no
             human opponent is found quickly, the search widens. If it still
@@ -180,7 +180,7 @@ export default function RanksPage() {
 
         {/* Tips */}
         <div>
-          <h2 className="text-lg font-bold text-text mb-3">
+          <h2 className="text-xs font-bold text-muted uppercase tracking-wider mb-3">
             Tips for Climbing
           </h2>
           <ul className="space-y-2 text-sm text-text/80 list-disc list-inside">
@@ -195,7 +195,7 @@ export default function RanksPage() {
         <div className="pt-2 pb-8">
           <Link
             href="/"
-            className="inline-block rounded-xl border border-accent/30 bg-accent/15 text-accent px-8 py-3 font-bold hover:bg-accent/25 hover:border-accent/50 hover:shadow-[0_0_24px_rgba(56,189,248,0.2)] transition-all duration-200"
+            className="inline-block rounded-lg border border-accent/30 bg-accent/15 text-accent px-8 py-3 font-bold hover:bg-accent/25 hover:border-accent/50 transition-colors"
           >
             Start racing
           </Link>

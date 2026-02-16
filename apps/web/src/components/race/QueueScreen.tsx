@@ -57,7 +57,7 @@ export function QueueScreen({
       <div className="flex flex-col items-center gap-4 text-center">
         <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-text">
           Competitive typing,{" "}
-          <span className="text-accent text-glow-accent">ranked.</span>
+          <span className="text-accent">ranked.</span>
         </h1>
         <p className="text-muted text-sm sm:text-base">
           Race in real-time. Climb from{" "}
@@ -66,33 +66,20 @@ export function QueueScreen({
         </p>
       </div>
 
-      {/* Feature pills */}
-      <div className="flex items-center gap-3 text-xs">
-        <span className="rounded-full border border-surface-bright bg-surface/50 px-4 py-2 text-muted">
-          Live multiplayer
-        </span>
-        <span className="rounded-full border border-surface-bright bg-surface/50 px-4 py-2 text-muted">
-          ELO ranked
-        </span>
-        <span className="rounded-full border border-surface-bright bg-surface/50 px-4 py-2 text-muted">
-          Solo practice
-        </span>
-      </div>
-
       {/* CTA */}
       <div className="flex flex-col items-center gap-4">
         {session?.user ? (
           <button
             onClick={onJoin}
             disabled={!connected}
-            className="rounded-xl border border-accent/30 bg-accent/15 text-accent px-12 py-4 text-lg font-bold hover:bg-accent/25 hover:border-accent/50 hover:shadow-[0_0_24px_rgba(56,189,248,0.2)] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="rounded-lg border border-accent/30 bg-accent/15 text-accent px-12 py-4 text-lg font-bold hover:bg-accent/25 hover:border-accent/50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {session.user.placementsCompleted ? "Find Race" : "Start Placements"}
           </button>
         ) : (
           <button
             onClick={() => signIn("google", { callbackUrl: "/" })}
-            className="rounded-xl border border-accent/30 bg-accent/15 text-accent px-12 py-4 text-lg font-bold hover:bg-accent/25 hover:border-accent/50 transition-all duration-200"
+            className="rounded-lg border border-accent/30 bg-accent/15 text-accent px-12 py-4 text-lg font-bold hover:bg-accent/25 hover:border-accent/50 transition-colors"
           >
             Sign Up
           </button>

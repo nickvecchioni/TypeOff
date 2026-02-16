@@ -28,12 +28,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${jetbrainsMono.variable} font-mono antialiased h-full flex flex-col`}>
-        {/* Background atmosphere */}
-        <div className="fixed inset-0 pointer-events-none" aria-hidden="true">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(56,189,248,0.06),transparent_60%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_40%_at_50%_100%,rgba(56,189,248,0.03),transparent_60%)]" />
-        </div>
-
         <SessionProvider>
           <SocketProvider>
           <UsernameGuard>

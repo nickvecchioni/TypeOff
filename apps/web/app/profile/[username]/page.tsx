@@ -161,32 +161,34 @@ export default async function ProfilePage({
           )}
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-3 gap-4">
+        {/* Key Stats */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="rounded-lg bg-surface px-4 py-4 text-center">
+            <div className="text-3xl font-black text-accent tabular-nums">
+              {stats ? Math.round(stats.avgWpm) : 0}
+            </div>
+            <div className="text-xs text-muted mt-1">avg wpm</div>
+          </div>
+          <div className="rounded-lg bg-surface px-4 py-4 text-center">
+            <div className="text-3xl font-black text-accent tabular-nums">
+              {stats ? Math.round(stats.maxWpm) : 0}
+            </div>
+            <div className="text-xs text-muted mt-1">best wpm</div>
+          </div>
+        </div>
+
+        {/* Details */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <StatCard label="Races" value={stats?.racesPlayed ?? 0} />
           <StatCard label="Win Rate" value={`${winRate}%`} />
-          <StatCard
-            label="Avg WPM"
-            value={stats ? Math.round(stats.avgWpm) : 0}
-          />
-          <StatCard
-            label="Best WPM"
-            value={stats ? Math.round(stats.maxWpm) : 0}
-          />
-          <StatCard
-            label="Streak"
-            value={stats?.currentStreak ?? 0}
-          />
-          <StatCard
-            label="Best Streak"
-            value={stats?.maxStreak ?? 0}
-          />
+          <StatCard label="Streak" value={stats?.currentStreak ?? 0} />
+          <StatCard label="Best Streak" value={stats?.maxStreak ?? 0} />
         </div>
 
         {/* Solo Personal Bests */}
         {soloPbs.length > 0 && (
           <div>
-            <h2 className="text-lg font-bold text-text mb-4">Solo Personal Bests</h2>
+            <h2 className="text-xs font-bold text-muted uppercase tracking-wider mb-3">Solo Personal Bests</h2>
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="text-muted border-b border-surface">
@@ -222,7 +224,7 @@ export default async function ProfilePage({
         {/* Race History */}
         {recentRaces.length > 0 && (
           <div>
-            <h2 className="text-lg font-bold text-text mb-4">Race History</h2>
+            <h2 className="text-xs font-bold text-muted uppercase tracking-wider mb-3">Race History</h2>
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="text-muted border-b border-surface">
@@ -284,7 +286,7 @@ export default async function ProfilePage({
         {/* Achievements */}
         {ACHIEVEMENTS.length > 0 && (
           <div>
-            <h2 className="text-lg font-bold text-text mb-4">Achievements</h2>
+            <h2 className="text-xs font-bold text-muted uppercase tracking-wider mb-3">Achievements</h2>
             <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
               {ACHIEVEMENTS.map((achievement) => {
                 const unlocked = unlockedSet.has(achievement.id);
@@ -312,7 +314,7 @@ export default async function ProfilePage({
         {/* Season History */}
         {seasonHistory.length > 0 && (
           <div>
-            <h2 className="text-lg font-bold text-text mb-4">Season History</h2>
+            <h2 className="text-xs font-bold text-muted uppercase tracking-wider mb-3">Season History</h2>
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="text-muted border-b border-surface">

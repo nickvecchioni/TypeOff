@@ -50,7 +50,7 @@ export function SoloStats() {
 
   return (
     <div className="w-full max-w-3xl mx-auto">
-      <h2 className="text-lg font-bold text-text mb-4">Recent Results</h2>
+      <h2 className="text-xs font-bold text-muted uppercase tracking-wider mb-3">Recent Results</h2>
       <table className="w-full text-left text-sm">
         <thead>
           <tr className="text-muted border-b border-surface">
