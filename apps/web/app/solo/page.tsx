@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { TypingTest } from "@/components/typing/TypingTest";
-import { SoloStats } from "@/components/typing/SoloStats";
 
 export default function SoloPage() {
   const [typingStatus, setTypingStatus] = useState<"idle" | "typing" | "finished">("idle");
@@ -15,9 +14,6 @@ export default function SoloPage() {
     >
       <div className={`${typingStatus === "finished" ? "pt-8" : "pt-[18vh]"} w-full flex flex-col items-center`}>
         <TypingTest onStatusChange={setTypingStatus} />
-      </div>
-      <div className="focus-fade mt-16 w-full max-w-3xl pb-16">
-        <SoloStats />
       </div>
     </main>
   );

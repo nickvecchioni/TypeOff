@@ -15,7 +15,7 @@ function CursorInner({ charIndex, isTyping }: CursorProps) {
       }`}
       style={{
         left: `${charIndex}ch`,
-        boxShadow: "0 0 8px rgba(167, 139, 250, 0.5), 0 0 2px rgba(167, 139, 250, 0.8)",
+        boxShadow: "0 0 8px rgba(122, 162, 247, 0.5), 0 0 2px rgba(122, 162, 247, 0.8)",
       }}
       aria-hidden
     />

@@ -30,8 +30,8 @@ export default function RootLayout({
       <body className={`${jetbrainsMono.variable} font-mono antialiased h-full flex flex-col`}>
         {/* Background atmosphere */}
         <div className="fixed inset-0 pointer-events-none" aria-hidden="true">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(167,139,250,0.06),transparent_60%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_40%_at_50%_100%,rgba(167,139,250,0.03),transparent_60%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(122,162,247,0.06),transparent_60%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_40%_at_50%_100%,rgba(122,162,247,0.03),transparent_60%)]" />
         </div>
 
         <SessionProvider>
@@ -48,16 +48,8 @@ export default function RootLayout({
                     aria-hidden
                     className="transition-[filter] duration-300"
                   >
-                    <g transform="rotate(-20 16 16)">
-                      <line x1="16" y1="5" x2="16" y2="27" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
-                      <line x1="11" y1="5" x2="21" y2="5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-                      <line x1="11" y1="27" x2="21" y2="27" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-                    </g>
-                    <g transform="rotate(20 16 16)">
-                      <line x1="16" y1="5" x2="16" y2="27" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
-                      <line x1="11" y1="5" x2="21" y2="5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-                      <line x1="11" y1="27" x2="21" y2="27" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-                    </g>
+                    <line x1="11" y1="25" x2="19" y2="5" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
+                    <line x1="15" y1="27" x2="23" y2="7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.55"/>
                   </svg>
                   <span className="nav-logo-text transition-[text-shadow] duration-300">
                     TypeOff

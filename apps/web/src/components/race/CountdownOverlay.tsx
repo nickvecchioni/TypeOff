@@ -31,7 +31,7 @@ export function CountdownOverlay({
               <div
                 key={i}
                 className={`w-2.5 h-2.5 rounded-full transition-colors ${
-                  i < placementRace ? "bg-accent shadow-[0_0_6px_rgba(167,139,250,0.4)]" : "bg-surface-bright"
+                  i < placementRace ? "bg-accent shadow-[0_0_6px_rgba(122,162,247,0.4)]" : "bg-surface-bright"
                 }`}
               />
             ))}
