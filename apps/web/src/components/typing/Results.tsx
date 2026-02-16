@@ -107,13 +107,6 @@ export function Results({ stats, onRestart, config }: ResultsProps) {
       {/* WPM chart */}
       <WpmChart samples={stats.wpmHistory} />
 
-      {/* Sign-in prompt for guests */}
-      {!session?.user && config && (
-        <div className="text-sm text-muted/60">
-          Sign in to save results
-        </div>
-      )}
-
       {/* Restart hint */}
       <button
         onClick={onRestart}

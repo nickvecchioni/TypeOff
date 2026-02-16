@@ -49,12 +49,6 @@ export class TournamentManager implements RaceOwner {
     name: string,
     maxPlayers: number = 8,
   ) {
-    // Must be authenticated
-    if (player.isGuest) {
-      socket.emit("tournamentError", { message: "Must be signed in to create tournaments" });
-      return;
-    }
-
     // Leave any current tournament
     this.leaveTournament(socket);
 
@@ -103,11 +97,6 @@ export class TournamentManager implements RaceOwner {
   }
 
   async joinTournament(socket: TypedSocket, player: RacePlayer, tournamentId: string) {
-    if (player.isGuest) {
-      socket.emit("tournamentError", { message: "Must be signed in to join tournaments" });
-      return;
-    }
-
     const entry = this.tournaments.get(tournamentId);
     if (!entry) {
       socket.emit("tournamentError", { message: "Tournament not found" });

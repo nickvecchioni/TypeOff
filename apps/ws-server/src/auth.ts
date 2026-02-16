@@ -4,21 +4,13 @@ import type { RacePlayer } from "@typeoff/shared";
 const secret = new TextEncoder().encode(process.env.AUTH_SECRET);
 
 export async function authenticateSocket(
-  data: { token?: string; guestName?: string },
+  data: { token?: string },
   socketId: string
 ): Promise<RacePlayer> {
-  // Guest auth
   if (!data.token) {
-    const name = (data.guestName ?? "Guest").slice(0, 20).trim() || "Guest";
-    return {
-      id: `guest_${socketId}`,
-      name,
-      isGuest: true,
-      elo: 1000,
-    };
+    throw new Error("Authentication required");
   }
 
-  // JWT auth
   try {
     const { payload } = await jwtVerify(data.token, secret);
     return {

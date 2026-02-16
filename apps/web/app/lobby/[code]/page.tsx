@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useLobby } from "@/hooks/useLobby";
@@ -23,16 +23,7 @@ export default function LobbyRoomPage() {
     }
   }, [code, lobby.phase, lobby.connected]);
 
-  const myPlayerId = useMemo(() => {
-    if (!lobby.raceState) {
-      // In waiting phase, find from lobby players
-      if (session?.user?.id) return session.user.id;
-      return null;
-    }
-    if (session?.user?.id) return session.user.id;
-    const guest = lobby.raceState.players.find((p) => p.isGuest);
-    return guest?.id ?? null;
-  }, [lobby.raceState, lobby.lobby, session]);
+  const myPlayerId = session?.user?.id ?? null;
 
   const isHost = lobby.lobby?.hostId === myPlayerId ||
     (lobby.lobby?.players.some((p) => p.id === session?.user?.id) && lobby.lobby?.hostId != null);

@@ -10,7 +10,7 @@ import { WpmChart } from "@/components/typing/WpmChart";
 interface RaceResultsProps {
   results: RaceResult[];
   myPlayerId: string | null;
-  onRaceAgain: (guestName?: string) => void;
+  onRaceAgain: () => void;
   placementRace?: number;
   placementTotal?: number;
 }

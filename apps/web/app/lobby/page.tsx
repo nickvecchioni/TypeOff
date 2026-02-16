@@ -2,27 +2,20 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { useLobby } from "@/hooks/useLobby";
 
 export default function LobbyPage() {
   const router = useRouter();
-  const { data: session } = useSession();
   const lobby = useLobby();
   const [joinCode, setJoinCode] = useState("");
-  const [guestName, setGuestName] = useState("");
-  const isAuthenticated = !!session?.user;
 
   const handleCreate = async () => {
-    await lobby.createLobby(isAuthenticated ? undefined : guestName || undefined);
+    await lobby.createLobby();
   };
 
   const handleJoin = async () => {
     if (!joinCode.trim()) return;
-    await lobby.joinLobby(
-      joinCode.trim(),
-      isAuthenticated ? undefined : guestName || undefined
-    );
+    await lobby.joinLobby(joinCode.trim());
   };
 
   // If lobby is created/joined, redirect to lobby room
@@ -41,20 +34,6 @@ export default function LobbyPage() {
             Create a lobby and share the code with friends
           </p>
         </div>
-
-        {!isAuthenticated && (
-          <div className="flex flex-col items-center gap-2 w-full">
-            <label className="text-sm text-muted">Your name</label>
-            <input
-              type="text"
-              value={guestName}
-              onChange={(e) => setGuestName(e.target.value)}
-              placeholder="Guest"
-              maxLength={20}
-              className="bg-surface rounded-lg px-4 py-2 text-text text-center outline-none focus:ring-2 focus:ring-accent/50 w-full"
-            />
-          </div>
-        )}
 
         <button
           onClick={handleCreate}

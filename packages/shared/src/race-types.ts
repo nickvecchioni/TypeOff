@@ -74,7 +74,7 @@ export interface TournamentBracket {
 
 /** Client → Server events */
 export interface ClientToServerEvents {
-  joinQueue: (data: { token?: string; guestName?: string }) => void;
+  joinQueue: (data: { token?: string }) => void;
   leaveQueue: () => void;
   raceProgress: (data: {
     wordIndex: number;
@@ -90,8 +90,8 @@ export interface ClientToServerEvents {
     keystrokeTimings?: number[];
   }) => void;
   // Lobby events
-  createLobby: (data: { token?: string; guestName?: string }) => void;
-  joinLobby: (data: { code: string; token?: string; guestName?: string }) => void;
+  createLobby: (data: { token?: string }) => void;
+  joinLobby: (data: { code: string; token?: string }) => void;
   leaveLobby: () => void;
   startLobby: () => void;
   // Spectator events

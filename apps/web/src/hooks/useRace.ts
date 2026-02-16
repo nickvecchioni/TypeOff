@@ -84,11 +84,10 @@ export function useRace() {
   }, [on]);
 
   const joinQueue = useCallback(
-    async (guestName?: string) => {
+    async () => {
       setError(null);
       setPhase("queuing");
 
-      // Try to get auth token
       let token: string | undefined;
       try {
         const res = await fetch("/api/ws-token");
@@ -97,16 +96,15 @@ export function useRace() {
           token = data.token;
         }
       } catch {
-        // Guest mode
+        // Will fail below
       }
 
       if (token) {
         myPlayerIdRef.current = null; // Will be set from race state
         emit("joinQueue", { token });
       } else {
-        const name = guestName ?? "Guest";
-        myPlayerIdRef.current = null;
-        emit("joinQueue", { guestName: name });
+        setError("Sign in required to play");
+        setPhase("idle");
       }
     },
     [emit]
@@ -151,7 +149,7 @@ export function useRace() {
   }, []);
 
   const raceAgain = useCallback(
-    (guestName?: string) => {
+    () => {
       setRaceState(null);
       setProgress({});
       setResults([]);
@@ -160,7 +158,7 @@ export function useRace() {
       setCountdown(0);
       setFinishTimeoutEnd(null);
       setError(null);
-      joinQueue(guestName);
+      joinQueue();
     },
     [joinQueue]
   );

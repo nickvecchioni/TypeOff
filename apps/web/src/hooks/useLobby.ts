@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type {
   LobbyState,
   RaceState,
@@ -96,7 +96,7 @@ export function useLobby() {
   }, [on, phase]);
 
   const createLobby = useCallback(
-    async (guestName?: string) => {
+    async () => {
       setError(null);
       setPhase("creating");
 
@@ -108,20 +108,21 @@ export function useLobby() {
           token = data.token;
         }
       } catch {
-        // Guest mode
+        // Will fail below
       }
 
       if (token) {
         emit("createLobby", { token });
       } else {
-        emit("createLobby", { guestName: guestName ?? "Guest" });
+        setError("Sign in required");
+        setPhase("idle");
       }
     },
     [emit]
   );
 
   const joinLobby = useCallback(
-    async (code: string, guestName?: string) => {
+    async (code: string) => {
       setError(null);
 
       let token: string | undefined;
@@ -132,13 +133,13 @@ export function useLobby() {
           token = data.token;
         }
       } catch {
-        // Guest mode
+        // Will fail below
       }
 
       if (token) {
         emit("joinLobby", { code, token });
       } else {
-        emit("joinLobby", { code, guestName: guestName ?? "Guest" });
+        setError("Sign in required");
       }
     },
     [emit]

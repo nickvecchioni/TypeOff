@@ -38,10 +38,7 @@ io.on("connection", (socket) => {
   socket.on("joinQueue", async (data) => {
     try {
       const player = await authenticateSocket(data, socket.id);
-      // Track social connection for authenticated users
-      if (!player.isGuest) {
-        await socialManager.trackConnection(socket, player.id);
-      }
+      await socialManager.trackConnection(socket, player.id);
       await matchmaker.addToQueue(socket, player);
     } catch (err) {
       socket.emit("error", {

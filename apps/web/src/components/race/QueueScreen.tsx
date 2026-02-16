@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
+import React from "react";
 import { useSession } from "next-auth/react";
 import { RankBadge } from "@/components/RankBadge";
 import type { RankTier } from "@typeoff/shared";
@@ -10,9 +9,8 @@ interface QueueScreenProps {
   isQueuing: boolean;
   queueCount: number;
   connected: boolean;
-  onJoin: (guestName?: string) => void;
+  onJoin: () => void;
   onLeave: () => void;
-  isAuthenticated: boolean;
 }
 
 export function QueueScreen({
@@ -21,14 +19,8 @@ export function QueueScreen({
   connected,
   onJoin,
   onLeave,
-  isAuthenticated,
 }: QueueScreenProps) {
-  const [guestName, setGuestName] = useState("");
   const { data: session } = useSession();
-
-  const handleJoin = () => {
-    onJoin(isAuthenticated ? undefined : guestName || undefined);
-  };
 
   if (isQueuing) {
     return (
@@ -99,36 +91,13 @@ export function QueueScreen({
 
       {/* CTA */}
       <div className="flex flex-col items-center gap-4">
-        {!isAuthenticated && (
-          <div className="flex flex-col items-center gap-2">
-            <label className="text-sm text-muted">Your name</label>
-            <input
-              type="text"
-              value={guestName}
-              onChange={(e) => setGuestName(e.target.value)}
-              placeholder="Guest"
-              maxLength={20}
-              className="bg-surface rounded-lg px-4 py-2 text-text text-center outline-none focus:ring-2 focus:ring-accent/50 w-48"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleJoin();
-              }}
-            />
-          </div>
-        )}
-
         <button
-          onClick={handleJoin}
+          onClick={onJoin}
           disabled={!connected}
           className="rounded-lg bg-accent/20 text-accent px-10 py-3.5 text-lg font-bold hover:bg-accent/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Find Race
         </button>
-
-        {!isAuthenticated && (
-          <p className="text-xs text-muted">
-            <Link href="/login" className="text-accent hover:text-accent/80 transition-colors">Sign in</Link> to track your rank and climb the leaderboard
-          </p>
-        )}
       </div>
     </div>
   );

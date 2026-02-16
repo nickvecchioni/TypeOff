@@ -14,15 +14,7 @@ export function RaceArena() {
   const { data: session, update: updateSession } = useSession();
   const race = useRace();
 
-  // Derive own player ID from race state
-  const myPlayerId = React.useMemo(() => {
-    if (!race.raceState) return null;
-    if (session?.user?.id) return session.user.id;
-    // For guests, find the player whose id starts with "guest_"
-    const players = race.raceState.players;
-    const guest = players.find((p) => p.isGuest);
-    return guest?.id ?? null;
-  }, [race.raceState, session]);
+  const myPlayerId = session?.user?.id ?? null;
 
   // Refresh session and dispatch ELO change event when race finishes
   const sessionRefreshed = React.useRef(false);
@@ -61,7 +53,6 @@ export function RaceArena() {
           connected={race.connected}
           onJoin={race.joinQueue}
           onLeave={race.leaveQueue}
-          isAuthenticated={!!session?.user}
         />
       )}
 
