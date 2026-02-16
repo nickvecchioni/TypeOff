@@ -114,12 +114,13 @@ export function useRace() {
         myPlayerIdRef.current = null; // Will be set from race state
         emit("joinQueue", { token });
 
-        // Safety timeout: if no race starts within 15s, reset
+        // Safety timeout: must exceed server BOT_WAIT_MS (20s)
         if (queueTimeoutRef.current) clearTimeout(queueTimeoutRef.current);
         queueTimeoutRef.current = setTimeout(() => {
+          emit("leaveQueue");
           setError("Failed to join race. Please try again.");
           setPhase("idle");
-        }, 15_000);
+        }, 25_000);
       } else {
         setError("Sign in required to play");
         setPhase("idle");
