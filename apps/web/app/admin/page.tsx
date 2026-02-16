@@ -20,7 +20,11 @@ interface UserRow {
 }
 
 export default function AdminPage() {
-  const [secret, setSecret] = useState("");
+  const [secret, setSecret] = useState(() =>
+    typeof window !== "undefined"
+      ? sessionStorage.getItem("adminSecret") ?? ""
+      : ""
+  );
   const [authenticated, setAuthenticated] = useState(false);
   const [accounts, setAccounts] = useState<TestAccount[]>([]);
   const [realUsers, setRealUsers] = useState<UserRow[]>([]);
@@ -49,25 +53,39 @@ export default function AdminPage() {
     }
   }, [secret]);
 
-  const handleAuth = async () => {
+  const handleAuth = async (overrideSecret?: string) => {
+    const s = overrideSecret ?? secret;
     setError("");
     const res = await fetch(
-      `/api/admin/test-accounts?adminSecret=${encodeURIComponent(secret)}`
+      `/api/admin/test-accounts?adminSecret=${encodeURIComponent(s)}`
     );
     if (!res.ok) {
+      if (overrideSecret) {
+        sessionStorage.removeItem("adminSecret");
+        return;
+      }
       setError("Invalid admin secret");
       return;
     }
+    sessionStorage.setItem("adminSecret", s);
     setAuthenticated(true);
     setAccounts(await res.json());
-    // Also fetch real users
     const usersRes = await fetch(
-      `/api/admin/users?adminSecret=${encodeURIComponent(secret)}`
+      `/api/admin/users?adminSecret=${encodeURIComponent(s)}`
     );
     if (usersRes.ok) {
       setRealUsers(await usersRes.json());
     }
   };
+
+  // Auto-authenticate from stored secret on mount
+  useEffect(() => {
+    const stored = sessionStorage.getItem("adminSecret");
+    if (stored) {
+      handleAuth(stored);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleCreate = async () => {
     setLoading(true);
@@ -149,7 +167,7 @@ export default function AdminPage() {
             className="rounded-lg bg-surface px-4 py-3 text-text outline-none focus:ring-1 focus:ring-accent"
           />
           <button
-            onClick={handleAuth}
+            onClick={() => handleAuth()}
             className="rounded-lg bg-accent/20 px-4 py-3 text-accent hover:bg-accent/30 transition-colors"
           >
             Authenticate
