@@ -5,7 +5,7 @@ import Link from "next/link";
 
 export default function LoginPage() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center px-4">
+    <main className="flex-1 flex flex-col items-center justify-center px-4">
       <h1 className="text-3xl font-bold text-accent mb-2">TypeOff</h1>
       <p className="text-muted mb-10">Sign in to track your stats and ELO</p>
 

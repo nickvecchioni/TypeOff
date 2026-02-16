@@ -46,7 +46,7 @@ export default function SetupUsernamePage() {
   };
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center px-4">
+    <main className="flex-1 flex flex-col items-center justify-center px-4">
       <h1 className="text-3xl font-bold text-accent mb-2">Choose your username</h1>
       <p className="text-muted mb-8 text-center">
         This is how other players will see you. You can change it later.

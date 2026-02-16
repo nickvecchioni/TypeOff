@@ -15,7 +15,7 @@ import {
   commonWords,
 } from "@typeoff/shared";
 
-const DEFAULT_CONFIG: TestConfig = { mode: "timed", duration: 30, wordPool: "common" };
+const DEFAULT_CONFIG: TestConfig = { mode: "timed", duration: 15, wordPool: "common" };
 const WORD_POOL_SIZE = 200;
 
 export interface TypingEngine extends EngineAPI {

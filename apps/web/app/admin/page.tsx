@@ -111,7 +111,7 @@ export default function AdminPage() {
 
   if (!authenticated) {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center px-4">
+      <main className="flex-1 flex flex-col items-center justify-center px-4">
         <h1 className="text-2xl font-bold text-accent mb-6">Admin</h1>
         <div className="flex flex-col gap-3 w-full max-w-xs">
           <input
@@ -135,7 +135,7 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col items-center px-4 py-12 overflow-y-auto">
+    <main className="flex-1 flex flex-col items-center px-4 py-12 overflow-y-auto">
       <h1 className="text-2xl font-bold text-accent mb-8">
         Test Accounts
       </h1>
