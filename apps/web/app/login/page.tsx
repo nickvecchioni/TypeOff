@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 export default function LoginPage() {
   return (
     <main className="flex-1 flex flex-col items-center justify-center px-4">
+      <div className="animate-fade-in flex flex-col items-center">
       <h1 className="text-4xl font-black text-accent text-glow-accent mb-3">TypeOff</h1>
       <p className="text-muted mb-12">Sign in to track your stats and ELO</p>
 
@@ -33,6 +34,7 @@ export default function LoginPage() {
           </svg>
           Continue with Google
         </button>
+      </div>
       </div>
     </main>
   );

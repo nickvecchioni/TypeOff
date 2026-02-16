@@ -124,7 +124,7 @@ export default async function ProfilePage({
 
   return (
     <main className="flex-1 overflow-y-auto px-6 py-8">
-      <div className="max-w-2xl mx-auto space-y-8">
+      <div className="max-w-2xl mx-auto space-y-8 animate-fade-in">
         {/* Header */}
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-3">

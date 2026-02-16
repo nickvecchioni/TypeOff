@@ -85,7 +85,7 @@ export function QueueScreen({
           <button
             onClick={onJoin}
             disabled={!connected}
-            className="rounded-xl border border-accent/30 bg-accent/15 text-accent px-12 py-4 text-lg font-bold hover:bg-accent/25 hover:border-accent/50 hover:shadow-[0_0_24px_rgba(122,162,247,0.2)] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="rounded-xl border border-accent/30 bg-accent/15 text-accent px-12 py-4 text-lg font-bold hover:bg-accent/25 hover:border-accent/50 hover:shadow-[0_0_24px_rgba(125,211,252,0.2)] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {session.user.placementsCompleted ? "Find Race" : "Start Placements"}
           </button>

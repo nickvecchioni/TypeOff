@@ -85,7 +85,7 @@ export default async function LeaderboardPage() {
 
   return (
     <main className="flex-1 overflow-y-auto px-6 py-8">
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-2xl mx-auto animate-fade-in">
         <h1 className="text-2xl font-black text-accent mb-6">Leaderboard</h1>
         <LeaderboardTabs raceContent={raceContent} />
       </div>

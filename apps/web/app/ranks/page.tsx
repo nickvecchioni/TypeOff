@@ -69,7 +69,7 @@ const RANK_TIERS = [
 export default function RanksPage() {
   return (
     <main className="flex-1 overflow-y-auto px-6 py-8">
-      <div className="max-w-2xl mx-auto space-y-10">
+      <div className="max-w-2xl mx-auto space-y-10 animate-fade-in">
         {/* Hero */}
         <div>
           <h1 className="text-2xl font-black text-accent">Rank System</h1>
@@ -195,7 +195,7 @@ export default function RanksPage() {
         <div className="pt-2 pb-8">
           <Link
             href="/"
-            className="inline-block rounded-xl border border-accent/30 bg-accent/15 text-accent px-8 py-3 font-bold hover:bg-accent/25 hover:border-accent/50 hover:shadow-[0_0_24px_rgba(122,162,247,0.2)] transition-all duration-200"
+            className="inline-block rounded-xl border border-accent/30 bg-accent/15 text-accent px-8 py-3 font-bold hover:bg-accent/25 hover:border-accent/50 hover:shadow-[0_0_24px_rgba(125,211,252,0.2)] transition-all duration-200"
           >
             Start racing
           </Link>
