@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "rm -rf .next/cache/webpack && next build",
+    "build": "find .next -maxdepth 1 ! -name .next ! -name cache -exec rm -rf {} + 2>/dev/null; next build",
     "start": "next start -H 0.0.0.0",
     "lint": "next lint"
   },
