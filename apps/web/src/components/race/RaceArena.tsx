@@ -9,6 +9,16 @@ import { RaceTrack } from "./RaceTrack";
 import { RaceTypingArea } from "./RaceTypingArea";
 import { RaceResults } from "./RaceResults";
 import { PlacementReveal } from "./PlacementReveal";
+import { getRankInfo } from "@typeoff/shared";
+import type { RankTier } from "@typeoff/shared";
+
+const TIER_ORDER: RankTier[] = [
+  "bronze", "silver", "gold", "platinum", "diamond", "master", "grandmaster",
+];
+
+function rankValue(tier: RankTier, division: number | null): number {
+  return TIER_ORDER.indexOf(tier) * 3 + (3 - (division ?? 0));
+}
 
 export function RaceArena() {
   const { data: session, update: updateSession } = useSession();
@@ -28,6 +38,26 @@ export function RaceArena() {
           window.dispatchEvent(
             new CustomEvent("elo-change", { detail: { change: myResult.eloChange } })
           );
+        }
+        if (myResult?.elo != null && myResult.eloChange != null && session.user.rankTier) {
+          const oldElo = myResult.elo - myResult.eloChange;
+          const oldInfo = getRankInfo(oldElo);
+          const newInfo = getRankInfo(myResult.elo);
+          const oldVal = rankValue(oldInfo.tier, oldInfo.division);
+          const newVal = rankValue(newInfo.tier, newInfo.division);
+          if (newVal > oldVal) {
+            window.dispatchEvent(
+              new CustomEvent("rank-up", {
+                detail: { tier: newInfo.tier, elo: myResult.elo, direction: "up" as const },
+              })
+            );
+          } else if (newVal < oldVal) {
+            window.dispatchEvent(
+              new CustomEvent("rank-up", {
+                detail: { tier: newInfo.tier, elo: myResult.elo, direction: "down" as const },
+              })
+            );
+          }
         }
         updateSession({});
       }

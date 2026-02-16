@@ -64,16 +64,6 @@ export function TypingTest({ onStatusChange }: TypingTestProps) {
         </div>
       )}
 
-      {/* Stats bar */}
-      {!isFinished && (
-        <StatsBar
-          wpm={liveWpm}
-          timeLeft={timeLeft}
-          config={config}
-          visible={isTyping}
-        />
-      )}
-
       {/* Typing area or results */}
       {isFinished && stats ? (
         <Results stats={stats} onRestart={restart} config={config} />
@@ -93,6 +83,16 @@ export function TypingTest({ onStatusChange }: TypingTestProps) {
             isTyping={isTyping}
           />
         </div>
+      )}
+
+      {/* Stats bar (below words) */}
+      {!isFinished && (
+        <StatsBar
+          wpm={liveWpm}
+          timeLeft={timeLeft}
+          config={config}
+          visible={isTyping}
+        />
       )}
 
       {/* Restart hint */}
