@@ -157,6 +157,9 @@ export class RaceManager {
     const state = this.getState();
     state.countdown = countdown;
     for (const entry of this.players.values()) {
+      if (entry.socket) {
+        console.log(`[race-manager] emitting raceStart to ${entry.socket.id} (connected=${entry.socket.connected}) race=${this.raceId}`);
+      }
       entry.socket?.emit("raceStart", state);
     }
 

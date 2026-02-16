@@ -47,8 +47,15 @@ export class Matchmaker implements RaceOwner {
     // Remove if already in queue
     this.removeFromQueue(socket.id);
 
+    // If already in a race, prevent duplicate joins
+    if (this.socketToRace.has(socket.id)) {
+      console.log(`[matchmaker] player ${player.id} already in race, ignoring joinQueue`);
+      return;
+    }
+
     // Check placement for authenticated players
     if (!player.isGuest) {
+      console.log(`[matchmaker] checking stats for ${player.id}...`);
       const stats = await this.getPlayerStats(player.id);
       const racesPlayed = stats?.racesPlayed ?? 0;
       console.log(`[matchmaker] player ${player.id} racesPlayed=${racesPlayed} isGuest=${player.isGuest}`);
@@ -115,15 +122,21 @@ export class Matchmaker implements RaceOwner {
   }
 
   private async getPlayerStats(userId: string) {
+    const start = Date.now();
     try {
       const db = createDb(process.env.DATABASE_URL!);
       const result = await Promise.race([
         db.select().from(userStats).where(eq(userStats.userId, userId)).limit(1),
-        new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000)),
       ]);
-      if (!result) return null;
+      console.log(`[matchmaker] getPlayerStats took ${Date.now() - start}ms for ${userId}`);
+      if (!result) {
+        console.log(`[matchmaker] getPlayerStats timed out for ${userId}`);
+        return null;
+      }
       return result[0] ?? null;
-    } catch {
+    } catch (err) {
+      console.error(`[matchmaker] getPlayerStats error for ${userId} after ${Date.now() - start}ms:`, err);
       return null;
     }
   }
@@ -232,7 +245,9 @@ export class Matchmaker implements RaceOwner {
     );
     this.races.set(race.raceId, race);
     this.socketToRace.set(socket.id, race.raceId);
+    console.log(`[matchmaker] placement race ${race.raceId} created, calling start() for socket ${socket.id} (connected=${socket.connected})`);
     race.start();
+    console.log(`[matchmaker] placement race ${race.raceId} start() completed`);
   }
 
   private startRaceWithBots(entries: QueueEntry[], botCount: number) {

@@ -13,8 +13,17 @@ import { SocialManager } from "./social-manager.js";
 
 const PORT = parseInt(process.env.PORT ?? "3001", 10);
 const CORS_ORIGIN = process.env.CORS_ORIGIN ?? "http://localhost:3000";
+const BUILD_TS = new Date().toISOString();
 
-const httpServer = createServer();
+const httpServer = createServer((req, res) => {
+  if (req.url === "/health") {
+    res.writeHead(200, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" });
+    res.end(JSON.stringify({ ok: true, buildTs: BUILD_TS, uptime: process.uptime() }));
+    return;
+  }
+  res.writeHead(404);
+  res.end();
+});
 const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
   cors: {
     origin: CORS_ORIGIN,
@@ -36,12 +45,16 @@ io.on("connection", (socket) => {
   // ─── Queue Events ─────────────────────────────────────────────────
 
   socket.on("joinQueue", async (data) => {
+    console.log(`[joinQueue] ${socket.id} connected=${socket.connected}`);
     try {
       const player = await authenticateSocket(data, socket.id);
+      console.log(`[joinQueue] ${socket.id} authenticated as ${player.id} (${player.name})`);
       // Fire-and-forget: don't block queue join on friend notifications
       socialManager.trackConnection(socket, player.id).catch(() => {});
       await matchmaker.addToQueue(socket, player);
+      console.log(`[joinQueue] ${socket.id} addToQueue completed`);
     } catch (err) {
+      console.error(`[joinQueue] ${socket.id} error:`, err);
       socket.emit("error", {
         message: err instanceof Error ? err.message : "Auth failed",
       });

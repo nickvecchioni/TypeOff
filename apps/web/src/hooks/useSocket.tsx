@@ -73,6 +73,9 @@ export function useSocket() {
     [socketRef]
   );
 
+  // Re-create `on` when connected changes so dependent useEffects re-register
+  // handlers after the socket is created (child effects run before parent effects,
+  // so socketRef.current may be null on initial mount).
   const on = useCallback(
     <E extends keyof ServerToClientEvents>(
       event: E,
@@ -83,7 +86,8 @@ export function useSocket() {
         socketRef.current?.off(event, handler as any);
       };
     },
-    [socketRef]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [socketRef, connected]
   );
 
   return { connected, emit, on, socket: socketRef };
