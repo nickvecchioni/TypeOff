@@ -3,8 +3,7 @@
 import React from "react";
 import { useSession, signIn } from "next-auth/react";
 import { PartyPanel } from "@/components/social/PartyPanel";
-import { RankBadge } from "@/components/RankBadge";
-import type { PartyState, RankTier } from "@typeoff/shared";
+import type { PartyState } from "@typeoff/shared";
 
 interface QueueScreenProps {
   isQueuing: boolean;
@@ -88,15 +87,6 @@ export function QueueScreen({
           <span className="text-rank-grandmaster font-semibold">Grandmaster</span>.
         </p>
       </div>
-
-      {/* Rank display */}
-      {session?.user?.placementsCompleted && (
-        <RankBadge
-          tier={session.user.rankTier as RankTier}
-          elo={session.user.eloRating}
-          size="md"
-        />
-      )}
 
       {/* CTA */}
       {session?.user ? (

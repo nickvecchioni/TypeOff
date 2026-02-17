@@ -11,6 +11,7 @@ declare module "next-auth" {
       rankTier: RankTier;
       username: string | null;
       placementsCompleted: boolean;
+      currentStreak: number;
     };
   }
 }
@@ -22,5 +23,6 @@ declare module "next-auth/jwt" {
     rankTier?: RankTier;
     username?: string | null;
     placementsCompleted?: boolean;
+    currentStreak?: number;
   }
 }

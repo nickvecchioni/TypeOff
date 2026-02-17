@@ -3,7 +3,7 @@ import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { getDb } from "./db";
-import { users, accounts, sessions, verificationTokens } from "@typeoff/db";
+import { users, accounts, sessions, verificationTokens, userStats } from "@typeoff/db";
 import { eq } from "drizzle-orm";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -68,8 +68,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             rankTier: users.rankTier,
             username: users.username,
             placementsCompleted: users.placementsCompleted,
+            currentStreak: userStats.currentStreak,
           })
           .from(users)
+          .leftJoin(userStats, eq(users.id, userStats.userId))
           .where(eq(users.id, token.id as string))
           .limit(1);
         if (row.length > 0) {
@@ -77,6 +79,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           token.rankTier = row[0].rankTier as any;
           token.username = row[0].username;
           token.placementsCompleted = row[0].placementsCompleted;
+          token.currentStreak = row[0].currentStreak ?? 0;
         }
         token.eloRefreshedAt = now;
       }
@@ -89,6 +92,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.rankTier = (token.rankTier as any) ?? "bronze";
         session.user.username = (token.username as string) ?? null;
         session.user.placementsCompleted = (token.placementsCompleted as boolean) ?? false;
+        session.user.currentStreak = (token.currentStreak as number) ?? 0;
       }
       return session;
     },
