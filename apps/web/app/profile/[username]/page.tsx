@@ -2,9 +2,10 @@ export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
-import { users, userStats, raceParticipants, races } from "@typeoff/db";
+import { users, userStats, raceParticipants, races, userAchievements, dailyChallengeResults } from "@typeoff/db";
 import { eq, desc } from "drizzle-orm";
-import { getRankInfo, getRankProgress, getNextDivisionElo } from "@typeoff/shared";
+import { getRankInfo, getRankProgress, getNextDivisionElo, ACHIEVEMENTS } from "@typeoff/shared";
+import { AchievementsGrid } from "./achievements-grid";
 import { UsernameEditor } from "./username-editor";
 import { SignOutButton } from "./sign-out-button";
 import { AddFriendButton } from "@/components/social/AddFriendButton";
@@ -58,6 +59,53 @@ export default async function ProfilePage({
     .where(eq(raceParticipants.userId, user.id))
     .orderBy(desc(raceParticipants.finishedAt))
     .limit(20);
+
+  // Load achievements
+  const achievementRows = await db
+    .select({
+      achievementId: userAchievements.achievementId,
+      unlockedAt: userAchievements.unlockedAt,
+    })
+    .from(userAchievements)
+    .where(eq(userAchievements.userId, user.id));
+  const unlockedAchievements = achievementRows.map((r) => ({
+    id: r.achievementId,
+    unlockedAt: r.unlockedAt.toISOString(),
+  }));
+
+  // Load daily challenge stats
+  const dailyResults = await db
+    .select({
+      challengeDate: dailyChallengeResults.challengeDate,
+      currentStreak: dailyChallengeResults.currentStreak,
+    })
+    .from(dailyChallengeResults)
+    .where(eq(dailyChallengeResults.userId, user.id))
+    .orderBy(desc(dailyChallengeResults.challengeDate));
+
+  const dailyMaxStreak = dailyResults.reduce(
+    (max, r) => Math.max(max, r.currentStreak),
+    0,
+  );
+  const dailyCurrentStreak = (() => {
+    const dates = dailyResults.map((r) => r.challengeDate);
+    if (dates.length === 0) return 0;
+    const now = new Date();
+    const today = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}-${String(now.getUTCDate()).padStart(2, "0")}`;
+    const yd = new Date();
+    yd.setUTCDate(yd.getUTCDate() - 1);
+    const yesterday = `${yd.getUTCFullYear()}-${String(yd.getUTCMonth() + 1).padStart(2, "0")}-${String(yd.getUTCDate()).padStart(2, "0")}`;
+    if (dates[0] !== today && dates[0] !== yesterday) return 0;
+    let streak = 1;
+    for (let i = 1; i < dates.length; i++) {
+      const prev = new Date(dates[i - 1] + "T00:00:00Z");
+      const curr = new Date(dates[i] + "T00:00:00Z");
+      const diffDays = (prev.getTime() - curr.getTime()) / (1000 * 60 * 60 * 24);
+      if (diffDays === 1) streak++;
+      else break;
+    }
+    return streak;
+  })();
 
   // Check if this is own profile
   const { auth } = await import("@/lib/auth");
@@ -145,12 +193,28 @@ export default async function ProfilePage({
         </div>
 
         {/* ── Detail Stats ─────────────────────────────────── */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           <StatCard label="Races" value={stats?.racesPlayed ?? 0} />
           <StatCard label="Wins" value={stats?.racesWon ?? 0} />
-          <StatCard label="Streak" value={stats?.currentStreak ?? 0} />
-          <StatCard label="Best Streak" value={stats?.maxStreak ?? 0} />
+          <StatCard label="Win Streak" value={stats?.currentStreak ?? 0} />
+          <StatCard label="Best Win Streak" value={stats?.maxStreak ?? 0} />
+          <StatCard label="Daily Streak" value={dailyCurrentStreak} />
+          <StatCard label="Best Daily" value={dailyMaxStreak} />
         </div>
+
+        {/* ── Achievements ────────────────────────────────── */}
+        <section>
+          <SectionHeader>
+            Achievements
+            <span className="text-muted/40 ml-1 normal-case tracking-normal font-medium">
+              {unlockedAchievements.length}/{ACHIEVEMENTS.length}
+            </span>
+          </SectionHeader>
+          <AchievementsGrid
+            achievements={ACHIEVEMENTS}
+            unlocked={unlockedAchievements}
+          />
+        </section>
 
         {/* ── Race History ─────────────────────────────────── */}
         {recentRaces.length > 0 && (

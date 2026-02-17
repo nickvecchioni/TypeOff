@@ -139,6 +139,44 @@ export const soloResults = pgTable("solo_results", {
     .$defaultFn(() => new Date()),
 });
 
+// ─── Daily Challenges ────────────────────────────────────────────────
+
+export const dailyChallengeResults = pgTable(
+  "daily_challenge_results",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    challengeDate: text("challenge_date").notNull(), // "YYYY-MM-DD" UTC
+    wpm: real("wpm").notNull(),
+    rawWpm: real("raw_wpm").notNull(),
+    accuracy: real("accuracy").notNull(),
+    completedAt: timestamp("completed_at", { mode: "date" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    currentStreak: integer("current_streak").notNull().default(1),
+  },
+  (t) => [unique().on(t.userId, t.challengeDate)],
+);
+
+// ─── Achievements ───────────────────────────────────────────────────
+
+export const userAchievements = pgTable(
+  "user_achievements",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    achievementId: text("achievement_id").notNull(),
+    unlockedAt: timestamp("unlocked_at", { mode: "date" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (t) => [unique().on(t.userId, t.achievementId)],
+);
+
 // ─── Player Stats ───────────────────────────────────────────────────
 
 export const userStats = pgTable("user_stats", {

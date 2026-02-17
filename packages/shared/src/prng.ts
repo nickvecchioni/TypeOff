@@ -39,3 +39,9 @@ export function generateFromPool(
 ): string[] {
   return generateWords(commonWords, count, seed);
 }
+
+/** Deterministic seed from a UTC date — same for all users on a given day */
+export function getDailySeed(date?: Date): number {
+  const d = date ?? new Date();
+  return d.getUTCFullYear() * 10000 + (d.getUTCMonth() + 1) * 100 + d.getUTCDate();
+}
