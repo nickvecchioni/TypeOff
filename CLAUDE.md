@@ -70,7 +70,7 @@ ELO: K=32 for first 30 games, K=16 after. Matchmaking expands ±50 ELO every 5s 
 
 ## Style
 
-- Dark theme (bg `#0c0c12`, accent sky-500 `#38bdf8`)
+- Dark theme (bg `#0c0c12`, accent `#4d9eff`)
 - Noise texture overlay for depth
 - Focus mode: `.focus-active .focus-fade` fades non-essential UI during typing
 - Rank colors: bronze, silver, gold, platinum, diamond, master, grandmaster
