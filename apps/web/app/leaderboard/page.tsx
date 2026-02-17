@@ -27,66 +27,75 @@ export default async function LeaderboardPage() {
     .orderBy(desc(users.eloRating))
     .limit(100);
 
-  const PODIUM_COLORS = ["text-rank-gold", "text-rank-silver", "text-rank-bronze"];
-
-  const raceContent = (
-    <div className="space-y-1">
-      {/* Header */}
-      <div className="grid grid-cols-[2.5rem_1fr_4rem_4rem] items-center gap-4 px-5 py-2 text-xs text-muted uppercase tracking-wider">
-        <span>#</span>
-        <span>Player</span>
-        <span className="text-right">Wpm</span>
-        <span className="text-right">Races</span>
-      </div>
-
-      {/* Rows */}
-      {rows.map((row, i) => {
-        const rank = i + 1;
-        const isMe = session?.user?.id === row.id;
-        const podiumColor = rank <= 3 ? PODIUM_COLORS[rank - 1] : "text-muted";
-
-        return (
-          <Link
-            key={row.id}
-            href={`/profile/${row.username}`}
-            className={`grid grid-cols-[2.5rem_1fr_4rem_4rem] items-center gap-4 rounded-lg px-5 py-3.5 transition-all duration-200 ${
-              isMe
-                ? "bg-accent/10 border border-accent/20"
-                : "bg-surface border border-transparent hover:border-surface-bright"
-            }`}
-          >
-            <span className={`text-sm font-bold ${podiumColor} tabular-nums`}>
-              {rank}
-            </span>
-            <div className="flex items-center gap-3 min-w-0">
-              <RankBadge tier={row.rankTier as RankTier} elo={row.eloRating} />
-              <span className={`truncate text-sm font-medium ${isMe ? "text-accent" : "text-text"}`}>
-                {row.username}
-              </span>
-            </div>
-            <span className="text-sm text-muted tabular-nums text-right">
-              {row.avgWpm != null ? Math.round(row.avgWpm) : 0}
-            </span>
-            <span className="text-sm text-muted/60 tabular-nums text-right">
-              {row.racesPlayed ?? 0}
-            </span>
-          </Link>
-        );
-      })}
-
-      {rows.length === 0 && (
-        <div className="py-12 text-center text-muted">
-          No players yet. Be the first!
-        </div>
-      )}
-    </div>
-  );
-
   return (
     <main className="flex-1 overflow-y-auto px-6 py-8">
       <div className="max-w-2xl mx-auto animate-fade-in">
-        <h1 className="text-2xl font-black text-accent mb-6">Leaderboard</h1>
-        {raceContent}
+        <div className="flex items-baseline justify-between mb-6">
+          <h1 className="text-lg font-black text-text uppercase tracking-wider">
+            Leaderboard
+          </h1>
+          <span className="text-xs text-muted tabular-nums">
+            {rows.length} {rows.length === 1 ? "player" : "players"}
+          </span>
+        </div>
+
+        {rows.length === 0 ? (
+          <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] py-16 text-center">
+            <p className="text-muted text-sm">No ranked players yet. Be the first.</p>
+          </div>
+        ) : (
+          <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] overflow-hidden">
+            {/* Header */}
+            <div className="grid grid-cols-[2rem_1fr_3.5rem_3.5rem] items-center gap-3 px-4 py-2.5 text-xs text-muted/60 uppercase tracking-wider border-b border-white/[0.04]">
+              <span>#</span>
+              <span>Player</span>
+              <span className="text-right">WPM</span>
+              <span className="text-right">Races</span>
+            </div>
+
+            {/* Rows */}
+            {rows.map((row, i) => {
+              const rank = i + 1;
+              const isMe = session?.user?.id === row.id;
+              const isTop3 = rank <= 3;
+              const podiumClasses = rank === 1
+                ? "text-rank-gold text-glow-gold"
+                : rank === 2
+                ? "text-rank-silver"
+                : rank === 3
+                ? "text-rank-bronze"
+                : "text-muted/50";
+
+              return (
+                <Link
+                  key={row.id}
+                  href={`/profile/${row.username}`}
+                  className={`grid grid-cols-[2rem_1fr_3.5rem_3.5rem] items-center gap-3 px-4 py-2.5 transition-colors border-b border-white/[0.02] last:border-0 ${
+                    isMe
+                      ? "bg-accent/[0.06] hover:bg-accent/[0.1]"
+                      : "hover:bg-white/[0.02]"
+                  }`}
+                >
+                  <span className={`text-sm font-bold tabular-nums ${podiumClasses}`}>
+                    {rank}
+                  </span>
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <RankBadge tier={row.rankTier as RankTier} elo={row.eloRating} />
+                    <span className={`truncate text-sm ${isMe ? "text-accent font-bold" : isTop3 ? "text-text font-medium" : "text-text/80"}`}>
+                      {row.username}
+                    </span>
+                  </div>
+                  <span className="text-sm text-muted tabular-nums text-right">
+                    {row.avgWpm != null ? Math.round(row.avgWpm) : 0}
+                  </span>
+                  <span className="text-sm text-muted/40 tabular-nums text-right">
+                    {row.racesPlayed ?? 0}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
     </main>
   );

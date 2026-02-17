@@ -90,27 +90,27 @@ export default async function ProfilePage({
   const rankInfo = user.placementsCompleted ? getRankInfo(user.eloRating) : null;
 
   return (
-    <main className="flex-1 overflow-y-auto px-6 py-10">
-      <div className="max-w-3xl mx-auto space-y-10 animate-fade-in">
+    <main className="flex-1 overflow-y-auto px-6 py-8">
+      <div className="max-w-3xl mx-auto space-y-8 animate-fade-in">
 
         {/* ── Hero ──────────────────────────────────────────── */}
-        <div className="relative rounded-xl bg-surface/60 ring-1 ring-white/[0.04] px-8 py-8 overflow-hidden">
+        <div className="relative rounded-xl bg-surface/50 ring-1 ring-white/[0.04] px-6 py-6 overflow-hidden">
           {/* Rank-colored top edge */}
           {rankInfo && (
             <div
               className={`absolute inset-x-0 top-0 h-px bg-rank-${rankInfo.tier}`}
-              style={{ opacity: 0.5 }}
+              style={{ opacity: 0.4 }}
             />
           )}
 
-          <div className="relative flex flex-col gap-4">
+          <div className="relative flex flex-col gap-3">
             {/* Username row */}
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
                 {isOwn ? (
                   <UsernameEditor currentUsername={user.username ?? ""} />
                 ) : (
-                  <h1 className="text-2xl font-bold text-text tracking-tight">
+                  <h1 className="text-xl font-bold text-text tracking-tight">
                     {user.username}
                   </h1>
                 )}
@@ -144,24 +144,24 @@ export default async function ProfilePage({
           </div>
         </div>
 
-        {/* ── WPM Hero Stats ───────────────────────────────── */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="rounded-xl bg-surface/60 ring-1 ring-white/[0.04] px-6 py-6 text-center">
-            <div className="text-4xl font-black text-accent tabular-nums text-glow-accent">
+        {/* ── WPM Stats ──────────────────────────────────────── */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-xl bg-surface/50 ring-1 ring-white/[0.04] px-5 py-5 text-center">
+            <div className="text-3xl font-black text-accent tabular-nums text-glow-accent">
               {stats ? Math.round(stats.avgWpm) : 0}
             </div>
-            <div className="text-xs text-muted mt-2 uppercase tracking-wider">avg wpm</div>
+            <div className="text-xs text-muted mt-1.5 uppercase tracking-wider">avg wpm</div>
           </div>
-          <div className="rounded-xl bg-surface/60 ring-1 ring-white/[0.04] px-6 py-6 text-center">
-            <div className="text-4xl font-black text-accent tabular-nums text-glow-accent">
+          <div className="rounded-xl bg-surface/50 ring-1 ring-white/[0.04] px-5 py-5 text-center">
+            <div className="text-3xl font-black text-accent tabular-nums text-glow-accent">
               {stats ? Math.round(stats.maxWpm) : 0}
             </div>
-            <div className="text-xs text-muted mt-2 uppercase tracking-wider">best wpm</div>
+            <div className="text-xs text-muted mt-1.5 uppercase tracking-wider">best wpm</div>
           </div>
         </div>
 
         {/* ── Detail Stats ─────────────────────────────────── */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <StatCard label="Races" value={stats?.racesPlayed ?? 0} />
           <StatCard label="Win Rate" value={`${winRate}%`} />
           <StatCard label="Streak" value={stats?.currentStreak ?? 0} />
@@ -172,7 +172,7 @@ export default async function ProfilePage({
         {ratings.length > 0 && (
           <section>
             <SectionHeader>Ranked Ratings</SectionHeader>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {(["common", "language", "punctuation"] as RaceType[]).map((rt) => {
                 const r = ratingsMap.get(rt);
                 const label = RACE_TYPE_LABELS[rt];
@@ -180,10 +180,10 @@ export default async function ProfilePage({
                   return (
                     <div
                       key={rt}
-                      className="rounded-lg bg-surface/60 ring-1 ring-white/[0.04] px-5 py-4 text-center"
+                      className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3.5 text-center"
                     >
-                      <div className="text-sm font-bold text-muted mb-2">{label}</div>
-                      <div className="text-xs text-muted/60">Unranked</div>
+                      <div className="text-sm font-bold text-muted mb-1.5">{label}</div>
+                      <div className="text-xs text-muted/50">Unranked</div>
                     </div>
                   );
                 }
@@ -191,7 +191,7 @@ export default async function ProfilePage({
                 return (
                   <div
                     key={rt}
-                    className="rounded-lg bg-surface/60 ring-1 ring-white/[0.04] px-5 py-4 flex flex-col items-center gap-2"
+                    className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3.5 flex flex-col items-center gap-1.5"
                   >
                     <div className="text-sm font-bold text-text">{label}</div>
                     <RankBadge
@@ -199,7 +199,7 @@ export default async function ProfilePage({
                       elo={r.eloRating}
                       size="md"
                     />
-                    <div className="text-xs text-muted tabular-nums">
+                    <div className="text-xs text-muted/50 tabular-nums">
                       {r.racesPlayed} races
                     </div>
                   </div>
@@ -216,12 +216,12 @@ export default async function ProfilePage({
             <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] overflow-hidden">
               <table className="w-full text-left text-sm">
                 <thead>
-                  <tr className="text-xs text-muted uppercase tracking-wider border-b border-white/[0.04]">
-                    <th className="px-5 py-3 font-medium">Date</th>
-                    <th className="px-5 py-3 font-medium">Type</th>
-                    <th className="px-5 py-3 font-medium">Result</th>
-                    <th className="px-5 py-3 font-medium text-right">WPM</th>
-                    <th className="px-5 py-3 font-medium text-right">ELO</th>
+                  <tr className="text-xs text-muted/60 uppercase tracking-wider border-b border-white/[0.04]">
+                    <th className="px-4 py-2.5 font-medium">Date</th>
+                    <th className="px-4 py-2.5 font-medium">Type</th>
+                    <th className="px-4 py-2.5 font-medium">Result</th>
+                    <th className="px-4 py-2.5 font-medium text-right">WPM</th>
+                    <th className="px-4 py-2.5 font-medium text-right">ELO</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -234,33 +234,33 @@ export default async function ProfilePage({
                     return (
                       <tr
                         key={i}
-                        className="border-b border-white/[0.03] last:border-0 hover:bg-white/[0.02] transition-colors"
+                        className="border-b border-white/[0.02] last:border-0 hover:bg-white/[0.015] transition-colors"
                       >
-                        <td className="px-5 py-3 text-muted tabular-nums">
+                        <td className="px-4 py-2.5 text-muted tabular-nums text-xs">
                           {race.finishedAt
                             ? new Date(race.finishedAt).toLocaleDateString()
                             : "-"}
                         </td>
-                        <td className="px-5 py-3 text-muted text-xs">
+                        <td className="px-4 py-2.5 text-muted text-xs">
                           {race.wordPool && (race.wordPool as string) in RACE_TYPE_LABELS
                             ? RACE_TYPE_LABELS[race.wordPool as RaceType]
                             : "-"}
                         </td>
-                        <td className="px-5 py-3">
-                          <span className="inline-flex items-center gap-2">
-                            <span className={`inline-block w-2 h-2 rounded-full ${isWin ? "bg-correct" : "bg-error"}`} />
-                            <span className={`font-bold ${isWin ? "text-correct" : "text-error"}`}>
+                        <td className="px-4 py-2.5">
+                          <span className="inline-flex items-center gap-1.5">
+                            <span className={`inline-block w-1.5 h-1.5 rounded-full ${isWin ? "bg-correct" : "bg-error"}`} />
+                            <span className={`text-xs font-bold ${isWin ? "text-correct" : "text-error"}`}>
                               {race.placement ? (isWin ? "Win" : "Loss") : "-"}
                             </span>
                           </span>
                         </td>
-                        <td className="px-5 py-3 text-right tabular-nums text-text">
+                        <td className="px-4 py-2.5 text-right tabular-nums text-text text-xs">
                           {race.wpm != null ? Math.round(race.wpm) : "-"}
                         </td>
-                        <td className="px-5 py-3 text-right tabular-nums">
+                        <td className="px-4 py-2.5 text-right tabular-nums">
                           {eloChange != null ? (
                             <span
-                              className={`font-medium ${
+                              className={`text-xs font-medium ${
                                 eloChange > 0
                                   ? "text-correct"
                                   : eloChange < 0
@@ -272,7 +272,7 @@ export default async function ProfilePage({
                               {eloChange}
                             </span>
                           ) : (
-                            <span className="text-muted">-</span>
+                            <span className="text-muted text-xs">-</span>
                           )}
                         </td>
                       </tr>
@@ -285,7 +285,7 @@ export default async function ProfilePage({
         )}
 
         {isOwn && (
-          <div className="pt-4 border-t border-white/[0.04]">
+          <div className="pt-2 border-t border-white/[0.04] pb-8">
             <SignOutButton />
           </div>
         )}
@@ -298,9 +298,9 @@ export default async function ProfilePage({
 
 function SectionHeader({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="text-xs font-bold text-muted uppercase tracking-wider mb-4 flex items-center gap-3">
+    <h2 className="text-xs font-bold text-muted/60 uppercase tracking-wider mb-3 flex items-center gap-3">
       {children}
-      <span className="flex-1 h-px bg-white/[0.04]" />
+      <span className="flex-1 h-px bg-white/[0.03]" />
     </h2>
   );
 }
@@ -313,9 +313,9 @@ function StatCard({
   value: string | number;
 }) {
   return (
-    <div className="rounded-lg bg-surface/60 ring-1 ring-white/[0.04] px-4 py-3 text-center">
-      <div className="text-xl font-bold text-text tabular-nums">{value}</div>
-      <div className="text-xs text-muted mt-1">{label}</div>
+    <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2.5 text-center">
+      <div className="text-lg font-bold text-text tabular-nums">{value}</div>
+      <div className="text-xs text-muted/60 mt-0.5">{label}</div>
     </div>
   );
 }
@@ -342,11 +342,11 @@ function RankProgressBar({ elo }: { elo: number }) {
   return (
     <div className="flex-1 min-w-0 space-y-1">
       {nextElo != null && (
-        <div className="text-xs text-muted text-right tabular-nums">
+        <div className="text-xs text-muted/60 text-right tabular-nums">
           {nextElo - elo} ELO to next division
         </div>
       )}
-      <div className="h-1.5 rounded-full bg-surface overflow-hidden">
+      <div className="h-1 rounded-full bg-surface overflow-hidden">
         <div
           className={`h-full rounded-full ${TIER_BAR_COLORS[info.tier]} transition-all`}
           style={{ width: `${Math.round(progress * 100)}%` }}

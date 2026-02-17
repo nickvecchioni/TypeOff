@@ -4,7 +4,6 @@ import Link from "next/link";
 import { SessionProvider } from "@/components/auth/SessionProvider";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { UsernameGuard } from "@/components/auth/UsernameGuard";
-import { AuthNavLinks } from "@/components/auth/AuthNavLinks";
 import { SocketProvider } from "@/hooks/useSocket";
 import { RankUpOverlay } from "@/components/RankUpOverlay";
 import "./globals.css";
@@ -30,12 +29,12 @@ export default function RootLayout({
         <SessionProvider>
           <SocketProvider>
           <UsernameGuard>
-            <nav className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-surface-bright/50">
-              <div className="flex items-center gap-6">
-                <Link href="/" className="nav-logo flex items-center gap-2.5 text-accent font-bold">
+            <nav className="relative z-10 flex items-center justify-between px-6 py-3 border-b border-white/[0.04]">
+              <div className="flex items-center gap-5">
+                <Link href="/" className="nav-logo flex items-center gap-2 text-accent font-bold text-sm">
                   <svg
-                    width="20"
-                    height="20"
+                    width="18"
+                    height="18"
                     viewBox="0 0 32 32"
                     fill="none"
                     aria-hidden
@@ -50,17 +49,16 @@ export default function RootLayout({
                 </Link>
                 <Link
                   href="/leaderboard"
-                  className="text-sm text-muted hover:text-text transition-colors"
+                  className="text-xs text-muted hover:text-text transition-colors"
                 >
                   Leaderboard
                 </Link>
                 <Link
                   href="/ranks"
-                  className="text-sm text-muted hover:text-text transition-colors"
+                  className="text-xs text-muted hover:text-text transition-colors"
                 >
                   Ranks
                 </Link>
-                <AuthNavLinks />
               </div>
               <UserMenu />
             </nav>
