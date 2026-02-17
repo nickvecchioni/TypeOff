@@ -82,7 +82,7 @@ export function QueueScreen({
           <span className="text-accent text-glow-accent">ranked.</span>
           <span className="inline-block w-[3px] h-[1.1em] bg-accent ml-1 animate-blink translate-y-[0.15em]" />
         </h1>
-        <p className="text-muted text-lg max-w-xl">
+        <p className="text-muted text-lg whitespace-nowrap">
           Race head-to-head in real-time. Climb from{" "}
           <span className="text-rank-bronze font-semibold">Bronze</span> to{" "}
           <span className="text-rank-grandmaster font-semibold">Grandmaster</span>.
