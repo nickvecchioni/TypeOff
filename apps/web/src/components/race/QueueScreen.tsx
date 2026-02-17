@@ -96,13 +96,20 @@ export function QueueScreen({
               Waiting for party leader to start...
             </div>
           ) : (
-            <button
-              onClick={onJoin}
-              disabled={!connected}
-              className="w-full rounded-lg bg-accent text-bg py-3.5 text-sm font-bold tracking-wide uppercase hover:bg-accent/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed glow-accent-strong"
-            >
-              Find Race
-            </button>
+            <>
+              <button
+                onClick={onJoin}
+                disabled={!connected}
+                className="w-full rounded-lg bg-accent text-bg py-3.5 text-sm font-bold tracking-wide uppercase hover:bg-accent/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed glow-accent-strong"
+              >
+                {session.user.placementsCompleted ? "Find Race" : "Start Placement Races"}
+              </button>
+              {!session.user.placementsCompleted && (
+                <p className="text-xs text-muted text-center -mt-2">
+                  Complete 3 placement races to get your rank
+                </p>
+              )}
+            </>
           )}
 
           {/* Party */}
