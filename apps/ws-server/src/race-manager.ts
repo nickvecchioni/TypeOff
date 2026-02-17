@@ -26,6 +26,7 @@ interface PlayerEntry {
   progress: RacePlayerProgress;
   isBot: boolean;
   botTargetWpm: number;
+  botReactionTicks: number;
   wpmHistory?: WpmSample[];
   lastProgressTime: number;
   progressEventsInWindow: number;
@@ -38,6 +39,8 @@ const PROGRESS_INTERVAL_MS = 100;
 const DEFAULT_BOT_WPM_MIN = 40;
 const DEFAULT_BOT_WPM_MAX = 80;
 const BOT_WPM_VARIANCE = 5;
+const BOT_REACTION_MIN_MS = 300;
+const BOT_REACTION_MAX_MS = 800;
 
 export interface BotWpmConfig {
   botWpmMin: number;
@@ -98,6 +101,7 @@ export class RaceManager {
         },
         isBot: false,
         botTargetWpm: 0,
+        botReactionTicks: 0,
         lastProgressTime: now,
         progressEventsInWindow: 0,
         progressWindowStart: now,
@@ -109,6 +113,7 @@ export class RaceManager {
     const wpmMax = botWpmConfig?.botWpmMax ?? DEFAULT_BOT_WPM_MAX;
     for (const bot of bots) {
       const targetWpm = wpmMin + Math.random() * (wpmMax - wpmMin);
+      const reactionMs = BOT_REACTION_MIN_MS + Math.random() * (BOT_REACTION_MAX_MS - BOT_REACTION_MIN_MS);
       this.players.set(bot.id, {
         socket: null,
         player: bot,
@@ -124,6 +129,7 @@ export class RaceManager {
         },
         isBot: true,
         botTargetWpm: targetWpm,
+        botReactionTicks: Math.ceil(reactionMs / PROGRESS_INTERVAL_MS),
         lastProgressTime: now,
         progressEventsInWindow: 0,
         progressWindowStart: now,
@@ -368,6 +374,12 @@ export class RaceManager {
   private tickBots() {
     for (const entry of this.players.values()) {
       if (!entry.isBot || entry.progress.finished) continue;
+
+      // Simulate reaction time before bot starts typing
+      if (entry.botReactionTicks > 0) {
+        entry.botReactionTicks--;
+        continue;
+      }
 
       // Per-tick WPM jitter for natural feel
       const jitter = (Math.random() - 0.5) * 2 * BOT_WPM_VARIANCE;
