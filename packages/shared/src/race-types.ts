@@ -93,6 +93,7 @@ export interface ServerToClientEvents {
       elo?: number;
       streak?: number;
       wpmHistory?: import("./types").WpmSample[];
+      newAchievements?: string[];
     }>;
     placementRace?: number;
     placementTotal?: number;

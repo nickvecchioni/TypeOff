@@ -4,7 +4,8 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import type { RaceResult } from "@/hooks/useRace";
 import type { RankTier } from "@typeoff/shared";
-import { getRankInfo } from "@typeoff/shared";
+import { getRankInfo, ACHIEVEMENT_MAP } from "@typeoff/shared";
+import type { AchievementRarity } from "@typeoff/shared";
 import { WpmChart } from "@/components/typing/WpmChart";
 
 interface RankChange {
@@ -30,6 +31,13 @@ const TIER_CLASSES: Record<RankTier, string> = {
   diamond: "text-rank-diamond",
   master: "text-rank-master",
   grandmaster: "text-rank-grandmaster",
+};
+
+const RARITY_RING: Record<AchievementRarity, string> = {
+  common: "ring-white/[0.08]",
+  rare: "ring-sky-400/30",
+  epic: "ring-purple-400/40",
+  legendary: "ring-yellow-400/50",
 };
 
 function AnimatedElo({
@@ -333,6 +341,33 @@ export function RaceResults({
           {myResult.wpmHistory && myResult.wpmHistory.length >= 2 && (
             <WpmChart samples={myResult.wpmHistory} />
           )}
+        </div>
+      )}
+
+      {/* Achievement unlocks */}
+      {myResult?.newAchievements && myResult.newAchievements.length > 0 && (
+        <div className="flex flex-col items-center gap-3 w-full max-w-md">
+          <h3 className="text-xs font-bold text-muted/60 uppercase tracking-wider">
+            Achievements Unlocked
+          </h3>
+          <div className="flex flex-col gap-2 w-full">
+            {myResult.newAchievements.map((id) => {
+              const def = ACHIEVEMENT_MAP.get(id);
+              if (!def) return null;
+              return (
+                <div
+                  key={id}
+                  className={`flex items-center gap-3 rounded-lg bg-surface/60 px-4 py-3 ring-1 animate-slide-up ${RARITY_RING[def.rarity]}`}
+                >
+                  <span className="text-2xl shrink-0">{def.icon}</span>
+                  <div className="min-w-0">
+                    <div className="text-sm font-bold text-text">{def.name}</div>
+                    <div className="text-xs text-muted truncate">{def.description}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 

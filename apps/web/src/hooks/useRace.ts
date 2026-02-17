@@ -22,6 +22,7 @@ export interface RaceResult {
   elo?: number;
   streak?: number;
   wpmHistory?: WpmSample[];
+  newAchievements?: string[];
 }
 
 export function useRace() {

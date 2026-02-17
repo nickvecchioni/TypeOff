@@ -9,8 +9,10 @@ import type {
   WpmSample,
 } from "@typeoff/shared";
 import { calculateRaceElo, getRankTier, generateFromPool } from "@typeoff/shared";
+import type { RankTier } from "@typeoff/shared";
 import { createDb, races, raceParticipants, userStats, users } from "@typeoff/db";
 import { eq, inArray, and, sql } from "drizzle-orm";
+import { checkAchievements } from "./achievement-checker.js";
 export interface RaceOwner {
   cleanupRace(raceId: string, socketIds: string[]): void;
 }
@@ -500,6 +502,7 @@ export class RaceManager {
       elo?: number;
       streak?: number;
       wpmHistory?: WpmSample[];
+      newAchievements?: string[];
     }> = [];
 
     // Track per-player data for results
@@ -507,6 +510,8 @@ export class RaceManager {
     const usernameMap = new Map<string, string>();
     const eloAfterMap = new Map<string, number>();
     const streakMap = new Map<string, number>();
+    const achievementMap = new Map<string, string[]>();
+    const playerStatsMap = new Map<string, { racesPlayed: number; racesWon: number; currentStreak: number; maxStreak: number }>();
 
     try {
       const db = createDb(process.env.DATABASE_URL!);
@@ -553,11 +558,13 @@ export class RaceManager {
 
           if (existing.length === 0) {
             const newStreak = placement === 1 ? 1 : 0;
+            const newWon = placement === 1 ? 1 : 0;
             streakMap.set(entry.player.id, newStreak);
+            playerStatsMap.set(entry.player.id, { racesPlayed: 1, racesWon: newWon, currentStreak: newStreak, maxStreak: newStreak });
             await db.insert(userStats).values({
               userId: entry.player.id,
               racesPlayed: 1,
-              racesWon: placement === 1 ? 1 : 0,
+              racesWon: newWon,
               avgWpm: stats.wpm,
               maxWpm: stats.wpm,
               avgAccuracy: stats.accuracy,
@@ -567,19 +574,22 @@ export class RaceManager {
           } else {
             const s = existing[0];
             const newPlayed = s.racesPlayed + 1;
+            const newWon = s.racesWon + (placement === 1 ? 1 : 0);
             const newStreak = placement === 1 ? s.currentStreak + 1 : 0;
+            const newMaxStreak = Math.max(s.maxStreak, newStreak);
             streakMap.set(entry.player.id, newStreak);
+            playerStatsMap.set(entry.player.id, { racesPlayed: newPlayed, racesWon: newWon, currentStreak: newStreak, maxStreak: newMaxStreak });
             await db
               .update(userStats)
               .set({
                 racesPlayed: newPlayed,
-                racesWon: s.racesWon + (placement === 1 ? 1 : 0),
+                racesWon: newWon,
                 avgWpm: (s.avgWpm * s.racesPlayed + stats.wpm) / newPlayed,
                 maxWpm: Math.max(s.maxWpm, stats.wpm),
                 avgAccuracy:
                   (s.avgAccuracy * s.racesPlayed + stats.accuracy) / newPlayed,
                 currentStreak: newStreak,
-                maxStreak: Math.max(s.maxStreak, newStreak),
+                maxStreak: newMaxStreak,
                 updatedAt: new Date(),
               })
               .where(eq(userStats.userId, entry.player.id));
@@ -715,6 +725,39 @@ export class RaceManager {
       } catch (streakErr) {
         console.error("[race-manager] streak data error:", streakErr);
       }
+
+      // 6. Check achievements for authenticated players
+      try {
+        for (const entry of entries) {
+          if (entry.isBot || entry.player.isGuest) continue;
+          const pStats = playerStatsMap.get(entry.player.id);
+          if (!pStats) continue;
+
+          const finalStats = entry.progress.finalStats!;
+          const newElo = eloAfterMap.get(entry.player.id) ?? entry.player.elo;
+          const rankTier = getRankTier(newElo) as RankTier;
+
+          const newAchievements = await checkAchievements(
+            {
+              userId: entry.player.id,
+              raceWpm: finalStats.wpm,
+              raceAccuracy: finalStats.accuracy,
+              placement: entry.progress.placement!,
+              racesPlayed: pStats.racesPlayed,
+              racesWon: pStats.racesWon,
+              currentStreak: pStats.currentStreak,
+              maxStreak: pStats.maxStreak,
+              rankTier,
+            },
+            process.env.DATABASE_URL!,
+          );
+          if (newAchievements.length > 0) {
+            achievementMap.set(entry.player.id, newAchievements);
+          }
+        }
+      } catch (achievementErr) {
+        console.error("[race-manager] achievement check error:", achievementErr);
+      }
     } catch (err) {
       console.error("[race-manager] DB error:", err);
     }
@@ -735,6 +778,7 @@ export class RaceManager {
         elo: eloAfterMap.get(entry.player.id) ?? entry.player.elo,
         streak: streak !== undefined ? streak : undefined,
         wpmHistory: !entry.isBot ? entry.wpmHistory : undefined,
+        newAchievements: achievementMap.get(entry.player.id),
       });
     }
 

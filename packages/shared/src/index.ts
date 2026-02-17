@@ -4,3 +4,4 @@ export * from "./words";
 export * from "./race-types";
 export * from "./elo";
 export * from "./username";
+export * from "./achievements";

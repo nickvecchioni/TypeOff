@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { getDb } from "@/lib/db";
 import { users, userStats } from "@typeoff/db";
-import { and, desc, eq, isNotNull } from "drizzle-orm";
+import { and, desc, eq, gt, isNotNull, sql } from "drizzle-orm";
 import type { RankTier } from "@typeoff/shared";
 import { getRankInfo } from "@typeoff/shared";
 
@@ -53,6 +53,43 @@ export default async function LeaderboardPage() {
     .where(and(isNotNull(users.username), eq(users.placementsCompleted, true)))
     .orderBy(desc(users.eloRating))
     .limit(100);
+
+  // "Your rank" anchor — only if logged in and not already in top 100
+  let myRank: { rank: number; row: (typeof rows)[number] } | null = null;
+  const userId = session?.user?.id;
+  if (userId && !rows.some((r) => r.id === userId)) {
+    const [myRow] = await db
+      .select({
+        id: users.id,
+        username: users.username,
+        eloRating: users.eloRating,
+        rankTier: users.rankTier,
+        placementsCompleted: users.placementsCompleted,
+        racesPlayed: userStats.racesPlayed,
+        racesWon: userStats.racesWon,
+        avgWpm: userStats.avgWpm,
+        maxWpm: userStats.maxWpm,
+      })
+      .from(users)
+      .leftJoin(userStats, eq(users.id, userStats.userId))
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (myRow?.placementsCompleted && myRow.username) {
+      const [{ count }] = await db
+        .select({ count: sql<number>`count(*) + 1` })
+        .from(users)
+        .where(
+          and(
+            gt(users.eloRating, myRow.eloRating),
+            eq(users.placementsCompleted, true),
+            isNotNull(users.username),
+          ),
+        );
+
+      myRank = { rank: Number(count), row: myRow };
+    }
+  }
 
   return (
     <main className="flex-1 overflow-y-auto px-6 py-8">
@@ -144,6 +181,55 @@ export default async function LeaderboardPage() {
                 );
               })}
             </div>
+
+            {/* Your rank anchor */}
+            {myRank && (() => {
+              const { rank, row } = myRank;
+              const info = getRankInfo(row.eloRating);
+              const tierColor = TIER_TEXT[info.tier];
+              const tierBg = TIER_BG[info.tier];
+              const racesPlayed = row.racesPlayed ?? 0;
+              const racesWon = row.racesWon ?? 0;
+
+              return (
+                <div className="mt-3 border-t border-white/[0.04] pt-3">
+                  <p className="text-center text-muted/30 text-sm select-none leading-none mb-3">
+                    &middot;&middot;&middot;
+                  </p>
+                  <Link
+                    href={`/profile/${row.username}`}
+                    className="grid grid-cols-[2rem_1fr_4.5rem_5rem_5rem_3.5rem] items-center gap-3 px-4 py-2.5 rounded-lg transition-colors bg-accent/[0.05] ring-1 ring-accent/10"
+                  >
+                    <span className="text-sm font-bold tabular-nums text-muted/40">
+                      {rank}
+                    </span>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className={`w-2 h-2 rounded-full shrink-0 ${tierBg}`} />
+                      <div className="flex flex-col min-w-0">
+                        <span className="truncate text-sm leading-tight text-accent font-bold">
+                          {row.username}
+                        </span>
+                        <span className={`text-xs leading-tight ${tierColor}`}>
+                          {info.label}
+                        </span>
+                      </div>
+                    </div>
+                    <span className={`text-sm tabular-nums text-right font-semibold ${tierColor}`}>
+                      {row.eloRating}
+                    </span>
+                    <span className="text-sm text-muted tabular-nums text-right">
+                      {fmtWpm(row.avgWpm)}
+                    </span>
+                    <span className="text-sm text-muted/70 tabular-nums text-right">
+                      {fmtWpm(row.maxWpm)}
+                    </span>
+                    <span className="text-sm text-muted/50 tabular-nums text-right">
+                      {racesWon}/{racesPlayed}
+                    </span>
+                  </Link>
+                </div>
+              );
+            })()}
           </div>
         )}
       </div>
