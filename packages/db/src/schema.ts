@@ -124,7 +124,7 @@ export const soloResults = pgTable("solo_results", {
     .references(() => users.id, { onDelete: "cascade" }),
   mode: text("mode").notNull(), // "timed" | "wordcount"
   duration: integer("duration").notNull(), // seconds for timed, word count for wordcount
-  wordPool: text("word_pool"), // "common" | "medium" | "hard" | "quotes" | "code" | null
+  wordPool: text("word_pool"), // "common" | "language" | "punctuation" | null
   wpm: real("wpm").notNull(),
   rawWpm: real("raw_wpm").notNull(),
   accuracy: real("accuracy").notNull(),
@@ -148,7 +148,7 @@ export const userRatings = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    raceType: text("race_type").notNull(), // "common" | "medium" | "hard"
+    raceType: text("race_type").notNull(), // "common" | "language" | "punctuation"
     eloRating: integer("elo_rating").notNull().default(1000),
     rankTier: text("rank_tier").notNull().default("bronze"),
     peakEloRating: integer("peak_elo_rating").notNull().default(1000),

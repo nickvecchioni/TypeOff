@@ -1,14 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
 import { useSession, signIn } from "next-auth/react";
 import { RankBadge } from "@/components/RankBadge";
 import { PartyPanel } from "@/components/social/PartyPanel";
 import type { RankTier, RaceType, PartyState } from "@typeoff/shared";
 import { RACE_TYPE_LABELS, RACE_TYPE_WORD_COUNTS } from "@typeoff/shared";
 
-const RACE_TYPES: RaceType[] = ["common", "medium", "hard"];
+const RACE_TYPES: RaceType[] = ["common", "language", "punctuation"];
 
 interface QueueScreenProps {
   isQueuing: boolean;
@@ -104,7 +103,7 @@ export function QueueScreen({
       {session?.user && (
         <div className="flex flex-col items-center gap-3">
           <div className="text-xs text-muted uppercase tracking-wider font-bold">
-            Choose Difficulty
+            Choose Mode
           </div>
           <div className="flex gap-2">
             {RACE_TYPES.map((rt) => {
@@ -166,12 +165,6 @@ export function QueueScreen({
             Sign Up
           </button>
         )}
-        <Link
-          href="/solo"
-          className="text-sm text-muted hover:text-text transition-colors"
-        >
-          or <span className="underline underline-offset-2 decoration-muted/50">play solo</span>
-        </Link>
       </div>
     </div>
   );

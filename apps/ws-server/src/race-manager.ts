@@ -92,7 +92,7 @@ export class RaceManager {
       this.wordCount = 20;
     } else {
       // Fallback
-      const pools: WordPool[] = ["common", "medium", "hard"];
+      const pools: WordPool[] = ["common", "language", "punctuation"];
       this.wordPool = pools[this.seed % pools.length];
       this.wordCount = WORD_COUNT_OPTIONS[this.seed % WORD_COUNT_OPTIONS.length];
     }

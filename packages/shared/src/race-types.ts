@@ -4,15 +4,15 @@ import type { WordPool } from "./words";
 export type RaceType = WordPool;
 
 export const RACE_TYPE_LABELS: Record<RaceType, string> = {
-  common: "Easy",
-  medium: "Medium",
-  hard: "Hard",
+  common: "Common",
+  language: "Language",
+  punctuation: "Punctuation",
 };
 
 export const RACE_TYPE_WORD_COUNTS: Record<RaceType, number> = {
-  common: 25,
-  medium: 50,
-  hard: 75,
+  common: 30,
+  language: 25,
+  punctuation: 40,
 };
 
 /** Status of a race room */

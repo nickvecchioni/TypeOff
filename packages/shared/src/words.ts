@@ -22,8 +22,8 @@ export const commonWords: string[] = [
   "close", "sure", "let", "light", "far", "begin", "got", "being", "open", "bring",
 ];
 
-/** ~300 less common but familiar words */
-export const mediumWords: string[] = [
+/** Broad English vocabulary — medium + advanced words */
+export const languageWords: string[] = [
   "above", "accept", "across", "act", "actual", "add", "admit", "afraid", "agree", "ahead",
   "allow", "almost", "along", "already", "although", "always", "amount", "angry", "animal", "answer",
   "appear", "apply", "area", "argue", "arm", "arrive", "art", "attack", "attempt", "attention",
@@ -43,21 +43,17 @@ export const mediumWords: string[] = [
   "drop", "dry", "during", "dust", "duty", "ear", "early", "earth", "east", "easy",
   "eat", "edge", "effect", "effort", "eight", "either", "else", "employ", "empty", "enemy",
   "energy", "enjoy", "enough", "enter", "entire", "equal", "escape", "evening", "event", "ever",
-  "every", "evidence", "exact", "example", "except", "excite", "excuse", "exist", "expect", "explain",
+  "evidence", "exact", "example", "except", "excite", "excuse", "exist", "expect", "explain",
   "express", "extend", "eye", "face", "fact", "fail", "fair", "fall", "family", "famous",
   "father", "favor", "fear", "feed", "feel", "field", "fight", "figure", "fill", "final",
   "finger", "finish", "fire", "firm", "fish", "fit", "five", "fix", "floor", "flow",
   "fly", "follow", "food", "foot", "force", "foreign", "forest", "forget", "forward", "four",
   "free", "fresh", "friend", "front", "fruit", "full", "fun", "future", "game", "garden",
   "gather", "general", "gentle", "gift", "girl", "glad", "glass", "goal", "gold", "gone",
-  "govern", "grass", "green", "ground", "group", "grow", "guard", "guess", "guide", "gun",
+  "govern", "grass", "green", "ground", "group", "grow", "guard", "guess", "guide",
   "hair", "half", "hall", "hang", "happen", "happy", "hard", "hat", "hear", "heart",
   "heat", "heavy", "history", "hit", "hold", "hole", "hope", "horse", "hot", "hour",
   "huge", "human", "hundred", "hunt", "hurry", "hurt", "idea", "imagine", "important", "include",
-];
-
-/** ~200 advanced vocabulary words */
-export const hardWords: string[] = [
   "abandon", "abstract", "abundant", "accomplish", "accumulate", "acknowledge", "adequate", "adjacent", "aesthetic", "aggregate",
   "allocate", "ambiguous", "amplify", "analogous", "anticipate", "apparatus", "arbitrary", "articulate", "assimilate", "authentic",
   "benevolent", "bilateral", "bureaucracy", "calibrate", "catastrophe", "chronicle", "circumvent", "collaborate", "comprehensive", "concurrent",
@@ -80,10 +76,73 @@ export const hardWords: string[] = [
   "quintessential", "ramification", "substantiate", "superfluous", "surreptitious", "tenacious", "turbulent", "unilateral", "verbose", "zealous",
 ];
 
-export type WordPool = "common" | "medium" | "hard";
+/** Sentences with natural punctuation for punctuation mode */
+export const punctuationSentences: string[] = [
+  "The quick brown fox jumps over the lazy dog.",
+  "She said, \"I'll be there in five minutes.\"",
+  "Wait, are you serious? That's incredible!",
+  "He packed his bag: shoes, shirts, and a jacket.",
+  "It's not what you know; it's who you know.",
+  "The rain fell softly, covering the streets in silver.",
+  "Can you believe it? We finally made it to the top!",
+  "After years of practice, she mastered the piano.",
+  "\"Where are we going?\" he asked, looking confused.",
+  "The old clock struck twelve, and the room went silent.",
+  "First, mix the flour; then, add the eggs.",
+  "I don't know why, but it feels right.",
+  "They arrived early, yet the doors were already open.",
+  "The sun set behind the mountains, painting the sky orange.",
+  "Is this the right way? I think we're lost.",
+  "He ran quickly, but he couldn't catch the bus.",
+  "\"Stop!\" she shouted. \"You're going the wrong way!\"",
+  "The book was long, difficult, and absolutely worth it.",
+  "I've been thinking about this for a while now.",
+  "Do you prefer coffee, tea, or something else?",
+  "The wind howled through the empty streets at midnight.",
+  "Despite the rain, they continued walking forward.",
+  "What's the point of waiting? Let's go now.",
+  "He opened the door slowly, peering into the darkness.",
+  "She's always been good at solving problems quickly.",
+  "The cat sat on the windowsill, watching the birds outside.",
+  "Well, that wasn't what I expected at all.",
+  "They built the house from scratch: foundation, walls, and roof.",
+  "\"I can't believe you did that,\" she whispered.",
+  "Monday, Tuesday, Wednesday, Thursday, Friday.",
+  "The road ahead was long, winding, and uncertain.",
+  "Why didn't anyone tell me about this earlier?",
+  "He smiled and said, \"Everything will be fine.\"",
+  "The children played outside until the streetlights came on.",
+  "It's a beautiful day, isn't it?",
+  "She took a deep breath, closed her eyes, and jumped.",
+  "There's no turning back now; we have to keep going.",
+  "The letter arrived late, but its message was clear.",
+  "How long have you been working on this project?",
+  "The stars appeared one by one, filling the dark sky.",
+  "Don't forget to lock the door when you leave.",
+  "He carefully placed the vase on the top shelf.",
+  "What if we tried a completely different approach?",
+  "The market was crowded, noisy, and full of color.",
+  "She knew the answer, but she didn't say a word.",
+  "I'll meet you at the corner of Fifth and Main.",
+  "The waves crashed against the rocks below the cliff.",
+  "\"Are you coming?\" he called from the bottom of the stairs.",
+  "Nothing worth having comes easy, or so they say.",
+  "The fire crackled softly in the old stone fireplace.",
+  "Please bring the following: a pen, paper, and your ID.",
+  "They didn't just walk; they ran the entire way.",
+  "Is it possible that we've been wrong this whole time?",
+  "The garden was full of roses, tulips, and daisies.",
+  "He couldn't help but laugh at the absurd situation.",
+  "\"I've seen enough,\" she said, turning to leave.",
+  "The train departed at exactly half past three.",
+  "You're either part of the solution or part of the problem.",
+  "Somewhere, beyond the horizon, a new day was beginning.",
+  "The recipe calls for salt, pepper, and a dash of paprika.",
+];
 
-export const wordPools: Record<WordPool, string[]> = {
+export type WordPool = "common" | "language" | "punctuation";
+
+export const wordPools: Record<Exclude<WordPool, "punctuation">, string[]> = {
   common: commonWords,
-  medium: mediumWords,
-  hard: hardWords,
+  language: languageWords,
 };

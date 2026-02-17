@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
-import { users, userStats, raceParticipants, races, soloResults, userRatings } from "@typeoff/db";
+import { users, userStats, raceParticipants, races, userRatings } from "@typeoff/db";
 import { eq, desc, and } from "drizzle-orm";
 import type { RankTier, RaceType } from "@typeoff/shared";
 import { getRankInfo, getRankProgress, getNextDivisionElo, getRankTier, RACE_TYPE_LABELS } from "@typeoff/shared";
@@ -61,28 +61,6 @@ export default async function ProfilePage({
     .where(eq(raceParticipants.userId, user.id))
     .orderBy(desc(raceParticipants.finishedAt))
     .limit(20);
-
-  // Load solo PBs — for each (mode, duration, wordPool), find the best WPM
-  const allSoloResults = await db
-    .select({
-      mode: soloResults.mode,
-      duration: soloResults.duration,
-      wordPool: soloResults.wordPool,
-      wpm: soloResults.wpm,
-      createdAt: soloResults.createdAt,
-    })
-    .from(soloResults)
-    .where(eq(soloResults.userId, user.id))
-    .orderBy(desc(soloResults.wpm));
-
-  const soloPbMap = new Map<string, typeof allSoloResults[0]>();
-  for (const row of allSoloResults) {
-    const key = `${row.mode}:${row.duration}:${row.wordPool ?? "common"}`;
-    if (!soloPbMap.has(key)) {
-      soloPbMap.set(key, row);
-    }
-  }
-  const soloPbs = Array.from(soloPbMap.values());
 
   // Load per-type ratings
   const ratings = await db
@@ -195,7 +173,7 @@ export default async function ProfilePage({
           <section>
             <SectionHeader>Ranked Ratings</SectionHeader>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {(["common", "medium", "hard"] as RaceType[]).map((rt) => {
+              {(["common", "language", "punctuation"] as RaceType[]).map((rt) => {
                 const r = ratingsMap.get(rt);
                 const label = RACE_TYPE_LABELS[rt];
                 if (!r || !r.placementsCompleted) {
@@ -227,38 +205,6 @@ export default async function ProfilePage({
                   </div>
                 );
               })}
-            </div>
-          </section>
-        )}
-
-        {/* ── Solo Personal Bests ──────────────────────────── */}
-        {soloPbs.length > 0 && (
-          <section>
-            <SectionHeader>Solo Personal Bests</SectionHeader>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {soloPbs.map((pb) => (
-                <div
-                  key={`${pb.mode}:${pb.duration}:${pb.wordPool ?? "common"}`}
-                  className="rounded-lg bg-surface/60 ring-1 ring-white/[0.04] px-5 py-4 flex items-center justify-between"
-                >
-                  <div>
-                    <div className="text-sm text-text">
-                      {pb.mode === "timed" ? `${pb.duration}s` : `${pb.duration} words`}
-                    </div>
-                    <div className="text-xs text-muted capitalize">
-                      {pb.wordPool ?? "common"}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xl font-bold text-accent tabular-nums">
-                      {Math.round(pb.wpm)}
-                    </div>
-                    <div className="text-xs text-muted">
-                      {new Date(pb.createdAt).toLocaleDateString()}
-                    </div>
-                  </div>
-                </div>
-              ))}
             </div>
           </section>
         )}

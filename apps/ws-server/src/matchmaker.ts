@@ -31,7 +31,7 @@ const ELO_WINDOW_MAX = 400;
 const MIN_WAIT_FOR_PAIR_MS = 10_000;
 const BOT_WAIT_MS = 20_000;
 
-const RACE_TYPES: RaceType[] = ["common", "medium", "hard"];
+const RACE_TYPES: RaceType[] = ["common", "language", "punctuation"];
 
 const BOT_NAMES = [
   "SpeedyBot", "TypeRacer", "KeyMaster", "SwiftKeys",
