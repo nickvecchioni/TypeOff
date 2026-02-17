@@ -437,15 +437,37 @@ export class RaceManager {
       }
     }
 
-    // Persist to DB and calculate ELO
-    const results = await this.persistResults();
+    let results: Awaited<ReturnType<typeof this.persistResults>>;
+    try {
+      results = await this.persistResults();
+    } catch (err) {
+      console.error("[race-manager] persistResults crashed:", err);
+      // Build fallback results so the event always fires
+      results = [...this.players.values()]
+        .map((entry) => ({
+          playerId: entry.player.id,
+          name: entry.player.name,
+          placement: entry.progress.placement ?? 99,
+          wpm: entry.progress.finalStats?.wpm ?? 0,
+          rawWpm: entry.progress.finalStats?.rawWpm ?? 0,
+          accuracy: entry.progress.finalStats?.accuracy ?? 0,
+          eloChange: null as number | null,
+          elo: entry.player.elo,
+        }))
+        .sort((a, b) => a.placement - b.placement);
+    }
 
-    this.io.to(this.raceId).emit("raceFinished", {
+    const payload = {
       results,
       ...(this.placementRace != null
         ? { placementRace: this.placementRace, placementTotal: PLACEMENT_RACE_COUNT }
         : {}),
-    });
+    };
+
+    // Emit directly to each socket (avoids room-broadcast timing issues with cleanup)
+    for (const entry of this.players.values()) {
+      entry.socket?.emit("raceFinished", payload);
+    }
     this.cleanup();
   }
 
