@@ -29,6 +29,7 @@ export default async function ProfilePage({
       peakEloRating: users.peakEloRating,
       peakRankTier: users.peakRankTier,
       placementsCompleted: users.placementsCompleted,
+      lastSeen: users.lastSeen,
     })
     .from(users)
     .where(eq(users.username, username))
@@ -81,6 +82,7 @@ export default async function ProfilePage({
 
 
   const rankInfo = user.placementsCompleted ? getRankInfo(user.eloRating) : null;
+  const isOnline = user.lastSeen != null && (Date.now() - new Date(user.lastSeen).getTime()) < 3 * 60 * 1000;
 
   return (
     <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
@@ -106,6 +108,12 @@ export default async function ProfilePage({
                   <h1 className="text-xl font-bold text-text tracking-tight">
                     {user.username}
                   </h1>
+                )}
+                {isOnline && (
+                  <span className="flex items-center gap-1.5 text-xs text-emerald-400">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    Online
+                  </span>
                 )}
               </div>
               {!isOwn && session?.user?.id && (

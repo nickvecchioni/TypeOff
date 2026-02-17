@@ -17,16 +17,6 @@ const TIER_TEXT: Record<RankTier, string> = {
   grandmaster: "text-rank-grandmaster",
 };
 
-const TIER_BG: Record<RankTier, string> = {
-  bronze: "bg-rank-bronze",
-  silver: "bg-rank-silver",
-  gold: "bg-rank-gold",
-  platinum: "bg-rank-platinum",
-  diamond: "bg-rank-diamond",
-  master: "bg-rank-master",
-  grandmaster: "bg-rank-grandmaster",
-};
-
 function fmtWpm(value: number | null): string {
   if (value == null) return "0.00";
   return value.toFixed(2);
@@ -43,6 +33,7 @@ export default async function LeaderboardPage() {
       username: users.username,
       eloRating: users.eloRating,
       rankTier: users.rankTier,
+      lastSeen: users.lastSeen,
       racesPlayed: userStats.racesPlayed,
       racesWon: userStats.racesWon,
       avgWpm: userStats.avgWpm,
@@ -64,6 +55,7 @@ export default async function LeaderboardPage() {
         username: users.username,
         eloRating: users.eloRating,
         rankTier: users.rankTier,
+        lastSeen: users.lastSeen,
         placementsCompleted: users.placementsCompleted,
         racesPlayed: userStats.racesPlayed,
         racesWon: userStats.racesWon,
@@ -126,7 +118,7 @@ export default async function LeaderboardPage() {
                 const isMe = session?.user?.id === row.id;
                 const info = getRankInfo(row.eloRating);
                 const tierColor = TIER_TEXT[info.tier];
-                const tierBg = TIER_BG[info.tier];
+                const isOnline = row.lastSeen != null && (Date.now() - new Date(row.lastSeen).getTime()) < 3 * 60 * 1000;
 
                 const racesPlayed = row.racesPlayed ?? 0;
                 const racesWon = row.racesWon ?? 0;
@@ -155,7 +147,7 @@ export default async function LeaderboardPage() {
                       {rank}
                     </span>
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <span className={`w-2 h-2 rounded-full shrink-0 ${tierBg}`} />
+                      <span className={`w-2 h-2 rounded-full shrink-0 ${isOnline ? "bg-emerald-400" : "bg-white/10"}`} />
                       <div className="flex flex-col min-w-0">
                         <span className={`truncate text-sm leading-tight ${isMe ? "text-accent font-bold" : "text-text"}`}>
                           {row.username}
@@ -187,7 +179,6 @@ export default async function LeaderboardPage() {
               const { rank, row } = myRank;
               const info = getRankInfo(row.eloRating);
               const tierColor = TIER_TEXT[info.tier];
-              const tierBg = TIER_BG[info.tier];
               const racesPlayed = row.racesPlayed ?? 0;
               const racesWon = row.racesWon ?? 0;
 
@@ -204,7 +195,7 @@ export default async function LeaderboardPage() {
                       {rank}
                     </span>
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <span className={`w-2 h-2 rounded-full shrink-0 ${tierBg}`} />
+                      <span className="w-2 h-2 rounded-full shrink-0 bg-emerald-400" />
                       <div className="flex flex-col min-w-0">
                         <span className="truncate text-sm leading-tight text-accent font-bold">
                           {row.username}

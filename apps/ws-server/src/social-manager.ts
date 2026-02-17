@@ -3,8 +3,8 @@ import type {
   ClientToServerEvents,
   ServerToClientEvents,
 } from "@typeoff/shared";
-import { createDb, friendships } from "@typeoff/db";
-import { eq, or, and } from "drizzle-orm";
+import { createDb, friendships, users } from "@typeoff/db";
+import { eq, or, and, inArray } from "drizzle-orm";
 
 type TypedServer = Server<ClientToServerEvents, ServerToClientEvents>;
 type TypedSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
@@ -15,7 +15,9 @@ export class SocialManager {
   // socketId → userId
   private socketToUser = new Map<string, string>();
 
-  constructor(private io: TypedServer) {}
+  constructor(private io: TypedServer) {
+    this.startHeartbeat();
+  }
 
   async trackConnection(socket: TypedSocket, userId: string) {
     this.socketToUser.set(socket.id, userId);
@@ -25,6 +27,9 @@ export class SocialManager {
       this.onlineUsers.set(userId, new Set());
     }
     this.onlineUsers.get(userId)!.add(socket.id);
+
+    // Update lastSeen in DB
+    this.updateLastSeen(userId).catch(() => {});
 
     // If user just came online, notify friends
     if (!wasOnline) {
@@ -42,6 +47,8 @@ export class SocialManager {
       sockets.delete(socketId);
       if (sockets.size === 0) {
         this.onlineUsers.delete(userId);
+        // Clear lastSeen in DB
+        this.clearLastSeen(userId).catch(() => {});
         // User went offline, notify friends
         await this.notifyFriends(userId, false);
       }
@@ -85,6 +92,37 @@ export class SocialManager {
       console.error("[social-manager] getFriendsStatus error:", err);
       return [];
     }
+  }
+
+  private async updateLastSeen(userId: string) {
+    try {
+      const db = createDb(process.env.DATABASE_URL!);
+      await db.update(users).set({ lastSeen: new Date() }).where(eq(users.id, userId));
+    } catch (err) {
+      console.error("[social-manager] updateLastSeen error:", err);
+    }
+  }
+
+  private async clearLastSeen(userId: string) {
+    try {
+      const db = createDb(process.env.DATABASE_URL!);
+      await db.update(users).set({ lastSeen: null }).where(eq(users.id, userId));
+    } catch (err) {
+      console.error("[social-manager] clearLastSeen error:", err);
+    }
+  }
+
+  private startHeartbeat() {
+    setInterval(async () => {
+      const onlineUserIds = [...this.onlineUsers.keys()];
+      if (onlineUserIds.length === 0) return;
+      try {
+        const db = createDb(process.env.DATABASE_URL!);
+        await db.update(users).set({ lastSeen: new Date() }).where(inArray(users.id, onlineUserIds));
+      } catch (err) {
+        console.error("[social-manager] heartbeat error:", err);
+      }
+    }, 2 * 60 * 1000);
   }
 
   private async notifyFriends(userId: string, online: boolean) {

@@ -28,6 +28,7 @@ export const users = pgTable("users", {
   peakEloRating: integer("peak_elo_rating").notNull().default(1000),
   peakRankTier: text("peak_rank_tier").notNull().default("bronze"),
   placementsCompleted: boolean("placements_completed").notNull().default(false),
+  lastSeen: timestamp("last_seen", { mode: "date" }),
 });
 
 export const accounts = pgTable(
@@ -144,16 +145,15 @@ export const soloResults = pgTable("solo_results", {
 export const userAchievements = pgTable(
   "user_achievements",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
     userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     achievementId: text("achievement_id").notNull(),
     unlockedAt: timestamp("unlocked_at", { mode: "date" })
       .notNull()
-      .$defaultFn(() => new Date()),
+      .defaultNow(),
   },
-  (t) => [unique().on(t.userId, t.achievementId)],
+  (t) => [primaryKey({ columns: [t.userId, t.achievementId] })],
 );
 
 // ─── Player Stats ───────────────────────────────────────────────────
