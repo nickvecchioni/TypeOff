@@ -174,7 +174,7 @@ export function DailyChallenge({ seed, wordCount, myBestWpm }: DailyChallengePro
         ref={containerRef}
         tabIndex={0}
         onKeyDown={engine.handleKeyDown}
-        className="outline-none cursor-text rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-6 py-5 max-h-[12rem] overflow-hidden"
+        className="outline-none cursor-text rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-6 py-5"
       >
         <WordDisplay
           words={engine.words}
