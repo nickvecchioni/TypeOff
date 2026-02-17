@@ -59,7 +59,7 @@ export function PlacementReveal({ elo, onContinue }: PlacementRevealProps) {
       </div>
 
       {/* Subtitle */}
-      <p className="text-muted text-sm text-center max-w-xs">
+      <p className="text-muted text-sm text-center whitespace-nowrap">
         Win ranked matches to climb the ladder.
       </p>
 
