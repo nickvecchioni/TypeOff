@@ -36,28 +36,39 @@ function AnimatedElo({
   oldElo,
   newElo,
   change,
+  rankChange,
 }: {
   oldElo: number;
   newElo: number;
   change: number;
+  rankChange?: RankChange | null;
 }) {
   const [displayElo, setDisplayElo] = useState(oldElo);
   const [showChange, setShowChange] = useState(false);
+  const [rankPulse, setRankPulse] = useState(false);
   const rafRef = useRef<number>(0);
+  const prevLabelRef = useRef(getRankInfo(oldElo).label);
 
   useEffect(() => {
-    // Start animating after a brief delay
     const delay = setTimeout(() => {
       setShowChange(true);
       const startTime = performance.now();
-      const duration = 1200;
+      const duration = 1400;
 
       const animate = (now: number) => {
         const elapsed = now - startTime;
         const progress = Math.min(elapsed / duration, 1);
-        // Ease-out cubic
         const eased = 1 - Math.pow(1 - progress, 3);
-        setDisplayElo(Math.round(oldElo + (newElo - oldElo) * eased));
+        const currentElo = Math.round(oldElo + (newElo - oldElo) * eased);
+
+        // Detect rank boundary crossing
+        const currentLabel = getRankInfo(currentElo).label;
+        if (currentLabel !== prevLabelRef.current) {
+          prevLabelRef.current = currentLabel;
+          setRankPulse(true);
+        }
+
+        setDisplayElo(currentElo);
         if (progress < 1) {
           rafRef.current = requestAnimationFrame(animate);
         }
@@ -75,10 +86,37 @@ function AnimatedElo({
   const rankInfo = getRankInfo(displayElo);
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      <div className={`text-sm font-bold ${TIER_CLASSES[rankInfo.tier]}`}>
-        {rankInfo.label}
+    <div className="flex flex-col items-center gap-3">
+      {/* Rank label — pulses when it changes */}
+      <div className="relative flex items-center justify-center gap-2">
+        {rankPulse && rankChange && (
+          <span
+            className={`text-sm font-bold ${
+              rankChange.direction === "up" ? "text-correct" : "text-error"
+            }`}
+            style={{ animation: "fade-in 0.3s ease-out" }}
+          >
+            {rankChange.direction === "up" ? "▲" : "▼"}
+          </span>
+        )}
+        <span
+          className={`font-bold transition-all duration-500 ${TIER_CLASSES[rankInfo.tier]} ${
+            rankPulse ? "text-lg" : "text-sm"
+          }`}
+          style={
+            rankPulse
+              ? {
+                  filter: `drop-shadow(0 0 16px currentColor)`,
+                  animation: "rank-pulse 0.6s ease-out",
+                }
+              : {}
+          }
+        >
+          {rankInfo.label}
+        </span>
       </div>
+
+      {/* ELO counter */}
       <div className="flex items-baseline gap-3">
         <span className="text-3xl font-black text-text tabular-nums">
           {displayElo}
@@ -108,7 +146,7 @@ export function RaceResults({
   const myResult = results.find((r) => r.playerId === myPlayerId);
 
   return (
-    <div className="flex flex-col items-center gap-6 w-full">
+    <div className="flex flex-col items-center gap-8 w-full">
       {isPlacement ? (
         <div className="flex flex-col items-center gap-1 animate-slide-up">
           <h2 className="text-2xl font-black text-accent">
@@ -131,183 +169,153 @@ export function RaceResults({
         </div>
       )}
 
-      {/* Results table */}
+      {/* Results table — grid for reliable column sizing */}
       <div className="w-full max-w-2xl">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="text-muted text-xs uppercase tracking-wider border-b border-white/[0.06]">
-              <th className="pb-2.5 w-10 font-semibold">#</th>
-              <th className="pb-2.5 font-semibold">Name</th>
-              {!isPlacement && (
-                <th className="pb-2.5 font-semibold">Rank</th>
-              )}
-              <th className="pb-2.5 text-right font-semibold">WPM</th>
-              {!isPlacement && (
-                <th className="pb-2.5 text-right font-semibold w-20">ELO</th>
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {results.map((result) => {
-              const isMe = result.playerId === myPlayerId;
-              const isBot = result.playerId.startsWith("bot_");
-              const isGuest =
-                result.playerId.startsWith("guest_") || isBot;
+        {/* Header */}
+        <div
+          className={`grid text-muted text-xs uppercase tracking-wider border-b border-white/[0.06] pb-2.5 ${
+            isPlacement
+              ? "grid-cols-[2.5rem_1fr_5rem]"
+              : "grid-cols-[2.5rem_1fr_8rem_5rem_4rem]"
+          }`}
+        >
+          <span className="font-semibold">#</span>
+          <span className="font-semibold">Name</span>
+          {!isPlacement && <span className="font-semibold">Rank</span>}
+          <span className="font-semibold text-right">WPM</span>
+          {!isPlacement && <span className="font-semibold text-right">ELO</span>}
+        </div>
 
-              const displayName = result.username ?? result.name;
-              const showStreak =
-                result.placement === 1 &&
-                result.streak != null &&
-                result.streak >= 3;
+        {/* Rows */}
+        {results.map((result) => {
+          const isMe = result.playerId === myPlayerId;
+          const isBot = result.playerId.startsWith("bot_");
+          const isGuest = result.playerId.startsWith("guest_") || isBot;
 
-              const rankInfo =
-                !isGuest && result.elo != null
-                  ? getRankInfo(result.elo)
-                  : null;
+          const displayName = result.username ?? result.name;
+          const showStreak =
+            result.placement === 1 &&
+            result.streak != null &&
+            result.streak >= 3;
 
-              return (
-                <tr
-                  key={result.playerId}
-                  className={`border-b border-white/[0.04] ${
-                    isMe ? "text-accent" : "text-text"
-                  }`}
-                >
-                  {/* Placement */}
-                  <td className="py-3 font-bold tabular-nums">
-                    {result.placement}
-                  </td>
+          const rankInfo =
+            !isGuest && result.elo != null ? getRankInfo(result.elo) : null;
 
-                  {/* Name */}
-                  <td className="py-3 overflow-hidden">
-                    <span className="flex items-center gap-2 truncate">
-                      {result.username && !isGuest ? (
-                        <Link
-                          href={`/profile/${result.username}`}
-                          className="hover:text-accent transition-colors truncate"
-                        >
-                          {displayName}
-                          {isMe && (
-                            <span className="text-muted text-xs ml-1">
-                              (you)
-                            </span>
-                          )}
-                        </Link>
-                      ) : (
-                        <span className="truncate">
-                          {displayName}
-                          {isMe && (
-                            <span className="text-muted text-xs ml-1">
-                              (you)
-                            </span>
-                          )}
-                        </span>
-                      )}
-                      {isBot && (
-                        <span className="text-[10px] text-muted/70 bg-white/[0.06] rounded px-1.5 py-0.5 shrink-0 uppercase tracking-wider font-semibold">
-                          Bot
-                        </span>
-                      )}
-                      {showStreak && (
-                        <span
-                          className="text-orange-400 flex items-center gap-0.5 shrink-0"
-                          title={`${result.streak} win streak`}
-                        >
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="currentColor"
-                            className="shrink-0"
-                          >
-                            <path d="M12 23c-3.866 0-7-2.686-7-6 0-1.665.753-3.488 2.127-5.244.883-1.128 1.873-2.1 2.873-3.006V2l4.386 4.506c.953.979 1.893 2.09 2.614 3.25C18.36 11.715 19 13.578 19 15.5 19 19.642 16.09 23 12 23z" />
-                          </svg>
-                          <span className="text-xs font-bold tabular-nums">
-                            {result.streak}
-                          </span>
-                        </span>
-                      )}
+          return (
+            <div
+              key={result.playerId}
+              className={`grid items-center border-b border-white/[0.04] py-3 ${
+                isPlacement
+                  ? "grid-cols-[2.5rem_1fr_5rem]"
+                  : "grid-cols-[2.5rem_1fr_8rem_5rem_4rem]"
+              } ${isMe ? "text-accent" : "text-text"}`}
+            >
+              {/* Placement */}
+              <span className="font-bold tabular-nums">{result.placement}</span>
+
+              {/* Name */}
+              <span className="flex items-center gap-2 min-w-0 pr-3">
+                {result.username && !isGuest ? (
+                  <Link
+                    href={`/profile/${result.username}`}
+                    className="hover:text-accent transition-colors truncate"
+                  >
+                    {displayName}
+                    {isMe && (
+                      <span className="text-muted text-xs ml-1">(you)</span>
+                    )}
+                  </Link>
+                ) : (
+                  <span className="truncate">
+                    {displayName}
+                    {isMe && (
+                      <span className="text-muted text-xs ml-1">(you)</span>
+                    )}
+                  </span>
+                )}
+                {isBot && (
+                  <span className="text-[10px] text-muted/70 bg-white/[0.06] rounded px-1.5 py-0.5 shrink-0 uppercase tracking-wider font-semibold">
+                    Bot
+                  </span>
+                )}
+                {showStreak && (
+                  <span
+                    className="text-orange-400 flex items-center gap-0.5 shrink-0"
+                    title={`${result.streak} win streak`}
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      className="shrink-0"
+                    >
+                      <path d="M12 23c-3.866 0-7-2.686-7-6 0-1.665.753-3.488 2.127-5.244.883-1.128 1.873-2.1 2.873-3.006V2l4.386 4.506c.953.979 1.893 2.09 2.614 3.25C18.36 11.715 19 13.578 19 15.5 19 19.642 16.09 23 12 23z" />
+                    </svg>
+                    <span className="text-xs font-bold tabular-nums">
+                      {result.streak}
                     </span>
-                  </td>
+                  </span>
+                )}
+              </span>
 
-                  {/* Rank */}
-                  {!isPlacement && (
-                    <td className="py-3">
-                      {rankInfo ? (
-                        <span
-                          className={`text-sm font-semibold ${TIER_CLASSES[rankInfo.tier]}`}
-                        >
-                          {rankInfo.label}
-                        </span>
-                      ) : (
-                        <span className="text-muted/40 text-sm">—</span>
-                      )}
-                    </td>
-                  )}
-
-                  {/* WPM */}
-                  <td className="py-3 text-right tabular-nums whitespace-nowrap">
-                    {Math.floor(result.wpm)}
-                    <span className="text-[0.7em] opacity-50">
-                      .{(result.wpm % 1).toFixed(2).slice(2)}
+              {/* Rank */}
+              {!isPlacement && (
+                <span className="pr-2">
+                  {rankInfo ? (
+                    <span
+                      className={`text-sm font-semibold ${TIER_CLASSES[rankInfo.tier]}`}
+                    >
+                      {rankInfo.label}
                     </span>
-                  </td>
-
-                  {/* ELO change */}
-                  {!isPlacement && (
-                    <td className="py-3 text-right tabular-nums whitespace-nowrap">
-                      {result.eloChange != null ? (
-                        <span
-                          className={`font-semibold ${
-                            result.eloChange > 0
-                              ? "text-correct"
-                              : result.eloChange < 0
-                              ? "text-error"
-                              : "text-muted"
-                          }`}
-                        >
-                          {result.eloChange > 0 ? "+" : ""}
-                          {result.eloChange}
-                        </span>
-                      ) : (
-                        <span className="text-muted/40">—</span>
-                      )}
-                    </td>
+                  ) : (
+                    <span className="text-muted/40 text-sm">—</span>
                   )}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                </span>
+              )}
+
+              {/* WPM */}
+              <span className="text-right tabular-nums whitespace-nowrap">
+                {Math.floor(result.wpm)}
+                <span className="text-[0.7em] opacity-50">
+                  .{(result.wpm % 1).toFixed(2).slice(2)}
+                </span>
+              </span>
+
+              {/* ELO change */}
+              {!isPlacement && (
+                <span className="text-right tabular-nums whitespace-nowrap">
+                  {result.eloChange != null ? (
+                    <span
+                      className={`font-semibold ${
+                        result.eloChange > 0
+                          ? "text-correct"
+                          : result.eloChange < 0
+                          ? "text-error"
+                          : "text-muted"
+                      }`}
+                    >
+                      {result.eloChange > 0 ? "+" : ""}
+                      {result.eloChange}
+                    </span>
+                  ) : (
+                    <span className="text-muted/40">—</span>
+                  )}
+                </span>
+              )}
+            </div>
+          );
+        })}
       </div>
 
-      {/* Animated ELO + rank section for the current user */}
+      {/* Animated ELO + rank transition */}
       {myResult && myResult.eloChange != null && myResult.elo != null && !isPlacement && (
-        <div className="flex flex-col items-center gap-4 mt-2">
-          <AnimatedElo
-            oldElo={myResult.elo - myResult.eloChange}
-            newElo={myResult.elo}
-            change={myResult.eloChange}
-          />
-
-          {/* Rank change banner */}
-          {rankChange && (
-            <div
-              className={`flex items-center gap-3 rounded-lg px-5 py-3 text-sm font-bold animate-slide-up ${
-                rankChange.direction === "up"
-                  ? `bg-rank-${rankChange.newTier}/10 ring-1 ring-rank-${rankChange.newTier}/20 text-rank-${rankChange.newTier}`
-                  : "bg-error/10 ring-1 ring-error/20 text-error"
-              }`}
-            >
-              <span className="text-lg">
-                {rankChange.direction === "up" ? "▲" : "▼"}
-              </span>
-              <span>
-                {rankChange.direction === "up" ? "Promoted to" : "Demoted to"}{" "}
-                {rankChange.newLabel}
-              </span>
-            </div>
-          )}
-        </div>
+        <AnimatedElo
+          oldElo={myResult.elo - myResult.eloChange}
+          newElo={myResult.elo}
+          change={myResult.eloChange}
+          rankChange={rankChange}
+        />
       )}
 
       {/* Own WPM details + chart */}

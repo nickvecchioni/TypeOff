@@ -152,17 +152,9 @@ export default function RanksPage() {
           </InfoSection>
 
           <InfoSection title="Placement Races">
-            <p className="mb-3">
-              Before you get a rank, you play a placement race.
-              Your speed determines your starting ELO.
-            </p>
-            <div className="flex items-center gap-0">
-              <div className="w-7 h-7 rounded-full bg-surface ring-1 ring-white/[0.08] flex items-center justify-center text-xs font-bold text-muted">
-                1
-              </div>
-              <div className="w-8 h-px bg-accent/40" />
-              <span className="text-accent font-bold text-xs">Ranked</span>
-            </div>
+            Before you get a rank, you play a placement race. Your typing
+            speed determines your starting ELO so you&apos;re matched with
+            players of a similar skill level from the start.
           </InfoSection>
 
           <InfoSection title="Matchmaking">

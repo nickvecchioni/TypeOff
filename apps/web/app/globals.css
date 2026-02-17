@@ -81,6 +81,12 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes rank-pulse {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
 /* ── Base ────────────────────────────────────────────────── */
 
 html, body {
