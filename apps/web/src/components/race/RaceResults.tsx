@@ -102,7 +102,10 @@ export function RaceResults({ results, myPlayerId, onRaceAgain, placementRace, p
                     )}
                   </td>
                   <td className="py-2 text-right tabular-nums whitespace-nowrap">
-                    {Math.round(result.wpm)}
+                    {Math.floor(result.wpm)}
+                    <span className="text-[0.7em] opacity-60">
+                      .{(result.wpm % 1).toFixed(2).slice(2)}
+                    </span>
                   </td>
                   {!isPlacement && (
                     <td className="py-2 text-right tabular-nums whitespace-nowrap pl-3">
@@ -139,7 +142,10 @@ export function RaceResults({ results, myPlayerId, onRaceAgain, placementRace, p
           <div className="flex flex-col items-center gap-4 w-full max-w-lg">
             <div className="text-center">
               <div className="text-2xl font-bold text-accent tabular-nums">
-                {Math.round(myResult.wpm)}
+                {Math.floor(myResult.wpm)}
+                <span className="text-[0.65em] opacity-60">
+                  .{(myResult.wpm % 1).toFixed(2).slice(2)}
+                </span>
               </div>
               <div className="text-xs text-muted">wpm</div>
             </div>

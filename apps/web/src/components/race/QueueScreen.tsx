@@ -79,7 +79,7 @@ export function QueueScreen({
         <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-text">
           Competitive typing,{" "}
           <span className="text-accent text-glow-accent">ranked.</span>
-          <span className="inline-block w-[3px] h-[0.75em] bg-accent align-middle ml-1 animate-blink" />
+          <span className="inline-block w-[3px] h-[1.1em] bg-accent ml-1 animate-blink translate-y-[0.15em]" />
         </h1>
         <p className="text-muted text-sm max-w-xl">
           Race head-to-head in real-time. Climb from{" "}
@@ -91,16 +91,6 @@ export function QueueScreen({
       {/* CTA */}
       {session?.user ? (
         <div className="flex flex-col items-center gap-6 w-full max-w-lg">
-          {/* Party */}
-          <PartyPanel
-            party={party}
-            error={partyError}
-            onCreateParty={onCreateParty}
-            onInvite={onInviteToParty}
-            onKick={onKickFromParty}
-            onLeave={onLeaveParty}
-          />
-
           {inPartyNotLeader ? (
             <div className="text-sm text-muted">
               Waiting for party leader to start...
@@ -114,6 +104,16 @@ export function QueueScreen({
               Find Race
             </button>
           )}
+
+          {/* Party */}
+          <PartyPanel
+            party={party}
+            error={partyError}
+            onCreateParty={onCreateParty}
+            onInvite={onInviteToParty}
+            onKick={onKickFromParty}
+            onLeave={onLeaveParty}
+          />
         </div>
       ) : (
         <button

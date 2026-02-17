@@ -4,9 +4,7 @@ import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
 import { users, userStats, raceParticipants, races } from "@typeoff/db";
 import { eq, desc } from "drizzle-orm";
-import type { RankTier } from "@typeoff/shared";
-import { getRankInfo, getRankProgress, getNextDivisionElo, getRankTier } from "@typeoff/shared";
-import { RankBadge } from "@/components/RankBadge";
+import { getRankInfo, getRankProgress, getNextDivisionElo } from "@typeoff/shared";
 import { UsernameEditor } from "./username-editor";
 import { SignOutButton } from "./sign-out-button";
 import { AddFriendButton } from "@/components/social/AddFriendButton";
@@ -100,19 +98,25 @@ export default async function ProfilePage({
               )}
             </div>
 
-            {/* Rank progress */}
-            {user.placementsCompleted && (
-              <div className="flex items-center gap-4">
-                <RankProgressBar elo={user.eloRating} />
-                {user.peakEloRating > user.eloRating && (
-                  <div className="flex items-center gap-2 text-xs text-muted shrink-0">
-                    <span>Peak</span>
-                    <RankBadge
-                      tier={user.peakRankTier as RankTier}
-                      elo={user.peakEloRating}
-                    />
+            {/* Rank + ELO */}
+            {user.placementsCompleted && rankInfo && (
+              <div className="flex flex-col gap-3">
+                <div className="flex items-baseline justify-between">
+                  <div className="flex items-baseline gap-2">
+                    <span className={`text-sm font-bold text-rank-${rankInfo.tier}`}>
+                      {rankInfo.label}
+                    </span>
+                    <span className="text-xs text-muted tabular-nums">
+                      {user.eloRating} ELO
+                    </span>
                   </div>
-                )}
+                  {user.peakEloRating > user.eloRating && (
+                    <span className="text-xs text-muted/60 tabular-nums">
+                      Peak {user.peakEloRating}
+                    </span>
+                  )}
+                </div>
+                <RankProgressBar elo={user.eloRating} />
               </div>
             )}
           </div>
@@ -122,13 +126,19 @@ export default async function ProfilePage({
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-xl bg-surface/50 ring-1 ring-white/[0.04] px-5 py-5 text-center">
             <div className="text-3xl font-black text-accent tabular-nums text-glow-accent">
-              {stats ? Math.round(stats.avgWpm) : 0}
+              {stats ? Math.floor(stats.avgWpm) : 0}
+              <span className="text-[0.6em] opacity-60">
+                .{stats ? (stats.avgWpm % 1).toFixed(2).slice(2) : "00"}
+              </span>
             </div>
             <div className="text-xs text-muted mt-1.5 uppercase tracking-wider">avg wpm</div>
           </div>
           <div className="rounded-xl bg-surface/50 ring-1 ring-white/[0.04] px-5 py-5 text-center">
             <div className="text-3xl font-black text-accent tabular-nums text-glow-accent">
-              {stats ? Math.round(stats.maxWpm) : 0}
+              {stats ? Math.floor(stats.maxWpm) : 0}
+              <span className="text-[0.6em] opacity-60">
+                .{stats ? (stats.maxWpm % 1).toFixed(2).slice(2) : "00"}
+              </span>
             </div>
             <div className="text-xs text-muted mt-1.5 uppercase tracking-wider">best wpm</div>
           </div>
@@ -191,15 +201,19 @@ export default async function ProfilePage({
                             : "-"}
                         </td>
                         <td className="px-4 py-2.5">
-                          <span className="inline-flex items-center gap-1.5">
-                            <span className={`inline-block w-1.5 h-1.5 rounded-full ${placementColor.split(" ")[1]}`} />
-                            <span className={`text-xs font-bold ${placementColor.split(" ")[0]}`}>
-                              {ordinal}
-                            </span>
+                          <span className={`text-xs font-bold ${placementColor.split(" ")[0]}`}>
+                            {ordinal}
                           </span>
                         </td>
                         <td className="px-4 py-2.5 text-right tabular-nums text-text text-xs">
-                          {race.wpm != null ? Math.round(race.wpm) : "-"}
+                          {race.wpm != null ? (
+                            <>
+                              {Math.floor(race.wpm)}
+                              <span className="text-[0.8em] opacity-50">
+                                .{(race.wpm % 1).toFixed(2).slice(2)}
+                              </span>
+                            </>
+                          ) : "-"}
                         </td>
                         <td className="px-4 py-2.5 text-right tabular-nums">
                           {eloChange != null ? (

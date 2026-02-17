@@ -26,8 +26,6 @@ const ELO_WINDOW_INITIAL = 100;
 const ELO_WINDOW_EXPAND = 50;
 const ELO_WINDOW_EXPAND_INTERVAL_MS = 5_000;
 const ELO_WINDOW_MAX = 400;
-const MIN_WAIT_FOR_PAIR_MS = 10_000;
-const BOT_WAIT_MS = 20_000;
 
 const BOT_NAMES = [
   "SpeedyBot", "TypeRacer", "KeyMaster", "SwiftKeys",
@@ -268,18 +266,13 @@ export class Matchmaker implements RaceOwner {
         }
       }
 
-      // Start race if we have enough players or waited long enough
+      // Start race — fill remaining slots with bots immediately
       if (group.length >= MAX_PLAYERS) {
-        // Full lobby — start immediately (trim to MAX_PLAYERS)
+        // Full lobby — no bots needed
         const raceGroup = group.slice(0, MAX_PLAYERS);
         for (const idx of raceGroup) matched.add(idx);
         this.startRace(raceGroup.map((idx) => this.queue[idx]));
-      } else if (waited >= BOT_WAIT_MS && group.length >= 1) {
-        for (const idx of group) matched.add(idx);
-        const entries = group.map((idx) => this.queue[idx]);
-        const botCount = MAX_PLAYERS - entries.length;
-        this.startRaceWithBots(entries, botCount);
-      } else if (waited >= MIN_WAIT_FOR_PAIR_MS && group.length >= 2) {
+      } else if (group.length >= 1) {
         for (const idx of group) matched.add(idx);
         const entries = group.map((idx) => this.queue[idx]);
         const botCount = MAX_PLAYERS - entries.length;
@@ -315,24 +308,10 @@ export class Matchmaker implements RaceOwner {
     player: RacePlayer,
     raceNumber: number,
   ) {
-    // Adaptive bot WPM based on placement stage
-    const botWpm = raceNumber === 1 ? 50 : 55;
-
-    const botWpmMin = Math.max(20, botWpm - 5);
-    const botWpmMax = botWpm + 5;
-
-    const botName = BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)];
-    const bot: RacePlayer = {
-      id: `bot_${crypto.randomUUID()}`,
-      name: botName,
-      isGuest: true,
-      elo: player.elo,
-    };
-
     const entry = { socket, player };
     const race = new RaceManager(
-      this.io, [entry], this, [bot],
-      { botWpmMin, botWpmMax },
+      this.io, [entry], this, [],
+      undefined,
       raceNumber,
     );
     this.races.set(race.raceId, race);

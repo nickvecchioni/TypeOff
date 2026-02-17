@@ -4,6 +4,7 @@ const RANK_TIERS = [
   {
     name: "Grandmaster",
     range: "2200+",
+    wpm: "170+",
     text: "text-rank-grandmaster",
     ring: "ring-rank-grandmaster/30",
     bg: "bg-rank-grandmaster/[0.06]",
@@ -14,6 +15,7 @@ const RANK_TIERS = [
   {
     name: "Master",
     range: "1800 – 2199",
+    wpm: "~150",
     text: "text-rank-master",
     ring: "ring-rank-master/20",
     bg: "bg-rank-master/[0.04]",
@@ -24,6 +26,7 @@ const RANK_TIERS = [
   {
     name: "Diamond",
     range: "1500 – 1799",
+    wpm: "~115–150",
     text: "text-rank-diamond",
     ring: "ring-rank-diamond/20",
     bg: "bg-rank-diamond/[0.04]",
@@ -34,6 +37,7 @@ const RANK_TIERS = [
   {
     name: "Platinum",
     range: "1300 – 1499",
+    wpm: "~95–115",
     text: "text-rank-platinum",
     ring: "ring-rank-platinum/15",
     bg: "bg-rank-platinum/[0.03]",
@@ -44,6 +48,7 @@ const RANK_TIERS = [
   {
     name: "Gold",
     range: "1100 – 1299",
+    wpm: "~70–95",
     text: "text-rank-gold",
     ring: "ring-rank-gold/15",
     bg: "bg-rank-gold/[0.03]",
@@ -54,6 +59,7 @@ const RANK_TIERS = [
   {
     name: "Silver",
     range: "900 – 1099",
+    wpm: "~50–70",
     text: "text-rank-silver",
     ring: "ring-rank-silver/15",
     bg: "bg-rank-silver/[0.03]",
@@ -64,6 +70,7 @@ const RANK_TIERS = [
   {
     name: "Bronze",
     range: "0 – 899",
+    wpm: "< 50",
     text: "text-rank-bronze",
     ring: "ring-rank-bronze/15",
     bg: "bg-rank-bronze/[0.03]",
@@ -111,7 +118,12 @@ export default function RanksPage() {
                     </span>
                   </div>
                 </div>
-                <p className="text-xs text-muted mt-1">{tier.flavor}</p>
+                <div className="flex items-center justify-between mt-1 gap-4">
+                  <p className="text-xs text-muted">{tier.flavor}</p>
+                  <span className="text-xs text-muted/50 tabular-nums shrink-0">
+                    {tier.wpm} wpm
+                  </span>
+                </div>
               </div>
             );
           })}

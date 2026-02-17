@@ -86,7 +86,14 @@ export default async function LeaderboardPage() {
                     </span>
                   </div>
                   <span className="text-sm text-muted tabular-nums text-right">
-                    {row.avgWpm != null ? Math.round(row.avgWpm) : 0}
+                    {row.avgWpm != null ? (
+                      <>
+                        {Math.floor(row.avgWpm)}
+                        <span className="text-[0.8em] opacity-50">
+                          .{(row.avgWpm % 1).toFixed(2).slice(2)}
+                        </span>
+                      </>
+                    ) : 0}
                   </span>
                   <span className="text-sm text-muted/40 tabular-nums text-right">
                     {row.racesPlayed ?? 0}
