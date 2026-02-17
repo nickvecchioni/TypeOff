@@ -92,7 +92,7 @@ export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
 
       {/* Drawer panel */}
       <div
-        className={`fixed top-0 right-0 z-50 h-full w-80 bg-bg border-l border-white/[0.06] flex flex-col transition-transform duration-200 ease-out ${
+        className={`fixed top-0 right-0 z-50 h-full w-full sm:w-80 bg-bg border-l border-white/[0.06] flex flex-col transition-transform duration-200 ease-out ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >

@@ -184,12 +184,12 @@ export function RaceResults({
           className={`grid text-muted text-xs uppercase tracking-wider border-b border-white/[0.06] pb-2.5 ${
             isPlacement
               ? "grid-cols-[2.5rem_1fr_5rem]"
-              : "grid-cols-[2.5rem_1fr_8rem_5rem_4rem]"
+              : "grid-cols-[2rem_1fr_4rem_3.5rem] sm:grid-cols-[2.5rem_1fr_8rem_5rem_4rem]"
           }`}
         >
           <span className="font-semibold">#</span>
           <span className="font-semibold">Name</span>
-          {!isPlacement && <span className="font-semibold">Rank</span>}
+          {!isPlacement && <span className="font-semibold hidden sm:block">Rank</span>}
           <span className="font-semibold text-right">WPM</span>
           {!isPlacement && <span className="font-semibold text-right">ELO</span>}
         </div>
@@ -215,7 +215,7 @@ export function RaceResults({
               className={`grid items-center border-b border-white/[0.04] py-3 ${
                 isPlacement
                   ? "grid-cols-[2.5rem_1fr_5rem]"
-                  : "grid-cols-[2.5rem_1fr_8rem_5rem_4rem]"
+                  : "grid-cols-[2rem_1fr_4rem_3.5rem] sm:grid-cols-[2.5rem_1fr_8rem_5rem_4rem]"
               } ${isMe ? "text-accent" : "text-text"}`}
             >
               {/* Placement */}
@@ -269,7 +269,7 @@ export function RaceResults({
 
               {/* Rank */}
               {!isPlacement && (
-                <span className="pr-2">
+                <span className="pr-2 hidden sm:block">
                   {rankInfo ? (
                     <span
                       className={`text-sm font-semibold ${TIER_CLASSES[rankInfo.tier]}`}
@@ -389,7 +389,7 @@ export function RaceResults({
 
       <button
         onClick={() => onRaceAgain()}
-        className="rounded-lg bg-accent text-bg px-10 py-3.5 text-sm font-bold tracking-wide uppercase hover:bg-accent/90 transition-colors glow-accent-strong"
+        className="rounded-lg bg-accent text-bg px-10 py-3.5 text-sm font-bold tracking-wide uppercase hover:bg-accent/90 transition-colors glow-accent-strong w-full sm:w-auto"
       >
         {isPlacement ? "Next Placement" : "Race again"}
       </button>

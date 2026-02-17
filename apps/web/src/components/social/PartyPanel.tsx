@@ -58,7 +58,7 @@ export function PartyPanel({
       )}
 
       {/* Member row */}
-      <div className="flex items-center justify-center gap-2">
+      <div className="flex items-center justify-center gap-2 flex-wrap">
         {party.members.map((member) => (
           <div
             key={member.userId}
@@ -102,7 +102,7 @@ export function PartyPanel({
         {isLeader && party.members.length < 4 && (
           <>
             {showInvite ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 {invitableFriends.length === 0 ? (
                   <span className="text-xs text-muted/50">No online friends</span>
                 ) : (

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useSocial } from "@/hooks/useSocial";
 
 interface AddFriendButtonProps {
@@ -8,9 +8,15 @@ interface AddFriendButtonProps {
 }
 
 export function AddFriendButton({ targetUserId }: AddFriendButtonProps) {
-  const { sendRequest } = useSocial();
+  const { sendRequest, friends, fetchFriends } = useSocial();
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchFriends();
+  }, [fetchFriends]);
+
+  const isFriend = friends.some((f) => f.userId === targetUserId);
 
   const handleSend = useCallback(async () => {
     setError(null);
@@ -21,6 +27,10 @@ export function AddFriendButton({ targetUserId }: AddFriendButtonProps) {
       setError("Already sent or friends");
     }
   }, [sendRequest, targetUserId]);
+
+  if (isFriend) {
+    return <span className="text-xs text-muted">Friends</span>;
+  }
 
   if (sent) {
     return <span className="text-xs text-muted">Request Sent</span>;

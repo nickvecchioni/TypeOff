@@ -18,7 +18,7 @@ export function WordDisplay({
   isTyping,
 }: WordDisplayProps) {
   return (
-    <div className="no-ligatures relative text-2xl leading-[2.5rem]">
+    <div className="no-ligatures relative text-xl sm:text-2xl leading-[2rem] sm:leading-[2.5rem]">
       {words.map((word, i) => (
         <Word
           key={i}

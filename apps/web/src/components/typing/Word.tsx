@@ -19,14 +19,14 @@ const WordInner = forwardRef<HTMLSpanElement, WordProps>(
     return (
       <span
         ref={ref}
-        className={`relative inline-block mr-[1ch] ${
+        className={`relative inline-block mr-[1ch] border-b-2 ${
           isActive
             ? hasErrors
-              ? "border-b-2 border-error bg-error/5 rounded-sm"
-              : "border-b-2 border-accent/50"
+              ? "border-error bg-error/5 rounded-sm"
+              : "border-accent/50"
             : hasErrors
-            ? "border-b-2 border-error/50"
-            : ""
+            ? "border-error/50"
+            : "border-transparent"
         }`}
       >
         {word.chars.map((char, i) => (

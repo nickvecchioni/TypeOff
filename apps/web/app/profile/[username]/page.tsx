@@ -82,7 +82,7 @@ export default async function ProfilePage({
   const rankInfo = user.placementsCompleted ? getRankInfo(user.eloRating) : null;
 
   return (
-    <main className="flex-1 overflow-y-auto px-6 py-8">
+    <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
       <div className="max-w-3xl mx-auto space-y-8 animate-fade-in">
 
         {/* ── Hero ──────────────────────────────────────────── */}

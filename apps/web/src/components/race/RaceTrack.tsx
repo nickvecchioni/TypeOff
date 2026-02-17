@@ -33,9 +33,9 @@ export function RaceTrack({ players, progress, myPlayerId, isPlacement }: RaceTr
         return (
           <div key={player.id} className="flex flex-col gap-1">
             <div className="flex justify-between text-sm">
-              <span className={`flex items-center gap-2 ${isMe ? "text-accent font-bold" : "text-text"}`}>
+              <span className={`flex items-center gap-2 min-w-0 ${isMe ? "text-accent font-bold" : "text-text"}`}>
                 {!isPlacement && !isBot && <RankBadge tier={getRankTier(player.elo)} />}
-                {player.name}
+                <span className="truncate">{player.name}</span>
                 {isBot && <span className="text-xs text-muted bg-surface rounded px-1.5 py-0.5 font-normal">BOT</span>}
                 {isMe && " (you)"}
                 {finished && p?.placement && ` #${p.placement}`}

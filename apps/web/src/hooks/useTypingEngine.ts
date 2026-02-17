@@ -107,7 +107,8 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     const total = correct + incorrect + extra;
     const wpm = elapsed > 0 ? Math.round(((correct / 5) / (elapsed / 60)) * 100) / 100 : 0;
     const rawWpm = elapsed > 0 ? Math.round(((total / 5) / (elapsed / 60)) * 100) / 100 : 0;
-    const accuracy = total > 0 ? Math.round((correct / total) * 100) : 100;
+    const totalKeystrokes = correct + mistyped;
+    const accuracy = totalKeystrokes > 0 ? Math.round((correct / totalKeystrokes) * 100 * 10) / 10 : 100;
 
     setStats({
       wpm,
