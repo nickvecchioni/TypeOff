@@ -8,6 +8,7 @@ export default function SetupUsernamePage() {
   const [username, setUsername] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [done, setDone] = useState(false);
 
   const isValid =
     /^[a-z0-9-]+$/.test(username) &&
@@ -35,6 +36,8 @@ export default function SetupUsernamePage() {
         return;
       }
 
+      // Hide UI immediately to prevent jitter during navigation
+      setDone(true);
       // Refresh JWT token, then hard-navigate so the fresh session is loaded
       await update();
       window.location.href = "/";
@@ -43,6 +46,10 @@ export default function SetupUsernamePage() {
       setSaving(false);
     }
   };
+
+  if (done) {
+    return <main className="flex-1" />;
+  }
 
   return (
     <main className="flex-1 flex flex-col items-center justify-center px-4">
