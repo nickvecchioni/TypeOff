@@ -1,14 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function SetupUsernamePage() {
-  const { update } = useSession();
+  const { data: session, status, update } = useSession();
+  const router = useRouter();
   const [username, setUsername] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
+
+  // If user already has a username, redirect away (handles back-button)
+  useEffect(() => {
+    if (status === "authenticated" && session?.user?.username) {
+      router.replace("/");
+    }
+  }, [status, session?.user?.username, router]);
 
   const isValid =
     /^[a-z0-9-]+$/.test(username) &&
@@ -36,18 +45,19 @@ export default function SetupUsernamePage() {
         return;
       }
 
-      // Hide UI immediately to prevent jitter during navigation
       setDone(true);
-      // Refresh JWT token, then hard-navigate so the fresh session is loaded
+      // Refresh session so the new username is available client-side,
+      // then replace (not push) so back-button can't return here
       await update();
-      window.location.href = "/";
+      router.replace("/");
     } catch {
       setError("Network error");
       setSaving(false);
     }
   };
 
-  if (done) {
+  // Hide UI while redirecting or after successful save
+  if (done || (status === "authenticated" && session?.user?.username)) {
     return <main className="flex-1" />;
   }
 
