@@ -26,6 +26,7 @@ const ELO_WINDOW_INITIAL = 100;
 const ELO_WINDOW_EXPAND = 50;
 const ELO_WINDOW_EXPAND_INTERVAL_MS = 5_000;
 const ELO_WINDOW_MAX = 400;
+const BOT_FILL_DELAY_MS = 8_000;
 
 const BOT_NAMES = [
   "SpeedyBot", "TypeRacer", "KeyMaster", "SwiftKeys",
@@ -261,13 +262,14 @@ export class Matchmaker implements RaceOwner {
         }
       }
 
-      // Start race — fill remaining slots with bots immediately
+      // Start race — fill remaining slots with bots after waiting for humans
       if (group.length >= MAX_PLAYERS) {
         // Full lobby — no bots needed
         const raceGroup = group.slice(0, MAX_PLAYERS);
         for (const idx of raceGroup) matched.add(idx);
         this.startRace(raceGroup.map((idx) => this.queue[idx]));
-      } else if (group.length >= 1) {
+      } else if (group.length >= 1 && waited >= BOT_FILL_DELAY_MS) {
+        // Waited long enough — fill with bots
         for (const idx of group) matched.add(idx);
         const entries = group.map((idx) => this.queue[idx]);
         const botCount = MAX_PLAYERS - entries.length;

@@ -43,7 +43,7 @@ export function RankBadge({ tier, elo, size = "sm", placementsCompleted = true }
       className={`rounded-full font-bold inline-flex items-center gap-1 ${sizeClasses} ${TIER_CLASSES[colorTier]}`}
     >
       {displayLabel}
-      {elo != null && <span className="tabular-nums">{elo}</span>}
+      {elo != null && <span className="tabular-nums opacity-60 font-semibold">{elo}</span>}
     </span>
   );
 }

@@ -8,8 +8,8 @@ interface WpmChartProps {
 }
 
 const CHART_WIDTH = 600;
-const CHART_HEIGHT = 160;
-const PADDING = { top: 14, right: 20, bottom: 24, left: 45 };
+const CHART_HEIGHT = 220;
+const PADDING = { top: 16, right: 20, bottom: 32, left: 52 };
 
 export function WpmChart({ samples }: WpmChartProps) {
   if (samples.length < 2) return null;
@@ -17,13 +17,21 @@ export function WpmChart({ samples }: WpmChartProps) {
   const innerWidth = CHART_WIDTH - PADDING.left - PADDING.right;
   const innerHeight = CHART_HEIGHT - PADDING.top - PADDING.bottom;
 
-  const maxWpm = Math.max(...samples.map((s) => Math.max(s.wpm, s.raw)), 10);
+  const rawMax = Math.max(...samples.map((s) => Math.max(s.wpm, s.raw)), 10);
   const minTime = samples[0].elapsed;
   const maxTime = samples[samples.length - 1].elapsed || 1;
   const timeRange = maxTime - minTime || 1;
 
+  // Compute clean y-axis ticks (multiples of a nice step)
+  const niceStep = rawMax <= 50 ? 10 : rawMax <= 120 ? 25 : 50;
+  const yMax = Math.ceil((rawMax * 1.1) / niceStep) * niceStep;
+  const tickCount = Math.min(6, Math.max(3, yMax / niceStep));
+  const yTicks = Array.from({ length: tickCount + 1 }, (_, i) =>
+    Math.round((i * yMax) / tickCount / niceStep) * niceStep
+  ).filter((v, i, a) => a.indexOf(v) === i);
+
   const scaleX = (t: number) => PADDING.left + ((t - minTime) / timeRange) * innerWidth;
-  const scaleY = (v: number) => PADDING.top + innerHeight - (v / (maxWpm * 1.1)) * innerHeight;
+  const scaleY = (v: number) => PADDING.top + innerHeight - (v / yMax) * innerHeight;
 
   const toPath = (key: "wpm" | "raw") =>
     samples
@@ -35,11 +43,6 @@ export function WpmChart({ samples }: WpmChartProps) {
     toPath("wpm") +
     ` L ${scaleX(samples[samples.length - 1].elapsed)} ${PADDING.top + innerHeight}` +
     ` L ${scaleX(samples[0].elapsed)} ${PADDING.top + innerHeight} Z`;
-
-  // Y-axis ticks
-  const yTicks = Array.from({ length: 5 }, (_, i) =>
-    Math.round((maxWpm * 1.1 * i) / 4)
-  );
 
   return (
     <svg
@@ -67,10 +70,10 @@ export function WpmChart({ samples }: WpmChartProps) {
             strokeWidth={1}
           />
           <text
-            x={PADDING.left - 8}
-            y={scaleY(tick) + 4}
+            x={PADDING.left - 10}
+            y={scaleY(tick) + 5}
             fill="var(--color-muted)"
-            fontSize={10}
+            fontSize={13}
             textAnchor="end"
           >
             {tick}
@@ -115,9 +118,9 @@ export function WpmChart({ samples }: WpmChartProps) {
       {/* X-axis label */}
       <text
         x={CHART_WIDTH / 2}
-        y={CHART_HEIGHT - 4}
+        y={CHART_HEIGHT - 6}
         fill="var(--color-muted)"
-        fontSize={10}
+        fontSize={13}
         textAnchor="middle"
       >
         seconds
