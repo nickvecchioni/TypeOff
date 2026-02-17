@@ -84,5 +84,4 @@ Starts both the Next.js app and WebSocket server via Turborepo.
 
 ## Deployment
 
-- **Web** deploys to Vercel (monorepo output tracing configured)
-- **WebSocket server** deploys separately (Railway, Fly.io, etc.) — exposes `/health` endpoint
+Both services deploy to Railway as separate services. The WebSocket server exposes a `/health` endpoint for health checks.

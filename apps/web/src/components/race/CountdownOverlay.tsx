@@ -1,13 +1,15 @@
 "use client";
 
 import React from "react";
-import type { RacePlayer } from "@typeoff/shared";
+import type { RacePlayer, RaceType } from "@typeoff/shared";
+import { RACE_TYPE_LABELS } from "@typeoff/shared";
 
 interface CountdownOverlayProps {
   countdown: number;
   playerCount: number;
   placementRace?: number;
   players?: RacePlayer[];
+  raceType?: RaceType;
 }
 
 export function CountdownOverlay({
@@ -15,11 +17,17 @@ export function CountdownOverlay({
   playerCount,
   placementRace,
   players,
+  raceType,
 }: CountdownOverlayProps) {
   const botCount = players?.filter((p) => p.id.startsWith("bot_")).length ?? 0;
 
   return (
     <div className="flex flex-col items-center gap-6 animate-fade-in">
+      {raceType && (
+        <span className="text-accent/80 text-xs font-bold uppercase tracking-widest">
+          {RACE_TYPE_LABELS[raceType]}
+        </span>
+      )}
       {placementRace != null ? (
         <div className="flex flex-col items-center gap-3">
           <span className="text-accent font-bold text-sm uppercase tracking-widest">

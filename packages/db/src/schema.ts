@@ -7,6 +7,7 @@ import {
   uuid,
   real,
   boolean,
+  unique,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
 
@@ -137,6 +138,29 @@ export const soloResults = pgTable("solo_results", {
     .notNull()
     .$defaultFn(() => new Date()),
 });
+
+// ─── Per-Type Ratings ───────────────────────────────────────────────
+
+export const userRatings = pgTable(
+  "user_ratings",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    raceType: text("race_type").notNull(), // "common" | "medium" | "hard"
+    eloRating: integer("elo_rating").notNull().default(1000),
+    rankTier: text("rank_tier").notNull().default("bronze"),
+    peakEloRating: integer("peak_elo_rating").notNull().default(1000),
+    peakRankTier: text("peak_rank_tier").notNull().default("bronze"),
+    placementsCompleted: boolean("placements_completed").notNull().default(false),
+    racesPlayed: integer("races_played").notNull().default(0),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [unique().on(table.userId, table.raceType)]
+);
 
 // ─── Player Stats ───────────────────────────────────────────────────
 

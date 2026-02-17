@@ -9,8 +9,8 @@ import { RaceTrack } from "./RaceTrack";
 import { RaceTypingArea } from "./RaceTypingArea";
 import { RaceResults } from "./RaceResults";
 import { PlacementReveal } from "./PlacementReveal";
-import { getRankInfo } from "@typeoff/shared";
-import type { RankTier } from "@typeoff/shared";
+import { getRankInfo, RACE_TYPE_LABELS } from "@typeoff/shared";
+import type { RankTier, RaceType } from "@typeoff/shared";
 
 const TIER_ORDER: RankTier[] = [
   "bronze", "silver", "gold", "platinum", "diamond", "master", "grandmaster",
@@ -36,7 +36,9 @@ export function RaceArena() {
         const myResult = race.results.find((r) => r.playerId === session.user.id);
         if (myResult?.eloChange != null) {
           window.dispatchEvent(
-            new CustomEvent("elo-change", { detail: { change: myResult.eloChange } })
+            new CustomEvent("elo-change", {
+              detail: { change: myResult.eloChange, raceType: race.finishedRaceType },
+            })
           );
         }
         if (myResult?.elo != null && myResult.eloChange != null && session.user.rankTier) {
@@ -48,13 +50,13 @@ export function RaceArena() {
           if (newVal > oldVal) {
             window.dispatchEvent(
               new CustomEvent("rank-up", {
-                detail: { tier: newInfo.tier, elo: myResult.elo, direction: "up" as const },
+                detail: { tier: newInfo.tier, elo: myResult.elo, direction: "up" as const, raceType: race.finishedRaceType },
               })
             );
           } else if (newVal < oldVal) {
             window.dispatchEvent(
               new CustomEvent("rank-up", {
-                detail: { tier: newInfo.tier, elo: myResult.elo, direction: "down" as const },
+                detail: { tier: newInfo.tier, elo: myResult.elo, direction: "down" as const, raceType: race.finishedRaceType },
               })
             );
           }
@@ -64,14 +66,16 @@ export function RaceArena() {
     } else if (!isFinished) {
       sessionRefreshed.current = false;
     }
-  }, [race.phase, race.results, session?.user?.id, updateSession]);
+  }, [race.phase, race.results, session?.user?.id, updateSession, race.finishedRaceType]);
 
   const isInPlacement = race.raceState?.placementRace != null
     || race.phase === "placed"
     || (race.phase === "finished" && race.placementRace != null);
 
+  const currentRaceType: RaceType | undefined = race.raceState?.raceType ?? race.activeRaceType;
+
   return (
-    <div className="flex flex-col items-center gap-8 w-full max-w-3xl mx-auto">
+    <div className="flex flex-col items-center gap-8 w-full max-w-4xl mx-auto">
       {race.error && (
         <div className="text-error text-sm">{race.error}</div>
       )}
@@ -83,6 +87,7 @@ export function RaceArena() {
           connected={race.connected}
           onJoin={race.joinQueue}
           onLeave={race.leaveQueue}
+          activeRaceType={race.activeRaceType}
         />
       )}
 
@@ -92,16 +97,24 @@ export function RaceArena() {
           playerCount={race.raceState.players.length}
           placementRace={race.raceState.placementRace}
           players={race.raceState.players}
+          raceType={currentRaceType}
         />
       )}
 
       {race.phase === "racing" && race.raceState && (
         <>
-          {race.raceState.placementRace != null && (
-            <div className="text-xs text-muted">
-              Placement Race {race.raceState.placementRace} of 3
-            </div>
-          )}
+          <div className="flex items-center gap-3">
+            {currentRaceType && (
+              <span className="text-xs text-accent font-bold uppercase tracking-wider">
+                {RACE_TYPE_LABELS[currentRaceType]}
+              </span>
+            )}
+            {race.raceState.placementRace != null && (
+              <span className="text-xs text-muted">
+                Placement {race.raceState.placementRace} of 3
+              </span>
+            )}
+          </div>
           <RaceTrack
             players={race.raceState.players}
             progress={race.progress}
@@ -127,6 +140,7 @@ export function RaceArena() {
           onRaceAgain={race.raceAgain}
           placementRace={race.placementRace}
           placementTotal={race.placementTotal}
+          raceType={race.finishedRaceType}
         />
       )}
 
@@ -137,6 +151,7 @@ export function RaceArena() {
           <PlacementReveal
             elo={elo}
             onContinue={race.raceAgain}
+            raceType={race.finishedRaceType}
           />
         );
       })()}

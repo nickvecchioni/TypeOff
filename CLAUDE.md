@@ -54,7 +54,7 @@ Schema changes: edit `packages/db/src/schema.ts`, then `npm run db:push --worksp
 
 Socket.io with typed events (defined in `packages/shared/src/race-types.ts`).
 
-Modules: `matchmaker.ts` (ELO-based queue), `race-manager.ts` (race lifecycle), `lobby-manager.ts` (private rooms), `social-manager.ts` (online status), `achievement-checker.ts`.
+Modules: `matchmaker.ts` (ELO-based queue), `race-manager.ts` (race lifecycle), `lobby-manager.ts` (private rooms), `social-manager.ts` (online status).
 
 ELO: K=32 for first 30 games, K=16 after. Matchmaking expands ±50 ELO every 5s (max ±400). Bot opponents after 20s timeout. 3 placement races before ranked.
 

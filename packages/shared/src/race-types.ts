@@ -1,3 +1,20 @@
+import type { WordPool } from "./words";
+
+/** Race type = word pool difficulty */
+export type RaceType = WordPool;
+
+export const RACE_TYPE_LABELS: Record<RaceType, string> = {
+  common: "Easy",
+  medium: "Medium",
+  hard: "Hard",
+};
+
+export const RACE_TYPE_WORD_COUNTS: Record<RaceType, number> = {
+  common: 25,
+  medium: 50,
+  hard: 75,
+};
+
 /** Status of a race room */
 export type RaceStatus = "waiting" | "countdown" | "racing" | "finished";
 
@@ -7,6 +24,7 @@ export interface RacePlayer {
   name: string;
   isGuest: boolean;
   elo: number;
+  eloByType?: Partial<Record<RaceType, number>>;
 }
 
 /** Real-time progress of a player */
@@ -33,10 +51,11 @@ export interface RaceState {
   progress: Record<string, RacePlayerProgress>;
   seed: number;
   wordCount: number;
-  wordPool?: import("./words").WordPool;
+  wordPool?: WordPool;
   countdown: number; // seconds remaining in countdown
   finishTimeoutEnd: number | null; // timestamp when race force-ends
   placementRace?: number; // 1-3 during placement, undefined for ranked
+  raceType?: RaceType; // which competitive queue this race belongs to
 }
 
 /** Lobby state */
@@ -48,7 +67,7 @@ export interface LobbyState {
 
 /** Client → Server events */
 export interface ClientToServerEvents {
-  joinQueue: (data: { token?: string }) => void;
+  joinQueue: (data: { token?: string; raceType?: RaceType }) => void;
   leaveQueue: () => void;
   raceProgress: (data: {
     wordIndex: number;
@@ -98,6 +117,7 @@ export interface ServerToClientEvents {
     }>;
     placementRace?: number;
     placementTotal?: number;
+    raceType?: RaceType;
   }) => void;
   // Lobby events
   lobbyCreated: (data: LobbyState) => void;

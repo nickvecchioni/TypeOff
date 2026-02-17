@@ -7,6 +7,7 @@ import type { TestConfig } from "@typeoff/shared";
 interface PbRow {
   mode: string;
   duration: number;
+  wordPool: string | null;
   wpm: number;
 }
 
@@ -21,12 +22,15 @@ export function PersonalBest({ config }: { config: TestConfig }) {
       .then((r) => r.json())
       .then((rows: PbRow[]) => {
         const match = rows.find(
-          (r) => r.mode === config.mode && r.duration === config.duration
+          (r) =>
+            r.mode === config.mode &&
+            r.duration === config.duration &&
+            (r.wordPool ?? "common") === (config.wordPool ?? "common")
         );
         setPb(match ? Math.round(match.wpm) : null);
       })
       .catch(() => {});
-  }, [session?.user, config.mode, config.duration]);
+  }, [session?.user, config.mode, config.duration, config.wordPool]);
 
   useEffect(() => {
     fetchPb();

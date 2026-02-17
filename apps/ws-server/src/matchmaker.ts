@@ -3,12 +3,13 @@ import type {
   ClientToServerEvents,
   ServerToClientEvents,
   RacePlayer,
+  RaceType,
   WpmSample,
 } from "@typeoff/shared";
 import { RaceManager } from "./race-manager.js";
 import type { RaceOwner } from "./race-manager.js";
-import { createDb, userStats } from "@typeoff/db";
-import { eq } from "drizzle-orm";
+import { createDb, userRatings } from "@typeoff/db";
+import { eq, and } from "drizzle-orm";
 
 type TypedServer = Server<ClientToServerEvents, ServerToClientEvents>;
 type TypedSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
@@ -17,6 +18,7 @@ interface QueueEntry {
   socket: TypedSocket;
   player: RacePlayer;
   joinedAt: number;
+  raceType: RaceType;
 }
 
 const MAX_PLAYERS = 4;
@@ -28,22 +30,29 @@ const ELO_WINDOW_MAX = 400;
 const MIN_WAIT_FOR_PAIR_MS = 10_000;
 const BOT_WAIT_MS = 20_000;
 
+const RACE_TYPES: RaceType[] = ["common", "medium", "hard"];
+
 const BOT_NAMES = [
   "SpeedyBot", "TypeRacer", "KeyMaster", "SwiftKeys",
   "QuickType", "FlashFingers", "TurboTypist", "NimbleBot",
 ];
 
 export class Matchmaker implements RaceOwner {
-  private queue: QueueEntry[] = [];
+  private queues = new Map<RaceType, QueueEntry[]>();
   private races = new Map<string, RaceManager>();
   private socketToRace = new Map<string, string>();
+  private socketToQueue = new Map<string, RaceType>();
   private queueTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor(private io: TypedServer) {
+    // Initialize per-type queues
+    for (const rt of RACE_TYPES) {
+      this.queues.set(rt, []);
+    }
     this.queueTimer = setInterval(() => this.checkQueue(), 1000);
   }
 
-  async addToQueue(socket: TypedSocket, player: RacePlayer) {
+  async addToQueue(socket: TypedSocket, player: RacePlayer, raceType: RaceType = "common") {
     // Remove if already in queue
     this.removeFromQueue(socket.id);
 
@@ -53,34 +62,58 @@ export class Matchmaker implements RaceOwner {
       return;
     }
 
-    // Check placement for authenticated players
+    // Check placement for authenticated players (per-type)
     if (!player.isGuest) {
-      console.log(`[matchmaker] checking stats for ${player.id}...`);
-      const stats = await this.getPlayerStats(player.id);
-      const racesPlayed = stats?.racesPlayed ?? 0;
-      console.log(`[matchmaker] player ${player.id} racesPlayed=${racesPlayed} isGuest=${player.isGuest}`);
+      console.log(`[matchmaker] checking per-type stats for ${player.id} type=${raceType}...`);
+      const rating = await this.getPlayerRating(player.id, raceType);
+      const racesPlayed = rating?.racesPlayed ?? 0;
+      console.log(`[matchmaker] player ${player.id} type=${raceType} racesPlayed=${racesPlayed}`);
       if (racesPlayed < PLACEMENT_RACES) {
-        console.log(`[matchmaker] starting placement race ${racesPlayed + 1} for ${player.id}`);
-        this.startPlacementRace(socket, player, racesPlayed + 1, stats);
+        console.log(`[matchmaker] starting placement race ${racesPlayed + 1} for ${player.id} type=${raceType}`);
+        this.startPlacementRace(socket, player, racesPlayed + 1, rating, raceType);
         return;
       }
     }
 
+    // Use per-type ELO for matchmaking
+    const typeElo = player.eloByType?.[raceType] ?? player.elo;
+    const playerWithTypeElo = { ...player, elo: typeElo };
+
     // Normal ranked queue
-    this.queue.push({ socket, player, joinedAt: Date.now() });
-    this.broadcastQueueCount();
+    const queue = this.queues.get(raceType)!;
+    queue.push({ socket, player: playerWithTypeElo, joinedAt: Date.now(), raceType });
+    this.socketToQueue.set(socket.id, raceType);
+    this.broadcastQueueCount(raceType);
 
     // If we have enough players, try to match immediately
-    if (this.queue.length >= MAX_PLAYERS) {
+    if (queue.length >= MAX_PLAYERS) {
       this.checkQueue();
     }
   }
 
   removeFromQueue(socketId: string) {
-    const idx = this.queue.findIndex((e) => e.socket.id === socketId);
+    const raceType = this.socketToQueue.get(socketId);
+    if (!raceType) {
+      // Search all queues (fallback)
+      for (const [rt, queue] of this.queues) {
+        const idx = queue.findIndex((e) => e.socket.id === socketId);
+        if (idx !== -1) {
+          queue.splice(idx, 1);
+          this.socketToQueue.delete(socketId);
+          this.broadcastQueueCount(rt);
+          return;
+        }
+      }
+      return;
+    }
+
+    const queue = this.queues.get(raceType);
+    if (!queue) return;
+    const idx = queue.findIndex((e) => e.socket.id === socketId);
     if (idx !== -1) {
-      this.queue.splice(idx, 1);
-      this.broadcastQueueCount();
+      queue.splice(idx, 1);
+      this.socketToQueue.delete(socketId);
+      this.broadcastQueueCount(raceType);
     }
   }
 
@@ -121,22 +154,26 @@ export class Matchmaker implements RaceOwner {
     }
   }
 
-  private async getPlayerStats(userId: string) {
+  private async getPlayerRating(userId: string, raceType: RaceType) {
     const start = Date.now();
     try {
       const db = createDb(process.env.DATABASE_URL!);
       const result = await Promise.race([
-        db.select().from(userStats).where(eq(userStats.userId, userId)).limit(1),
+        db
+          .select()
+          .from(userRatings)
+          .where(and(eq(userRatings.userId, userId), eq(userRatings.raceType, raceType)))
+          .limit(1),
         new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000)),
       ]);
-      console.log(`[matchmaker] getPlayerStats took ${Date.now() - start}ms for ${userId}`);
+      console.log(`[matchmaker] getPlayerRating took ${Date.now() - start}ms for ${userId} type=${raceType}`);
       if (!result) {
-        console.log(`[matchmaker] getPlayerStats timed out for ${userId}`);
+        console.log(`[matchmaker] getPlayerRating timed out for ${userId}`);
         return null;
       }
       return result[0] ?? null;
     } catch (err) {
-      console.error(`[matchmaker] getPlayerStats error for ${userId} after ${Date.now() - start}ms:`, err);
+      console.error(`[matchmaker] getPlayerRating error for ${userId} after ${Date.now() - start}ms:`, err);
       return null;
     }
   }
@@ -147,24 +184,32 @@ export class Matchmaker implements RaceOwner {
   }
 
   private checkQueue() {
-    if (this.queue.length === 0) return;
+    // Process each race type queue independently
+    for (const raceType of RACE_TYPES) {
+      this.checkQueueForType(raceType);
+    }
+  }
+
+  private checkQueueForType(raceType: RaceType) {
+    const queue = this.queues.get(raceType)!;
+    if (queue.length === 0) return;
 
     const now = Date.now();
     const matched = new Set<number>();
 
     // Process queue entries oldest first — try to build groups of up to MAX_PLAYERS
-    for (let i = 0; i < this.queue.length; i++) {
+    for (let i = 0; i < queue.length; i++) {
       if (matched.has(i)) continue;
 
-      const entry = this.queue[i];
+      const entry = queue[i];
       const waited = now - entry.joinedAt;
       const window = this.getEloWindow(waited);
 
       // Collect ELO-compatible players for this group
       const group: number[] = [i];
-      for (let j = 0; j < this.queue.length; j++) {
+      for (let j = 0; j < queue.length; j++) {
         if (j === i || matched.has(j)) continue;
-        const dist = Math.abs(entry.player.elo - this.queue[j].player.elo);
+        const dist = Math.abs(entry.player.elo - queue[j].player.elo);
         if (dist <= window) {
           group.push(j);
           if (group.length >= MAX_PLAYERS) break;
@@ -175,34 +220,39 @@ export class Matchmaker implements RaceOwner {
       if (group.length >= MAX_PLAYERS) {
         // Full lobby — start immediately
         for (const idx of group) matched.add(idx);
-        this.startRace(group.map((idx) => this.queue[idx]));
+        this.startRace(group.map((idx) => queue[idx]), raceType);
       } else if (waited >= BOT_WAIT_MS && group.length >= 1) {
         // Waited long enough — start with bots filling remaining slots
         for (const idx of group) matched.add(idx);
-        const entries = group.map((idx) => this.queue[idx]);
+        const entries = group.map((idx) => queue[idx]);
         const botCount = MAX_PLAYERS - entries.length;
-        this.startRaceWithBots(entries, botCount);
+        this.startRaceWithBots(entries, botCount, raceType);
       } else if (waited >= MIN_WAIT_FOR_PAIR_MS && group.length >= 2) {
         // At least 2 humans and waited a while — start with bots
         for (const idx of group) matched.add(idx);
-        const entries = group.map((idx) => this.queue[idx]);
+        const entries = group.map((idx) => queue[idx]);
         const botCount = MAX_PLAYERS - entries.length;
-        this.startRaceWithBots(entries, botCount);
+        this.startRaceWithBots(entries, botCount, raceType);
       }
     }
 
     // Remove matched entries (reverse order to maintain indices)
     const toRemove = [...matched].sort((a, b) => b - a);
     for (const idx of toRemove) {
-      this.queue.splice(idx, 1);
+      const entry = queue[idx];
+      this.socketToQueue.delete(entry.socket.id);
+      queue.splice(idx, 1);
     }
     if (toRemove.length > 0) {
-      this.broadcastQueueCount();
+      this.broadcastQueueCount(raceType);
     }
   }
 
-  private startRace(entries: QueueEntry[]) {
-    const race = new RaceManager(this.io, entries, this);
+  private startRace(entries: QueueEntry[], raceType: RaceType) {
+    const race = new RaceManager(
+      this.io, entries, this,
+      [], undefined, undefined, false, raceType,
+    );
 
     this.races.set(race.raceId, race);
     for (const entry of entries) {
@@ -216,14 +266,15 @@ export class Matchmaker implements RaceOwner {
     socket: TypedSocket,
     player: RacePlayer,
     raceNumber: number,
-    stats: { avgWpm: number; racesPlayed: number } | null
+    rating: { eloRating: number; racesPlayed: number } | null,
+    raceType: RaceType,
   ) {
     // Adaptive bot WPM based on player's prior performance
     let botWpm: number;
-    if (!stats || stats.racesPlayed === 0) {
+    if (!rating || rating.racesPlayed === 0) {
       botWpm = 50; // Race 1: baseline
     } else {
-      botWpm = stats.avgWpm + 5; // Race 2+: slightly above player avg
+      botWpm = 50 + 5; // Race 2+: slightly above baseline
     }
 
     const botWpmMin = Math.max(20, botWpm - 5);
@@ -234,7 +285,7 @@ export class Matchmaker implements RaceOwner {
       id: `bot_${crypto.randomUUID()}`,
       name: botName,
       isGuest: true,
-      elo: player.elo,
+      elo: player.eloByType?.[raceType] ?? player.elo,
     };
 
     const entry = { socket, player };
@@ -242,15 +293,17 @@ export class Matchmaker implements RaceOwner {
       this.io, [entry], this, [bot],
       { botWpmMin, botWpmMax },
       raceNumber,
+      false,
+      raceType,
     );
     this.races.set(race.raceId, race);
     this.socketToRace.set(socket.id, race.raceId);
-    console.log(`[matchmaker] placement race ${race.raceId} created, calling start() for socket ${socket.id} (connected=${socket.connected})`);
+    console.log(`[matchmaker] placement race ${race.raceId} created for type=${raceType}, calling start() for socket ${socket.id} (connected=${socket.connected})`);
     race.start();
     console.log(`[matchmaker] placement race ${race.raceId} start() completed`);
   }
 
-  private startRaceWithBots(entries: QueueEntry[], botCount: number) {
+  private startRaceWithBots(entries: QueueEntry[], botCount: number, raceType: RaceType) {
     // Average ELO of human players for bot scaling
     const avgElo = entries.reduce((sum, e) => sum + e.player.elo, 0) / entries.length;
 
@@ -271,7 +324,11 @@ export class Matchmaker implements RaceOwner {
     const botWpmMin = Math.max(20, baseWpm - 10);
     const botWpmMax = baseWpm + 10;
 
-    const race = new RaceManager(this.io, entries, this, bots, { botWpmMin, botWpmMax });
+    const race = new RaceManager(
+      this.io, entries, this, bots,
+      { botWpmMin, botWpmMax },
+      undefined, false, raceType,
+    );
     this.races.set(race.raceId, race);
     for (const entry of entries) {
       this.socketToRace.set(entry.socket.id, race.raceId);
@@ -298,9 +355,10 @@ export class Matchmaker implements RaceOwner {
     return this.races.get(raceId);
   }
 
-  private broadcastQueueCount() {
-    for (const entry of this.queue) {
-      entry.socket.emit("queueUpdate", { count: this.queue.length });
+  private broadcastQueueCount(raceType: RaceType) {
+    const queue = this.queues.get(raceType)!;
+    for (const entry of queue) {
+      entry.socket.emit("queueUpdate", { count: queue.length });
     }
   }
 }

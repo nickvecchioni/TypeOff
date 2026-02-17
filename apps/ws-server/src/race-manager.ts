@@ -6,12 +6,13 @@ import type {
   RacePlayerProgress,
   RaceState,
   RaceStatus,
+  RaceType,
   WpmSample,
 } from "@typeoff/shared";
-import { calculateRaceElo, getRankTier, generateFromPool } from "@typeoff/shared";
+import { calculateRaceElo, getRankTier, generateFromPool, RACE_TYPE_WORD_COUNTS } from "@typeoff/shared";
 import type { WordPool } from "@typeoff/shared";
-import { createDb, races, raceParticipants, userStats, users } from "@typeoff/db";
-import { eq, inArray, and } from "drizzle-orm";
+import { createDb, races, raceParticipants, userStats, users, userRatings } from "@typeoff/db";
+import { eq, inArray, and, sql } from "drizzle-orm";
 export interface RaceOwner {
   cleanupRace(raceId: string, socketIds: string[]): void;
 }
@@ -64,6 +65,7 @@ export class RaceManager {
   private wordCount: number;
   private expectedWords: string[] = [];
   private playerFlags = new Map<string, string[]>();
+  private raceType?: RaceType;
 
   constructor(
     private io: TypedServer,
@@ -73,16 +75,23 @@ export class RaceManager {
     botWpmConfig?: BotWpmConfig,
     placementRace?: number,
     private isLobbyRace: boolean = false,
+    raceType?: RaceType,
   ) {
     this.placementRace = placementRace;
+    this.raceType = raceType;
     this.raceId = crypto.randomUUID();
     this.seed = Math.floor(Math.random() * 2147483647);
 
-    // Placement races use easy, short word sets; normal races randomize
-    if (this.placementRace) {
+    if (this.raceType) {
+      // Competitive queue race — use the race type's pool and word count
+      this.wordPool = this.raceType;
+      this.wordCount = RACE_TYPE_WORD_COUNTS[this.raceType];
+    } else if (this.placementRace) {
+      // Legacy placement (shouldn't happen with new flow, but kept for safety)
       this.wordPool = "common";
       this.wordCount = 20;
     } else {
+      // Lobby race — random pool and count
       const pools: WordPool[] = ["common", "medium", "hard"];
       this.wordPool = pools[this.seed % pools.length];
       this.wordCount = WORD_COUNT_OPTIONS[this.seed % WORD_COUNT_OPTIONS.length];
@@ -457,6 +466,7 @@ export class RaceManager {
       ...(this.placementRace != null
         ? { placementRace: this.placementRace, placementTotal: PLACEMENT_RACE_COUNT }
         : {}),
+      ...(this.raceType ? { raceType: this.raceType } : {}),
     });
     this.cleanup();
   }
@@ -560,28 +570,14 @@ export class RaceManager {
               .where(eq(userStats.userId, entry.player.id));
           }
 
-          // Calibrate initial ELO after final placement race
-          if (this.placementRace === PLACEMENT_RACE_COUNT) {
-            const updatedStats = await db
-              .select()
-              .from(userStats)
-              .where(eq(userStats.userId, entry.player.id))
-              .limit(1);
-            if (updatedStats.length > 0) {
-              const avgWpm = updatedStats[0].avgWpm;
-              const initialElo = Math.min(2200, Math.max(600, Math.round(500 + avgWpm * 8.5)));
-              const initialTier = getRankTier(initialElo);
-              await db
-                .update(users)
-                .set({
-                  eloRating: initialElo,
-                  rankTier: initialTier,
-                  peakEloRating: initialElo,
-                  peakRankTier: initialTier,
-                  placementsCompleted: true,
-                })
-                .where(eq(users.id, entry.player.id));
-            }
+          // Update per-type rating (racesPlayed increment)
+          if (this.raceType) {
+            await this.upsertRating(db, entry.player.id, this.raceType);
+          }
+
+          // Calibrate initial ELO after final placement race for this type
+          if (this.placementRace === PLACEMENT_RACE_COUNT && this.raceType) {
+            await this.calibratePlacement(db, entry.player.id, this.raceType);
           }
         }
       }
@@ -590,26 +586,32 @@ export class RaceManager {
       const authPlayers = entries.filter((e) => !e.player.isGuest && !e.isBot);
       const botEntries = entries.filter((e) => e.isBot);
 
-      if (!this.placementRace && !this.isLobbyRace && authPlayers.length >= 1) {
+      if (!this.placementRace && !this.isLobbyRace && authPlayers.length >= 1 && this.raceType) {
         const playerIds = authPlayers.map((e) => e.player.id);
+
+        // Read per-type ratings for ELO calc
+        const ratingRows = await db
+          .select()
+          .from(userRatings)
+          .where(
+            and(
+              inArray(userRatings.userId, playerIds),
+              eq(userRatings.raceType, this.raceType),
+            )
+          );
+        const ratingMap = new Map(ratingRows.map((r) => [r.userId, r]));
+
         const statsRows = await db
           .select()
           .from(userStats)
           .where(inArray(userStats.userId, playerIds));
         const statsMap = new Map(statsRows.map((s) => [s.userId, s]));
 
-        const userRows = await db
-          .select({ id: users.id, eloRating: users.eloRating, peakEloRating: users.peakEloRating })
-          .from(users)
-          .where(inArray(users.id, playerIds));
-        const eloMap = new Map(userRows.map((u) => [u.id, u.eloRating]));
-        const peakEloMap = new Map(userRows.map((u) => [u.id, u.peakEloRating]));
-
         // Include bots as virtual opponents for ELO calculation
         const eloInput = [
           ...authPlayers.map((e) => ({
             id: e.player.id,
-            elo: eloMap.get(e.player.id) ?? 1000,
+            elo: ratingMap.get(e.player.id)?.eloRating ?? 1000,
             placement: e.progress.placement!,
             gamesPlayed: statsMap.get(e.player.id)?.racesPlayed ?? 0,
           })),
@@ -627,32 +629,51 @@ export class RaceManager {
         for (const [userId, change] of changes) {
           if (botEntries.some((b) => b.player.id === userId)) continue;
           eloChanges.set(userId, change);
-          const currentElo = eloMap.get(userId) ?? 1000;
+
+          const rating = ratingMap.get(userId);
+          const currentElo = rating?.eloRating ?? 1000;
           const newElo = Math.max(0, currentElo + change);
-          const peakElo = peakEloMap.get(userId) ?? 1000;
+          const peakElo = rating?.peakEloRating ?? 1000;
+
+          // Update per-type rating
           const updateData: Record<string, unknown> = {
             eloRating: newElo,
             rankTier: getRankTier(newElo),
+            updatedAt: new Date(),
           };
           if (newElo > peakElo) {
             updateData.peakEloRating = newElo;
             updateData.peakRankTier = getRankTier(newElo);
           }
           await db
-            .update(users)
+            .update(userRatings)
             .set(updateData)
-            .where(eq(users.id, userId));
+            .where(
+              and(
+                eq(userRatings.userId, userId),
+                eq(userRatings.raceType, this.raceType!),
+              )
+            );
+
+          // Update users table "best of" cache: set to MAX across all types
+          await this.updateBestOfCache(db, userId);
         }
 
         // Update participant records with elo data
         for (const entry of authPlayers) {
-          const currentElo = eloMap.get(entry.player.id) ?? 1000;
+          const rating = ratingMap.get(entry.player.id);
+          const currentElo = rating?.eloRating ?? 1000;
           const change = eloChanges.get(entry.player.id) ?? 0;
           const newElo = Math.max(0, currentElo + change);
           await db
             .update(raceParticipants)
             .set({ eloBefore: currentElo, eloAfter: newElo })
-            .where(eq(raceParticipants.raceId, this.raceId));
+            .where(
+              and(
+                eq(raceParticipants.raceId, this.raceId),
+                eq(raceParticipants.userId, entry.player.id),
+              )
+            );
         }
       }
 
@@ -718,6 +739,97 @@ export class RaceManager {
     return results.sort((a, b) => a.placement - b.placement);
   }
 
+  /** Upsert a userRatings row, incrementing racesPlayed by 1 */
+  private async upsertRating(db: ReturnType<typeof createDb>, userId: string, raceType: RaceType) {
+    const existing = await db
+      .select()
+      .from(userRatings)
+      .where(and(eq(userRatings.userId, userId), eq(userRatings.raceType, raceType)))
+      .limit(1);
+
+    if (existing.length === 0) {
+      await db.insert(userRatings).values({
+        userId,
+        raceType,
+        racesPlayed: 1,
+      });
+    } else {
+      await db
+        .update(userRatings)
+        .set({
+          racesPlayed: existing[0].racesPlayed + 1,
+          updatedAt: new Date(),
+        })
+        .where(and(eq(userRatings.userId, userId), eq(userRatings.raceType, raceType)));
+    }
+  }
+
+  /** Calibrate initial ELO after placement races for a specific type */
+  private async calibratePlacement(db: ReturnType<typeof createDb>, userId: string, raceType: RaceType) {
+    // Get avg WPM from this player's recent races with this word pool
+    const recentResults = await db
+      .select({ wpm: raceParticipants.wpm })
+      .from(raceParticipants)
+      .innerJoin(races, eq(raceParticipants.raceId, races.id))
+      .where(
+        and(
+          eq(raceParticipants.userId, userId),
+          eq(races.wordPool, raceType),
+        )
+      )
+      .orderBy(sql`${raceParticipants.finishedAt} DESC`)
+      .limit(PLACEMENT_RACE_COUNT);
+
+    const wpms = recentResults.map((r) => r.wpm ?? 0);
+    const avgWpm = wpms.length > 0 ? wpms.reduce((a, b) => a + b, 0) / wpms.length : 50;
+    const initialElo = Math.min(2200, Math.max(600, Math.round(500 + avgWpm * 8.5)));
+    const initialTier = getRankTier(initialElo);
+
+    await db
+      .update(userRatings)
+      .set({
+        eloRating: initialElo,
+        rankTier: initialTier,
+        peakEloRating: initialElo,
+        peakRankTier: initialTier,
+        placementsCompleted: true,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(userRatings.userId, userId), eq(userRatings.raceType, raceType)));
+
+    // Update users table "best of" cache
+    await this.updateBestOfCache(db, userId);
+  }
+
+  /** Set users.eloRating/rankTier to the MAX across all per-type ratings */
+  private async updateBestOfCache(db: ReturnType<typeof createDb>, userId: string) {
+    const allRatings = await db
+      .select({
+        eloRating: userRatings.eloRating,
+        peakEloRating: userRatings.peakEloRating,
+        placementsCompleted: userRatings.placementsCompleted,
+      })
+      .from(userRatings)
+      .where(eq(userRatings.userId, userId));
+
+    if (allRatings.length === 0) return;
+
+    const anyPlaced = allRatings.some((r) => r.placementsCompleted);
+    const bestElo = Math.max(...allRatings.map((r) => r.eloRating));
+    const bestPeakElo = Math.max(...allRatings.map((r) => r.peakEloRating));
+
+    await db
+      .update(users)
+      .set({
+        eloRating: bestElo,
+        rankTier: getRankTier(bestElo),
+        peakEloRating: bestPeakElo,
+        peakRankTier: getRankTier(bestPeakElo),
+        placementsCompleted: anyPlaced,
+      })
+      .where(eq(users.id, userId));
+  }
+
   private cleanup() {
     if (this.countdownTimer) clearInterval(this.countdownTimer);
     if (this.progressTimer) clearInterval(this.progressTimer);
@@ -777,6 +889,7 @@ export class RaceManager {
       countdown: 0,
       finishTimeoutEnd: this.finishTimeoutEnd,
       placementRace: this.placementRace,
+      raceType: this.raceType,
     };
   }
 }

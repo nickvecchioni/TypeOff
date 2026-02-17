@@ -2,10 +2,10 @@ export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
-import { users, userStats, raceParticipants, races, soloResults } from "@typeoff/db";
+import { users, userStats, raceParticipants, races, soloResults, userRatings } from "@typeoff/db";
 import { eq, desc, and } from "drizzle-orm";
-import type { RankTier } from "@typeoff/shared";
-import { getRankInfo, getRankProgress, getNextDivisionElo } from "@typeoff/shared";
+import type { RankTier, RaceType } from "@typeoff/shared";
+import { getRankInfo, getRankProgress, getNextDivisionElo, getRankTier, RACE_TYPE_LABELS } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
 import { UsernameEditor } from "./username-editor";
 import { SignOutButton } from "./sign-out-button";
@@ -54,6 +54,7 @@ export default async function ProfilePage({
       eloAfter: raceParticipants.eloAfter,
       finishedAt: raceParticipants.finishedAt,
       playerCount: races.playerCount,
+      wordPool: races.wordPool,
     })
     .from(raceParticipants)
     .innerJoin(races, eq(raceParticipants.raceId, races.id))
@@ -61,11 +62,12 @@ export default async function ProfilePage({
     .orderBy(desc(raceParticipants.finishedAt))
     .limit(20);
 
-  // Load solo PBs — for each (mode, duration), find the best WPM
+  // Load solo PBs — for each (mode, duration, wordPool), find the best WPM
   const allSoloResults = await db
     .select({
       mode: soloResults.mode,
       duration: soloResults.duration,
+      wordPool: soloResults.wordPool,
       wpm: soloResults.wpm,
       createdAt: soloResults.createdAt,
     })
@@ -75,12 +77,27 @@ export default async function ProfilePage({
 
   const soloPbMap = new Map<string, typeof allSoloResults[0]>();
   for (const row of allSoloResults) {
-    const key = `${row.mode}:${row.duration}`;
+    const key = `${row.mode}:${row.duration}:${row.wordPool ?? "common"}`;
     if (!soloPbMap.has(key)) {
       soloPbMap.set(key, row);
     }
   }
   const soloPbs = Array.from(soloPbMap.values());
+
+  // Load per-type ratings
+  const ratings = await db
+    .select({
+      raceType: userRatings.raceType,
+      eloRating: userRatings.eloRating,
+      rankTier: userRatings.rankTier,
+      peakEloRating: userRatings.peakEloRating,
+      placementsCompleted: userRatings.placementsCompleted,
+      racesPlayed: userRatings.racesPlayed,
+    })
+    .from(userRatings)
+    .where(eq(userRatings.userId, user.id));
+
+  const ratingsMap = new Map(ratings.map((r) => [r.raceType as RaceType, r]));
 
   // Check if this is own profile
   const { auth } = await import("@/lib/auth");
@@ -173,6 +190,47 @@ export default async function ProfilePage({
           <StatCard label="Best Streak" value={stats?.maxStreak ?? 0} />
         </div>
 
+        {/* ── Ranked Ratings ──────────────────────────────── */}
+        {ratings.length > 0 && (
+          <section>
+            <SectionHeader>Ranked Ratings</SectionHeader>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {(["common", "medium", "hard"] as RaceType[]).map((rt) => {
+                const r = ratingsMap.get(rt);
+                const label = RACE_TYPE_LABELS[rt];
+                if (!r || !r.placementsCompleted) {
+                  return (
+                    <div
+                      key={rt}
+                      className="rounded-lg bg-surface/60 ring-1 ring-white/[0.04] px-5 py-4 text-center"
+                    >
+                      <div className="text-sm font-bold text-muted mb-2">{label}</div>
+                      <div className="text-xs text-muted/60">Unranked</div>
+                    </div>
+                  );
+                }
+                const tier = getRankTier(r.eloRating);
+                return (
+                  <div
+                    key={rt}
+                    className="rounded-lg bg-surface/60 ring-1 ring-white/[0.04] px-5 py-4 flex flex-col items-center gap-2"
+                  >
+                    <div className="text-sm font-bold text-text">{label}</div>
+                    <RankBadge
+                      tier={tier as RankTier}
+                      elo={r.eloRating}
+                      size="md"
+                    />
+                    <div className="text-xs text-muted tabular-nums">
+                      {r.racesPlayed} races
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         {/* ── Solo Personal Bests ──────────────────────────── */}
         {soloPbs.length > 0 && (
           <section>
@@ -180,15 +238,15 @@ export default async function ProfilePage({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {soloPbs.map((pb) => (
                 <div
-                  key={`${pb.mode}:${pb.duration}`}
+                  key={`${pb.mode}:${pb.duration}:${pb.wordPool ?? "common"}`}
                   className="rounded-lg bg-surface/60 ring-1 ring-white/[0.04] px-5 py-4 flex items-center justify-between"
                 >
                   <div>
                     <div className="text-sm text-text">
-                      {pb.mode === "wordcount" ? "Words" : "Time"}
-                    </div>
-                    <div className="text-xs text-muted tabular-nums">
                       {pb.mode === "timed" ? `${pb.duration}s` : `${pb.duration} words`}
+                    </div>
+                    <div className="text-xs text-muted capitalize">
+                      {pb.wordPool ?? "common"}
                     </div>
                   </div>
                   <div className="text-right">
@@ -214,6 +272,7 @@ export default async function ProfilePage({
                 <thead>
                   <tr className="text-xs text-muted uppercase tracking-wider border-b border-white/[0.04]">
                     <th className="px-5 py-3 font-medium">Date</th>
+                    <th className="px-5 py-3 font-medium">Type</th>
                     <th className="px-5 py-3 font-medium">Result</th>
                     <th className="px-5 py-3 font-medium text-right">WPM</th>
                     <th className="px-5 py-3 font-medium text-right">ELO</th>
@@ -234,6 +293,11 @@ export default async function ProfilePage({
                         <td className="px-5 py-3 text-muted tabular-nums">
                           {race.finishedAt
                             ? new Date(race.finishedAt).toLocaleDateString()
+                            : "-"}
+                        </td>
+                        <td className="px-5 py-3 text-muted text-xs">
+                          {race.wordPool && (race.wordPool as string) in RACE_TYPE_LABELS
+                            ? RACE_TYPE_LABELS[race.wordPool as RaceType]
                             : "-"}
                         </td>
                         <td className="px-5 py-3">

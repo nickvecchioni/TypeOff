@@ -1,17 +1,21 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { useSession, signIn } from "next-auth/react";
 import { RankBadge } from "@/components/RankBadge";
-import type { RankTier } from "@typeoff/shared";
+import type { RankTier, RaceType } from "@typeoff/shared";
+import { RACE_TYPE_LABELS, RACE_TYPE_WORD_COUNTS } from "@typeoff/shared";
+
+const RACE_TYPES: RaceType[] = ["common", "medium", "hard"];
 
 interface QueueScreenProps {
   isQueuing: boolean;
   queueCount: number;
   connected: boolean;
-  onJoin: () => void;
+  onJoin: (raceType: RaceType) => void;
   onLeave: () => void;
+  activeRaceType: RaceType;
 }
 
 export function QueueScreen({
@@ -20,8 +24,10 @@ export function QueueScreen({
   connected,
   onJoin,
   onLeave,
+  activeRaceType,
 }: QueueScreenProps) {
   const { data: session } = useSession();
+  const [selectedType, setSelectedType] = useState<RaceType>(activeRaceType);
 
   if (isQueuing) {
     return (
@@ -34,6 +40,9 @@ export function QueueScreen({
             placementsCompleted={session.user.placementsCompleted}
           />
         )}
+        <div className="text-xs text-muted uppercase tracking-wider font-bold">
+          {RACE_TYPE_LABELS[activeRaceType]} Queue
+        </div>
         <div className="text-2xl text-accent tabular-nums">{queueCount}</div>
         <p className="text-muted text-sm">
           {queueCount === 1 ? "player" : "players"} in queue
@@ -67,15 +76,45 @@ export function QueueScreen({
         </p>
       </div>
 
+      {/* Race Type Selector */}
+      {session?.user && (
+        <div className="flex flex-col items-center gap-3">
+          <div className="text-xs text-muted uppercase tracking-wider font-bold">
+            Choose Difficulty
+          </div>
+          <div className="flex gap-2">
+            {RACE_TYPES.map((rt) => {
+              const isSelected = rt === selectedType;
+              return (
+                <button
+                  key={rt}
+                  onClick={() => setSelectedType(rt)}
+                  className={`rounded-lg border px-5 py-3 text-sm font-bold transition-colors ${
+                    isSelected
+                      ? "border-accent/50 bg-accent/15 text-accent"
+                      : "border-white/[0.06] bg-surface/60 text-muted hover:text-text hover:border-white/[0.12]"
+                  }`}
+                >
+                  <div>{RACE_TYPE_LABELS[rt]}</div>
+                  <div className="text-xs font-normal mt-0.5 opacity-60">
+                    {RACE_TYPE_WORD_COUNTS[rt]} words
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* CTA */}
       <div className="flex flex-col items-center gap-3">
         {session?.user ? (
           <button
-            onClick={onJoin}
+            onClick={() => onJoin(selectedType)}
             disabled={!connected}
             className="rounded-lg border border-accent/30 bg-accent/15 text-accent px-12 py-4 text-lg font-bold hover:bg-accent/25 hover:border-accent/50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {session.user.placementsCompleted ? "Find Race" : "Start Placements"}
+            Find {RACE_TYPE_LABELS[selectedType]} Race
           </button>
         ) : (
           <button

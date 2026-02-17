@@ -48,13 +48,13 @@ export function TypingTest({ onStatusChange }: TypingTestProps) {
 
   return (
     <div
-      className={`flex flex-col items-center gap-8 w-full max-w-3xl mx-auto ${
+      className={`flex flex-col items-center w-full max-w-4xl mx-auto ${
         isTyping ? "focus-active" : ""
       }`}
     >
       {/* PB + Mode selector */}
       {!isFinished && (
-        <div className="focus-fade flex flex-col items-center gap-2">
+        <div className="focus-fade flex flex-col items-center gap-2 mb-8">
           <PersonalBest config={config} />
           <ModeSelector
             config={config}
@@ -87,17 +87,19 @@ export function TypingTest({ onStatusChange }: TypingTestProps) {
 
       {/* Stats bar (below words) */}
       {!isFinished && (
-        <StatsBar
-          wpm={liveWpm}
-          timeLeft={timeLeft}
-          config={config}
-          visible={isTyping}
-        />
+        <div className="mt-6">
+          <StatsBar
+            wpm={liveWpm}
+            timeLeft={timeLeft}
+            config={config}
+            visible={isTyping}
+          />
+        </div>
       )}
 
       {/* Restart hint */}
       {!isFinished && (
-        <div className="focus-fade text-sm text-muted">
+        <div className="focus-fade text-sm text-muted mt-4">
           <kbd className="px-1.5 py-0.5 rounded border border-surface-bright bg-surface text-text text-xs">tab</kbd>
           {" + "}
           <kbd className="px-1.5 py-0.5 rounded border border-surface-bright bg-surface text-text text-xs">enter</kbd>

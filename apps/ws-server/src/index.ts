@@ -4,6 +4,7 @@ import { Server } from "socket.io";
 import type {
   ClientToServerEvents,
   ServerToClientEvents,
+  RaceType,
 } from "@typeoff/shared";
 import { authenticateSocket } from "./auth.js";
 import { Matchmaker } from "./matchmaker.js";
@@ -43,14 +44,15 @@ io.on("connection", (socket) => {
   // ─── Queue Events ─────────────────────────────────────────────────
 
   socket.on("joinQueue", async (data) => {
-    console.log(`[joinQueue] ${socket.id} connected=${socket.connected}`);
+    console.log(`[joinQueue] ${socket.id} connected=${socket.connected} raceType=${data.raceType ?? "common"}`);
     try {
       const player = await authenticateSocket(data, socket.id);
       console.log(`[joinQueue] ${socket.id} authenticated as ${player.id} (${player.name})`);
       // Fire-and-forget: don't block queue join on friend notifications
       socialManager.trackConnection(socket, player.id).catch(() => {});
-      await matchmaker.addToQueue(socket, player);
-      console.log(`[joinQueue] ${socket.id} addToQueue completed`);
+      const raceType = (data.raceType ?? "common") as RaceType;
+      await matchmaker.addToQueue(socket, player, raceType);
+      console.log(`[joinQueue] ${socket.id} addToQueue completed for type=${raceType}`);
     } catch (err) {
       console.error(`[joinQueue] ${socket.id} error:`, err);
       socket.emit("error", {
