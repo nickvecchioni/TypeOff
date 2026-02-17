@@ -31,6 +31,7 @@ interface PlayerEntry {
   botSpeedMultiplier: number;
   botNextRhythmTick: number;
   botTickCounter: number;
+  botTypingTicks: number;
   wpmHistory?: WpmSample[];
   misstypedChars?: number;
   lastProgressTime: number;
@@ -44,8 +45,8 @@ const PROGRESS_INTERVAL_MS = 100;
 const DEFAULT_BOT_WPM_MIN = 40;
 const DEFAULT_BOT_WPM_MAX = 80;
 const BOT_WPM_VARIANCE = 5;
-const BOT_REACTION_MIN_MS = 1200;
-const BOT_REACTION_MAX_MS = 2500;
+const BOT_REACTION_MIN_MS = 300;
+const BOT_REACTION_MAX_MS = 800;
 
 export interface BotWpmConfig {
   botWpmMin: number;
@@ -112,6 +113,7 @@ export class RaceManager {
         botSpeedMultiplier: 1,
         botNextRhythmTick: 0,
         botTickCounter: 0,
+        botTypingTicks: 0,
         lastProgressTime: now,
         progressEventsInWindow: 0,
         progressWindowStart: now,
@@ -148,6 +150,7 @@ export class RaceManager {
         botSpeedMultiplier: 1.0,
         botNextRhythmTick: Math.floor(5 + Math.random() * 10),
         botTickCounter: 0,
+        botTypingTicks: 0,
         lastProgressTime: now,
         progressEventsInWindow: 0,
         progressWindowStart: now,
@@ -400,14 +403,16 @@ export class RaceManager {
         continue;
       }
 
-      // Update typing rhythm: burst/pause cycle
+      entry.botTypingTicks++;
+
+      // Update typing rhythm: gentle burst/pause cycle
       entry.botTickCounter++;
       if (entry.botTickCounter >= entry.botNextRhythmTick) {
-        // 70% chance burst (1.0-1.3), 30% chance pause (0.3-0.7)
+        // 70% chance slight burst (0.95-1.1), 30% chance slight pause (0.85-0.95)
         if (Math.random() < 0.7) {
-          entry.botSpeedMultiplier = 1.0 + Math.random() * 0.3;
+          entry.botSpeedMultiplier = 0.95 + Math.random() * 0.15;
         } else {
-          entry.botSpeedMultiplier = 0.3 + Math.random() * 0.4;
+          entry.botSpeedMultiplier = 0.85 + Math.random() * 0.1;
         }
         entry.botNextRhythmTick = Math.floor(5 + Math.random() * 10);
         entry.botTickCounter = 0;
@@ -425,8 +430,13 @@ export class RaceManager {
       // Track raw progress internally, cap broadcast at 97% until truly done
       entry.botRawProgress += progressPerTick;
       entry.progress.progress = Math.min(0.97, entry.botRawProgress);
-      entry.progress.wpm = Math.round(effectiveWpm);
       entry.progress.wordIndex = Math.floor(entry.botRawProgress * this.wordCount);
+
+      // Running average WPM based on actual progress and elapsed time
+      const elapsedMinutes = (entry.botTypingTicks * PROGRESS_INTERVAL_MS) / 60_000;
+      const wordsTyped = (entry.botRawProgress * this.totalChars) / 5;
+      const runningWpm = elapsedMinutes > 0 ? Math.round(wordsTyped / elapsedMinutes) : 0;
+      entry.progress.wpm = runningWpm;
 
       if (entry.botRawProgress >= 1) {
         entry.progress.progress = 1;
@@ -434,8 +444,8 @@ export class RaceManager {
         entry.progress.placement = this.nextPlacement++;
         entry.progress.wordIndex = this.wordCount;
         entry.progress.finalStats = {
-          wpm: Math.round(entry.botTargetWpm),
-          rawWpm: Math.round(entry.botTargetWpm),
+          wpm: runningWpm,
+          rawWpm: runningWpm,
           accuracy: Math.round(95 + Math.random() * 5),
         };
 
