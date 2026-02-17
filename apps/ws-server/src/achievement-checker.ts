@@ -1,4 +1,4 @@
-import { createDb, userAchievements, raceParticipants, friendships } from "@typeoff/db";
+import { type Database, userAchievements, raceParticipants, friendships } from "@typeoff/db";
 import { eq, and, gte, or, sql } from "drizzle-orm";
 import type { RankTier } from "@typeoff/shared";
 
@@ -30,10 +30,8 @@ function rankAtLeast(current: RankTier, target: RankTier): boolean {
 
 export async function checkAchievements(
   ctx: AchievementContext,
-  databaseUrl: string,
+  db: Database,
 ): Promise<string[]> {
-  const db = createDb(databaseUrl);
-
   // Load existing achievements for this user
   const existing = await db
     .select({ achievementId: userAchievements.achievementId })

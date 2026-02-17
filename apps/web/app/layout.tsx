@@ -43,12 +43,6 @@ export default function RootLayout({
                   Leaderboard
                 </Link>
                 <Link
-                  href="/daily"
-                  className="text-sm text-muted hover:text-text transition-colors"
-                >
-                  Daily
-                </Link>
-                <Link
                   href="/ranks"
                   className="text-sm text-muted hover:text-text transition-colors"
                 >

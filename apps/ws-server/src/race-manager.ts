@@ -513,9 +513,10 @@ export class RaceManager {
     const achievementMap = new Map<string, string[]>();
     const playerStatsMap = new Map<string, { racesPlayed: number; racesWon: number; currentStreak: number; maxStreak: number }>();
 
-    try {
-      const db = createDb(process.env.DATABASE_URL!);
+    const db = createDb(process.env.DATABASE_URL!);
 
+    // Steps 1-3: race insert, participants, stats, ELO
+    try {
       // 1. Insert race record
       await db.insert(races).values({
         id: this.raceId,
@@ -556,6 +557,8 @@ export class RaceManager {
             .from(userStats)
             .where(eq(userStats.userId, entry.player.id));
 
+          const todayUTC = new Date().toISOString().slice(0, 10);
+
           if (existing.length === 0) {
             const newStreak = placement === 1 ? 1 : 0;
             const newWon = placement === 1 ? 1 : 0;
@@ -570,6 +573,9 @@ export class RaceManager {
               avgAccuracy: stats.accuracy,
               currentStreak: newStreak,
               maxStreak: newStreak,
+              lastRankedDate: todayUTC,
+              rankedDayStreak: 1,
+              maxRankedDayStreak: 1,
             });
           } else {
             const s = existing[0];
@@ -579,6 +585,23 @@ export class RaceManager {
             const newMaxStreak = Math.max(s.maxStreak, newStreak);
             streakMap.set(entry.player.id, newStreak);
             playerStatsMap.set(entry.player.id, { racesPlayed: newPlayed, racesWon: newWon, currentStreak: newStreak, maxStreak: newMaxStreak });
+
+            // Ranked day streak logic
+            let rankedDayStreak = s.rankedDayStreak;
+            if (s.lastRankedDate === todayUTC) {
+              // Already played today — no streak change
+            } else {
+              const yd = new Date();
+              yd.setUTCDate(yd.getUTCDate() - 1);
+              const yesterdayUTC = yd.toISOString().slice(0, 10);
+              if (s.lastRankedDate === yesterdayUTC) {
+                rankedDayStreak = s.rankedDayStreak + 1;
+              } else {
+                rankedDayStreak = 1;
+              }
+            }
+            const maxRankedDayStreak = Math.max(rankedDayStreak, s.maxRankedDayStreak);
+
             await db
               .update(userStats)
               .set({
@@ -590,6 +613,9 @@ export class RaceManager {
                   (s.avgAccuracy * s.racesPlayed + stats.accuracy) / newPlayed,
                 currentStreak: newStreak,
                 maxStreak: newMaxStreak,
+                lastRankedDate: todayUTC,
+                rankedDayStreak,
+                maxRankedDayStreak,
                 updatedAt: new Date(),
               })
               .where(eq(userStats.userId, entry.player.id));
@@ -688,78 +714,78 @@ export class RaceManager {
             );
         }
       }
-
-      // 4. Load display data (usernames + elo for players not yet in eloAfterMap)
-      try {
-        const authPlayerIds = entries
-          .filter((e) => !e.player.isGuest && !e.isBot)
-          .map((e) => e.player.id);
-        if (authPlayerIds.length > 0) {
-          const userRows = await db
-            .select({ id: users.id, username: users.username, eloRating: users.eloRating })
-            .from(users)
-            .where(inArray(users.id, authPlayerIds));
-          for (const row of userRows) {
-            if (row.username) usernameMap.set(row.id, row.username);
-            if (!eloAfterMap.has(row.id)) eloAfterMap.set(row.id, row.eloRating);
-          }
-        }
-      } catch (displayErr) {
-        console.error("[race-manager] display data error:", displayErr);
-      }
-
-      // 5. Load streak data
-      try {
-        const authPlayerIds = entries
-          .filter((e) => !e.player.isGuest && !e.isBot)
-          .map((e) => e.player.id);
-        if (authPlayerIds.length > 0 && streakMap.size === 0) {
-          const streakRows = await db
-            .select({ userId: userStats.userId, currentStreak: userStats.currentStreak })
-            .from(userStats)
-            .where(inArray(userStats.userId, authPlayerIds));
-          for (const row of streakRows) {
-            streakMap.set(row.userId, row.currentStreak);
-          }
-        }
-      } catch (streakErr) {
-        console.error("[race-manager] streak data error:", streakErr);
-      }
-
-      // 6. Check achievements for authenticated players
-      try {
-        for (const entry of entries) {
-          if (entry.isBot || entry.player.isGuest) continue;
-          const pStats = playerStatsMap.get(entry.player.id);
-          if (!pStats) continue;
-
-          const finalStats = entry.progress.finalStats!;
-          const newElo = eloAfterMap.get(entry.player.id) ?? entry.player.elo;
-          const rankTier = getRankTier(newElo) as RankTier;
-
-          const newAchievements = await checkAchievements(
-            {
-              userId: entry.player.id,
-              raceWpm: finalStats.wpm,
-              raceAccuracy: finalStats.accuracy,
-              placement: entry.progress.placement!,
-              racesPlayed: pStats.racesPlayed,
-              racesWon: pStats.racesWon,
-              currentStreak: pStats.currentStreak,
-              maxStreak: pStats.maxStreak,
-              rankTier,
-            },
-            process.env.DATABASE_URL!,
-          );
-          if (newAchievements.length > 0) {
-            achievementMap.set(entry.player.id, newAchievements);
-          }
-        }
-      } catch (achievementErr) {
-        console.error("[race-manager] achievement check error:", achievementErr);
-      }
     } catch (err) {
-      console.error("[race-manager] DB error:", err);
+      console.error("[race-manager] DB error (persist):", err);
+    }
+
+    // 4. Load display data (usernames + elo for players not yet in eloAfterMap)
+    try {
+      const authPlayerIds = entries
+        .filter((e) => !e.player.isGuest && !e.isBot)
+        .map((e) => e.player.id);
+      if (authPlayerIds.length > 0) {
+        const userRows = await db
+          .select({ id: users.id, username: users.username, eloRating: users.eloRating })
+          .from(users)
+          .where(inArray(users.id, authPlayerIds));
+        for (const row of userRows) {
+          if (row.username) usernameMap.set(row.id, row.username);
+          if (!eloAfterMap.has(row.id)) eloAfterMap.set(row.id, row.eloRating);
+        }
+      }
+    } catch (displayErr) {
+      console.error("[race-manager] display data error:", displayErr);
+    }
+
+    // 5. Load streak data
+    try {
+      const authPlayerIds = entries
+        .filter((e) => !e.player.isGuest && !e.isBot)
+        .map((e) => e.player.id);
+      if (authPlayerIds.length > 0 && streakMap.size === 0) {
+        const streakRows = await db
+          .select({ userId: userStats.userId, currentStreak: userStats.currentStreak })
+          .from(userStats)
+          .where(inArray(userStats.userId, authPlayerIds));
+        for (const row of streakRows) {
+          streakMap.set(row.userId, row.currentStreak);
+        }
+      }
+    } catch (streakErr) {
+      console.error("[race-manager] streak data error:", streakErr);
+    }
+
+    // 6. Check achievements for authenticated players
+    try {
+      for (const entry of entries) {
+        if (entry.isBot || entry.player.isGuest) continue;
+        const pStats = playerStatsMap.get(entry.player.id);
+        if (!pStats) continue;
+
+        const finalStats = entry.progress.finalStats!;
+        const newElo = eloAfterMap.get(entry.player.id) ?? entry.player.elo;
+        const rankTier = getRankTier(newElo) as RankTier;
+
+        const newAchievements = await checkAchievements(
+          {
+            userId: entry.player.id,
+            raceWpm: finalStats.wpm,
+            raceAccuracy: finalStats.accuracy,
+            placement: entry.progress.placement!,
+            racesPlayed: pStats.racesPlayed,
+            racesWon: pStats.racesWon,
+            currentStreak: pStats.currentStreak,
+            maxStreak: pStats.maxStreak,
+            rankTier,
+          },
+          db,
+        );
+        if (newAchievements.length > 0) {
+          achievementMap.set(entry.player.id, newAchievements);
+        }
+      }
+    } catch (achievementErr) {
+      console.error("[race-manager] achievement check error:", achievementErr);
     }
 
     // Build results array (always runs, even if DB failed)

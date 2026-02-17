@@ -139,27 +139,6 @@ export const soloResults = pgTable("solo_results", {
     .$defaultFn(() => new Date()),
 });
 
-// ─── Daily Challenges ────────────────────────────────────────────────
-
-export const dailyChallengeResults = pgTable(
-  "daily_challenge_results",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    userId: text("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    challengeDate: text("challenge_date").notNull(), // "YYYY-MM-DD" UTC
-    wpm: real("wpm").notNull(),
-    rawWpm: real("raw_wpm").notNull(),
-    accuracy: real("accuracy").notNull(),
-    completedAt: timestamp("completed_at", { mode: "date" })
-      .notNull()
-      .$defaultFn(() => new Date()),
-    currentStreak: integer("current_streak").notNull().default(1),
-  },
-  (t) => [unique().on(t.userId, t.challengeDate)],
-);
-
 // ─── Achievements ───────────────────────────────────────────────────
 
 export const userAchievements = pgTable(
@@ -190,6 +169,9 @@ export const userStats = pgTable("user_stats", {
   avgAccuracy: real("avg_accuracy").notNull().default(0),
   currentStreak: integer("current_streak").notNull().default(0),
   maxStreak: integer("max_streak").notNull().default(0),
+  lastRankedDate: text("last_ranked_date"),
+  rankedDayStreak: integer("ranked_day_streak").notNull().default(0),
+  maxRankedDayStreak: integer("max_ranked_day_streak").notNull().default(0),
   updatedAt: timestamp("updated_at", { mode: "date" })
     .notNull()
     .$defaultFn(() => new Date()),
