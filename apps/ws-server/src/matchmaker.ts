@@ -74,10 +74,8 @@ export class Matchmaker implements RaceOwner {
     this.queue.push({ socket, player, joinedAt: Date.now() });
     this.broadcastQueueCount();
 
-    // If we have enough players, try to match immediately
-    if (this.queue.length >= MAX_PLAYERS) {
-      this.checkQueue();
-    }
+    // Try to match immediately (solo players get bots, groups get matched)
+    this.checkQueue();
   }
 
   async addPartyToQueue(
@@ -128,10 +126,7 @@ export class Matchmaker implements RaceOwner {
     }
 
     this.broadcastQueueCount();
-
-    if (this.queue.length >= MAX_PLAYERS) {
-      this.checkQueue();
-    }
+    this.checkQueue();
   }
 
   removeFromQueue(socketId: string) {
@@ -338,8 +333,8 @@ export class Matchmaker implements RaceOwner {
       });
     }
 
-    // Bot WPM scales with average ELO: base = 30 + (elo/2500) * 180
-    const baseWpm = 30 + (avgElo / 2500) * 180;
+    // Bot WPM matches rank thresholds: wpm = (elo - 500) / 10
+    const baseWpm = Math.max(20, (avgElo - 500) / 10);
     const botWpmMin = Math.max(20, baseWpm - 10);
     const botWpmMax = baseWpm + 10;
 
