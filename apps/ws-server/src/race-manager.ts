@@ -30,7 +30,7 @@ interface PlayerEntry {
   progressWindowStart: number;
 }
 
-const COUNTDOWN_SECONDS = 5;
+const COUNTDOWN_SECONDS = 3;
 const WORD_COUNT = 50;
 const PROGRESS_INTERVAL_MS = 100;
 
@@ -44,7 +44,7 @@ export interface BotWpmConfig {
 }
 
 const FINISH_TIMEOUT_SECONDS = 15;
-const PLACEMENT_RACE_COUNT = 3;
+const PLACEMENT_RACE_COUNT = 1;
 
 export class RaceManager {
   readonly raceId: string;

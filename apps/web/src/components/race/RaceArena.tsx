@@ -29,6 +29,16 @@ export function RaceArena() {
 
   const myPlayerId = session?.user?.id ?? null;
 
+  // Delay showing the queue screen so fast matches (placements) skip it
+  const [showQueuing, setShowQueuing] = React.useState(false);
+  React.useEffect(() => {
+    if (race.phase === "queuing") {
+      const timer = setTimeout(() => setShowQueuing(true), 600);
+      return () => clearTimeout(timer);
+    }
+    setShowQueuing(false);
+  }, [race.phase]);
+
   // Track transition from countdown → racing with a brief "GO!" hold
   const [showGo, setShowGo] = React.useState(false);
   const [racingVisible, setRacingVisible] = React.useState(false);
@@ -112,7 +122,7 @@ export function RaceArena() {
         <div className="text-error text-sm">{race.error}</div>
       )}
 
-      {(race.phase === "idle" || race.phase === "queuing") && (
+      {(race.phase === "idle" || (race.phase === "queuing" && showQueuing)) && (
         <QueueScreen
           isQueuing={race.phase === "queuing"}
           queueCount={race.queueCount}
@@ -157,7 +167,7 @@ export function RaceArena() {
           {race.raceState.placementRace != null && (
             <div className="flex items-center gap-3">
               <span className="text-xs text-muted">
-                Placement {race.raceState.placementRace} of 3
+                Placement Race
               </span>
             </div>
           )}

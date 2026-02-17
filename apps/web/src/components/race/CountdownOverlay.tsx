@@ -23,24 +23,11 @@ export function CountdownOverlay({
       {placementRace != null ? (
         <div className="flex flex-col items-center gap-3">
           <span className="text-accent font-bold text-sm uppercase tracking-widest">
-            Placement {placementRace} of 3
+            Placement Race
           </span>
-          {/* Progress dots */}
-          <div className="flex items-center gap-2">
-            {Array.from({ length: 3 }, (_, i) => (
-              <div
-                key={i}
-                className={`w-2.5 h-2.5 rounded-full transition-colors ${
-                  i < placementRace ? "bg-accent shadow-[0_0_6px_rgba(56,189,248,0.4)]" : "bg-surface-bright"
-                }`}
-              />
-            ))}
-          </div>
-          {placementRace === 1 && (
-            <p className="text-muted text-xs text-center max-w-xs">
-              Type 3 tests to determine your starting rank
-            </p>
-          )}
+          <p className="text-muted text-xs text-center max-w-xs">
+            Type to determine your starting rank
+          </p>
         </div>
       ) : (
         <div className="flex flex-col items-center gap-1">

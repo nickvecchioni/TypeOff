@@ -21,7 +21,7 @@ interface QueueEntry {
 }
 
 const MAX_PLAYERS = 4;
-const PLACEMENT_RACES = 3;
+const PLACEMENT_RACES = 1;
 const ELO_WINDOW_INITIAL = 100;
 const ELO_WINDOW_EXPAND = 50;
 const ELO_WINDOW_EXPAND_INTERVAL_MS = 5_000;

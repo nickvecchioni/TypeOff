@@ -106,7 +106,7 @@ export function QueueScreen({
               </button>
               {!session.user.placementsCompleted && (
                 <p className="text-xs text-muted text-center -mt-2">
-                  Complete 3 placement races to get your rank
+                  Complete a placement race to get your rank
                 </p>
               )}
             </>

@@ -41,7 +41,7 @@ export function PlacementReveal({ elo, onContinue }: PlacementRevealProps) {
       </div>
 
       <p className="text-muted text-sm text-center max-w-sm">
-        Your initial rank is based on your performance across 3 placement races.
+        Your initial rank is based on your placement race performance.
         Win ranked matches to climb.
       </p>
 
