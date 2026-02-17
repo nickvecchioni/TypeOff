@@ -3,12 +3,14 @@
 import React from "react";
 import { useSession } from "next-auth/react";
 import { useRace } from "@/hooks/useRace";
+import { useParty } from "@/hooks/useParty";
 import { QueueScreen } from "./QueueScreen";
 import { CountdownOverlay } from "./CountdownOverlay";
 import { RaceTrack } from "./RaceTrack";
 import { RaceTypingArea } from "./RaceTypingArea";
 import { RaceResults } from "./RaceResults";
 import { PlacementReveal } from "./PlacementReveal";
+import { PartyInviteToast } from "@/components/social/PartyInviteToast";
 import { getRankInfo, RACE_TYPE_LABELS } from "@typeoff/shared";
 import type { RankTier, RaceType } from "@typeoff/shared";
 
@@ -23,6 +25,7 @@ function rankValue(tier: RankTier, division: number | null): number {
 export function RaceArena() {
   const { data: session, update: updateSession } = useSession();
   const race = useRace();
+  const partyHook = useParty();
 
   const myPlayerId = session?.user?.id ?? null;
 
@@ -88,6 +91,12 @@ export function RaceArena() {
           onJoin={race.joinQueue}
           onLeave={race.leaveQueue}
           activeRaceType={race.activeRaceType}
+          party={partyHook.party}
+          partyError={partyHook.error}
+          onCreateParty={partyHook.createParty}
+          onInviteToParty={partyHook.inviteToParty}
+          onKickFromParty={partyHook.kickMember}
+          onLeaveParty={partyHook.leaveParty}
         />
       )}
 
@@ -155,6 +164,14 @@ export function RaceArena() {
           />
         );
       })()}
+
+      {/* Party invite toast */}
+      {partyHook.pendingInvite && (
+        <PartyInviteToast
+          invite={partyHook.pendingInvite}
+          onRespond={partyHook.respondToInvite}
+        />
+      )}
     </div>
   );
 }

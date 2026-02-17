@@ -74,7 +74,7 @@ export class RaceManager {
     bots: RacePlayer[] = [],
     botWpmConfig?: BotWpmConfig,
     placementRace?: number,
-    private isLobbyRace: boolean = false,
+    _unused?: boolean,
     raceType?: RaceType,
   ) {
     this.placementRace = placementRace;
@@ -87,11 +87,11 @@ export class RaceManager {
       this.wordPool = this.raceType;
       this.wordCount = RACE_TYPE_WORD_COUNTS[this.raceType];
     } else if (this.placementRace) {
-      // Legacy placement (shouldn't happen with new flow, but kept for safety)
+      // Placement race
       this.wordPool = "common";
       this.wordCount = 20;
     } else {
-      // Lobby race — random pool and count
+      // Fallback
       const pools: WordPool[] = ["common", "medium", "hard"];
       this.wordPool = pools[this.seed % pools.length];
       this.wordCount = WORD_COUNT_OPTIONS[this.seed % WORD_COUNT_OPTIONS.length];
@@ -582,11 +582,11 @@ export class RaceManager {
         }
       }
 
-      // 3. Calculate ELO for non-placement, non-lobby races (includes bot opponents)
+      // 3. Calculate ELO for non-placement races (includes bot opponents)
       const authPlayers = entries.filter((e) => !e.player.isGuest && !e.isBot);
       const botEntries = entries.filter((e) => e.isBot);
 
-      if (!this.placementRace && !this.isLobbyRace && authPlayers.length >= 1 && this.raceType) {
+      if (!this.placementRace && authPlayers.length >= 1 && this.raceType) {
         const playerIds = authPlayers.map((e) => e.player.id);
 
         // Read per-type ratings for ELO calc

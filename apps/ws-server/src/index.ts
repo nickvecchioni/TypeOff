@@ -8,7 +8,7 @@ import type {
 } from "@typeoff/shared";
 import { authenticateSocket } from "./auth.js";
 import { Matchmaker } from "./matchmaker.js";
-import { LobbyManager } from "./lobby-manager.js";
+import { PartyManager } from "./party-manager.js";
 import { SocialManager } from "./social-manager.js";
 
 const PORT = parseInt(process.env.PORT ?? "3001", 10);
@@ -32,8 +32,8 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
 });
 
 const matchmaker = new Matchmaker(io);
-const lobbyManager = new LobbyManager(io);
 const socialManager = new SocialManager(io);
+const partyManager = new PartyManager(io, socialManager);
 
 // Track spectators: socketId → raceId
 const spectators = new Map<string, string>();
@@ -51,6 +51,23 @@ io.on("connection", (socket) => {
       // Fire-and-forget: don't block queue join on friend notifications
       socialManager.trackConnection(socket, player.id).catch(() => {});
       const raceType = (data.raceType ?? "common") as RaceType;
+
+      // If this user is a party leader, enqueue the whole party
+      const party = partyManager.getPartyForUser(player.id);
+      if (party && party.leaderId === player.id) {
+        const members = partyManager.getPartyMembers(player.id);
+        if (members && members.length > 0) {
+          const partyEntries = members.map((m) => {
+            const s = io.sockets.sockets.get(m.socketId);
+            return s ? { socket: s, player: m.player } : null;
+          }).filter((e): e is NonNullable<typeof e> => e !== null);
+
+          await matchmaker.addPartyToQueue(partyEntries, raceType, party.id);
+          console.log(`[joinQueue] party ${party.id} enqueued ${partyEntries.length} members for type=${raceType}`);
+          return;
+        }
+      }
+
       await matchmaker.addToQueue(socket, player, raceType);
       console.log(`[joinQueue] ${socket.id} addToQueue completed for type=${raceType}`);
     } catch (err) {
@@ -65,60 +82,52 @@ io.on("connection", (socket) => {
     matchmaker.removeFromQueue(socket.id);
   });
 
-  // ─── Race Events (route to correct manager) ──────────────────────
+  // ─── Race Events ──────────────────────────────────────────────────
 
   socket.on("raceProgress", (data) => {
-    if (lobbyManager.isInLobbyRace(socket.id)) {
-      lobbyManager.handleProgress(socket.id, data);
-    } else {
-      matchmaker.handleProgress(socket.id, data);
-    }
+    matchmaker.handleProgress(socket.id, data);
   });
 
   socket.on("raceFinish", (data) => {
-    if (lobbyManager.isInLobbyRace(socket.id)) {
-      lobbyManager.handleFinish(socket.id, data);
-    } else {
-      matchmaker.handleFinish(socket.id, data);
-    }
+    matchmaker.handleFinish(socket.id, data);
   });
 
-  // ─── Lobby Events ─────────────────────────────────────────────────
+  // ─── Party Events ─────────────────────────────────────────────────
 
-  socket.on("createLobby", async (data) => {
+  socket.on("createParty", async (data) => {
     try {
       const player = await authenticateSocket(data, socket.id);
-      lobbyManager.createLobby(socket, player);
+      socialManager.trackConnection(socket, player.id).catch(() => {});
+      partyManager.createParty(socket, player.id, player.name);
     } catch (err) {
-      socket.emit("lobbyError", {
+      socket.emit("partyError", {
         message: err instanceof Error ? err.message : "Auth failed",
       });
     }
   });
 
-  socket.on("joinLobby", async (data) => {
+  socket.on("inviteToParty", (data) => {
+    partyManager.inviteToParty(socket, data.userId);
+  });
+
+  socket.on("respondToPartyInvite", async (data) => {
     try {
       const player = await authenticateSocket(data, socket.id);
-      lobbyManager.joinLobby(socket, player, data.code);
+      socialManager.trackConnection(socket, player.id).catch(() => {});
+      partyManager.respondToInvite(socket, data.partyId, data.accept, player.id, player.name);
     } catch (err) {
-      socket.emit("lobbyError", {
+      socket.emit("partyError", {
         message: err instanceof Error ? err.message : "Auth failed",
       });
     }
   });
 
-  socket.on("leaveLobby", () => {
-    lobbyManager.leaveLobby(socket);
+  socket.on("leaveParty", () => {
+    partyManager.leaveParty(socket);
   });
 
-  socket.on("startLobby", () => {
-    lobbyManager.startLobby(socket);
-  });
-
-  // ─── Lobby Chat Events ──────────────────────────────────────────
-
-  socket.on("lobbyChat", (data) => {
-    lobbyManager.handleChat(socket, data.message);
+  socket.on("kickFromParty", (data) => {
+    partyManager.kickMember(socket, data.userId);
   });
 
   // ─── Spectator Events ─────────────────────────────────────────────
@@ -162,7 +171,7 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log(`[disconnect] ${socket.id}`);
     matchmaker.handleDisconnect(socket.id);
-    lobbyManager.handleDisconnect(socket.id);
+    partyManager.handleDisconnect(socket.id);
     socialManager.trackDisconnection(socket.id);
 
     // Clean up spectating

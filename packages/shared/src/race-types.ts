@@ -58,11 +58,11 @@ export interface RaceState {
   raceType?: RaceType; // which competitive queue this race belongs to
 }
 
-/** Lobby state */
-export interface LobbyState {
-  code: string;
-  hostId: string;
-  players: RacePlayer[];
+/** Party state */
+export interface PartyState {
+  partyId: string;
+  leaderId: string;
+  members: Array<{ userId: string; name: string }>;
 }
 
 /** Client → Server events */
@@ -82,17 +82,16 @@ export interface ClientToServerEvents {
     wpmHistory?: import("./types").WpmSample[];
     keystrokeTimings?: number[];
   }) => void;
-  // Lobby events
-  createLobby: (data: { token?: string }) => void;
-  joinLobby: (data: { code: string; token?: string }) => void;
-  leaveLobby: () => void;
-  startLobby: () => void;
+  // Party events
+  createParty: (data: { token?: string }) => void;
+  inviteToParty: (data: { userId: string }) => void;
+  respondToPartyInvite: (data: { partyId: string; accept: boolean; token?: string }) => void;
+  leaveParty: () => void;
+  kickFromParty: (data: { userId: string }) => void;
   // Spectator events
   listActiveRaces: () => void;
   spectateRace: (data: { raceId: string }) => void;
   stopSpectating: () => void;
-  // Lobby chat
-  lobbyChat: (data: { message: string }) => void;
 }
 
 /** Server → Client events */
@@ -119,16 +118,15 @@ export interface ServerToClientEvents {
     placementTotal?: number;
     raceType?: RaceType;
   }) => void;
-  // Lobby events
-  lobbyCreated: (data: LobbyState) => void;
-  lobbyUpdate: (data: LobbyState) => void;
-  lobbyError: (data: { message: string }) => void;
-  lobbyClosed: () => void;
+  // Party events
+  partyUpdate: (data: PartyState) => void;
+  partyInvite: (data: { partyId: string; fromUserId: string; fromName: string }) => void;
+  partyDisbanded: () => void;
+  partyError: (data: { message: string }) => void;
   // Spectator events
   activeRaces: (data: { races: Array<{ raceId: string; players: RacePlayer[]; status: RaceStatus }> }) => void;
   spectateStarted: (data: RaceState) => void;
   error: (data: { message: string }) => void;
   // Social events
   friendStatus: (data: { userId: string; online: boolean }) => void;
-  lobbyChatMessage: (data: { playerId: string; name: string; message: string; timestamp: number }) => void;
 }

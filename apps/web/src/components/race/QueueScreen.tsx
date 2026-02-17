@@ -4,7 +4,8 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useSession, signIn } from "next-auth/react";
 import { RankBadge } from "@/components/RankBadge";
-import type { RankTier, RaceType } from "@typeoff/shared";
+import { PartyPanel } from "@/components/social/PartyPanel";
+import type { RankTier, RaceType, PartyState } from "@typeoff/shared";
 import { RACE_TYPE_LABELS, RACE_TYPE_WORD_COUNTS } from "@typeoff/shared";
 
 const RACE_TYPES: RaceType[] = ["common", "medium", "hard"];
@@ -16,6 +17,12 @@ interface QueueScreenProps {
   onJoin: (raceType: RaceType) => void;
   onLeave: () => void;
   activeRaceType: RaceType;
+  party: PartyState | null;
+  partyError: string | null;
+  onCreateParty: () => void;
+  onInviteToParty: (userId: string) => void;
+  onKickFromParty: (userId: string) => void;
+  onLeaveParty: () => void;
 }
 
 export function QueueScreen({
@@ -25,9 +32,19 @@ export function QueueScreen({
   onJoin,
   onLeave,
   activeRaceType,
+  party,
+  partyError,
+  onCreateParty,
+  onInviteToParty,
+  onKickFromParty,
+  onLeaveParty,
 }: QueueScreenProps) {
   const { data: session } = useSession();
   const [selectedType, setSelectedType] = useState<RaceType>(activeRaceType);
+
+  const myUserId = session?.user?.id;
+  const isPartyLeader = party?.leaderId === myUserId;
+  const inPartyNotLeader = party != null && !isPartyLeader;
 
   if (isQueuing) {
     return (
@@ -47,6 +64,13 @@ export function QueueScreen({
         <p className="text-muted text-sm">
           {queueCount === 1 ? "player" : "players"} in queue
         </p>
+
+        {party && (
+          <div className="text-xs text-muted">
+            Queuing with {party.members.length} party {party.members.length === 1 ? "member" : "members"}
+          </div>
+        )}
+
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
           <span className="text-muted text-sm">Waiting for opponents...</span>
@@ -106,16 +130,34 @@ export function QueueScreen({
         </div>
       )}
 
+      {/* Party Panel */}
+      {session?.user && (
+        <PartyPanel
+          party={party}
+          error={partyError}
+          onCreateParty={onCreateParty}
+          onInvite={onInviteToParty}
+          onKick={onKickFromParty}
+          onLeave={onLeaveParty}
+        />
+      )}
+
       {/* CTA */}
       <div className="flex flex-col items-center gap-3">
         {session?.user ? (
-          <button
-            onClick={() => onJoin(selectedType)}
-            disabled={!connected}
-            className="rounded-lg border border-accent/30 bg-accent/15 text-accent px-12 py-4 text-lg font-bold hover:bg-accent/25 hover:border-accent/50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            Find {RACE_TYPE_LABELS[selectedType]} Race
-          </button>
+          inPartyNotLeader ? (
+            <div className="text-sm text-muted">
+              Waiting for party leader to start...
+            </div>
+          ) : (
+            <button
+              onClick={() => onJoin(selectedType)}
+              disabled={!connected}
+              className="rounded-lg border border-accent/30 bg-accent/15 text-accent px-12 py-4 text-lg font-bold hover:bg-accent/25 hover:border-accent/50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Find {RACE_TYPE_LABELS[selectedType]} Race
+            </button>
+          )
         ) : (
           <button
             onClick={() => signIn("google", { callbackUrl: "/" })}

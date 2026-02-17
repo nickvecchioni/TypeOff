@@ -16,12 +16,6 @@ export function AuthNavLinks() {
       >
         Solo
       </Link>
-      <Link
-        href="/lobby"
-        className="text-sm text-muted hover:text-text transition-colors"
-      >
-        Lobby
-      </Link>
     </>
   );
 }

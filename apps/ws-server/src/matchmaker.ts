@@ -19,6 +19,7 @@ interface QueueEntry {
   player: RacePlayer;
   joinedAt: number;
   raceType: RaceType;
+  partyId?: string;
 }
 
 const MAX_PLAYERS = 4;
@@ -86,6 +87,63 @@ export class Matchmaker implements RaceOwner {
     this.broadcastQueueCount(raceType);
 
     // If we have enough players, try to match immediately
+    if (queue.length >= MAX_PLAYERS) {
+      this.checkQueue();
+    }
+  }
+
+  async addPartyToQueue(
+    entries: Array<{ socket: TypedSocket; player: RacePlayer }>,
+    raceType: RaceType,
+    partyId: string,
+  ) {
+    // Remove all party members from any existing queue
+    for (const entry of entries) {
+      this.removeFromQueue(entry.socket.id);
+
+      // If already in a race, skip
+      if (this.socketToRace.has(entry.socket.id)) {
+        console.log(`[matchmaker] party member ${entry.player.id} already in race, skipping`);
+        continue;
+      }
+    }
+
+    // Check placement for each member — if anyone needs placement, they can't party queue
+    for (const entry of entries) {
+      if (!entry.player.isGuest) {
+        const rating = await this.getPlayerRating(entry.player.id, raceType);
+        const racesPlayed = rating?.racesPlayed ?? 0;
+        if (racesPlayed < PLACEMENT_RACES) {
+          // Notify leader that a member needs placement
+          entries[0].socket.emit("error", {
+            message: `${entry.player.name} needs to complete placement races first`,
+          });
+          return;
+        }
+      }
+    }
+
+    const queue = this.queues.get(raceType)!;
+    const now = Date.now();
+
+    for (const entry of entries) {
+      if (this.socketToRace.has(entry.socket.id)) continue;
+
+      const typeElo = entry.player.eloByType?.[raceType] ?? entry.player.elo;
+      const playerWithTypeElo = { ...entry.player, elo: typeElo };
+
+      queue.push({
+        socket: entry.socket,
+        player: playerWithTypeElo,
+        joinedAt: now,
+        raceType,
+        partyId,
+      });
+      this.socketToQueue.set(entry.socket.id, raceType);
+    }
+
+    this.broadcastQueueCount(raceType);
+
     if (queue.length >= MAX_PLAYERS) {
       this.checkQueue();
     }
@@ -197,6 +255,17 @@ export class Matchmaker implements RaceOwner {
     const now = Date.now();
     const matched = new Set<number>();
 
+    // Build index of partyId → indices for quick lookup
+    const partyIndices = new Map<string, number[]>();
+    for (let i = 0; i < queue.length; i++) {
+      const pid = queue[i].partyId;
+      if (pid) {
+        const list = partyIndices.get(pid) ?? [];
+        list.push(i);
+        partyIndices.set(pid, list);
+      }
+    }
+
     // Process queue entries oldest first — try to build groups of up to MAX_PLAYERS
     for (let i = 0; i < queue.length; i++) {
       if (matched.has(i)) continue;
@@ -205,30 +274,50 @@ export class Matchmaker implements RaceOwner {
       const waited = now - entry.joinedAt;
       const window = this.getEloWindow(waited);
 
-      // Collect ELO-compatible players for this group
-      const group: number[] = [i];
+      // Start the group with this entry (and all party members if in a party)
+      const group: number[] = [];
+      const groupParties = new Set<string>();
+
+      const addWithParty = (idx: number) => {
+        if (matched.has(idx) || group.includes(idx)) return;
+        group.push(idx);
+        const pid = queue[idx].partyId;
+        if (pid && !groupParties.has(pid)) {
+          groupParties.add(pid);
+          // Pull in all party members
+          for (const memberIdx of partyIndices.get(pid) ?? []) {
+            if (!matched.has(memberIdx) && !group.includes(memberIdx)) {
+              group.push(memberIdx);
+            }
+          }
+        }
+      };
+
+      addWithParty(i);
+
+      // Collect ELO-compatible players
       for (let j = 0; j < queue.length; j++) {
-        if (j === i || matched.has(j)) continue;
+        if (j === i || matched.has(j) || group.includes(j)) continue;
+        if (group.length >= MAX_PLAYERS) break;
+
         const dist = Math.abs(entry.player.elo - queue[j].player.elo);
         if (dist <= window) {
-          group.push(j);
-          if (group.length >= MAX_PLAYERS) break;
+          addWithParty(j);
         }
       }
 
       // Start race if we have enough players or waited long enough
       if (group.length >= MAX_PLAYERS) {
-        // Full lobby — start immediately
-        for (const idx of group) matched.add(idx);
-        this.startRace(group.map((idx) => queue[idx]), raceType);
+        // Full lobby — start immediately (trim to MAX_PLAYERS)
+        const raceGroup = group.slice(0, MAX_PLAYERS);
+        for (const idx of raceGroup) matched.add(idx);
+        this.startRace(raceGroup.map((idx) => queue[idx]), raceType);
       } else if (waited >= BOT_WAIT_MS && group.length >= 1) {
-        // Waited long enough — start with bots filling remaining slots
         for (const idx of group) matched.add(idx);
         const entries = group.map((idx) => queue[idx]);
         const botCount = MAX_PLAYERS - entries.length;
         this.startRaceWithBots(entries, botCount, raceType);
       } else if (waited >= MIN_WAIT_FOR_PAIR_MS && group.length >= 2) {
-        // At least 2 humans and waited a while — start with bots
         for (const idx of group) matched.add(idx);
         const entries = group.map((idx) => queue[idx]);
         const botCount = MAX_PLAYERS - entries.length;

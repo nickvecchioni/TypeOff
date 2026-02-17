@@ -52,6 +52,15 @@ export class SocialManager {
     return this.onlineUsers.has(userId);
   }
 
+  getSocketsForUser(userId: string): string[] {
+    const sockets = this.onlineUsers.get(userId);
+    return sockets ? [...sockets] : [];
+  }
+
+  getUserForSocket(socketId: string): string | null {
+    return this.socketToUser.get(socketId) ?? null;
+  }
+
   async getFriendsStatus(userId: string): Promise<Array<{ userId: string; online: boolean }>> {
     try {
       const db = createDb(process.env.DATABASE_URL!);
