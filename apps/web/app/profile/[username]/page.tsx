@@ -2,10 +2,10 @@ export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
-import { users, userStats, raceParticipants, races, userRatings } from "@typeoff/db";
-import { eq, desc, and } from "drizzle-orm";
-import type { RankTier, RaceType } from "@typeoff/shared";
-import { getRankInfo, getRankProgress, getNextDivisionElo, getRankTier, RACE_TYPE_LABELS } from "@typeoff/shared";
+import { users, userStats, raceParticipants, races } from "@typeoff/db";
+import { eq, desc } from "drizzle-orm";
+import type { RankTier } from "@typeoff/shared";
+import { getRankInfo, getRankProgress, getNextDivisionElo, getRankTier } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
 import { UsernameEditor } from "./username-editor";
 import { SignOutButton } from "./sign-out-button";
@@ -54,28 +54,12 @@ export default async function ProfilePage({
       eloAfter: raceParticipants.eloAfter,
       finishedAt: raceParticipants.finishedAt,
       playerCount: races.playerCount,
-      wordPool: races.wordPool,
     })
     .from(raceParticipants)
     .innerJoin(races, eq(raceParticipants.raceId, races.id))
     .where(eq(raceParticipants.userId, user.id))
     .orderBy(desc(raceParticipants.finishedAt))
     .limit(20);
-
-  // Load per-type ratings
-  const ratings = await db
-    .select({
-      raceType: userRatings.raceType,
-      eloRating: userRatings.eloRating,
-      rankTier: userRatings.rankTier,
-      peakEloRating: userRatings.peakEloRating,
-      placementsCompleted: userRatings.placementsCompleted,
-      racesPlayed: userRatings.racesPlayed,
-    })
-    .from(userRatings)
-    .where(eq(userRatings.userId, user.id));
-
-  const ratingsMap = new Map(ratings.map((r) => [r.raceType as RaceType, r]));
 
   // Check if this is own profile
   const { auth } = await import("@/lib/auth");
@@ -114,12 +98,6 @@ export default async function ProfilePage({
                     {user.username}
                   </h1>
                 )}
-                <RankBadge
-                  tier={user.rankTier as RankTier}
-                  elo={user.eloRating}
-                  size="md"
-                  placementsCompleted={user.placementsCompleted}
-                />
               </div>
               {!isOwn && session?.user?.id && (
                 <AddFriendButton targetUserId={user.id} />
@@ -168,47 +146,6 @@ export default async function ProfilePage({
           <StatCard label="Best Streak" value={stats?.maxStreak ?? 0} />
         </div>
 
-        {/* ── Ranked Ratings ──────────────────────────────── */}
-        {ratings.length > 0 && (
-          <section>
-            <SectionHeader>Ranked Ratings</SectionHeader>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              {(["common", "language", "punctuation"] as RaceType[]).map((rt) => {
-                const r = ratingsMap.get(rt);
-                const label = RACE_TYPE_LABELS[rt];
-                if (!r || !r.placementsCompleted) {
-                  return (
-                    <div
-                      key={rt}
-                      className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3.5 text-center"
-                    >
-                      <div className="text-sm font-bold text-muted mb-1.5">{label}</div>
-                      <div className="text-xs text-muted/50">Unranked</div>
-                    </div>
-                  );
-                }
-                const tier = getRankTier(r.eloRating);
-                return (
-                  <div
-                    key={rt}
-                    className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3.5 flex flex-col items-center gap-1.5"
-                  >
-                    <div className="text-sm font-bold text-text">{label}</div>
-                    <RankBadge
-                      tier={tier as RankTier}
-                      elo={r.eloRating}
-                      size="md"
-                    />
-                    <div className="text-xs text-muted/50 tabular-nums">
-                      {r.racesPlayed} races
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
         {/* ── Race History ─────────────────────────────────── */}
         {recentRaces.length > 0 && (
           <section>
@@ -218,7 +155,6 @@ export default async function ProfilePage({
                 <thead>
                   <tr className="text-xs text-muted/60 uppercase tracking-wider border-b border-white/[0.04]">
                     <th className="px-4 py-2.5 font-medium">Date</th>
-                    <th className="px-4 py-2.5 font-medium">Type</th>
                     <th className="px-4 py-2.5 font-medium">Result</th>
                     <th className="px-4 py-2.5 font-medium text-right">WPM</th>
                     <th className="px-4 py-2.5 font-medium text-right">ELO</th>
@@ -239,11 +175,6 @@ export default async function ProfilePage({
                         <td className="px-4 py-2.5 text-muted tabular-nums text-xs">
                           {race.finishedAt
                             ? new Date(race.finishedAt).toLocaleDateString()
-                            : "-"}
-                        </td>
-                        <td className="px-4 py-2.5 text-muted text-xs">
-                          {race.wordPool && (race.wordPool as string) in RACE_TYPE_LABELS
-                            ? RACE_TYPE_LABELS[race.wordPool as RaceType]
                             : "-"}
                         </td>
                         <td className="px-4 py-2.5">

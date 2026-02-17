@@ -4,7 +4,6 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import type {
   RaceState,
   RacePlayerProgress,
-  RaceType,
   WpmSample,
 } from "@typeoff/shared";
 import { useSocket } from "./useSocket";
@@ -37,14 +36,9 @@ export function useRace() {
   const [placementTotal, setPlacementTotal] = useState<number | undefined>();
   const [finishTimeoutEnd, setFinishTimeoutEnd] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [activeRaceType, setActiveRaceType] = useState<RaceType>("common");
-  const [finishedRaceType, setFinishedRaceType] = useState<RaceType | undefined>();
 
   // Keep track of own player id
   const myPlayerIdRef = useRef<string | null>(null);
-  // Track activeRaceType in a ref so raceAgain can always read the latest
-  const activeRaceTypeRef = useRef<RaceType>(activeRaceType);
-  activeRaceTypeRef.current = activeRaceType;
 
   useEffect(() => {
     const unsubs = [
@@ -78,7 +72,6 @@ export function useRace() {
         setResults(data.results);
         setPlacementRace(data.placementRace);
         setPlacementTotal(data.placementTotal);
-        setFinishedRaceType(data.raceType as RaceType | undefined);
         // Show rank reveal screen after final placement race
         if (data.placementRace != null && data.placementTotal != null && data.placementRace >= data.placementTotal) {
           setPhase("placed");
@@ -102,9 +95,7 @@ export function useRace() {
   const queueTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const joinQueue = useCallback(
-    async (raceType?: RaceType) => {
-      const rt = raceType ?? activeRaceTypeRef.current;
-      setActiveRaceType(rt);
+    async () => {
       setError(null);
       setPhase("queuing");
 
@@ -121,7 +112,7 @@ export function useRace() {
 
       if (token) {
         myPlayerIdRef.current = null; // Will be set from race state
-        emit("joinQueue", { token, raceType: rt });
+        emit("joinQueue", { token });
 
         // Safety timeout: must exceed server BOT_WAIT_MS (20s)
         if (queueTimeoutRef.current) clearTimeout(queueTimeoutRef.current);
@@ -178,7 +169,6 @@ export function useRace() {
     setQueueCount(0);
     setFinishTimeoutEnd(null);
     setError(null);
-    setFinishedRaceType(undefined);
   }, []);
 
   const raceAgain = useCallback(
@@ -191,9 +181,7 @@ export function useRace() {
       setCountdown(0);
       setFinishTimeoutEnd(null);
       setError(null);
-      setFinishedRaceType(undefined);
-      // Re-queue with same race type
-      joinQueue(activeRaceTypeRef.current);
+      joinQueue();
     },
     [joinQueue]
   );
@@ -210,8 +198,6 @@ export function useRace() {
     placementTotal,
     finishTimeoutEnd,
     error,
-    activeRaceType,
-    finishedRaceType,
     joinQueue,
     leaveQueue,
     sendProgress,

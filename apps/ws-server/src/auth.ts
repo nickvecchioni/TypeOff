@@ -1,5 +1,5 @@
 import { jwtVerify } from "jose";
-import type { RacePlayer, RaceType } from "@typeoff/shared";
+import type { RacePlayer } from "@typeoff/shared";
 
 const secret = new TextEncoder().encode(process.env.AUTH_SECRET);
 
@@ -18,7 +18,6 @@ export async function authenticateSocket(
       name: (payload.name as string) ?? "Player",
       isGuest: false,
       elo: (payload.elo as number) ?? 1000,
-      eloByType: (payload.eloByType as Partial<Record<RaceType, number>>) ?? {},
     };
   } catch {
     throw new Error("Invalid or expired token");

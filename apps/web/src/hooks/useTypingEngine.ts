@@ -9,13 +9,10 @@ import {
   type EngineStatus,
   type EngineAPI,
   type WpmSample,
-  type WordPool,
-  generateWords,
   generateFromPool,
-  commonWords,
 } from "@typeoff/shared";
 
-const DEFAULT_CONFIG: TestConfig = { mode: "timed", duration: 15, wordPool: "common" };
+const DEFAULT_CONFIG: TestConfig = { mode: "timed", duration: 15 };
 const WORD_POOL_SIZE = 200;
 
 export interface TypingEngine extends EngineAPI {
@@ -26,7 +23,6 @@ export interface ExternalConfig {
   externalSeed?: number;
   externalWordCount?: number;
   mode?: "timed" | "wordcount";
-  wordPool?: WordPool;
 }
 
 function createWordStates(wordStrings: string[]): WordState[] {
@@ -67,14 +63,11 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
   useEffect(() => {
     if (!initialized.current) {
       initialized.current = true;
-      const pool = external?.wordPool ?? config.wordPool;
       const seed = external?.externalSeed ?? undefined;
       const count =
         external?.externalWordCount ??
         (config.mode === "wordcount" ? config.duration : WORD_POOL_SIZE);
-      const wordStrings = pool
-        ? generateFromPool(pool, count, seed)
-        : generateWords(commonWords, count, seed);
+      const wordStrings = generateFromPool(count, seed);
       setWords(createWordStates(wordStrings));
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -158,15 +151,11 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
 
   const restart = useCallback(() => {
     stopTimer();
-    const pool = external?.wordPool ?? config.wordPool;
     const seed = external?.externalSeed ?? undefined;
-    // In wordcount mode, generate exactly the requested number of words
     const count =
       external?.externalWordCount ??
       (config.mode === "wordcount" ? config.duration : WORD_POOL_SIZE);
-    const wordStrings = pool
-      ? generateFromPool(pool, count, seed)
-      : generateWords(commonWords, count, seed);
+    const wordStrings = generateFromPool(count, seed);
     const newWords = createWordStates(wordStrings);
     setWords(newWords);
     setCurrentWordIndex(0);

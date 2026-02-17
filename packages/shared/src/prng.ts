@@ -1,5 +1,4 @@
-import type { WordPool } from "./words";
-import { wordPools, punctuationSentences } from "./words";
+import { commonWords } from "./words";
 
 /** Mulberry32 seeded PRNG — fast, deterministic, good distribution */
 export function mulberry32(seed: number): () => number {
@@ -33,38 +32,10 @@ export function generateWords(
   return words;
 }
 
-/** Generate words by picking random sentences and splitting into words */
-export function generateFromSentences(
-  sentences: string[],
-  count: number,
-  seed?: number
-): string[] {
-  const rng = mulberry32(seed ?? Date.now());
-  const words: string[] = [];
-  let prevIdx = -1;
-  while (words.length < count) {
-    let idx: number;
-    do {
-      idx = Math.floor(rng() * sentences.length);
-    } while (idx === prevIdx && sentences.length > 1);
-    prevIdx = idx;
-    const sentenceWords = sentences[idx].split(" ");
-    for (const w of sentenceWords) {
-      if (words.length >= count) break;
-      words.push(w);
-    }
-  }
-  return words;
-}
-
-/** Generate words from a named pool */
+/** Generate words from the common word pool */
 export function generateFromPool(
-  pool: WordPool,
   count: number,
   seed?: number
 ): string[] {
-  if (pool === "punctuation") {
-    return generateFromSentences(punctuationSentences, count, seed);
-  }
-  return generateWords(wordPools[pool], count, seed);
+  return generateWords(commonWords, count, seed);
 }

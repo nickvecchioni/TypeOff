@@ -11,8 +11,8 @@ import { RaceTypingArea } from "./RaceTypingArea";
 import { RaceResults } from "./RaceResults";
 import { PlacementReveal } from "./PlacementReveal";
 import { PartyInviteToast } from "@/components/social/PartyInviteToast";
-import { getRankInfo, RACE_TYPE_LABELS } from "@typeoff/shared";
-import type { RankTier, RaceType } from "@typeoff/shared";
+import { getRankInfo } from "@typeoff/shared";
+import type { RankTier } from "@typeoff/shared";
 
 const TIER_ORDER: RankTier[] = [
   "bronze", "silver", "gold", "platinum", "diamond", "master", "grandmaster",
@@ -40,7 +40,7 @@ export function RaceArena() {
         if (myResult?.eloChange != null) {
           window.dispatchEvent(
             new CustomEvent("elo-change", {
-              detail: { change: myResult.eloChange, raceType: race.finishedRaceType },
+              detail: { change: myResult.eloChange },
             })
           );
         }
@@ -53,13 +53,13 @@ export function RaceArena() {
           if (newVal > oldVal) {
             window.dispatchEvent(
               new CustomEvent("rank-up", {
-                detail: { tier: newInfo.tier, elo: myResult.elo, direction: "up" as const, raceType: race.finishedRaceType },
+                detail: { tier: newInfo.tier, elo: myResult.elo, direction: "up" as const },
               })
             );
           } else if (newVal < oldVal) {
             window.dispatchEvent(
               new CustomEvent("rank-up", {
-                detail: { tier: newInfo.tier, elo: myResult.elo, direction: "down" as const, raceType: race.finishedRaceType },
+                detail: { tier: newInfo.tier, elo: myResult.elo, direction: "down" as const },
               })
             );
           }
@@ -69,13 +69,11 @@ export function RaceArena() {
     } else if (!isFinished) {
       sessionRefreshed.current = false;
     }
-  }, [race.phase, race.results, session?.user?.id, updateSession, race.finishedRaceType]);
+  }, [race.phase, race.results, session?.user?.id, updateSession]);
 
   const isInPlacement = race.raceState?.placementRace != null
     || race.phase === "placed"
     || (race.phase === "finished" && race.placementRace != null);
-
-  const currentRaceType: RaceType | undefined = race.raceState?.raceType ?? race.activeRaceType;
 
   return (
     <div className="flex flex-col items-center gap-8 w-full max-w-4xl mx-auto">
@@ -90,7 +88,6 @@ export function RaceArena() {
           connected={race.connected}
           onJoin={race.joinQueue}
           onLeave={race.leaveQueue}
-          activeRaceType={race.activeRaceType}
           party={partyHook.party}
           partyError={partyHook.error}
           onCreateParty={partyHook.createParty}
@@ -106,24 +103,18 @@ export function RaceArena() {
           playerCount={race.raceState.players.length}
           placementRace={race.raceState.placementRace}
           players={race.raceState.players}
-          raceType={currentRaceType}
         />
       )}
 
       {race.phase === "racing" && race.raceState && (
         <>
-          <div className="flex items-center gap-3">
-            {currentRaceType && (
-              <span className="text-xs text-accent font-bold uppercase tracking-wider">
-                {RACE_TYPE_LABELS[currentRaceType]}
-              </span>
-            )}
-            {race.raceState.placementRace != null && (
+          {race.raceState.placementRace != null && (
+            <div className="flex items-center gap-3">
               <span className="text-xs text-muted">
                 Placement {race.raceState.placementRace} of 3
               </span>
-            )}
-          </div>
+            </div>
+          )}
           <RaceTrack
             players={race.raceState.players}
             progress={race.progress}
@@ -133,7 +124,6 @@ export function RaceArena() {
           <RaceTypingArea
             seed={race.raceState.seed}
             wordCount={race.raceState.wordCount}
-            wordPool={race.raceState.wordPool}
             finishTimeoutEnd={race.finishTimeoutEnd}
             onProgress={race.sendProgress}
             onFinish={race.sendFinish}
@@ -149,7 +139,6 @@ export function RaceArena() {
           onRaceAgain={race.raceAgain}
           placementRace={race.placementRace}
           placementTotal={race.placementTotal}
-          raceType={race.finishedRaceType}
         />
       )}
 
@@ -160,7 +149,6 @@ export function RaceArena() {
           <PlacementReveal
             elo={elo}
             onContinue={race.raceAgain}
-            raceType={race.finishedRaceType}
           />
         );
       })()}

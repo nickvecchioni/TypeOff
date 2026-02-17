@@ -2,16 +2,15 @@
 
 import React, { useState, useEffect } from "react";
 import { RankBadge } from "@/components/RankBadge";
-import { getRankTier, RACE_TYPE_LABELS } from "@typeoff/shared";
-import type { RankTier, RaceType } from "@typeoff/shared";
+import { getRankTier } from "@typeoff/shared";
+import type { RankTier } from "@typeoff/shared";
 
 interface PlacementRevealProps {
   elo: number;
   onContinue: () => void;
-  raceType?: RaceType;
 }
 
-export function PlacementReveal({ elo, onContinue, raceType }: PlacementRevealProps) {
+export function PlacementReveal({ elo, onContinue }: PlacementRevealProps) {
   const [revealed, setRevealed] = useState(false);
   const tier = getRankTier(elo) as RankTier;
 
@@ -24,7 +23,7 @@ export function PlacementReveal({ elo, onContinue, raceType }: PlacementRevealPr
     <div className="flex flex-col items-center gap-8 animate-fade-in">
       <div className="flex flex-col items-center gap-2">
         <span className="text-accent text-sm uppercase tracking-[0.2em] font-bold">
-          {raceType ? `${RACE_TYPE_LABELS[raceType]} Placements Complete` : "Placements Complete"}
+          Placements Complete
         </span>
         <h2 className="text-3xl font-black text-text">
           You have been ranked
@@ -42,7 +41,7 @@ export function PlacementReveal({ elo, onContinue, raceType }: PlacementRevealPr
       </div>
 
       <p className="text-muted text-sm text-center max-w-sm">
-        Your initial {raceType ? RACE_TYPE_LABELS[raceType] : ""} rank is based on your performance across 3 placement races.
+        Your initial rank is based on your performance across 3 placement races.
         Win ranked matches to climb.
       </p>
 

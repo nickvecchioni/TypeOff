@@ -3,12 +3,10 @@
 import React, { useRef, useEffect, useCallback, useState } from "react";
 import { useTypingEngine } from "@/hooks/useTypingEngine";
 import { WordDisplay } from "@/components/typing/WordDisplay";
-import type { WordPool } from "@typeoff/shared";
 
 interface RaceTypingAreaProps {
   seed: number;
   wordCount: number;
-  wordPool?: WordPool;
   finishTimeoutEnd?: number | null;
   onProgress: (data: {
     wordIndex: number;
@@ -28,7 +26,6 @@ interface RaceTypingAreaProps {
 export function RaceTypingArea({
   seed,
   wordCount,
-  wordPool,
   finishTimeoutEnd,
   onProgress,
   onFinish,
@@ -38,7 +35,6 @@ export function RaceTypingArea({
     externalSeed: seed,
     externalWordCount: wordCount,
     mode: "wordcount",
-    wordPool,
   });
 
   const containerRef = useRef<HTMLDivElement>(null);

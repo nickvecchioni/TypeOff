@@ -3,8 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import type { RaceResult } from "@/hooks/useRace";
-import { getRankTier, RACE_TYPE_LABELS } from "@typeoff/shared";
-import type { RaceType } from "@typeoff/shared";
+import { getRankTier } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
 import { WpmChart } from "@/components/typing/WpmChart";
 
@@ -14,10 +13,9 @@ interface RaceResultsProps {
   onRaceAgain: () => void;
   placementRace?: number;
   placementTotal?: number;
-  raceType?: RaceType;
 }
 
-export function RaceResults({ results, myPlayerId, onRaceAgain, placementRace, placementTotal, raceType }: RaceResultsProps) {
+export function RaceResults({ results, myPlayerId, onRaceAgain, placementRace, placementTotal }: RaceResultsProps) {
   const isPlacement = placementRace != null && placementTotal != null;
 
   return (
@@ -39,11 +37,6 @@ export function RaceResults({ results, myPlayerId, onRaceAgain, placementRace, p
         </div>
       ) : (
         <div className="flex flex-col items-center gap-1 animate-slide-up">
-          {raceType && (
-            <span className="text-xs text-accent/80 font-bold uppercase tracking-widest">
-              {RACE_TYPE_LABELS[raceType]}
-            </span>
-          )}
           <h2 className="text-2xl font-black text-accent">Race Results</h2>
         </div>
       )}

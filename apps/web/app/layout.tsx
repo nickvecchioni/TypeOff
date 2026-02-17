@@ -31,18 +31,7 @@ export default function RootLayout({
           <UsernameGuard>
             <nav className="relative z-10 flex items-center justify-between px-6 py-3 border-b border-white/[0.04]">
               <div className="flex items-center gap-5">
-                <Link href="/" className="nav-logo flex items-center gap-2 text-accent font-bold text-sm">
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 32 32"
-                    fill="none"
-                    aria-hidden
-                    className="transition-[filter] duration-300"
-                  >
-                    <line x1="11" y1="25" x2="19" y2="5" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
-                    <line x1="15" y1="27" x2="23" y2="7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.55"/>
-                  </svg>
+                <Link href="/" className="nav-logo text-accent font-bold text-sm">
                   <span className="nav-logo-text transition-[text-shadow] duration-300">
                     TypeOff
                   </span>
