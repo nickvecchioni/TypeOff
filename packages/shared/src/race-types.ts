@@ -59,9 +59,12 @@ export interface ClientToServerEvents {
     wpm: number;
     rawWpm: number;
     accuracy: number;
+    misstypedChars?: number;
     wpmHistory?: import("./types").WpmSample[];
     keystrokeTimings?: number[];
   }) => void;
+  // Social events
+  requestFriendStatuses: (data: { token?: string }) => void;
   // Party events
   createParty: (data: { token?: string }) => void;
   inviteToParty: (data: { userId: string }) => void;
@@ -89,6 +92,7 @@ export interface ServerToClientEvents {
       wpm: number;
       rawWpm: number;
       accuracy: number;
+      misstypedChars?: number;
       eloChange: number | null;
       elo?: number;
       streak?: number;
@@ -109,4 +113,5 @@ export interface ServerToClientEvents {
   error: (data: { message: string }) => void;
   // Social events
   friendStatus: (data: { userId: string; online: boolean }) => void;
+  friendStatuses: (data: Array<{ userId: string; online: boolean }>) => void;
 }

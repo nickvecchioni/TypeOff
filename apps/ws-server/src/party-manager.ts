@@ -147,11 +147,6 @@ export class PartyManager {
     // Leave any existing party
     this.leaveParty(socket);
 
-    if (this.userToParty.has(userId)) {
-      socket.emit("partyError", { message: "You are already in a party" });
-      return;
-    }
-
     party.members.set(userId, { userId, name, socketId: socket.id });
     this.userToParty.set(userId, partyId);
     this.socketToUser.set(socket.id, userId);

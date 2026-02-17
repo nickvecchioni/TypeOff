@@ -149,7 +149,7 @@ export class Matchmaker implements RaceOwner {
 
   handleFinish(
     socketId: string,
-    data: { wpm: number; rawWpm: number; accuracy: number; wpmHistory?: WpmSample[] }
+    data: { wpm: number; rawWpm: number; accuracy: number; misstypedChars?: number; wpmHistory?: WpmSample[] }
   ) {
     const raceId = this.socketToRace.get(socketId);
     if (!raceId) return;

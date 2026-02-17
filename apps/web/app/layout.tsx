@@ -6,6 +6,7 @@ import { UserMenu } from "@/components/auth/UserMenu";
 import { UsernameGuard } from "@/components/auth/UsernameGuard";
 import { FriendsButton } from "@/components/social/FriendsButton";
 import { SocketProvider } from "@/hooks/useSocket";
+import { SocialProvider } from "@/hooks/useSocial";
 import "./globals.css";
 
 const jetbrainsMono = JetBrains_Mono({
@@ -28,6 +29,7 @@ export default function RootLayout({
       <body className={`${jetbrainsMono.variable} font-mono antialiased h-full flex flex-col`}>
         <SessionProvider>
           <SocketProvider>
+          <SocialProvider>
           <UsernameGuard>
             <nav className="relative z-30 flex items-center justify-between px-6 py-3 border-b border-white/[0.04]">
               <div className="flex items-center gap-8">
@@ -58,6 +60,7 @@ export default function RootLayout({
               {children}
             </div>
           </UsernameGuard>
+          </SocialProvider>
           </SocketProvider>
         </SessionProvider>
       </body>

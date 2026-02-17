@@ -18,6 +18,7 @@ export interface RaceResult {
   wpm: number;
   rawWpm: number;
   accuracy: number;
+  misstypedChars?: number;
   eloChange: number | null;
   elo?: number;
   streak?: number;
@@ -153,7 +154,7 @@ export function useRace() {
   );
 
   const sendFinish = useCallback(
-    (data: { wpm: number; rawWpm: number; accuracy: number }) => {
+    (data: { wpm: number; rawWpm: number; accuracy: number; misstypedChars?: number }) => {
       emit("raceFinish", data);
     },
     [emit]

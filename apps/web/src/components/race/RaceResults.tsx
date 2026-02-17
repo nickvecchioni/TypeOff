@@ -329,14 +329,30 @@ export function RaceResults({
       {/* Own WPM details + chart */}
       {myResult && (
         <div className="flex flex-col items-center gap-2 w-full max-w-2xl">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-accent tabular-nums">
-              {Math.floor(myResult.wpm)}
-              <span className="text-[0.65em] opacity-60">
-                .{(myResult.wpm % 1).toFixed(2).slice(2)}
-              </span>
+          <div className="flex items-end justify-center gap-6">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-accent tabular-nums">
+                {Math.floor(myResult.wpm)}
+                <span className="text-[0.65em] opacity-60">
+                  .{(myResult.wpm % 1).toFixed(2).slice(2)}
+                </span>
+              </div>
+              <div className="text-xs text-muted">wpm</div>
             </div>
-            <div className="text-xs text-muted">wpm</div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-text tabular-nums">
+                {Math.round(myResult.accuracy)}%
+              </div>
+              <div className="text-xs text-muted">accuracy</div>
+            </div>
+            {myResult.misstypedChars != null && (
+              <div className="text-center">
+                <div className="text-lg font-bold text-text tabular-nums">
+                  {myResult.misstypedChars}
+                </div>
+                <div className="text-xs text-muted">errors</div>
+              </div>
+            )}
           </div>
           {myResult.wpmHistory && myResult.wpmHistory.length >= 2 && (
             <WpmChart samples={myResult.wpmHistory} />

@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+  type ReactNode,
+} from "react";
 import { useSocket } from "./useSocket";
 
 interface Friend {
@@ -18,13 +25,28 @@ interface FriendRequest {
   createdAt: string;
 }
 
-export function useSocial() {
-  const { on } = useSocket();
+interface SocialContextValue {
+  friends: Friend[];
+  pendingRequests: FriendRequest[];
+  loading: boolean;
+  fetchFriends: () => Promise<void>;
+  fetchRequests: () => Promise<void>;
+  sendRequest: (addresseeId: string) => Promise<boolean>;
+  acceptRequest: (friendshipId: string) => Promise<void>;
+  declineRequest: (friendshipId: string) => Promise<void>;
+  removeFriend: (friendId: string) => Promise<boolean>;
+  searchUsers: (query: string) => Promise<Array<{ userId: string; username: string | null; name: string | null }>>;
+}
+
+const SocialContext = createContext<SocialContextValue | null>(null);
+
+export function SocialProvider({ children }: { children: ReactNode }) {
+  const { on, emit, connected } = useSocket();
   const [friends, setFriends] = useState<Friend[]>([]);
   const [pendingRequests, setPendingRequests] = useState<FriendRequest[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Listen for friend online/offline status
+  // Listen for individual friend online/offline status changes
   useEffect(() => {
     const unsub = on("friendStatus", (data) => {
       setFriends((prev) =>
@@ -36,13 +58,55 @@ export function useSocial() {
     return unsub;
   }, [on]);
 
+  // Listen for bulk friend statuses (initial sync)
+  useEffect(() => {
+    const unsub = on("friendStatuses", (data) => {
+      const statusMap = new Map(data.map((s) => [s.userId, s.online]));
+      setFriends((prev) =>
+        prev.map((f) => ({
+          ...f,
+          online: statusMap.get(f.userId) ?? f.online ?? false,
+        })),
+      );
+    });
+    return unsub;
+  }, [on]);
+
+  // Request friend statuses when socket connects
+  useEffect(() => {
+    if (!connected) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/ws-token");
+        if (!res.ok || cancelled) return;
+        const { token } = await res.json();
+        if (!cancelled && token) {
+          emit("requestFriendStatuses", { token });
+        }
+      } catch {
+        // ignore — statuses will arrive via individual friendStatus events
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [connected, emit]);
+
   const fetchFriends = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/friends");
       if (res.ok) {
         const data = await res.json();
-        setFriends(data.friends);
+        // Merge API response with existing online statuses from socket
+        setFriends((prev) => {
+          const onlineMap = new Map(prev.map((f) => [f.userId, f.online]));
+          return data.friends.map((f: Friend) => ({
+            ...f,
+            online: onlineMap.get(f.userId) ?? f.online ?? false,
+          }));
+        });
       }
     } catch {
       // ignore
@@ -118,16 +182,28 @@ export function useSocial() {
     return data.users as Array<{ userId: string; username: string | null; name: string | null }>;
   }, []);
 
-  return {
-    friends,
-    pendingRequests,
-    loading,
-    fetchFriends,
-    fetchRequests,
-    sendRequest,
-    acceptRequest,
-    declineRequest,
-    removeFriend,
-    searchUsers,
-  };
+  return (
+    <SocialContext value={{
+      friends,
+      pendingRequests,
+      loading,
+      fetchFriends,
+      fetchRequests,
+      sendRequest,
+      acceptRequest,
+      declineRequest,
+      removeFriend,
+      searchUsers,
+    }}>
+      {children}
+    </SocialContext>
+  );
+}
+
+export function useSocial() {
+  const ctx = useContext(SocialContext);
+  if (!ctx) {
+    throw new Error("useSocial must be used within a SocialProvider");
+  }
+  return ctx;
 }

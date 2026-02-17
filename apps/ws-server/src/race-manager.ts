@@ -28,6 +28,7 @@ interface PlayerEntry {
   botTargetWpm: number;
   botReactionTicks: number;
   wpmHistory?: WpmSample[];
+  misstypedChars?: number;
   lastProgressTime: number;
   progressEventsInWindow: number;
   progressWindowStart: number;
@@ -190,7 +191,7 @@ export class RaceManager {
 
   handleFinish(
     socketId: string,
-    data: { wpm: number; rawWpm: number; accuracy: number; wpmHistory?: WpmSample[]; keystrokeTimings?: number[] }
+    data: { wpm: number; rawWpm: number; accuracy: number; misstypedChars?: number; wpmHistory?: WpmSample[]; keystrokeTimings?: number[] }
   ) {
     const entry = this.players.get(socketId);
     if (!entry || this.status !== "racing" || entry.progress.finished) return;
@@ -202,6 +203,7 @@ export class RaceManager {
     entry.progress.placement = this.nextPlacement++;
     entry.progress.progress = 1;
     entry.progress.finalStats = data;
+    if (data.misstypedChars != null) entry.misstypedChars = data.misstypedChars;
     if (data.wpmHistory) entry.wpmHistory = data.wpmHistory;
 
     // In placement races (all opponents are bots), end immediately when the human finishes
@@ -287,7 +289,7 @@ export class RaceManager {
   }
 
   private validateFinish(
-    data: { wpm: number; rawWpm: number; accuracy: number; wpmHistory?: WpmSample[]; keystrokeTimings?: number[] },
+    data: { wpm: number; rawWpm: number; accuracy: number; misstypedChars?: number; wpmHistory?: WpmSample[]; keystrokeTimings?: number[] },
     entry: PlayerEntry,
   ): string | null {
     const socket = entry.socket;
@@ -508,6 +510,7 @@ export class RaceManager {
       wpm: number;
       rawWpm: number;
       accuracy: number;
+      misstypedChars?: number;
       eloChange: number | null;
       elo?: number;
       streak?: number;
@@ -810,6 +813,7 @@ export class RaceManager {
         wpm: stats.wpm,
         rawWpm: stats.rawWpm,
         accuracy: stats.accuracy,
+        misstypedChars: entry.misstypedChars,
         eloChange: eloChanges.get(entry.player.id) ?? null,
         elo: eloAfterMap.get(entry.player.id) ?? entry.player.elo,
         streak: streak !== undefined ? streak : undefined,

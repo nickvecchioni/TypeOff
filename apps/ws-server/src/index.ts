@@ -128,6 +128,21 @@ io.on("connection", (socket) => {
     partyManager.kickMember(socket, data.userId);
   });
 
+  // ─── Social Events ───────────────────────────────────────────────
+
+  socket.on("requestFriendStatuses", async (data) => {
+    try {
+      const player = await authenticateSocket(data, socket.id);
+      socialManager.trackConnection(socket, player.id).catch(() => {});
+      const statuses = await socialManager.getFriendsStatus(player.id);
+      socket.emit("friendStatuses", statuses);
+    } catch (err) {
+      socket.emit("error", {
+        message: err instanceof Error ? err.message : "Auth failed",
+      });
+    }
+  });
+
   // ─── Spectator Events ─────────────────────────────────────────────
 
   socket.on("listActiveRaces", () => {
