@@ -5,6 +5,7 @@ import { getDb } from "@/lib/db";
 import { users, userStats, raceParticipants, races, userAchievements } from "@typeoff/db";
 import { eq, desc } from "drizzle-orm";
 import { getRankInfo, getRankProgress, getNextDivisionElo, ACHIEVEMENTS } from "@typeoff/shared";
+import { RankBadge } from "@/components/RankBadge";
 import { AchievementsGrid } from "./achievements-grid";
 import { UsernameEditor } from "./username-editor";
 import { SignOutButton } from "./sign-out-button";
@@ -115,15 +116,8 @@ export default async function ProfilePage({
             {/* Rank + ELO */}
             {user.placementsCompleted && rankInfo && (
               <div className="flex flex-col gap-3">
-                <div className="flex items-baseline justify-between">
-                  <div className="flex items-baseline gap-2">
-                    <span className={`text-sm font-bold text-rank-${rankInfo.tier}`}>
-                      {rankInfo.label}
-                    </span>
-                    <span className="text-xs text-muted tabular-nums">
-                      {user.eloRating} ELO
-                    </span>
-                  </div>
+                <div className="flex items-center justify-between">
+                  <RankBadge tier={rankInfo.tier} elo={user.eloRating} />
                   {user.peakEloRating > user.eloRating && (
                     <span className="text-xs text-muted/60 tabular-nums">
                       Peak {user.peakEloRating}
@@ -140,21 +134,21 @@ export default async function ProfilePage({
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-xl bg-surface/50 ring-1 ring-white/[0.04] px-5 py-5 text-center">
             <div className="text-3xl font-black text-accent tabular-nums text-glow-accent">
-              {stats ? Math.floor(stats.avgWpm) : 0}
-              <span className="text-[0.6em] opacity-60">
-                .{stats ? (stats.avgWpm % 1).toFixed(2).slice(2) : "00"}
-              </span>
-            </div>
-            <div className="text-xs text-muted mt-1.5 uppercase tracking-wider">avg wpm</div>
-          </div>
-          <div className="rounded-xl bg-surface/50 ring-1 ring-white/[0.04] px-5 py-5 text-center">
-            <div className="text-3xl font-black text-accent tabular-nums text-glow-accent">
               {stats ? Math.floor(stats.maxWpm) : 0}
               <span className="text-[0.6em] opacity-60">
                 .{stats ? (stats.maxWpm % 1).toFixed(2).slice(2) : "00"}
               </span>
             </div>
             <div className="text-xs text-muted mt-1.5 uppercase tracking-wider">best wpm</div>
+          </div>
+          <div className="rounded-xl bg-surface/50 ring-1 ring-white/[0.04] px-5 py-5 text-center">
+            <div className="text-3xl font-black text-accent tabular-nums text-glow-accent">
+              {stats ? Math.floor(stats.avgWpm) : 0}
+              <span className="text-[0.6em] opacity-60">
+                .{stats ? (stats.avgWpm % 1).toFixed(2).slice(2) : "00"}
+              </span>
+            </div>
+            <div className="text-xs text-muted mt-1.5 uppercase tracking-wider">avg wpm</div>
           </div>
         </div>
 

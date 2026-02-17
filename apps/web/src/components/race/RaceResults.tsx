@@ -103,13 +103,13 @@ function AnimatedElo({
           style={
             rankPulse
               ? {
-                  filter: `drop-shadow(0 0 16px currentColor)`,
+                  filter: `drop-shadow(0 0 6px currentColor)`,
                   animation: "rank-pulse 0.6s ease-out",
                 }
               : {}
           }
         >
-          <RankBadge tier={rankInfo.tier} size={rankPulse ? "md" : "sm"} />
+          <RankBadge tier={rankInfo.tier} elo={displayElo} showElo={false} size={rankPulse ? "md" : "sm"} />
         </span>
       </div>
 
@@ -260,7 +260,7 @@ export function RaceResults({
               {!isPlacement && (
                 <span className="pr-2 hidden sm:block">
                   {rankInfo ? (
-                    <RankBadge tier={rankInfo.tier} />
+                    <RankBadge tier={rankInfo.tier} elo={result.elo!} showElo={false} />
                   ) : (
                     <span className="text-muted/40 text-sm">—</span>
                   )}

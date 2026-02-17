@@ -18,9 +18,10 @@ interface RankBadgeProps {
   elo?: number;
   size?: "sm" | "md";
   placementsCompleted?: boolean;
+  showElo?: boolean;
 }
 
-export function RankBadge({ tier, elo, size = "sm", placementsCompleted = true }: RankBadgeProps) {
+export function RankBadge({ tier, elo, size = "sm", placementsCompleted = true, showElo = true }: RankBadgeProps) {
   const sizeClasses = size === "md" ? "text-sm px-3 py-1" : "text-sm px-2.5 py-0.5";
 
   if (!placementsCompleted) {
@@ -43,7 +44,7 @@ export function RankBadge({ tier, elo, size = "sm", placementsCompleted = true }
       className={`rounded-full font-bold inline-flex items-center gap-1 ${sizeClasses} ${TIER_CLASSES[colorTier]}`}
     >
       {displayLabel}
-      {elo != null && <span className="tabular-nums opacity-60 font-semibold">{elo}</span>}
+      {showElo && elo != null && <span className="tabular-nums opacity-60 font-semibold">{elo}</span>}
     </span>
   );
 }
