@@ -28,7 +28,7 @@ const RANK_TIERS = [
     ring: "ring-rank-diamond/20",
     bg: "bg-rank-diamond/[0.04]",
     glowClass: "",
-    flavor: "Elite speed and consistency. Competitors fear your lobby.",
+    flavor: "Elite speed and consistency. Competitors fear your speed.",
     divisions: "III → II → I",
   },
   {
@@ -122,15 +122,16 @@ export default function RanksPage() {
           <InfoSection title="Divisions">
             Each rank (except Grandmaster) has three divisions: III, II, and I.
             Division III is the entry point, I is the top. Promote through
-            divisions by winning races, and when you clear Division I you
-            advance to the next rank.
+            divisions by placing well in races, and when you clear Division I
+            you advance to the next rank.
           </InfoSection>
 
           <InfoSection title="How ELO Works">
             <p>
-              Win a race and your ELO goes up. Lose and it goes down. Beat
-              someone rated higher than you and you&apos;ll gain more points.
-              Lose to someone rated lower and the penalty is steeper.
+              Each race is 4 players. Your ELO changes based on where you
+              place relative to each opponent&apos;s rating — finish above a
+              higher-rated player and you&apos;ll gain more, finish below a
+              lower-rated one and the penalty is steeper.
             </p>
             <p className="mt-2">
               Your first 30 races use a higher adjustment factor so you reach

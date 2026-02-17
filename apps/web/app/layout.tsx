@@ -31,20 +31,20 @@ export default function RootLayout({
           <UsernameGuard>
             <nav className="relative z-10 flex items-center justify-between px-6 py-3 border-b border-white/[0.04]">
               <div className="flex items-center gap-5">
-                <Link href="/" className="nav-logo text-accent font-bold text-sm">
+                <Link href="/" className="nav-logo text-accent font-bold text-base">
                   <span className="nav-logo-text transition-[text-shadow] duration-300">
                     TypeOff
                   </span>
                 </Link>
                 <Link
                   href="/leaderboard"
-                  className="text-xs text-muted hover:text-text transition-colors"
+                  className="text-sm text-muted hover:text-text transition-colors"
                 >
                   Leaderboard
                 </Link>
                 <Link
                   href="/ranks"
-                  className="text-xs text-muted hover:text-text transition-colors"
+                  className="text-sm text-muted hover:text-text transition-colors"
                 >
                   Ranks
                 </Link>

@@ -79,9 +79,9 @@ export function QueueScreen({
         <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-text">
           Competitive typing,{" "}
           <span className="text-accent text-glow-accent">ranked.</span>
-          <span className="inline-block w-[3px] h-[1em] bg-accent align-middle ml-1 animate-blink" />
+          <span className="inline-block w-[3px] h-[0.75em] bg-accent align-middle ml-1 animate-blink" />
         </h1>
-        <p className="text-muted text-sm max-w-lg">
+        <p className="text-muted text-sm max-w-xl">
           Race head-to-head in real-time. Climb from{" "}
           <span className="text-rank-bronze font-semibold">Bronze</span> to{" "}
           <span className="text-rank-grandmaster font-semibold">Grandmaster</span>.

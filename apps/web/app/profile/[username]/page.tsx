@@ -66,10 +66,6 @@ export default async function ProfilePage({
   const session = await auth();
   const isOwn = session?.user?.id === user.id;
 
-  const winRate =
-    stats && stats.racesPlayed > 0
-      ? Math.round((stats.racesWon / stats.racesPlayed) * 100)
-      : 0;
 
   const rankInfo = user.placementsCompleted ? getRankInfo(user.eloRating) : null;
 
@@ -141,7 +137,7 @@ export default async function ProfilePage({
         {/* ── Detail Stats ─────────────────────────────────── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <StatCard label="Races" value={stats?.racesPlayed ?? 0} />
-          <StatCard label="Win Rate" value={`${winRate}%`} />
+          <StatCard label="Wins" value={stats?.racesWon ?? 0} />
           <StatCard label="Streak" value={stats?.currentStreak ?? 0} />
           <StatCard label="Best Streak" value={stats?.maxStreak ?? 0} />
         </div>
@@ -155,7 +151,7 @@ export default async function ProfilePage({
                 <thead>
                   <tr className="text-xs text-muted/60 uppercase tracking-wider border-b border-white/[0.04]">
                     <th className="px-4 py-2.5 font-medium">Date</th>
-                    <th className="px-4 py-2.5 font-medium">Result</th>
+                    <th className="px-4 py-2.5 font-medium">Place</th>
                     <th className="px-4 py-2.5 font-medium text-right">WPM</th>
                     <th className="px-4 py-2.5 font-medium text-right">ELO</th>
                   </tr>
@@ -166,7 +162,24 @@ export default async function ProfilePage({
                       race.eloBefore != null && race.eloAfter != null
                         ? race.eloAfter - race.eloBefore
                         : null;
-                    const isWin = race.placement === 1;
+                    const placementColor =
+                      race.placement === 1
+                        ? "text-correct bg-correct"
+                        : race.placement === 2
+                        ? "text-accent bg-accent"
+                        : race.placement === 3
+                        ? "text-muted bg-muted"
+                        : "text-error bg-error";
+                    const ordinal =
+                      race.placement === 1
+                        ? "1st"
+                        : race.placement === 2
+                        ? "2nd"
+                        : race.placement === 3
+                        ? "3rd"
+                        : race.placement === 4
+                        ? "4th"
+                        : "-";
                     return (
                       <tr
                         key={i}
@@ -179,9 +192,9 @@ export default async function ProfilePage({
                         </td>
                         <td className="px-4 py-2.5">
                           <span className="inline-flex items-center gap-1.5">
-                            <span className={`inline-block w-1.5 h-1.5 rounded-full ${isWin ? "bg-correct" : "bg-error"}`} />
-                            <span className={`text-xs font-bold ${isWin ? "text-correct" : "text-error"}`}>
-                              {race.placement ? (isWin ? "Win" : "Loss") : "-"}
+                            <span className={`inline-block w-1.5 h-1.5 rounded-full ${placementColor.split(" ")[1]}`} />
+                            <span className={`text-xs font-bold ${placementColor.split(" ")[0]}`}>
+                              {ordinal}
                             </span>
                           </span>
                         </td>
