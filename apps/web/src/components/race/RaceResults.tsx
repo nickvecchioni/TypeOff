@@ -7,6 +7,7 @@ import type { RankTier } from "@typeoff/shared";
 import { getRankInfo, ACHIEVEMENT_MAP } from "@typeoff/shared";
 import type { AchievementRarity } from "@typeoff/shared";
 import { WpmChart } from "@/components/typing/WpmChart";
+import { RankBadge } from "@/components/RankBadge";
 
 interface RankChange {
   direction: "up" | "down";
@@ -22,16 +23,6 @@ interface RaceResultsProps {
   placementTotal?: number;
   rankChange?: RankChange | null;
 }
-
-const TIER_CLASSES: Record<RankTier, string> = {
-  bronze: "text-rank-bronze",
-  silver: "text-rank-silver",
-  gold: "text-rank-gold",
-  platinum: "text-rank-platinum",
-  diamond: "text-rank-diamond",
-  master: "text-rank-master",
-  grandmaster: "text-rank-grandmaster",
-};
 
 const RARITY_RING: Record<AchievementRarity, string> = {
   common: "ring-white/[0.08]",
@@ -108,9 +99,7 @@ function AnimatedElo({
           </span>
         )}
         <span
-          className={`font-bold transition-all duration-500 ${TIER_CLASSES[rankInfo.tier]} ${
-            rankPulse ? "text-lg" : "text-sm"
-          }`}
+          className="transition-all duration-500"
           style={
             rankPulse
               ? {
@@ -120,7 +109,7 @@ function AnimatedElo({
               : {}
           }
         >
-          {rankInfo.label}
+          <RankBadge tier={rankInfo.tier} size={rankPulse ? "md" : "sm"} />
         </span>
       </div>
 
@@ -271,11 +260,7 @@ export function RaceResults({
               {!isPlacement && (
                 <span className="pr-2 hidden sm:block">
                   {rankInfo ? (
-                    <span
-                      className={`text-sm font-semibold ${TIER_CLASSES[rankInfo.tier]}`}
-                    >
-                      {rankInfo.label}
-                    </span>
+                    <RankBadge tier={rankInfo.tier} />
                   ) : (
                     <span className="text-muted/40 text-sm">—</span>
                   )}
