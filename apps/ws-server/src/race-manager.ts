@@ -31,7 +31,7 @@ interface PlayerEntry {
 }
 
 const COUNTDOWN_SECONDS = 3;
-const WORD_COUNT = 30;
+const WORD_COUNT = 40;
 const PROGRESS_INTERVAL_MS = 100;
 
 const DEFAULT_BOT_WPM_MIN = 40;
