@@ -31,7 +31,7 @@ interface PlayerEntry {
 }
 
 const COUNTDOWN_SECONDS = 5;
-const WORD_COUNT = 30;
+const WORD_COUNT = 50;
 const PROGRESS_INTERVAL_MS = 100;
 
 const DEFAULT_BOT_WPM_MIN = 40;
@@ -74,7 +74,7 @@ export class RaceManager {
     this.placementRace = placementRace;
     this.raceId = crypto.randomUUID();
     this.seed = Math.floor(Math.random() * 2147483647);
-    this.wordCount = this.placementRace ? 20 : WORD_COUNT;
+    this.wordCount = WORD_COUNT;
 
     // Generate words from common pool
     this.expectedWords = generateFromPool(this.wordCount, this.seed);
