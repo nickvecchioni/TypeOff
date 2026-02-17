@@ -41,7 +41,6 @@ export function RaceArena() {
 
   // Track transition from countdown → racing with a brief "GO!" hold
   const [showGo, setShowGo] = React.useState(false);
-  const [racingVisible, setRacingVisible] = React.useState(false);
   const prevPhaseRef = React.useRef(race.phase);
 
   React.useEffect(() => {
@@ -49,19 +48,10 @@ export function RaceArena() {
     prevPhaseRef.current = race.phase;
 
     if (prev === "countdown" && race.phase === "racing") {
-      // Show "GO!" briefly, then fade in the race
       setShowGo(true);
-      setRacingVisible(false);
-      const timer = setTimeout(() => {
-        setShowGo(false);
-        setRacingVisible(true);
-      }, 600);
+      const timer = setTimeout(() => setShowGo(false), 600);
       return () => clearTimeout(timer);
-    } else if (race.phase === "racing") {
-      setRacingVisible(true);
-      setShowGo(false);
-    } else {
-      setRacingVisible(false);
+    } else if (race.phase !== "racing") {
       setShowGo(false);
     }
   }, [race.phase]);
@@ -126,6 +116,8 @@ export function RaceArena() {
         <QueueScreen
           isQueuing={race.phase === "queuing"}
           queueCount={race.queueCount}
+          queueElapsed={race.queueElapsed}
+          maxWaitSeconds={race.maxWaitSeconds}
           connected={race.connected}
           onJoin={race.joinQueue}
           onLeave={race.leaveQueue}
@@ -138,28 +130,7 @@ export function RaceArena() {
         />
       )}
 
-      {race.phase === "countdown" && race.raceState && (
-        <CountdownOverlay
-          countdown={race.countdown}
-          playerCount={race.raceState.players.length}
-          placementRace={race.raceState.placementRace}
-          players={race.raceState.players}
-        />
-      )}
-
-      {/* Brief "GO!" flash that fades out before race appears */}
-      {showGo && (
-        <div
-          className="flex flex-col items-center gap-6"
-          style={{ animation: "fade-out-up 0.5s ease-in 0.1s forwards" }}
-        >
-          <div className="text-8xl font-black text-accent tabular-nums text-glow-accent">
-            GO!
-          </div>
-        </div>
-      )}
-
-      {race.phase === "racing" && race.raceState && racingVisible && (
+      {(race.phase === "countdown" || race.phase === "racing") && race.raceState && (
         <div
           className="flex flex-col items-center gap-8 w-full"
           style={{ animation: "fade-in-up 0.4s ease-out both" }}
@@ -177,14 +148,25 @@ export function RaceArena() {
             myPlayerId={myPlayerId}
             isPlacement={isInPlacement}
           />
-          <RaceTypingArea
-            seed={race.raceState.seed}
-            wordCount={race.raceState.wordCount}
-            finishTimeoutEnd={race.finishTimeoutEnd}
-            onProgress={race.sendProgress}
-            onFinish={race.sendFinish}
-            disabled={false}
-          />
+          <div className="relative w-full">
+            <RaceTypingArea
+              seed={race.raceState.seed}
+              wordCount={race.raceState.wordCount}
+              finishTimeoutEnd={race.finishTimeoutEnd}
+              onProgress={race.sendProgress}
+              onFinish={race.sendFinish}
+              disabled={race.phase === "countdown"}
+            />
+            {(race.phase === "countdown" || showGo) && (
+              <CountdownOverlay
+                countdown={race.countdown}
+                showGo={showGo}
+                playerCount={race.raceState.players.length}
+                placementRace={race.raceState.placementRace}
+                players={race.raceState.players}
+              />
+            )}
+          </div>
         </div>
       )}
 
