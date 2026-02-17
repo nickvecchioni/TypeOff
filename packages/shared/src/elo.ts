@@ -24,7 +24,7 @@ const RANK_TIERS: { tier: RankTier; min: number; max: number }[] = [
   { tier: "bronze", min: 0, max: 999 },
 ];
 
-const DIVISION_LABELS = ["III", "II", "I"];
+const DIVISION_LABELS = ["I", "II", "III"];
 
 /** Get the major tier for an ELO rating (for DB storage) */
 export function getRankTier(elo: number): RankTier {

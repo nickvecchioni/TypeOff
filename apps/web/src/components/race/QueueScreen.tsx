@@ -3,7 +3,8 @@
 import React from "react";
 import { useSession, signIn } from "next-auth/react";
 import { PartyPanel } from "@/components/social/PartyPanel";
-import type { PartyState } from "@typeoff/shared";
+import { RankBadge } from "@/components/RankBadge";
+import type { PartyState, RankTier } from "@typeoff/shared";
 
 interface QueueScreenProps {
   isQueuing: boolean;
@@ -88,6 +89,15 @@ export function QueueScreen({
         </p>
       </div>
 
+      {/* Rank display */}
+      {session?.user?.placementsCompleted && (
+        <RankBadge
+          tier={session.user.rankTier as RankTier}
+          elo={session.user.eloRating}
+          size="md"
+        />
+      )}
+
       {/* CTA */}
       {session?.user ? (
         <div className="flex flex-col items-center gap-6 w-full max-w-lg">
@@ -102,7 +112,7 @@ export function QueueScreen({
                 disabled={!connected}
                 className="w-full rounded-lg bg-accent text-bg py-3.5 text-sm font-bold tracking-wide uppercase hover:bg-accent/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed glow-accent-strong"
               >
-                {session.user.placementsCompleted ? "Find Race" : "Start Placement Races"}
+                {session.user.placementsCompleted ? "Find Race" : "Start Placement Race"}
               </button>
               {!session.user.placementsCompleted && (
                 <p className="text-xs text-muted text-center -mt-2">

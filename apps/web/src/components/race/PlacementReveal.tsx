@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { RankBadge } from "@/components/RankBadge";
-import { getRankTier } from "@typeoff/shared";
+import { getRankTier, getRankInfo } from "@typeoff/shared";
 import type { RankTier } from "@typeoff/shared";
 
 interface PlacementRevealProps {
@@ -13,6 +13,7 @@ interface PlacementRevealProps {
 export function PlacementReveal({ elo, onContinue }: PlacementRevealProps) {
   const [revealed, setRevealed] = useState(false);
   const tier = getRankTier(elo) as RankTier;
+  const rankInfo = getRankInfo(elo);
 
   useEffect(() => {
     const timer = setTimeout(() => setRevealed(true), 600);
@@ -23,7 +24,7 @@ export function PlacementReveal({ elo, onContinue }: PlacementRevealProps) {
     <div className="flex flex-col items-center gap-8 animate-fade-in">
       <div className="flex flex-col items-center gap-2">
         <span className="text-accent text-sm uppercase tracking-[0.2em] font-bold">
-          Placements Complete
+          Placement Complete
         </span>
         <h2 className="text-3xl font-black text-text">
           You have been ranked
@@ -31,12 +32,15 @@ export function PlacementReveal({ elo, onContinue }: PlacementRevealProps) {
       </div>
 
       <div
-        className={`transition-all duration-700 ${
+        className={`flex flex-col items-center gap-4 transition-all duration-700 ${
           revealed
             ? "opacity-100 scale-100"
             : "opacity-0 scale-75"
         }`}
       >
+        <div className={`text-4xl font-black text-rank-${tier}`}>
+          {rankInfo.label}
+        </div>
         <RankBadge tier={tier} elo={elo} size="md" />
       </div>
 
