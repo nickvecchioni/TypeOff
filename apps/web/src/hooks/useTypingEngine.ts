@@ -182,7 +182,7 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
       const word = words[currentWordIndex];
       if (!word || currentCharIndex >= word.chars.length) return;
 
-      const isCorrect = char === word.chars[currentCharIndex].expected;
+      const isCorrect = char.toLowerCase() === word.chars[currentCharIndex].expected.toLowerCase();
 
       setWords((prev) => {
         const newWords = [...prev];
@@ -258,6 +258,40 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     setCurrentCharIndex((prev) => prev - 1);
   }, [words, currentWordIndex, currentCharIndex]);
 
+  const handleWordDelete = useCallback(() => {
+    if (currentCharIndex === 0) return;
+
+    const word = words[currentWordIndex];
+    if (!word) return;
+
+    // Adjust stats counters for each char being deleted
+    for (let i = currentCharIndex - 1; i >= 0; i--) {
+      if (word.chars[i].status === "correct") {
+        correctCharsRef.current--;
+      } else if (word.chars[i].status === "incorrect") {
+        incorrectCharsRef.current--;
+      }
+    }
+    totalCharsRef.current -= currentCharIndex;
+
+    // Reset all chars in the current word to idle
+    setWords((prev) => {
+      const w = prev[currentWordIndex];
+      if (!w) return prev;
+
+      const newWords = [...prev];
+      const newChars = w.chars.map((ch) => ({
+        expected: ch.expected,
+        actual: null,
+        status: "idle" as const,
+      }));
+      newWords[currentWordIndex] = { chars: newChars, extraChars: [] };
+      return newWords;
+    });
+
+    setCurrentCharIndex(0);
+  }, [words, currentWordIndex, currentCharIndex]);
+
   const handleSpace = useCallback(() => {
     // Only allow space when the current word is fully and correctly typed
     const word = words[currentWordIndex];
@@ -308,6 +342,13 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
         return;
       }
 
+      // Allow word-delete shortcuts through (Option+Backspace / Ctrl+Backspace)
+      if ((e.altKey || e.ctrlKey) && e.key === "Backspace") {
+        e.preventDefault();
+        handleWordDelete();
+        return;
+      }
+
       // Ignore modifier combos (except Shift)
       if (e.ctrlKey || e.metaKey || e.altKey) return;
 
@@ -329,7 +370,7 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
         handleCharacter(e.key);
       }
     },
-    [status, restart, startTimer, handleBackspace, handleSpace, handleCharacter]
+    [status, restart, startTimer, handleBackspace, handleWordDelete, handleSpace, handleCharacter]
   );
 
   // Attach keydown handler to window for this hook's consumer to use
