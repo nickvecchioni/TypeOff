@@ -27,6 +27,10 @@ interface PlayerEntry {
   isBot: boolean;
   botTargetWpm: number;
   botReactionTicks: number;
+  botRawProgress: number;
+  botSpeedMultiplier: number;
+  botNextRhythmTick: number;
+  botTickCounter: number;
   wpmHistory?: WpmSample[];
   misstypedChars?: number;
   lastProgressTime: number;
@@ -40,12 +44,13 @@ const PROGRESS_INTERVAL_MS = 100;
 const DEFAULT_BOT_WPM_MIN = 40;
 const DEFAULT_BOT_WPM_MAX = 80;
 const BOT_WPM_VARIANCE = 5;
-const BOT_REACTION_MIN_MS = 300;
-const BOT_REACTION_MAX_MS = 800;
+const BOT_REACTION_MIN_MS = 1200;
+const BOT_REACTION_MAX_MS = 2500;
 
 export interface BotWpmConfig {
   botWpmMin: number;
   botWpmMax: number;
+  perBotWpm?: number[];
 }
 
 const FINISH_TIMEOUT_SECONDS = 15;
@@ -103,6 +108,10 @@ export class RaceManager {
         isBot: false,
         botTargetWpm: 0,
         botReactionTicks: 0,
+        botRawProgress: 0,
+        botSpeedMultiplier: 1,
+        botNextRhythmTick: 0,
+        botTickCounter: 0,
         lastProgressTime: now,
         progressEventsInWindow: 0,
         progressWindowStart: now,
@@ -112,8 +121,12 @@ export class RaceManager {
     // Add bot players (keyed by player id, null socket)
     const wpmMin = botWpmConfig?.botWpmMin ?? DEFAULT_BOT_WPM_MIN;
     const wpmMax = botWpmConfig?.botWpmMax ?? DEFAULT_BOT_WPM_MAX;
-    for (const bot of bots) {
-      const targetWpm = wpmMin + Math.random() * (wpmMax - wpmMin);
+    const perBotWpm = botWpmConfig?.perBotWpm;
+    for (let botIdx = 0; botIdx < bots.length; botIdx++) {
+      const bot = bots[botIdx];
+      const targetWpm = perBotWpm?.[botIdx] != null
+        ? perBotWpm[botIdx] + (Math.random() - 0.5) * 2 * BOT_WPM_VARIANCE
+        : wpmMin + Math.random() * (wpmMax - wpmMin);
       const reactionMs = BOT_REACTION_MIN_MS + Math.random() * (BOT_REACTION_MAX_MS - BOT_REACTION_MIN_MS);
       this.players.set(bot.id, {
         socket: null,
@@ -131,6 +144,10 @@ export class RaceManager {
         isBot: true,
         botTargetWpm: targetWpm,
         botReactionTicks: Math.ceil(reactionMs / PROGRESS_INTERVAL_MS),
+        botRawProgress: 0,
+        botSpeedMultiplier: 1.0,
+        botNextRhythmTick: Math.floor(5 + Math.random() * 10),
+        botTickCounter: 0,
         lastProgressTime: now,
         progressEventsInWindow: 0,
         progressWindowStart: now,
@@ -383,20 +400,35 @@ export class RaceManager {
         continue;
       }
 
+      // Update typing rhythm: burst/pause cycle
+      entry.botTickCounter++;
+      if (entry.botTickCounter >= entry.botNextRhythmTick) {
+        // 70% chance burst (1.0-1.3), 30% chance pause (0.3-0.7)
+        if (Math.random() < 0.7) {
+          entry.botSpeedMultiplier = 1.0 + Math.random() * 0.3;
+        } else {
+          entry.botSpeedMultiplier = 0.3 + Math.random() * 0.4;
+        }
+        entry.botNextRhythmTick = Math.floor(5 + Math.random() * 10);
+        entry.botTickCounter = 0;
+      }
+
       // Per-tick WPM jitter for natural feel
       const jitter = (Math.random() - 0.5) * 2 * BOT_WPM_VARIANCE;
-      const effectiveWpm = Math.max(10, entry.botTargetWpm + jitter);
+      const effectiveWpm = Math.max(10, (entry.botTargetWpm + jitter) * entry.botSpeedMultiplier);
 
       // WPM = (chars / 5) / minutes → chars/min = WPM * 5
       // At 100ms intervals: chars/tick = (WPM * 5) / (60 * 10)
       const charsPerTick = (effectiveWpm * 5) / 600;
       const progressPerTick = charsPerTick / this.totalChars;
 
-      entry.progress.progress = Math.min(1, entry.progress.progress + progressPerTick);
+      // Track raw progress internally, cap broadcast at 97% until truly done
+      entry.botRawProgress += progressPerTick;
+      entry.progress.progress = Math.min(0.97, entry.botRawProgress);
       entry.progress.wpm = Math.round(effectiveWpm);
-      entry.progress.wordIndex = Math.floor(entry.progress.progress * this.wordCount);
+      entry.progress.wordIndex = Math.floor(entry.botRawProgress * this.wordCount);
 
-      if (entry.progress.progress >= 1) {
+      if (entry.botRawProgress >= 1) {
         entry.progress.progress = 1;
         entry.progress.finished = true;
         entry.progress.placement = this.nextPlacement++;

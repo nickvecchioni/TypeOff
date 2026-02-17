@@ -26,7 +26,7 @@ const ELO_WINDOW_INITIAL = 100;
 const ELO_WINDOW_EXPAND = 50;
 const ELO_WINDOW_EXPAND_INTERVAL_MS = 5_000;
 const ELO_WINDOW_MAX = 400;
-const BOT_FILL_DELAY_MS = 8_000;
+const BOT_FILL_DELAY_MS = 5_000;
 
 const BOT_NAMES = [
   "SpeedyBot", "TypeRacer", "KeyMaster", "SwiftKeys",
@@ -319,30 +319,50 @@ export class Matchmaker implements RaceOwner {
   }
 
   private startRaceWithBots(entries: QueueEntry[], botCount: number) {
-    // Average ELO of human players for bot scaling
-    const avgElo = entries.reduce((sum, e) => sum + e.player.elo, 0) / entries.length;
+    const elos = entries.map((e) => e.player.elo);
+    const minElo = Math.min(...elos);
+    const maxElo = Math.max(...elos);
+    const avgElo = elos.reduce((a, b) => a + b, 0) / elos.length;
+    const spread = maxElo - minElo;
 
     // Shuffle and pick unique bot names
     const shuffled = [...BOT_NAMES].sort(() => Math.random() - 0.5);
     const bots: RacePlayer[] = [];
+    const perBotWpm: number[] = [];
+
     for (let i = 0; i < botCount; i++) {
-      const botElo = avgElo + Math.round((Math.random() - 0.5) * 100);
+      let botElo: number;
+      if (entries.length > 1 && spread > 200) {
+        // Mixed-skill party: distribute bots evenly across the ELO range
+        botElo = botCount === 1
+          ? (minElo + maxElo) / 2
+          : minElo + (i / (botCount - 1)) * spread;
+        botElo += Math.round((Math.random() - 0.5) * 50); // small jitter
+      } else {
+        // Solo or tight-skill party: cluster around avg ELO
+        botElo = avgElo + Math.round((Math.random() - 0.5) * 100);
+      }
+      botElo = Math.max(0, Math.round(botElo));
+
       bots.push({
         id: `bot_${crypto.randomUUID()}`,
         name: shuffled[i % shuffled.length],
         isGuest: true,
-        elo: Math.max(0, botElo),
+        elo: botElo,
       });
+
+      // Per-bot WPM from individual ELO: wpm = (elo - 500) / 10
+      perBotWpm.push(Math.max(20, (botElo - 500) / 10));
     }
 
-    // Bot WPM matches rank thresholds: wpm = (elo - 500) / 10
+    // Fallback range (used if perBotWpm not supported)
     const baseWpm = Math.max(20, (avgElo - 500) / 10);
     const botWpmMin = Math.max(20, baseWpm - 10);
     const botWpmMax = baseWpm + 10;
 
     const race = new RaceManager(
       this.io, entries, this, bots,
-      { botWpmMin, botWpmMax },
+      { botWpmMin, botWpmMax, perBotWpm },
     );
     this.races.set(race.raceId, race);
     for (const entry of entries) {
@@ -372,7 +392,7 @@ export class Matchmaker implements RaceOwner {
 
   private broadcastQueueCount() {
     for (const entry of this.queue) {
-      entry.socket.emit("queueUpdate", { count: this.queue.length });
+      entry.socket.emit("queueUpdate", { count: this.queue.length, maxWaitSeconds: BOT_FILL_DELAY_MS / 1000 });
     }
   }
 }

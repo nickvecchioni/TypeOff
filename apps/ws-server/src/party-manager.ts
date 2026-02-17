@@ -17,6 +17,7 @@ interface PartyMember {
   userId: string;
   name: string;
   socketId: string;
+  elo: number;
 }
 
 interface Party {
@@ -36,7 +37,7 @@ export class PartyManager {
     private socialManager: SocialManager,
   ) {}
 
-  createParty(socket: TypedSocket, userId: string, name: string) {
+  createParty(socket: TypedSocket, userId: string, name: string, elo: number) {
     // Leave existing party first
     this.leaveParty(socket);
 
@@ -44,7 +45,7 @@ export class PartyManager {
     const party: Party = {
       id: partyId,
       leaderId: userId,
-      members: new Map([[userId, { userId, name, socketId: socket.id }]]),
+      members: new Map([[userId, { userId, name, socketId: socket.id, elo }]]),
       pendingInvites: new Set(),
     };
 
@@ -123,7 +124,7 @@ export class PartyManager {
     }, INVITE_EXPIRY_MS);
   }
 
-  respondToInvite(socket: TypedSocket, partyId: string, accept: boolean, userId: string, name: string) {
+  respondToInvite(socket: TypedSocket, partyId: string, accept: boolean, userId: string, name: string, elo: number) {
     const party = this.parties.get(partyId);
     if (!party) {
       socket.emit("partyError", { message: "Party no longer exists" });
@@ -147,7 +148,7 @@ export class PartyManager {
     // Leave any existing party
     this.leaveParty(socket);
 
-    party.members.set(userId, { userId, name, socketId: socket.id });
+    party.members.set(userId, { userId, name, socketId: socket.id, elo });
     this.userToParty.set(userId, partyId);
     this.socketToUser.set(socket.id, userId);
 
@@ -284,7 +285,7 @@ export class PartyManager {
           id: member.userId,
           name: member.name,
           isGuest: false,
-          elo: 1000, // Will be overridden by matchmaker with per-type ELO
+          elo: member.elo,
         },
       });
     }

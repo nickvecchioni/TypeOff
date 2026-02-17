@@ -96,7 +96,7 @@ io.on("connection", (socket) => {
     try {
       const player = await authenticateSocket(data, socket.id);
       socialManager.trackConnection(socket, player.id).catch(() => {});
-      partyManager.createParty(socket, player.id, player.name);
+      partyManager.createParty(socket, player.id, player.name, player.elo);
     } catch (err) {
       socket.emit("partyError", {
         message: err instanceof Error ? err.message : "Auth failed",
@@ -112,7 +112,7 @@ io.on("connection", (socket) => {
     try {
       const player = await authenticateSocket(data, socket.id);
       socialManager.trackConnection(socket, player.id).catch(() => {});
-      partyManager.respondToInvite(socket, data.partyId, data.accept, player.id, player.name);
+      partyManager.respondToInvite(socket, data.partyId, data.accept, player.id, player.name, player.elo);
     } catch (err) {
       socket.emit("partyError", {
         message: err instanceof Error ? err.message : "Auth failed",
