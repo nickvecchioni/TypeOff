@@ -3,8 +3,8 @@ import Link from "next/link";
 const RANK_TIERS = [
   {
     name: "Grandmaster",
-    range: "2200+",
-    wpm: "170+",
+    range: "2500+",
+    wpm: "200+",
     text: "text-rank-grandmaster",
     ring: "ring-rank-grandmaster/30",
     bg: "bg-rank-grandmaster/[0.06]",
@@ -14,8 +14,8 @@ const RANK_TIERS = [
   },
   {
     name: "Master",
-    range: "1800 – 2199",
-    wpm: "~150",
+    range: "2200 – 2499",
+    wpm: "~170–200",
     text: "text-rank-master",
     ring: "ring-rank-master/20",
     bg: "bg-rank-master/[0.04]",
@@ -25,8 +25,8 @@ const RANK_TIERS = [
   },
   {
     name: "Diamond",
-    range: "1500 – 1799",
-    wpm: "~115–150",
+    range: "1900 – 2199",
+    wpm: "~140–170",
     text: "text-rank-diamond",
     ring: "ring-rank-diamond/20",
     bg: "bg-rank-diamond/[0.04]",
@@ -36,8 +36,8 @@ const RANK_TIERS = [
   },
   {
     name: "Platinum",
-    range: "1300 – 1499",
-    wpm: "~95–115",
+    range: "1600 – 1899",
+    wpm: "~110–140",
     text: "text-rank-platinum",
     ring: "ring-rank-platinum/15",
     bg: "bg-rank-platinum/[0.03]",
@@ -47,8 +47,8 @@ const RANK_TIERS = [
   },
   {
     name: "Gold",
-    range: "1100 – 1299",
-    wpm: "~70–95",
+    range: "1300 – 1599",
+    wpm: "~80–110",
     text: "text-rank-gold",
     ring: "ring-rank-gold/15",
     bg: "bg-rank-gold/[0.03]",
@@ -58,8 +58,8 @@ const RANK_TIERS = [
   },
   {
     name: "Silver",
-    range: "900 – 1099",
-    wpm: "~50–70",
+    range: "1000 – 1299",
+    wpm: "~50–80",
     text: "text-rank-silver",
     ring: "ring-rank-silver/15",
     bg: "bg-rank-silver/[0.03]",
@@ -69,7 +69,7 @@ const RANK_TIERS = [
   },
   {
     name: "Bronze",
-    range: "0 – 899",
+    range: "0 – 999",
     wpm: "< 50",
     text: "text-rank-bronze",
     ring: "ring-rank-bronze/15",
@@ -104,19 +104,19 @@ export default function RanksPage() {
                 className={`relative rounded-lg ring-1 ${tier.ring} ${tier.bg} px-4 py-3.5 ${isGM ? "py-5" : ""} ${tier.glowClass}`}
               >
                 <div className="flex items-baseline justify-between gap-4">
-                  <span className={`font-bold ${tier.text} ${isGM ? "text-lg" : "text-base"}`}>
-                    {tier.name}
-                  </span>
-                  <div className="flex items-baseline gap-3">
+                  <div className="flex items-baseline gap-2">
+                    <span className={`font-bold ${tier.text} ${isGM ? "text-lg" : "text-base"}`}>
+                      {tier.name}
+                    </span>
                     {tier.divisions && (
                       <span className="text-xs text-muted/50 hidden sm:inline">
                         {tier.divisions}
                       </span>
                     )}
-                    <span className="text-xs text-muted tabular-nums font-medium">
-                      {tier.range}
-                    </span>
                   </div>
+                  <span className="text-xs text-muted tabular-nums font-medium">
+                    {tier.range}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between mt-1 gap-4">
                   <p className="text-xs text-muted">{tier.flavor}</p>

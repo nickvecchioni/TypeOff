@@ -71,6 +71,16 @@
   100% { background-position: 200% 0; }
 }
 
+@keyframes fade-out-up {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(-12px) scale(0.95); }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* ── Base ────────────────────────────────────────────────── */
 
 html, body {

@@ -8,7 +8,7 @@ interface WpmChartProps {
 }
 
 const CHART_WIDTH = 600;
-const CHART_HEIGHT = 150;
+const CHART_HEIGHT = 250;
 const PADDING = { top: 20, right: 20, bottom: 30, left: 45 };
 
 export function WpmChart({ samples }: WpmChartProps) {
@@ -18,9 +18,11 @@ export function WpmChart({ samples }: WpmChartProps) {
   const innerHeight = CHART_HEIGHT - PADDING.top - PADDING.bottom;
 
   const maxWpm = Math.max(...samples.map((s) => Math.max(s.wpm, s.raw)), 10);
+  const minTime = samples[0].elapsed;
   const maxTime = samples[samples.length - 1].elapsed || 1;
+  const timeRange = maxTime - minTime || 1;
 
-  const scaleX = (t: number) => PADDING.left + (t / maxTime) * innerWidth;
+  const scaleX = (t: number) => PADDING.left + ((t - minTime) / timeRange) * innerWidth;
   const scaleY = (v: number) => PADDING.top + innerHeight - (v / (maxWpm * 1.1)) * innerHeight;
 
   const toPath = (key: "wpm" | "raw") =>
@@ -42,7 +44,7 @@ export function WpmChart({ samples }: WpmChartProps) {
   return (
     <svg
       viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
-      className="w-full max-w-[600px]"
+      className="w-full max-w-2xl"
       role="img"
       aria-label="WPM over time chart"
     >

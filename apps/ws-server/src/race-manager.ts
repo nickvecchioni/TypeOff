@@ -716,7 +716,7 @@ export class RaceManager {
 
     const wpms = recentResults.map((r) => r.wpm ?? 0);
     const avgWpm = wpms.length > 0 ? wpms.reduce((a, b) => a + b, 0) / wpms.length : 50;
-    const initialElo = Math.min(2200, Math.max(600, Math.round(500 + avgWpm * 8.5)));
+    const initialElo = Math.min(2600, Math.max(600, Math.round(500 + avgWpm * 10)));
     const initialTier = getRankTier(initialElo);
 
     await db

@@ -13,16 +13,9 @@ interface RaceTrackProps {
 }
 
 export function RaceTrack({ players, progress, myPlayerId, isPlacement }: RaceTrackProps) {
-  // Sort by progress descending
-  const sorted = [...players].sort((a, b) => {
-    const pa = progress[a.id]?.progress ?? 0;
-    const pb = progress[b.id]?.progress ?? 0;
-    return pb - pa;
-  });
-
   return (
     <div className="flex flex-col gap-2 w-full">
-      {sorted.map((player) => {
+      {players.map((player) => {
         const p = progress[player.id];
         const pct = (p?.progress ?? 0) * 100;
         const isMe = player.id === myPlayerId;

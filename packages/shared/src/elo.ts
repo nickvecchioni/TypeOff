@@ -15,13 +15,13 @@ export interface RankInfo {
 
 /** Major tier thresholds — order matters (highest first) */
 const RANK_TIERS: { tier: RankTier; min: number; max: number }[] = [
-  { tier: "grandmaster", min: 2200, max: Infinity },
-  { tier: "master", min: 1800, max: 2199 },
-  { tier: "diamond", min: 1500, max: 1799 },
-  { tier: "platinum", min: 1300, max: 1499 },
-  { tier: "gold", min: 1100, max: 1299 },
-  { tier: "silver", min: 900, max: 1099 },
-  { tier: "bronze", min: 0, max: 899 },
+  { tier: "grandmaster", min: 2500, max: Infinity },
+  { tier: "master", min: 2200, max: 2499 },
+  { tier: "diamond", min: 1900, max: 2199 },
+  { tier: "platinum", min: 1600, max: 1899 },
+  { tier: "gold", min: 1300, max: 1599 },
+  { tier: "silver", min: 1000, max: 1299 },
+  { tier: "bronze", min: 0, max: 999 },
 ];
 
 const DIVISION_LABELS = ["III", "II", "I"];

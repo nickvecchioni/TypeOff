@@ -325,20 +325,21 @@ export class Matchmaker implements RaceOwner {
     // Average ELO of human players for bot scaling
     const avgElo = entries.reduce((sum, e) => sum + e.player.elo, 0) / entries.length;
 
+    // Shuffle and pick unique bot names
+    const shuffled = [...BOT_NAMES].sort(() => Math.random() - 0.5);
     const bots: RacePlayer[] = [];
     for (let i = 0; i < botCount; i++) {
-      const botName = BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)];
       const botElo = avgElo + Math.round((Math.random() - 0.5) * 100);
       bots.push({
         id: `bot_${crypto.randomUUID()}`,
-        name: botName,
+        name: shuffled[i % shuffled.length],
         isGuest: true,
         elo: Math.max(0, botElo),
       });
     }
 
-    // Bot WPM scales with average ELO: base = 30 + (elo/1800) * 70
-    const baseWpm = 30 + (avgElo / 1800) * 70;
+    // Bot WPM scales with average ELO: base = 30 + (elo/2500) * 180
+    const baseWpm = 30 + (avgElo / 2500) * 180;
     const botWpmMin = Math.max(20, baseWpm - 10);
     const botWpmMax = baseWpm + 10;
 

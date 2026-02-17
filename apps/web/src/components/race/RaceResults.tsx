@@ -3,9 +3,16 @@
 import React from "react";
 import Link from "next/link";
 import type { RaceResult } from "@/hooks/useRace";
+import type { RankTier } from "@typeoff/shared";
 import { getRankTier } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
 import { WpmChart } from "@/components/typing/WpmChart";
+
+interface RankChange {
+  direction: "up" | "down";
+  newLabel: string;
+  newTier: RankTier;
+}
 
 interface RaceResultsProps {
   results: RaceResult[];
@@ -13,9 +20,10 @@ interface RaceResultsProps {
   onRaceAgain: () => void;
   placementRace?: number;
   placementTotal?: number;
+  rankChange?: RankChange | null;
 }
 
-export function RaceResults({ results, myPlayerId, onRaceAgain, placementRace, placementTotal }: RaceResultsProps) {
+export function RaceResults({ results, myPlayerId, onRaceAgain, placementRace, placementTotal, rankChange }: RaceResultsProps) {
   const isPlacement = placementRace != null && placementTotal != null;
 
   return (
@@ -134,12 +142,31 @@ export function RaceResults({ results, myPlayerId, onRaceAgain, placementRace, p
         </table>
       </div>
 
+      {/* Rank change banner */}
+      {rankChange && (
+        <div
+          className={`flex items-center gap-3 rounded-lg px-5 py-3 text-sm font-bold animate-slide-up ${
+            rankChange.direction === "up"
+              ? `bg-rank-${rankChange.newTier}/10 ring-1 ring-rank-${rankChange.newTier}/20 text-rank-${rankChange.newTier}`
+              : "bg-error/10 ring-1 ring-error/20 text-error"
+          }`}
+        >
+          <span className="text-lg">
+            {rankChange.direction === "up" ? "▲" : "▼"}
+          </span>
+          <span>
+            {rankChange.direction === "up" ? "Promoted to" : "Demoted to"}{" "}
+            {rankChange.newLabel}
+          </span>
+        </div>
+      )}
+
       {/* Own performance details */}
       {(() => {
         const myResult = results.find((r) => r.playerId === myPlayerId);
         if (!myResult) return null;
         return (
-          <div className="flex flex-col items-center gap-4 w-full max-w-lg">
+          <div className="flex flex-col items-center gap-4 w-full max-w-2xl">
             <div className="text-center">
               <div className="text-2xl font-bold text-accent tabular-nums">
                 {Math.floor(myResult.wpm)}

@@ -23,7 +23,7 @@ export function CountdownOverlay({
       {placementRace != null ? (
         <div className="flex flex-col items-center gap-3">
           <span className="text-accent font-bold text-sm uppercase tracking-widest">
-            Placement Race
+            Placement {placementRace} of 3
           </span>
           {/* Progress dots */}
           <div className="flex items-center gap-2">
@@ -38,7 +38,7 @@ export function CountdownOverlay({
           </div>
           {placementRace === 1 && (
             <p className="text-muted text-xs text-center max-w-xs">
-              Race 3 adaptive bots to determine your initial rank
+              Type 3 tests to determine your starting rank
             </p>
           )}
         </div>

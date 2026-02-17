@@ -29,8 +29,41 @@ export function RaceArena() {
 
   const myPlayerId = session?.user?.id ?? null;
 
-  // Refresh session and dispatch ELO change event when race finishes
+  // Track transition from countdown → racing with a brief "GO!" hold
+  const [showGo, setShowGo] = React.useState(false);
+  const [racingVisible, setRacingVisible] = React.useState(false);
+  const prevPhaseRef = React.useRef(race.phase);
+
+  React.useEffect(() => {
+    const prev = prevPhaseRef.current;
+    prevPhaseRef.current = race.phase;
+
+    if (prev === "countdown" && race.phase === "racing") {
+      // Show "GO!" briefly, then fade in the race
+      setShowGo(true);
+      setRacingVisible(false);
+      const timer = setTimeout(() => {
+        setShowGo(false);
+        setRacingVisible(true);
+      }, 600);
+      return () => clearTimeout(timer);
+    } else if (race.phase === "racing") {
+      setRacingVisible(true);
+      setShowGo(false);
+    } else {
+      setRacingVisible(false);
+      setShowGo(false);
+    }
+  }, [race.phase]);
+
+  // Refresh session when race finishes
   const sessionRefreshed = React.useRef(false);
+  const [rankChange, setRankChange] = React.useState<{
+    direction: "up" | "down";
+    newLabel: string;
+    newTier: RankTier;
+  } | null>(null);
+
   React.useEffect(() => {
     const isFinished = race.phase === "finished" || race.phase === "placed";
     if (isFinished && !sessionRefreshed.current) {
@@ -44,30 +77,28 @@ export function RaceArena() {
             })
           );
         }
+        // Compute rank change for inline display
         if (myResult?.elo != null && myResult.eloChange != null && session.user.rankTier) {
           const oldElo = myResult.elo - myResult.eloChange;
           const oldInfo = getRankInfo(oldElo);
           const newInfo = getRankInfo(myResult.elo);
           const oldVal = rankValue(oldInfo.tier, oldInfo.division);
           const newVal = rankValue(newInfo.tier, newInfo.division);
-          if (newVal > oldVal) {
-            window.dispatchEvent(
-              new CustomEvent("rank-up", {
-                detail: { tier: newInfo.tier, elo: myResult.elo, direction: "up" as const },
-              })
-            );
-          } else if (newVal < oldVal) {
-            window.dispatchEvent(
-              new CustomEvent("rank-up", {
-                detail: { tier: newInfo.tier, elo: myResult.elo, direction: "down" as const },
-              })
-            );
+          if (newVal !== oldVal) {
+            setRankChange({
+              direction: newVal > oldVal ? "up" : "down",
+              newLabel: newInfo.label,
+              newTier: newInfo.tier,
+            });
+          } else {
+            setRankChange(null);
           }
         }
         updateSession({});
       }
     } else if (!isFinished) {
       sessionRefreshed.current = false;
+      setRankChange(null);
     }
   }, [race.phase, race.results, session?.user?.id, updateSession]);
 
@@ -106,8 +137,23 @@ export function RaceArena() {
         />
       )}
 
-      {race.phase === "racing" && race.raceState && (
-        <>
+      {/* Brief "GO!" flash that fades out before race appears */}
+      {showGo && (
+        <div
+          className="flex flex-col items-center gap-6"
+          style={{ animation: "fade-out-up 0.5s ease-in 0.1s forwards" }}
+        >
+          <div className="text-8xl font-black text-accent tabular-nums text-glow-accent">
+            GO!
+          </div>
+        </div>
+      )}
+
+      {race.phase === "racing" && race.raceState && racingVisible && (
+        <div
+          className="flex flex-col items-center gap-8 w-full"
+          style={{ animation: "fade-in-up 0.4s ease-out both" }}
+        >
           {race.raceState.placementRace != null && (
             <div className="flex items-center gap-3">
               <span className="text-xs text-muted">
@@ -129,17 +175,20 @@ export function RaceArena() {
             onFinish={race.sendFinish}
             disabled={false}
           />
-        </>
+        </div>
       )}
 
       {race.phase === "finished" && (
-        <RaceResults
-          results={race.results}
-          myPlayerId={myPlayerId}
-          onRaceAgain={race.raceAgain}
-          placementRace={race.placementRace}
-          placementTotal={race.placementTotal}
-        />
+        <div style={{ animation: "fade-in-up 0.4s ease-out both" }}>
+          <RaceResults
+            results={race.results}
+            myPlayerId={myPlayerId}
+            onRaceAgain={race.raceAgain}
+            placementRace={race.placementRace}
+            placementTotal={race.placementTotal}
+            rankChange={rankChange}
+          />
+        </div>
       )}
 
       {race.phase === "placed" && (() => {

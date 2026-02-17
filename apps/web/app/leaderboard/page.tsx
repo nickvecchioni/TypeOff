@@ -5,7 +5,17 @@ import { getDb } from "@/lib/db";
 import { users, userStats } from "@typeoff/db";
 import { and, desc, eq, isNotNull } from "drizzle-orm";
 import type { RankTier } from "@typeoff/shared";
-import { RankBadge } from "@/components/RankBadge";
+import { getRankInfo } from "@typeoff/shared";
+
+const TIER_TEXT: Record<RankTier, string> = {
+  bronze: "text-rank-bronze",
+  silver: "text-rank-silver",
+  gold: "text-rank-gold",
+  platinum: "text-rank-platinum",
+  diamond: "text-rank-diamond",
+  master: "text-rank-master",
+  grandmaster: "text-rank-grandmaster",
+};
 
 export default async function LeaderboardPage() {
   const db = getDb();
@@ -44,11 +54,12 @@ export default async function LeaderboardPage() {
             <p className="text-muted text-sm">No ranked players yet. Be the first.</p>
           </div>
         ) : (
-          <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] overflow-hidden">
+          <div className="space-y-1">
             {/* Header */}
-            <div className="grid grid-cols-[2rem_1fr_3.5rem_3.5rem] items-center gap-3 px-4 py-2.5 text-xs text-muted/60 uppercase tracking-wider border-b border-white/[0.04]">
+            <div className="grid grid-cols-[2.5rem_1fr_4rem_4rem_3rem] items-center gap-2 px-4 py-2 text-xs text-muted/50 uppercase tracking-wider">
               <span>#</span>
               <span>Player</span>
+              <span className="text-right">ELO</span>
               <span className="text-right">WPM</span>
               <span className="text-right">Races</span>
             </div>
@@ -57,34 +68,43 @@ export default async function LeaderboardPage() {
             {rows.map((row, i) => {
               const rank = i + 1;
               const isMe = session?.user?.id === row.id;
-              const isTop3 = rank <= 3;
-              const podiumClasses = rank === 1
-                ? "text-rank-gold text-glow-gold"
+              const info = getRankInfo(row.eloRating);
+              const tierColor = TIER_TEXT[info.tier];
+
+              const rankDisplay = rank === 1
+                ? "text-rank-gold text-lg"
                 : rank === 2
-                ? "text-rank-silver"
+                ? "text-rank-silver text-lg"
                 : rank === 3
-                ? "text-rank-bronze"
-                : "text-muted/50";
+                ? "text-rank-bronze text-lg"
+                : "text-muted/40 text-sm";
+
+              const rowBg = isMe
+                ? "bg-accent/[0.06] ring-1 ring-accent/10"
+                : rank <= 3
+                ? "bg-surface/50 ring-1 ring-white/[0.04]"
+                : "hover:bg-white/[0.02]";
 
               return (
                 <Link
                   key={row.id}
                   href={`/profile/${row.username}`}
-                  className={`grid grid-cols-[2rem_1fr_3.5rem_3.5rem] items-center gap-3 px-4 py-2.5 transition-colors border-b border-white/[0.02] last:border-0 ${
-                    isMe
-                      ? "bg-accent/[0.06] hover:bg-accent/[0.1]"
-                      : "hover:bg-white/[0.02]"
-                  }`}
+                  className={`grid grid-cols-[2.5rem_1fr_4rem_4rem_3rem] items-center gap-2 px-4 py-3 rounded-lg transition-colors ${rowBg}`}
                 >
-                  <span className={`text-sm font-bold tabular-nums ${podiumClasses}`}>
+                  <span className={`font-black tabular-nums ${rankDisplay}`}>
                     {rank}
                   </span>
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <RankBadge tier={row.rankTier as RankTier} elo={row.eloRating} />
-                    <span className={`truncate text-sm ${isMe ? "text-accent font-bold" : isTop3 ? "text-text font-medium" : "text-text/80"}`}>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className={`text-xs font-bold ${tierColor} shrink-0`}>
+                      {info.label}
+                    </span>
+                    <span className={`truncate text-sm ${isMe ? "text-accent font-bold" : "text-text/80"}`}>
                       {row.username}
                     </span>
                   </div>
+                  <span className={`text-sm tabular-nums text-right font-medium ${tierColor}`}>
+                    {row.eloRating}
+                  </span>
                   <span className="text-sm text-muted tabular-nums text-right">
                     {row.avgWpm != null ? (
                       <>
@@ -95,7 +115,7 @@ export default async function LeaderboardPage() {
                       </>
                     ) : 0}
                   </span>
-                  <span className="text-sm text-muted/40 tabular-nums text-right">
+                  <span className="text-xs text-muted/30 tabular-nums text-right">
                     {row.racesPlayed ?? 0}
                   </span>
                 </Link>

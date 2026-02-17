@@ -5,7 +5,6 @@ import { SessionProvider } from "@/components/auth/SessionProvider";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { UsernameGuard } from "@/components/auth/UsernameGuard";
 import { SocketProvider } from "@/hooks/useSocket";
-import { RankUpOverlay } from "@/components/RankUpOverlay";
 import "./globals.css";
 
 const jetbrainsMono = JetBrains_Mono({
@@ -54,7 +53,6 @@ export default function RootLayout({
             <div className="relative z-10 flex-1 flex flex-col">
               {children}
             </div>
-            <RankUpOverlay />
           </UsernameGuard>
           </SocketProvider>
         </SessionProvider>
