@@ -11,14 +11,7 @@ export function UserMenu() {
   }
 
   if (!session?.user) {
-    return (
-      <Link
-        href="/login"
-        className="text-sm text-muted hover:text-accent transition-colors"
-      >
-        Sign in
-      </Link>
-    );
+    return null;
   }
 
   const profileHref = session.user.username

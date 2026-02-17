@@ -10,7 +10,7 @@ export function UsernameGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const hasRendered = useRef(false);
 
-  const isExempt = pathname === "/setup-username" || pathname === "/login";
+  const isExempt = pathname === "/setup-username";
   const needsUsername =
     status === "authenticated" && !session?.user?.username && !isExempt;
 
