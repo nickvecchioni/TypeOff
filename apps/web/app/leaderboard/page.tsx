@@ -27,6 +27,11 @@ const TIER_BG: Record<RankTier, string> = {
   grandmaster: "bg-rank-grandmaster",
 };
 
+function fmtWpm(value: number | null): string {
+  if (value == null) return "0.00";
+  return value.toFixed(2);
+}
+
 export default async function LeaderboardPage() {
   const db = getDb();
   const { auth } = await import("@/lib/auth");
@@ -42,7 +47,6 @@ export default async function LeaderboardPage() {
       racesWon: userStats.racesWon,
       avgWpm: userStats.avgWpm,
       maxWpm: userStats.maxWpm,
-      avgAccuracy: userStats.avgAccuracy,
     })
     .from(users)
     .leftJoin(userStats, eq(users.id, userStats.userId))
@@ -57,7 +61,7 @@ export default async function LeaderboardPage() {
           <h1 className="text-lg font-black text-text uppercase tracking-wider">
             Leaderboard
           </h1>
-          <span className="text-xs text-muted tabular-nums">
+          <span className="text-sm text-muted tabular-nums">
             {rows.length} {rows.length === 1 ? "player" : "players"}
           </span>
         </div>
@@ -69,13 +73,12 @@ export default async function LeaderboardPage() {
         ) : (
           <div>
             {/* Header */}
-            <div className="grid grid-cols-[2rem_1fr_4.5rem_4rem_3.5rem_3.5rem_3rem] items-center gap-3 px-4 py-2 text-[0.65rem] text-muted/40 uppercase tracking-widest border-b border-white/[0.04]">
+            <div className="grid grid-cols-[2rem_1fr_4.5rem_5rem_5rem_3.5rem] items-center gap-3 px-4 py-2 text-xs text-muted/60 uppercase tracking-wider border-b border-white/[0.04]">
               <span></span>
               <span>Player</span>
               <span className="text-right">ELO</span>
-              <span className="text-right">Avg</span>
-              <span className="text-right">Best</span>
-              <span className="text-right">Acc</span>
+              <span className="text-right">Avg WPM</span>
+              <span className="text-right">Best WPM</span>
               <span className="text-right">W/L</span>
             </div>
 
@@ -97,7 +100,7 @@ export default async function LeaderboardPage() {
                   ? "text-rank-silver"
                   : rank === 3
                   ? "text-rank-bronze"
-                  : "text-muted/30";
+                  : "text-muted/40";
 
                 const rowBg = isMe
                   ? "bg-accent/[0.05] ring-1 ring-accent/10"
@@ -109,19 +112,18 @@ export default async function LeaderboardPage() {
                   <Link
                     key={row.id}
                     href={`/profile/${row.username}`}
-                    className={`grid grid-cols-[2rem_1fr_4.5rem_4rem_3.5rem_3.5rem_3rem] items-center gap-3 px-4 py-2.5 rounded-lg transition-colors ${rowBg}`}
+                    className={`grid grid-cols-[2rem_1fr_4.5rem_5rem_5rem_3.5rem] items-center gap-3 px-4 py-2.5 rounded-lg transition-colors ${rowBg}`}
                   >
-                    <span className={`text-xs font-bold tabular-nums ${rankDisplay}`}>
+                    <span className={`text-sm font-bold tabular-nums ${rankDisplay}`}>
                       {rank}
                     </span>
                     <div className="flex items-center gap-2.5 min-w-0">
-                      {/* Rank tier dot */}
                       <span className={`w-2 h-2 rounded-full shrink-0 ${tierBg}`} />
                       <div className="flex flex-col min-w-0">
                         <span className={`truncate text-sm leading-tight ${isMe ? "text-accent font-bold" : "text-text"}`}>
                           {row.username}
                         </span>
-                        <span className={`text-[0.65rem] leading-tight ${tierColor}`}>
+                        <span className={`text-xs leading-tight ${tierColor}`}>
                           {info.label}
                         </span>
                       </div>
@@ -130,15 +132,12 @@ export default async function LeaderboardPage() {
                       {row.eloRating}
                     </span>
                     <span className="text-sm text-muted tabular-nums text-right">
-                      {row.avgWpm != null ? Math.round(row.avgWpm) : 0}
+                      {fmtWpm(row.avgWpm)}
                     </span>
-                    <span className="text-sm text-muted/60 tabular-nums text-right">
-                      {row.maxWpm != null ? Math.round(row.maxWpm) : 0}
+                    <span className="text-sm text-muted/70 tabular-nums text-right">
+                      {fmtWpm(row.maxWpm)}
                     </span>
-                    <span className="text-sm text-muted/60 tabular-nums text-right">
-                      {row.avgAccuracy != null ? `${Math.round(row.avgAccuracy)}%` : "-"}
-                    </span>
-                    <span className="text-xs text-muted/30 tabular-nums text-right">
+                    <span className="text-sm text-muted/50 tabular-nums text-right">
                       {racesWon}/{racesPlayed}
                     </span>
                   </Link>

@@ -46,101 +46,103 @@ export function PartyPanel({
     );
   }
 
-  // Online friends not already in the party
   const invitableFriends = friends.filter(
     (f) => f.online && !party.members.some((m) => m.userId === f.userId),
   );
+  const emptySlots = 4 - party.members.length;
 
   return (
-    <div className="w-full max-w-xs bg-surface/60 border border-white/[0.06] rounded-lg p-4 animate-fade-in">
-      <div className="flex items-center justify-between mb-3">
-        <div className="text-xs text-muted uppercase tracking-wider font-bold">
-          Party
-        </div>
-        <button
-          onClick={onLeave}
-          className="text-xs text-muted hover:text-error transition-colors"
-        >
-          Leave
-        </button>
-      </div>
-
+    <div className="w-full animate-fade-in">
       {error && (
-        <div className="text-xs text-error mb-2">{error}</div>
+        <div className="text-xs text-error mb-2 text-center">{error}</div>
       )}
 
-      <div className="space-y-1.5 mb-3">
+      {/* Member row */}
+      <div className="flex items-center justify-center gap-2">
         {party.members.map((member) => (
           <div
             key={member.userId}
-            className="flex items-center justify-between"
+            className="group relative flex items-center gap-1.5 bg-surface/80 ring-1 ring-white/[0.06] rounded-lg px-3 py-1.5"
           >
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-correct" />
-              <span className="text-text text-sm">
-                {member.name}
-                {member.userId === party.leaderId && (
-                  <span className="text-accent text-xs ml-1">Leader</span>
-                )}
+            <span className="w-1.5 h-1.5 rounded-full bg-correct" />
+            <span className="text-sm text-text">
+              {member.name}
+            </span>
+            {member.userId === party.leaderId && (
+              <span className="text-[0.6rem] text-accent font-bold uppercase">
+                Lead
               </span>
-            </div>
+            )}
             {isLeader && member.userId !== myUserId && (
               <button
                 onClick={() => onKick(member.userId)}
-                className="text-xs text-muted hover:text-error transition-colors"
+                className="text-muted/0 group-hover:text-muted hover:!text-error transition-colors text-sm ml-0.5"
+                title="Kick"
               >
-                Kick
+                &times;
               </button>
             )}
           </div>
         ))}
+
+        {/* Empty slots */}
+        {Array.from({ length: emptySlots }, (_, i) => (
+          <div
+            key={`empty-${i}`}
+            className="flex items-center gap-1.5 rounded-lg border border-dashed border-white/[0.06] px-3 py-1.5"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-muted/20" />
+            <span className="text-sm text-muted/20">---</span>
+          </div>
+        ))}
       </div>
 
-      {isLeader && (
-        <>
-          {showInvite ? (
-            <div className="border-t border-white/[0.06] pt-3">
-              <div className="text-xs text-muted mb-2">Invite a Friend</div>
-              {invitableFriends.length === 0 ? (
-                <div className="text-xs text-muted/60">
-                  No online friends to invite
-                </div>
-              ) : (
-                <div className="space-y-1">
-                  {invitableFriends.map((friend) => (
+      {/* Actions row */}
+      <div className="flex items-center justify-center gap-3 mt-3">
+        {isLeader && party.members.length < 4 && (
+          <>
+            {showInvite ? (
+              <div className="flex items-center gap-2">
+                {invitableFriends.length === 0 ? (
+                  <span className="text-xs text-muted/50">No online friends</span>
+                ) : (
+                  invitableFriends.map((friend) => (
                     <button
                       key={friend.userId}
                       onClick={() => {
                         onInvite(friend.userId);
                         setShowInvite(false);
                       }}
-                      className="w-full flex items-center justify-between bg-surface rounded px-3 py-1.5 text-sm text-text hover:bg-white/[0.04] transition-colors"
+                      className="text-xs bg-surface/80 ring-1 ring-white/[0.06] rounded px-2.5 py-1 text-text hover:ring-accent/30 transition-colors"
                     >
-                      <span>{friend.username ?? friend.name ?? "Unknown"}</span>
-                      <span className="text-xs text-accent">Invite</span>
+                      + {friend.username ?? friend.name ?? "Unknown"}
                     </button>
-                  ))}
-                </div>
-              )}
-              <button
-                onClick={() => setShowInvite(false)}
-                className="text-xs text-muted hover:text-text transition-colors mt-2"
-              >
-                Cancel
-              </button>
-            </div>
-          ) : (
-            party.members.length < 4 && (
+                  ))
+                )}
+                <button
+                  onClick={() => setShowInvite(false)}
+                  className="text-xs text-muted hover:text-text transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
               <button
                 onClick={() => setShowInvite(true)}
                 className="text-xs text-accent hover:text-accent/80 transition-colors"
               >
-                + Invite Friend
+                + Invite
               </button>
-            )
-          )}
-        </>
-      )}
+            )}
+          </>
+        )}
+        <button
+          onClick={onLeave}
+          className="text-xs text-muted/40 hover:text-error transition-colors"
+        >
+          Leave Party
+        </button>
+      </div>
     </div>
   );
 }

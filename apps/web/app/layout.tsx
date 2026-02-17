@@ -50,8 +50,8 @@ export default function RootLayout({
                 </Link>
               </div>
               <div className="flex items-center gap-4">
-                <FriendsButton />
                 <UserMenu />
+                <FriendsButton />
               </div>
             </nav>
             <div className="relative z-10 flex-1 flex flex-col">
