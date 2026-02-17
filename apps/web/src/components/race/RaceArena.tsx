@@ -116,8 +116,6 @@ export function RaceArena() {
         <QueueScreen
           isQueuing={race.phase === "queuing"}
           queueCount={race.queueCount}
-          queueElapsed={race.queueElapsed}
-          maxWaitSeconds={race.maxWaitSeconds}
           connected={race.connected}
           onJoin={race.joinQueue}
           onLeave={race.leaveQueue}
