@@ -98,6 +98,18 @@ export function useSocial() {
     }
   }, []);
 
+  const removeFriend = useCallback(async (friendId: string) => {
+    const res = await fetch("/api/friends", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ friendId }),
+    });
+    if (res.ok) {
+      setFriends((prev) => prev.filter((f) => f.userId !== friendId));
+    }
+    return res.ok;
+  }, []);
+
   const searchUsers = useCallback(async (query: string) => {
     if (query.length < 2) return [];
     const res = await fetch(`/api/friends/search?q=${encodeURIComponent(query)}`);
@@ -115,6 +127,7 @@ export function useSocial() {
     sendRequest,
     acceptRequest,
     declineRequest,
+    removeFriend,
     searchUsers,
   };
 }

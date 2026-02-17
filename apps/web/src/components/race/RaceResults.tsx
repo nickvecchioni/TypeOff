@@ -27,7 +27,7 @@ export function RaceResults({ results, myPlayerId, onRaceAgain, placementRace, p
   const isPlacement = placementRace != null && placementTotal != null;
 
   return (
-    <div className="flex flex-col items-center gap-8 w-full">
+    <div className="flex flex-col items-center gap-4 w-full">
       {isPlacement ? (
         <div className="flex flex-col items-center gap-1 animate-slide-up">
           <h2 className="text-2xl font-black text-accent">Placement {placementRace} of {placementTotal}</h2>
@@ -166,7 +166,7 @@ export function RaceResults({ results, myPlayerId, onRaceAgain, placementRace, p
         const myResult = results.find((r) => r.playerId === myPlayerId);
         if (!myResult) return null;
         return (
-          <div className="flex flex-col items-center gap-4 w-full max-w-2xl">
+          <div className="flex flex-col items-center gap-2 w-full max-w-2xl">
             <div className="text-center">
               <div className="text-2xl font-bold text-accent tabular-nums">
                 {Math.floor(myResult.wpm)}

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { SessionProvider } from "@/components/auth/SessionProvider";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { UsernameGuard } from "@/components/auth/UsernameGuard";
+import { FriendsButton } from "@/components/social/FriendsButton";
 import { SocketProvider } from "@/hooks/useSocket";
 import "./globals.css";
 
@@ -48,7 +49,10 @@ export default function RootLayout({
                   Ranks
                 </Link>
               </div>
-              <UserMenu />
+              <div className="flex items-center gap-4">
+                <FriendsButton />
+                <UserMenu />
+              </div>
             </nav>
             <div className="relative z-10 flex-1 flex flex-col">
               {children}

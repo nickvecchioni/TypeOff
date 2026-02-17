@@ -51,6 +51,48 @@ export async function GET() {
   return NextResponse.json({ friends });
 }
 
+// DELETE — remove a friend
+export async function DELETE(request: Request) {
+  const { auth } = await import("@/lib/auth");
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const body = await request.json();
+  const friendId = body.friendId as string;
+
+  if (!friendId) {
+    return NextResponse.json({ error: "Missing friendId" }, { status: 400 });
+  }
+
+  const db = getDb();
+  const deleted = await db
+    .delete(friendships)
+    .where(
+      and(
+        or(
+          and(
+            eq(friendships.requesterId, session.user.id),
+            eq(friendships.addresseeId, friendId),
+          ),
+          and(
+            eq(friendships.requesterId, friendId),
+            eq(friendships.addresseeId, session.user.id),
+          ),
+        ),
+        eq(friendships.status, "accepted"),
+      ),
+    )
+    .returning();
+
+  if (deleted.length === 0) {
+    return NextResponse.json({ error: "Friendship not found" }, { status: 404 });
+  }
+
+  return NextResponse.json({ success: true });
+}
+
 // POST — send friend request
 export async function POST(request: Request) {
   const { auth } = await import("@/lib/auth");

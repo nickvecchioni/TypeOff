@@ -153,7 +153,7 @@ export default function RanksPage() {
 
           <InfoSection title="Placement Races">
             <p className="mb-3">
-              Before you get a rank, you play 3 calibration races per mode.
+              Before you get a rank, you play 3 calibration races.
               Your speed determines your starting ELO.
             </p>
             <div className="flex items-center gap-0">

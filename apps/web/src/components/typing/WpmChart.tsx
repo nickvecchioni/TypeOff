@@ -8,8 +8,8 @@ interface WpmChartProps {
 }
 
 const CHART_WIDTH = 600;
-const CHART_HEIGHT = 250;
-const PADDING = { top: 20, right: 20, bottom: 30, left: 45 };
+const CHART_HEIGHT = 160;
+const PADDING = { top: 14, right: 20, bottom: 24, left: 45 };
 
 export function WpmChart({ samples }: WpmChartProps) {
   if (samples.length < 2) return null;

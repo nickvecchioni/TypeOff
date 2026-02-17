@@ -174,12 +174,12 @@ export default async function ProfilePage({
                         : null;
                     const placementColor =
                       race.placement === 1
-                        ? "text-correct bg-correct"
+                        ? "text-rank-gold"
                         : race.placement === 2
-                        ? "text-accent bg-accent"
+                        ? "text-rank-silver"
                         : race.placement === 3
-                        ? "text-muted bg-muted"
-                        : "text-error bg-error";
+                        ? "text-rank-bronze"
+                        : "text-error";
                     const ordinal =
                       race.placement === 1
                         ? "1st"
@@ -201,7 +201,7 @@ export default async function ProfilePage({
                             : "-"}
                         </td>
                         <td className="px-4 py-2.5">
-                          <span className={`text-xs font-bold ${placementColor.split(" ")[0]}`}>
+                          <span className={`text-xs font-bold ${placementColor}`}>
                             {ordinal}
                           </span>
                         </td>
