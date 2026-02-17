@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { RankBadge } from "@/components/RankBadge";
 import { getRankTier, getRankInfo } from "@typeoff/shared";
 import type { RankTier } from "@typeoff/shared";
 
@@ -10,48 +9,66 @@ interface PlacementRevealProps {
   onContinue: () => void;
 }
 
+const TIER_GLOW: Record<RankTier, string> = {
+  bronze: "drop-shadow(0 0 24px rgba(217, 119, 6, 0.4))",
+  silver: "drop-shadow(0 0 24px rgba(156, 163, 175, 0.4))",
+  gold: "drop-shadow(0 0 24px rgba(234, 179, 8, 0.4))",
+  platinum: "drop-shadow(0 0 24px rgba(103, 232, 249, 0.4))",
+  diamond: "drop-shadow(0 0 24px rgba(59, 130, 246, 0.4))",
+  master: "drop-shadow(0 0 24px rgba(168, 85, 247, 0.4))",
+  grandmaster: "drop-shadow(0 0 24px rgba(239, 68, 68, 0.4))",
+};
+
 export function PlacementReveal({ elo, onContinue }: PlacementRevealProps) {
-  const [revealed, setRevealed] = useState(false);
+  const [phase, setPhase] = useState<"intro" | "reveal">("intro");
   const tier = getRankTier(elo) as RankTier;
   const rankInfo = getRankInfo(elo);
 
   useEffect(() => {
-    const timer = setTimeout(() => setRevealed(true), 600);
+    const timer = setTimeout(() => setPhase("reveal"), 800);
     return () => clearTimeout(timer);
   }, []);
 
   return (
-    <div className="flex flex-col items-center gap-8 animate-fade-in">
-      <div className="flex flex-col items-center gap-2">
-        <span className="text-accent text-sm uppercase tracking-[0.2em] font-bold">
+    <div className="flex flex-col items-center gap-10 animate-fade-in">
+      {/* Heading */}
+      <div className="flex flex-col items-center gap-1">
+        <span className="text-accent text-xs uppercase tracking-[0.25em] font-bold">
           Placement Complete
         </span>
-        <h2 className="text-3xl font-black text-text">
-          You have been ranked
-        </h2>
       </div>
 
+      {/* Rank reveal */}
       <div
-        className={`flex flex-col items-center gap-4 transition-all duration-700 ${
-          revealed
-            ? "opacity-100 scale-100"
-            : "opacity-0 scale-75"
+        className={`flex flex-col items-center gap-3 transition-all duration-700 ease-out ${
+          phase === "reveal"
+            ? "opacity-100 scale-100 translate-y-0"
+            : "opacity-0 scale-90 translate-y-4"
         }`}
+        style={{
+          filter: phase === "reveal" ? TIER_GLOW[tier] : "none",
+          transitionProperty: "opacity, transform, filter",
+        }}
       >
-        <div className={`text-4xl font-black text-rank-${tier}`}>
+        <div className={`text-5xl sm:text-6xl font-black text-rank-${tier} tracking-tight`}>
           {rankInfo.label}
         </div>
-        <RankBadge tier={tier} elo={elo} size="md" />
+        <div className="text-2xl font-bold text-text tabular-nums">
+          {elo} <span className="text-muted text-base font-normal">ELO</span>
+        </div>
       </div>
 
-      <p className="text-muted text-sm text-center max-w-sm">
-        Your initial rank is based on your placement race performance.
-        Win ranked matches to climb.
+      {/* Subtitle */}
+      <p className="text-muted text-sm text-center max-w-xs">
+        Win ranked matches to climb the ladder.
       </p>
 
+      {/* CTA */}
       <button
         onClick={onContinue}
-        className="rounded-lg border border-accent/30 bg-accent/15 text-accent px-10 py-3.5 font-bold hover:bg-accent/25 hover:border-accent/50 transition-colors"
+        className={`rounded-lg bg-accent text-bg px-10 py-3.5 text-sm font-bold tracking-wide uppercase hover:bg-accent/90 transition-colors glow-accent-strong ${
+          phase === "reveal" ? "opacity-100" : "opacity-0"
+        } transition-opacity duration-500`}
       >
         Start Ranked
       </button>

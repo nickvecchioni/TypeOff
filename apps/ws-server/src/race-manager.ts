@@ -424,17 +424,32 @@ export class RaceManager {
 
     if (this.progressTimer) clearInterval(this.progressTimer);
 
-    // Give unfinished players their placement with current progress stats
+    // Mark unfinished players as finished with their current stats
     for (const entry of this.players.values()) {
       if (!entry.progress.finished) {
         entry.progress.finished = true;
-        entry.progress.placement = this.nextPlacement++;
         entry.progress.finalStats = {
           wpm: entry.progress.wpm,
           rawWpm: entry.progress.wpm,
           accuracy: 100,
         };
       }
+    }
+
+    // Re-assign placements by WPM (highest first).
+    // Finish-order alone is unfair because bots have zero reaction time,
+    // while humans' WPM is measured from their first keystroke.
+    const sorted = [...this.players.values()].sort((a, b) => {
+      const aWpm = a.progress.finalStats?.wpm ?? 0;
+      const bWpm = b.progress.finalStats?.wpm ?? 0;
+      // Finished players beat unfinished (progress < 1)
+      if (a.progress.progress >= 1 && b.progress.progress < 1) return -1;
+      if (b.progress.progress >= 1 && a.progress.progress < 1) return 1;
+      // Among finished: highest WPM wins
+      return bWpm - aWpm;
+    });
+    for (let i = 0; i < sorted.length; i++) {
+      sorted[i].progress.placement = i + 1;
     }
 
     let results: Awaited<ReturnType<typeof this.persistResults>>;
