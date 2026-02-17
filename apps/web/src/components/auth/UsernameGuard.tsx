@@ -9,16 +9,20 @@ export function UsernameGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
+  const isExempt = pathname === "/setup-username" || pathname === "/login";
+  const needsUsername =
+    status === "authenticated" && !session?.user?.username && !isExempt;
+
   useEffect(() => {
-    if (
-      status === "authenticated" &&
-      !session?.user?.username &&
-      pathname !== "/setup-username" &&
-      pathname !== "/login"
-    ) {
+    if (needsUsername) {
       router.replace("/setup-username");
     }
-  }, [status, session, pathname, router]);
+  }, [needsUsername, router]);
+
+  // While loading session or about to redirect, show nothing to avoid flash
+  if (status === "loading" || needsUsername) {
+    return null;
+  }
 
   return <>{children}</>;
 }
