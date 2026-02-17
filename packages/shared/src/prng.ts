@@ -39,3 +39,62 @@ export function generateFromPool(
 ): string[] {
   return generateWords(commonWords, count, seed);
 }
+
+/** Characters per line at max-w-4xl (896px) with text-2xl JetBrains Mono (1ch = 14.4px) */
+export const LINE_WIDTH_CH = 62;
+
+/** Number of lines the race text should fill */
+export const TARGET_LINES = 3;
+
+/**
+ * Generate words that fill exactly `numLines` lines of `lineWidthCh` characters.
+ * Uses the same PRNG + consecutive-duplicate avoidance as `generateWords`.
+ * Simulates CSS inline-block wrapping: each word occupies `word.length + 1` ch
+ * (the +1 accounts for the 1ch right margin in WordDisplay).
+ */
+export function generateWordsForLines(
+  pool: string[],
+  lineWidthCh: number,
+  numLines: number,
+  seed?: number
+): string[] {
+  const rng = mulberry32(seed ?? Date.now());
+  const words: string[] = [];
+  let prev = -1;
+  let lineUsed = 0; // ch used on current line
+  let line = 1;
+
+  while (true) {
+    let idx: number;
+    do {
+      idx = Math.floor(rng() * pool.length);
+    } while (idx === prev && pool.length > 1);
+
+    const word = pool[idx];
+    const wordCh = word.length + 1; // word + 1ch margin
+
+    // Would this word fit on the current line?
+    if (lineUsed + wordCh > lineWidthCh && lineUsed > 0) {
+      // Word wraps to next line
+      line++;
+      if (line > numLines) break; // would start a line beyond our target
+      lineUsed = wordCh;
+    } else {
+      lineUsed += wordCh;
+    }
+
+    prev = idx;
+    words.push(word);
+  }
+
+  return words;
+}
+
+/** Generate words from the common pool that fill exactly `numLines` lines */
+export function generateFromPoolForLines(
+  lineWidthCh: number,
+  numLines: number,
+  seed?: number
+): string[] {
+  return generateWordsForLines(commonWords, lineWidthCh, numLines, seed);
+}

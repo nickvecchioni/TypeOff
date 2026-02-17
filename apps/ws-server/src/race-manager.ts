@@ -8,7 +8,7 @@ import type {
   RaceStatus,
   WpmSample,
 } from "@typeoff/shared";
-import { calculateRaceElo, getRankTier, generateFromPool } from "@typeoff/shared";
+import { calculateRaceElo, getRankTier, generateFromPoolForLines, LINE_WIDTH_CH, TARGET_LINES } from "@typeoff/shared";
 import type { RankTier } from "@typeoff/shared";
 import { createDb, races, raceParticipants, userStats, users } from "@typeoff/db";
 import { eq, inArray, and, sql } from "drizzle-orm";
@@ -33,7 +33,6 @@ interface PlayerEntry {
 }
 
 const COUNTDOWN_SECONDS = 3;
-const WORD_COUNT = 40;
 const PROGRESS_INTERVAL_MS = 100;
 
 const DEFAULT_BOT_WPM_MIN = 40;
@@ -76,10 +75,9 @@ export class RaceManager {
     this.placementRace = placementRace;
     this.raceId = crypto.randomUUID();
     this.seed = Math.floor(Math.random() * 2147483647);
-    this.wordCount = WORD_COUNT;
-
-    // Generate words from common pool
-    this.expectedWords = generateFromPool(this.wordCount, this.seed);
+    // Generate words that fill exactly TARGET_LINES lines
+    this.expectedWords = generateFromPoolForLines(LINE_WIDTH_CH, TARGET_LINES, this.seed);
+    this.wordCount = this.expectedWords.length;
     this.totalChars = this.expectedWords.reduce((sum, w) => sum + w.length, 0) + (this.wordCount - 1);
 
     // Add real players first (Map insertion order matters for guest identification)
