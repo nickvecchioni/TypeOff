@@ -94,7 +94,7 @@ function AnimatedElo({
   const rankInfo = getRankInfo(displayElo);
 
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div className="flex flex-col items-center gap-1.5">
       {/* Rank label — pulses when it changes */}
       <div className="relative flex items-center justify-center gap-2">
         {rankPulse && rankChange && (
@@ -126,11 +126,11 @@ function AnimatedElo({
 
       {/* ELO counter */}
       <div className="flex items-baseline gap-3">
-        <span className="text-3xl font-black text-text tabular-nums">
+        <span className="text-2xl font-black text-text tabular-nums">
           {displayElo}
         </span>
         <span
-          className={`text-lg font-bold tabular-nums transition-opacity duration-300 ${
+          className={`text-base font-bold tabular-nums transition-opacity duration-300 ${
             showChange ? "opacity-100" : "opacity-0"
           } ${change > 0 ? "text-correct" : change < 0 ? "text-error" : "text-muted"}`}
         >
@@ -170,7 +170,7 @@ export function RaceResults({
     myResult.challengeProgress.some((c) => c.progress > 0);
 
   return (
-    <div className="flex flex-col items-center gap-8 w-full">
+    <div className="flex flex-col items-center gap-5 w-full">
       {/* Header */}
       {isPlacement ? (
         <div className="flex flex-col items-center gap-1 animate-slide-up">
@@ -247,7 +247,7 @@ export function RaceResults({
           return (
             <div
               key={result.playerId}
-              className={`grid items-center border-b border-white/[0.04] py-3 ${tableCols} ${
+              className={`grid items-center border-b border-white/[0.04] py-2 ${tableCols} ${
                 isMe ? "text-accent" : "text-text"
               }`}
             >
@@ -361,25 +361,25 @@ export function RaceResults({
 
       {/* Achievement unlocks */}
       {hasAchievements && (
-        <div className="flex flex-col gap-2 w-full">
+        <div className="flex flex-col gap-1.5 w-full">
           <h3 className="text-xs font-bold text-muted/60 uppercase tracking-wider px-1">
             Achievements Unlocked
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
             {myResult!.newAchievements!.map((id) => {
               const def = ACHIEVEMENT_MAP.get(id);
               if (!def) return null;
               return (
                 <div
                   key={id}
-                  className={`flex items-center gap-3 rounded-lg bg-surface/60 px-4 py-3 ring-1 animate-slide-up ${RARITY_RING[def.rarity]}`}
+                  className={`flex items-center gap-2.5 rounded-lg bg-surface/60 px-3 py-2 ring-1 animate-slide-up ${RARITY_RING[def.rarity]}`}
                 >
-                  <span className="text-2xl shrink-0">{def.icon}</span>
+                  <span className="text-lg shrink-0">{def.icon}</span>
                   <div className="min-w-0">
-                    <div className="text-sm font-bold text-text">
+                    <div className="text-xs font-bold text-text">
                       {def.name}
                     </div>
-                    <div className="text-xs text-muted truncate">
+                    <div className="text-[11px] text-muted truncate">
                       {def.description}
                     </div>
                   </div>
@@ -392,7 +392,7 @@ export function RaceResults({
 
       {/* Challenge Progress */}
       {hasChallenges && (
-        <div className="flex flex-col gap-2 w-full animate-slide-up">
+        <div className="flex flex-col gap-1.5 w-full animate-slide-up">
           <div className="flex items-center justify-between px-1">
             <h3 className="text-xs font-bold text-muted/60 uppercase tracking-wider">
               Challenge Progress
@@ -403,7 +403,7 @@ export function RaceResults({
               </span>
             )}
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
             {myResult!
               .challengeProgress!.filter((c) => c.progress > 0)
               .map((cp) => {
@@ -415,17 +415,17 @@ export function RaceResults({
                 return (
                   <div
                     key={cp.challengeId}
-                    className={`flex items-start gap-3 rounded-lg bg-surface/60 px-4 py-3 ring-1 ${
+                    className={`flex items-start gap-2.5 rounded-lg bg-surface/60 px-3 py-2 ring-1 ${
                       cp.justCompleted
                         ? "ring-correct/30"
                         : "ring-white/[0.06]"
                     }`}
                   >
-                    <span className="text-lg shrink-0 mt-0.5">
+                    <span className="text-base shrink-0 mt-0.5">
                       {def.icon}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-0.5">
+                      <div className="flex items-center justify-between">
                         <span className="text-xs font-medium text-text truncate">
                           {def.name}
                           {cp.completed && (
@@ -434,14 +434,11 @@ export function RaceResults({
                             </span>
                           )}
                         </span>
-                        <span className="text-xs text-muted tabular-nums shrink-0 ml-2">
+                        <span className="text-[11px] text-muted tabular-nums shrink-0 ml-2">
                           {progress}/{cp.target}
                         </span>
                       </div>
-                      <div className="text-[11px] text-muted/70 mb-1.5">
-                        {def.description}
-                      </div>
-                      <div className="h-1 rounded-full bg-surface overflow-hidden">
+                      <div className="h-1 rounded-full bg-surface overflow-hidden mt-1">
                         <div
                           className={`h-full rounded-full transition-all ${
                             cp.completed ? "bg-correct" : "bg-accent"
@@ -463,10 +460,10 @@ export function RaceResults({
       )}
 
       {/* Actions */}
-      <div className="flex flex-col items-center gap-3">
+      <div className="flex flex-col items-center gap-2">
         <button
           onClick={() => onRaceAgain()}
-          className="rounded-lg bg-accent text-bg px-10 py-3.5 text-sm font-bold tracking-wide uppercase hover:bg-accent/90 transition-colors glow-accent-strong w-full sm:w-auto"
+          className="rounded-lg bg-accent text-bg px-10 py-3 text-sm font-bold tracking-wide uppercase hover:bg-accent/90 transition-colors glow-accent-strong w-full sm:w-auto"
         >
           {isPlacement ? "Next Placement" : "Race again"}
         </button>
