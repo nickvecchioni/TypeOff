@@ -33,7 +33,7 @@ export interface RaceResult {
     xpAwarded: number;
   }>;
   xpEarned?: number;
-  keyCardProgress?: {
+  typePassProgress?: {
     seasonId: string;
     seasonalXp: number;
     currentTier: number;

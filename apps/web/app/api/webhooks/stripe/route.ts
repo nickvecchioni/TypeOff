@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
-import { userKeyCard, userCosmetics } from "@typeoff/db";
+import { userTypePass, userCosmetics } from "@typeoff/db";
 import { eq, and } from "drizzle-orm";
 import { getCurrentSeason, getUnlockedRewards } from "@typeoff/shared";
 import Stripe from "stripe";
@@ -43,18 +43,18 @@ export async function POST(request: Request) {
     // Mark user as premium
     const [existing] = await db
       .select()
-      .from(userKeyCard)
+      .from(userTypePass)
       .where(
         and(
-          eq(userKeyCard.userId, userId),
-          eq(userKeyCard.seasonId, seasonId),
+          eq(userTypePass.userId, userId),
+          eq(userTypePass.seasonId, seasonId),
         ),
       )
       .limit(1);
 
     if (existing) {
       await db
-        .update(userKeyCard)
+        .update(userTypePass)
         .set({
           isPremium: true,
           stripePaymentId: session.payment_intent as string,
@@ -62,8 +62,8 @@ export async function POST(request: Request) {
         })
         .where(
           and(
-            eq(userKeyCard.userId, userId),
-            eq(userKeyCard.seasonId, seasonId),
+            eq(userTypePass.userId, userId),
+            eq(userTypePass.seasonId, seasonId),
           ),
         );
 
@@ -87,8 +87,8 @@ export async function POST(request: Request) {
         }
       }
     } else {
-      // User hasn't played yet — create key card row as premium
-      await db.insert(userKeyCard).values({
+      // User hasn't played yet — create type pass row as premium
+      await db.insert(userTypePass).values({
         userId,
         seasonId,
         seasonalXp: 0,

@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import type { KeyCardReward, SeasonDefinition } from "@typeoff/shared";
+import type { TypePassReward, SeasonDefinition } from "@typeoff/shared";
 
-interface KeyCardData {
+interface TypePassData {
   season: SeasonDefinition | null;
   userState: {
     seasonalXp: number;
@@ -46,13 +46,13 @@ function useSeasonCountdown(endDate: string) {
   return timeLeft;
 }
 
-export default function KeyCardPage() {
-  const [data, setData] = useState<KeyCardData | null>(null);
+export default function TypePassPage() {
+  const [data, setData] = useState<TypePassData | null>(null);
   const [purchasing, setPurchasing] = useState(false);
   const trackRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch("/api/key-card")
+    fetch("/api/type-pass")
       .then((r) => r.json())
       .then((d) => {
         setData(d);
@@ -103,7 +103,7 @@ export default function KeyCardPage() {
   async function handlePurchase() {
     setPurchasing(true);
     try {
-      const res = await fetch("/api/key-card/checkout", { method: "POST" });
+      const res = await fetch("/api/type-pass/checkout", { method: "POST" });
       const body = await res.json();
       if (body.url) {
         window.location.href = body.url;

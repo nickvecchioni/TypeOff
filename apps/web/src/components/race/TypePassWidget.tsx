@@ -2,9 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import type { KeyCardReward, SeasonDefinition } from "@typeoff/shared";
+import type { TypePassReward, SeasonDefinition } from "@typeoff/shared";
 
-interface KeyCardData {
+interface TypePassData {
   season: SeasonDefinition | null;
   userState: {
     seasonalXp: number;
@@ -14,11 +14,11 @@ interface KeyCardData {
   cosmetics: string[];
 }
 
-export function KeyCardWidget() {
-  const [data, setData] = useState<KeyCardData | null>(null);
+export function TypePassWidget() {
+  const [data, setData] = useState<TypePassData | null>(null);
 
   useEffect(() => {
-    fetch("/api/key-card")
+    fetch("/api/type-pass")
       .then((r) => r.json())
       .then(setData)
       .catch(() => {});
@@ -47,13 +47,13 @@ export function KeyCardWidget() {
 
   return (
     <Link
-      href="/key-card"
+      href="/type-pass"
       className="block w-full rounded-xl bg-surface/50 ring-1 ring-white/[0.04] p-4 hover:ring-accent/20 transition-all animate-fade-in group"
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
-            Key Card
+            TypePass
           </span>
           {isPremium && (
             <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-400/10 text-amber-400 rounded px-1.5 py-0.5">

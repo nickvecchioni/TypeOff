@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { userKeyCard } from "@typeoff/db";
+import { userTypePass } from "@typeoff/db";
 import { eq, and } from "drizzle-orm";
 import { getCurrentSeason } from "@typeoff/shared";
 import Stripe from "stripe";
@@ -21,11 +21,11 @@ export async function POST() {
   const db = getDb();
   const [existing] = await db
     .select()
-    .from(userKeyCard)
+    .from(userTypePass)
     .where(
       and(
-        eq(userKeyCard.userId, session.user.id),
-        eq(userKeyCard.seasonId, season.id),
+        eq(userTypePass.userId, session.user.id),
+        eq(userTypePass.seasonId, season.id),
       ),
     )
     .limit(1);
@@ -51,8 +51,8 @@ export async function POST() {
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: "payment",
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${appUrl}/key-card?purchased=true`,
-    cancel_url: `${appUrl}/key-card`,
+    success_url: `${appUrl}/type-pass?purchased=true`,
+    cancel_url: `${appUrl}/type-pass`,
     metadata: {
       userId: session.user.id,
       seasonId: season.id,

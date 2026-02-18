@@ -4,7 +4,7 @@ import React from "react";
 import { useSession, signIn } from "next-auth/react";
 import { PartyPanel } from "@/components/social/PartyPanel";
 import { ChallengesWidget } from "@/components/race/ChallengesWidget";
-import { KeyCardWidget } from "@/components/race/KeyCardWidget";
+import { TypePassWidget } from "@/components/race/TypePassWidget";
 import type { PartyState } from "@typeoff/shared";
 
 interface QueueScreenProps {
@@ -134,7 +134,7 @@ export function QueueScreen({
                 onLeave={onLeaveParty}
               />
               <ChallengesWidget />
-              <KeyCardWidget />
+              <TypePassWidget />
             </>
           )}
         </div>

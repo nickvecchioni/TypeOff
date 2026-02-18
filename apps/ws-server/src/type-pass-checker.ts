@@ -1,4 +1,4 @@
-import { type Database, userKeyCard, userCosmetics, userStats } from "@typeoff/db";
+import { type Database, userTypePass, userCosmetics, userStats } from "@typeoff/db";
 import { eq, and } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 import {
@@ -6,11 +6,11 @@ import {
   getSeasonTier,
   calculateRaceSeasonXp,
   getNewRewardsAtTier,
-  type KeyCardProgress,
-  type KeyCardReward,
+  type TypePassProgress,
+  type TypePassReward,
 } from "@typeoff/shared";
 
-export interface KeyCardContext {
+export interface TypePassContext {
   userId: string;
   raceWpm: number;
   raceAccuracy: number;
@@ -18,10 +18,10 @@ export interface KeyCardContext {
   playerCount: number;
 }
 
-export async function checkKeyCard(
-  ctx: KeyCardContext,
+export async function checkTypePass(
+  ctx: TypePassContext,
   db: Database,
-): Promise<KeyCardProgress | null> {
+): Promise<TypePassProgress | null> {
   const season = getCurrentSeason();
   if (!season) return null;
 
@@ -32,14 +32,14 @@ export async function checkKeyCard(
     playerCount: ctx.playerCount,
   });
 
-  // Load or create user key card row
+  // Load or create user type pass row
   const existing = await db
     .select()
-    .from(userKeyCard)
+    .from(userTypePass)
     .where(
       and(
-        eq(userKeyCard.userId, ctx.userId),
-        eq(userKeyCard.seasonId, season.id),
+        eq(userTypePass.userId, ctx.userId),
+        eq(userTypePass.seasonId, season.id),
       ),
     );
 
@@ -51,9 +51,9 @@ export async function checkKeyCard(
   const newTier = Math.min(getSeasonTier(newXp, season.xpPerTier), season.maxTier);
   const tierUp = newTier > prevTier;
 
-  // Upsert key card progress
+  // Upsert type pass progress
   if (existing.length === 0) {
-    await db.insert(userKeyCard).values({
+    await db.insert(userTypePass).values({
       userId: ctx.userId,
       seasonId: season.id,
       seasonalXp: newXp,
@@ -62,21 +62,21 @@ export async function checkKeyCard(
     });
   } else {
     await db
-      .update(userKeyCard)
+      .update(userTypePass)
       .set({
         seasonalXp: newXp,
         currentTier: newTier,
       })
       .where(
         and(
-          eq(userKeyCard.userId, ctx.userId),
-          eq(userKeyCard.seasonId, season.id),
+          eq(userTypePass.userId, ctx.userId),
+          eq(userTypePass.seasonId, season.id),
         ),
       );
   }
 
   // If tier increased, unlock new rewards
-  const newRewards: KeyCardReward[] = [];
+  const newRewards: TypePassReward[] = [];
   if (tierUp) {
     for (let t = prevTier + 1; t <= newTier; t++) {
       const rewards = getNewRewardsAtTier(season, t, isPremium);

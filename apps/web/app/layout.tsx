@@ -51,10 +51,10 @@ export default function RootLayout({
                   Ranks
                 </Link>
                 <Link
-                  href="/key-card"
+                  href="/type-pass"
                   className="text-sm text-amber-400/70 hover:text-amber-400 transition-colors"
                 >
-                  Key Card
+                  TypePass
                 </Link>
               </div>
               <div className="flex items-center gap-4">

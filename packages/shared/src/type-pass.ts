@@ -2,7 +2,7 @@
 
 export type RewardType = "badge" | "title" | "nameColor" | "nameEffect";
 
-export interface KeyCardReward {
+export interface TypePassReward {
   tier: number;
   type: RewardType;
   id: string;
@@ -20,10 +20,10 @@ export interface SeasonDefinition {
   maxTier: number;
   xpPerTier: number;
   priceUsd: number;
-  rewards: KeyCardReward[];
+  rewards: TypePassReward[];
 }
 
-export interface KeyCardProgress {
+export interface TypePassProgress {
   seasonId: string;
   seasonalXp: number;
   currentTier: number;
@@ -31,12 +31,12 @@ export interface KeyCardProgress {
   xpEarned: number;
   tierUp: boolean;
   newTier: number;
-  newRewards: KeyCardReward[];
+  newRewards: TypePassReward[];
 }
 
 // ─── Season 1 Definition ─────────────────────────────────────────────
 
-const SEASON_1_REWARDS: KeyCardReward[] = [
+const SEASON_1_REWARDS: TypePassReward[] = [
   // Tier 1-5
   { tier: 1, type: "badge", id: "s1_badge_spark", name: "Spark", value: "\u2728", premium: false },
   { tier: 2, type: "nameColor", id: "s1_color_sky", name: "Sky Blue", value: "#7dd3fc", premium: true },
@@ -139,7 +139,7 @@ export function getUnlockedRewards(
   season: SeasonDefinition,
   tier: number,
   isPremium: boolean,
-): KeyCardReward[] {
+): TypePassReward[] {
   return season.rewards.filter(
     (r) => r.tier <= tier && (!r.premium || isPremium),
   );
@@ -150,7 +150,7 @@ export function getNewRewardsAtTier(
   season: SeasonDefinition,
   tier: number,
   isPremium: boolean,
-): KeyCardReward[] {
+): TypePassReward[] {
   return season.rewards.filter(
     (r) => r.tier === tier && (!r.premium || isPremium),
   );
