@@ -97,10 +97,10 @@ export default async function ProfilePage({
 
   return (
     <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
-      <div className="max-w-3xl mx-auto space-y-8 animate-fade-in">
+      <div className="max-w-3xl mx-auto space-y-4 animate-fade-in">
 
         {/* ── Hero ──────────────────────────────────────────── */}
-        <div className="relative rounded-xl bg-surface/50 ring-1 ring-white/[0.04] px-6 py-6 overflow-hidden">
+        <div className="relative rounded-xl bg-surface/50 ring-1 ring-white/[0.04] px-5 py-5 overflow-hidden">
           {/* Rank-colored top edge */}
           {rankInfo && (
             <div
@@ -109,7 +109,7 @@ export default async function ProfilePage({
             />
           )}
 
-          <div className="relative flex flex-col gap-3">
+          <div className="relative flex flex-col gap-4">
             {/* Username row */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -143,79 +143,82 @@ export default async function ProfilePage({
               )}
             </div>
 
-            {/* Rank + ELO */}
-            {user.placementsCompleted && rankInfo && (
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center justify-between">
-                  <RankBadge tier={rankInfo.tier} elo={user.eloRating} />
-                  {user.peakEloRating > user.eloRating && (
-                    <span className="text-xs text-muted/60 tabular-nums">
-                      Peak {user.peakEloRating}
-                    </span>
-                  )}
+            {/* Rank + WPM row */}
+            <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+              {/* Rank + ELO */}
+              {user.placementsCompleted && rankInfo && (
+                <div className="flex flex-col gap-2 flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <RankBadge tier={rankInfo.tier} elo={user.eloRating} />
+                    {user.peakEloRating > user.eloRating && (
+                      <span className="text-xs text-muted/60 tabular-nums">
+                        Peak {user.peakEloRating}
+                      </span>
+                    )}
+                  </div>
+                  <RankProgressBar elo={user.eloRating} />
                 </div>
-                <RankProgressBar elo={user.eloRating} />
+              )}
+
+              {/* WPM stats inline */}
+              <div className="flex gap-4 sm:gap-6 shrink-0">
+                <div className="text-center">
+                  <div className="text-2xl font-black text-accent tabular-nums text-glow-accent leading-none">
+                    {stats ? Math.floor(stats.maxWpm) : 0}
+                    <span className="text-[0.55em] opacity-60">
+                      .{stats ? (stats.maxWpm % 1).toFixed(2).slice(2) : "00"}
+                    </span>
+                  </div>
+                  <div className="text-[10px] text-muted mt-1 uppercase tracking-wider">best wpm</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-black text-text tabular-nums leading-none">
+                    {stats ? Math.floor(stats.avgWpm) : 0}
+                    <span className="text-[0.55em] opacity-60">
+                      .{stats ? (stats.avgWpm % 1).toFixed(2).slice(2) : "00"}
+                    </span>
+                  </div>
+                  <div className="text-[10px] text-muted mt-1 uppercase tracking-wider">avg wpm</div>
+                </div>
               </div>
-            )}
+            </div>
           </div>
         </div>
 
-        {/* ── WPM Stats ──────────────────────────────────────── */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-xl bg-surface/50 ring-1 ring-white/[0.04] px-5 py-5 text-center">
-            <div className="text-3xl font-black text-accent tabular-nums text-glow-accent">
-              {stats ? Math.floor(stats.maxWpm) : 0}
-              <span className="text-[0.6em] opacity-60">
-                .{stats ? (stats.maxWpm % 1).toFixed(2).slice(2) : "00"}
-              </span>
-            </div>
-            <div className="text-xs text-muted mt-1.5 uppercase tracking-wider">best wpm</div>
-          </div>
-          <div className="rounded-xl bg-surface/50 ring-1 ring-white/[0.04] px-5 py-5 text-center">
-            <div className="text-3xl font-black text-accent tabular-nums text-glow-accent">
-              {stats ? Math.floor(stats.avgWpm) : 0}
-              <span className="text-[0.6em] opacity-60">
-                .{stats ? (stats.avgWpm % 1).toFixed(2).slice(2) : "00"}
-              </span>
-            </div>
-            <div className="text-xs text-muted mt-1.5 uppercase tracking-wider">avg wpm</div>
-          </div>
-        </div>
+        {/* ── Stats + Level (compact) ────────────────────────── */}
+        <div className="rounded-xl bg-surface/50 ring-1 ring-white/[0.04] px-5 py-4 space-y-3">
+          {/* XP / Level bar */}
+          {stats && stats.totalXp > 0 && (() => {
+            const xpInfo = getXpLevel(stats.totalXp);
+            return (
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-bold text-accent">
+                    Level {xpInfo.level}
+                  </span>
+                  <span className="text-[11px] text-muted tabular-nums">
+                    {xpInfo.currentXp} / {xpInfo.nextLevelXp} XP
+                  </span>
+                </div>
+                <div className="h-1 rounded-full bg-surface overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-accent transition-all"
+                    style={{ width: `${Math.round((xpInfo.currentXp / xpInfo.nextLevelXp) * 100)}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })()}
 
-        {/* ── XP / Level ──────────────────────────────────── */}
-        {stats && stats.totalXp > 0 && (() => {
-          const xpInfo = getXpLevel(stats.totalXp);
-          return (
-            <div className="rounded-xl bg-surface/50 ring-1 ring-white/[0.04] px-5 py-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-bold text-accent">
-                  Level {xpInfo.level}
-                </span>
-                <span className="text-xs text-muted tabular-nums">
-                  {xpInfo.currentXp} / {xpInfo.nextLevelXp} XP
-                </span>
-              </div>
-              <div className="h-1.5 rounded-full bg-surface overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-accent transition-all"
-                  style={{ width: `${Math.round((xpInfo.currentXp / xpInfo.nextLevelXp) * 100)}%` }}
-                />
-              </div>
-              <div className="text-xs text-muted/60 mt-1.5 text-right tabular-nums">
-                {stats.totalXp} total XP
-              </div>
-            </div>
-          );
-        })()}
-
-        {/* ── Detail Stats ─────────────────────────────────── */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-          <StatCard label="Races" value={stats?.racesPlayed ?? 0} />
-          <StatCard label="Wins" value={stats?.racesWon ?? 0} />
-          <StatCard label="Win Streak" value={stats?.currentStreak ?? 0} />
-          <StatCard label="Best Win Streak" value={stats?.maxStreak ?? 0} />
-          <StatCard label="Day Streak" value={stats?.rankedDayStreak ?? 0} />
-          <StatCard label="Best Day Streak" value={stats?.maxRankedDayStreak ?? 0} />
+          {/* Stat grid */}
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-px bg-white/[0.02] rounded-lg overflow-hidden">
+            <StatCard label="Races" value={stats?.racesPlayed ?? 0} />
+            <StatCard label="Wins" value={stats?.racesWon ?? 0} />
+            <StatCard label="Win Streak" value={stats?.currentStreak ?? 0} />
+            <StatCard label="Best Streak" value={stats?.maxStreak ?? 0} />
+            <StatCard label="Day Streak" value={stats?.rankedDayStreak ?? 0} />
+            <StatCard label="Best Day" value={stats?.maxRankedDayStreak ?? 0} />
+          </div>
         </div>
 
         {/* ── Achievements ────────────────────────────────── */}
@@ -364,9 +367,9 @@ function StatCard({
   value: string | number;
 }) {
   return (
-    <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2.5 text-center">
-      <div className="text-lg font-bold text-text tabular-nums">{value}</div>
-      <div className="text-xs text-muted/60 mt-0.5">{label}</div>
+    <div className="bg-surface/40 px-3 py-2.5 text-center">
+      <div className="text-base font-bold text-text tabular-nums leading-tight">{value}</div>
+      <div className="text-[10px] text-muted/60 mt-0.5">{label}</div>
     </div>
   );
 }
