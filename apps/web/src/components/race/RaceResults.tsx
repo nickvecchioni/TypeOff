@@ -166,271 +166,282 @@ export function RaceResults({
         </div>
       )}
 
-      {/* Results table — grid for reliable column sizing */}
-      <div className="w-full max-w-2xl">
-        {/* Header */}
-        <div
-          className={`grid text-muted text-xs uppercase tracking-wider border-b border-white/[0.06] pb-2.5 ${
-            isPlacement
-              ? "grid-cols-[2.5rem_1fr_5rem]"
-              : "grid-cols-[2rem_1fr_4rem_3.5rem] sm:grid-cols-[2.5rem_1fr_8rem_5rem_4rem]"
-          }`}
-        >
-          <span className="font-semibold">#</span>
-          <span className="font-semibold">Name</span>
-          {!isPlacement && <span className="font-semibold hidden sm:block">Rank</span>}
-          <span className="font-semibold text-right">WPM</span>
-          {!isPlacement && <span className="font-semibold text-right">ELO</span>}
-        </div>
-
-        {/* Rows */}
-        {results.map((result) => {
-          const isMe = result.playerId === myPlayerId;
-          const isBot = result.playerId.startsWith("bot_");
-          const isGuest = result.playerId.startsWith("guest_") || isBot;
-
-          const displayName = result.username ?? result.name;
-          const showStreak =
-            result.placement === 1 &&
-            result.streak != null &&
-            result.streak >= 3;
-
-          const rankInfo =
-            !isGuest && result.elo != null ? getRankInfo(result.elo) : null;
-
-          return (
+      {/* Two-column grid on sm+, single column on mobile / placements */}
+      <div className={`grid grid-cols-1 ${isPlacement ? "" : "sm:grid-cols-[1fr_1fr]"} gap-x-8 gap-y-6 w-full`}>
+        {/* Left column: leaderboard + ELO */}
+        <div className="flex flex-col gap-6">
+          {/* Results table */}
+          <div className="w-full">
+            {/* Header */}
             <div
-              key={result.playerId}
-              className={`grid items-center border-b border-white/[0.04] py-3 ${
+              className={`grid text-muted text-xs uppercase tracking-wider border-b border-white/[0.06] pb-2.5 ${
                 isPlacement
                   ? "grid-cols-[2.5rem_1fr_5rem]"
-                  : "grid-cols-[2rem_1fr_4rem_3.5rem] sm:grid-cols-[2.5rem_1fr_8rem_5rem_4rem]"
-              } ${isMe ? "text-accent" : "text-text"}`}
+                  : "grid-cols-[2rem_1fr_4rem_3.5rem] sm:grid-cols-[2.5rem_1fr_5rem_4rem]"
+              }`}
             >
-              {/* Placement */}
-              <span className="font-bold tabular-nums">{result.placement}</span>
-
-              {/* Name */}
-              <span className="flex items-center gap-2 min-w-0 pr-3">
-                {result.username && !isGuest ? (
-                  <Link
-                    href={`/profile/${result.username}`}
-                    className="hover:text-accent transition-colors truncate"
-                  >
-                    {displayName}
-                    {isMe && (
-                      <span className="text-muted text-xs ml-1">(you)</span>
-                    )}
-                  </Link>
-                ) : (
-                  <span className="truncate">
-                    {displayName}
-                    {isMe && (
-                      <span className="text-muted text-xs ml-1">(you)</span>
-                    )}
-                  </span>
-                )}
-                {isBot && (
-                  <span className="text-[10px] text-muted/70 bg-white/[0.06] rounded px-1.5 py-0.5 shrink-0 uppercase tracking-wider font-semibold">
-                    Bot
-                  </span>
-                )}
-                {showStreak && (
-                  <span
-                    className="text-orange-400 flex items-center gap-0.5 shrink-0"
-                    title={`${result.streak} win streak`}
-                  >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      className="shrink-0"
-                    >
-                      <path d="M12 23c-3.866 0-7-2.686-7-6 0-1.665.753-3.488 2.127-5.244.883-1.128 1.873-2.1 2.873-3.006V2l4.386 4.506c.953.979 1.893 2.09 2.614 3.25C18.36 11.715 19 13.578 19 15.5 19 19.642 16.09 23 12 23z" />
-                    </svg>
-                    <span className="text-xs font-bold tabular-nums">
-                      {result.streak}
-                    </span>
-                  </span>
-                )}
-              </span>
-
-              {/* Rank */}
-              {!isPlacement && (
-                <span className="pr-2 hidden sm:block">
-                  {rankInfo ? (
-                    <RankBadge tier={rankInfo.tier} elo={result.elo!} showElo={false} />
-                  ) : (
-                    <span className="text-muted/40 text-sm">—</span>
-                  )}
-                </span>
-              )}
-
-              {/* WPM */}
-              <span className="text-right tabular-nums whitespace-nowrap">
-                {Math.floor(result.wpm)}
-                <span className="text-[0.7em] opacity-50">
-                  .{(result.wpm % 1).toFixed(2).slice(2)}
-                </span>
-              </span>
-
-              {/* ELO change */}
-              {!isPlacement && (
-                <span className="text-right tabular-nums whitespace-nowrap">
-                  {result.eloChange != null ? (
-                    <span
-                      className={`font-semibold ${
-                        result.eloChange > 0
-                          ? "text-correct"
-                          : result.eloChange < 0
-                          ? "text-error"
-                          : "text-muted"
-                      }`}
-                    >
-                      {result.eloChange > 0 ? "+" : ""}
-                      {result.eloChange}
-                    </span>
-                  ) : (
-                    <span className="text-muted/40">—</span>
-                  )}
-                </span>
-              )}
+              <span className="font-semibold">#</span>
+              <span className="font-semibold">Name</span>
+              {!isPlacement && <span className="font-semibold hidden sm:block">Rank</span>}
+              <span className="font-semibold text-right">WPM</span>
+              {!isPlacement && <span className="font-semibold text-right">ELO</span>}
             </div>
-          );
-        })}
-      </div>
 
-      {/* Animated ELO + rank transition */}
-      {myResult && myResult.eloChange != null && myResult.elo != null && !isPlacement && (
-        <AnimatedElo
-          oldElo={myResult.elo - myResult.eloChange}
-          newElo={myResult.elo}
-          change={myResult.eloChange}
-          rankChange={rankChange}
-        />
-      )}
+            {/* Rows */}
+            {results.map((result) => {
+              const isMe = result.playerId === myPlayerId;
+              const isBot = result.playerId.startsWith("bot_");
+              const isGuest = result.playerId.startsWith("guest_") || isBot;
 
-      {/* Own WPM details + chart */}
-      {myResult && (
-        <div className="flex flex-col items-center gap-2 w-full max-w-2xl">
-          <div className="flex items-end justify-center gap-6">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-accent tabular-nums">
-                {Math.floor(myResult.wpm)}
-                <span className="text-[0.65em] opacity-60">
-                  .{(myResult.wpm % 1).toFixed(2).slice(2)}
-                </span>
-              </div>
-              <div className="text-xs text-muted">wpm</div>
-            </div>
-            <div className="text-center">
-              <div className="text-lg font-bold text-text tabular-nums">
-                {Math.round(myResult.accuracy)}%
-              </div>
-              <div className="text-xs text-muted">accuracy</div>
-            </div>
-            {myResult.misstypedChars != null && (
-              <div className="text-center">
-                <div className="text-lg font-bold text-text tabular-nums">
-                  {myResult.misstypedChars}
-                </div>
-                <div className="text-xs text-muted">errors</div>
-              </div>
-            )}
-          </div>
-          {myResult.wpmHistory && myResult.wpmHistory.length >= 2 && (
-            <WpmChart samples={myResult.wpmHistory} />
-          )}
-        </div>
-      )}
+              const displayName = result.username ?? result.name;
+              const showStreak =
+                result.placement === 1 &&
+                result.streak != null &&
+                result.streak >= 3;
 
-      {/* Achievement unlocks */}
-      {myResult?.newAchievements && myResult.newAchievements.length > 0 && (
-        <div className="flex flex-col items-center gap-3 w-full max-w-md">
-          <h3 className="text-xs font-bold text-muted/60 uppercase tracking-wider">
-            Achievements Unlocked
-          </h3>
-          <div className="flex flex-col gap-2 w-full">
-            {myResult.newAchievements.map((id) => {
-              const def = ACHIEVEMENT_MAP.get(id);
-              if (!def) return null;
+              const rankInfo =
+                !isGuest && result.elo != null ? getRankInfo(result.elo) : null;
+
               return (
                 <div
-                  key={id}
-                  className={`flex items-center gap-3 rounded-lg bg-surface/60 px-4 py-3 ring-1 animate-slide-up ${RARITY_RING[def.rarity]}`}
+                  key={result.playerId}
+                  className={`grid items-center border-b border-white/[0.04] py-3 ${
+                    isPlacement
+                      ? "grid-cols-[2.5rem_1fr_5rem]"
+                      : "grid-cols-[2rem_1fr_4rem_3.5rem] sm:grid-cols-[2.5rem_1fr_5rem_4rem]"
+                  } ${isMe ? "text-accent" : "text-text"}`}
                 >
-                  <span className="text-2xl shrink-0">{def.icon}</span>
-                  <div className="min-w-0">
-                    <div className="text-sm font-bold text-text">{def.name}</div>
-                    <div className="text-xs text-muted truncate">{def.description}</div>
-                  </div>
+                  {/* Placement */}
+                  <span className="font-bold tabular-nums">{result.placement}</span>
+
+                  {/* Name */}
+                  <span className="flex items-center gap-2 min-w-0 pr-3">
+                    {result.username && !isGuest ? (
+                      <Link
+                        href={`/profile/${result.username}`}
+                        className="hover:text-accent transition-colors truncate"
+                      >
+                        {displayName}
+                        {isMe && (
+                          <span className="text-muted text-xs ml-1">(you)</span>
+                        )}
+                      </Link>
+                    ) : (
+                      <span className="truncate">
+                        {displayName}
+                        {isMe && (
+                          <span className="text-muted text-xs ml-1">(you)</span>
+                        )}
+                      </span>
+                    )}
+                    {isBot && (
+                      <span className="text-[10px] text-muted/70 bg-white/[0.06] rounded px-1.5 py-0.5 shrink-0 uppercase tracking-wider font-semibold">
+                        Bot
+                      </span>
+                    )}
+                    {showStreak && (
+                      <span
+                        className="text-orange-400 flex items-center gap-0.5 shrink-0"
+                        title={`${result.streak} win streak`}
+                      >
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                          className="shrink-0"
+                        >
+                          <path d="M12 23c-3.866 0-7-2.686-7-6 0-1.665.753-3.488 2.127-5.244.883-1.128 1.873-2.1 2.873-3.006V2l4.386 4.506c.953.979 1.893 2.09 2.614 3.25C18.36 11.715 19 13.578 19 15.5 19 19.642 16.09 23 12 23z" />
+                        </svg>
+                        <span className="text-xs font-bold tabular-nums">
+                          {result.streak}
+                        </span>
+                      </span>
+                    )}
+                  </span>
+
+                  {/* Rank */}
+                  {!isPlacement && (
+                    <span className="pr-2 hidden sm:block">
+                      {rankInfo ? (
+                        <RankBadge tier={rankInfo.tier} elo={result.elo!} showElo={false} />
+                      ) : (
+                        <span className="text-muted/40 text-sm">—</span>
+                      )}
+                    </span>
+                  )}
+
+                  {/* WPM */}
+                  <span className="text-right tabular-nums whitespace-nowrap">
+                    {Math.floor(result.wpm)}
+                    <span className="text-[0.7em] opacity-50">
+                      .{(result.wpm % 1).toFixed(2).slice(2)}
+                    </span>
+                  </span>
+
+                  {/* ELO change */}
+                  {!isPlacement && (
+                    <span className="text-right tabular-nums whitespace-nowrap">
+                      {result.eloChange != null ? (
+                        <span
+                          className={`font-semibold ${
+                            result.eloChange > 0
+                              ? "text-correct"
+                              : result.eloChange < 0
+                              ? "text-error"
+                              : "text-muted"
+                          }`}
+                        >
+                          {result.eloChange > 0 ? "+" : ""}
+                          {result.eloChange}
+                        </span>
+                      ) : (
+                        <span className="text-muted/40">—</span>
+                      )}
+                    </span>
+                  )}
                 </div>
               );
             })}
           </div>
-        </div>
-      )}
 
-      {/* Challenge Progress */}
-      {myResult?.challengeProgress && myResult.challengeProgress.some((c) => c.progress > 0) && (
-        <div className="flex flex-col items-center gap-3 w-full max-w-md animate-slide-up">
-          <h3 className="text-xs font-bold text-muted/60 uppercase tracking-wider">
-            Challenge Progress
-          </h3>
-          {myResult.xpEarned != null && myResult.xpEarned > 0 && (
-            <div className="text-sm font-bold text-accent">
-              +{myResult.xpEarned} XP earned
+          {/* Animated ELO + rank transition */}
+          {myResult && myResult.eloChange != null && myResult.elo != null && !isPlacement && (
+            <div className="flex justify-center">
+              <AnimatedElo
+                oldElo={myResult.elo - myResult.eloChange}
+                newElo={myResult.elo}
+                change={myResult.eloChange}
+                rankChange={rankChange}
+              />
             </div>
           )}
-          <div className="flex flex-col gap-2 w-full">
-            {myResult.challengeProgress
-              .filter((c) => c.progress > 0)
-              .map((cp) => {
-                const def = CHALLENGE_MAP.get(cp.challengeId);
-                if (!def) return null;
-                const progress = Math.min(cp.progress, cp.target);
-                const pct = cp.target > 0 ? (progress / cp.target) * 100 : 0;
-                return (
-                  <div
-                    key={cp.challengeId}
-                    className={`flex items-center gap-3 rounded-lg bg-surface/60 px-4 py-3 ring-1 ${
-                      cp.justCompleted ? "ring-correct/30" : "ring-white/[0.06]"
-                    }`}
-                  >
-                    <span className="text-lg shrink-0">{def.icon}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-xs font-medium text-text truncate">
-                          {def.name}
-                          {cp.completed && (
-                            <span className="text-correct ml-1.5">&#10003;</span>
-                          )}
-                        </span>
-                        <span className="text-xs text-muted tabular-nums shrink-0 ml-2">
-                          {progress}/{cp.target}
-                        </span>
-                      </div>
-                      <div className="h-1 rounded-full bg-surface overflow-hidden">
-                        <div
-                          className={`h-full rounded-full transition-all ${
-                            cp.completed ? "bg-correct" : "bg-accent"
-                          }`}
-                          style={{ width: `${Math.round(pct)}%` }}
-                        />
-                      </div>
-                    </div>
-                    {cp.justCompleted && (
-                      <span className="text-[10px] font-bold text-correct bg-correct/10 rounded px-1.5 py-0.5 tabular-nums shrink-0">
-                        +{cp.xpAwarded} XP
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-          </div>
         </div>
-      )}
+
+        {/* Right column: stats + chart + achievements + challenges */}
+        {myResult && (
+          <div className="flex flex-col gap-6">
+            {/* Personal stats */}
+            <div className="flex flex-col items-center gap-2 w-full">
+              <div className="flex items-end justify-center gap-6">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-accent tabular-nums">
+                    {Math.floor(myResult.wpm)}
+                    <span className="text-[0.65em] opacity-60">
+                      .{(myResult.wpm % 1).toFixed(2).slice(2)}
+                    </span>
+                  </div>
+                  <div className="text-xs text-muted">wpm</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-bold text-text tabular-nums">
+                    {Math.round(myResult.accuracy)}%
+                  </div>
+                  <div className="text-xs text-muted">accuracy</div>
+                </div>
+                {myResult.misstypedChars != null && (
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-text tabular-nums">
+                      {myResult.misstypedChars}
+                    </div>
+                    <div className="text-xs text-muted">errors</div>
+                  </div>
+                )}
+              </div>
+              {myResult.wpmHistory && myResult.wpmHistory.length >= 2 && (
+                <WpmChart samples={myResult.wpmHistory} />
+              )}
+            </div>
+
+            {/* Achievement unlocks */}
+            {myResult.newAchievements && myResult.newAchievements.length > 0 && (
+              <div className="flex flex-col items-center gap-3 w-full">
+                <h3 className="text-xs font-bold text-muted/60 uppercase tracking-wider">
+                  Achievements Unlocked
+                </h3>
+                <div className="flex flex-col gap-2 w-full">
+                  {myResult.newAchievements.map((id) => {
+                    const def = ACHIEVEMENT_MAP.get(id);
+                    if (!def) return null;
+                    return (
+                      <div
+                        key={id}
+                        className={`flex items-center gap-3 rounded-lg bg-surface/60 px-4 py-3 ring-1 animate-slide-up ${RARITY_RING[def.rarity]}`}
+                      >
+                        <span className="text-2xl shrink-0">{def.icon}</span>
+                        <div className="min-w-0">
+                          <div className="text-sm font-bold text-text">{def.name}</div>
+                          <div className="text-xs text-muted truncate">{def.description}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Challenge Progress */}
+            {myResult.challengeProgress && myResult.challengeProgress.some((c) => c.progress > 0) && (
+              <div className="flex flex-col items-center gap-3 w-full animate-slide-up">
+                <h3 className="text-xs font-bold text-muted/60 uppercase tracking-wider">
+                  Challenge Progress
+                </h3>
+                {myResult.xpEarned != null && myResult.xpEarned > 0 && (
+                  <div className="text-sm font-bold text-accent">
+                    +{myResult.xpEarned} XP earned
+                  </div>
+                )}
+                <div className="flex flex-col gap-2 w-full">
+                  {myResult.challengeProgress
+                    .filter((c) => c.progress > 0)
+                    .map((cp) => {
+                      const def = CHALLENGE_MAP.get(cp.challengeId);
+                      if (!def) return null;
+                      const progress = Math.min(cp.progress, cp.target);
+                      const pct = cp.target > 0 ? (progress / cp.target) * 100 : 0;
+                      return (
+                        <div
+                          key={cp.challengeId}
+                          className={`flex items-center gap-3 rounded-lg bg-surface/60 px-4 py-3 ring-1 ${
+                            cp.justCompleted ? "ring-correct/30" : "ring-white/[0.06]"
+                          }`}
+                        >
+                          <span className="text-lg shrink-0">{def.icon}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-0.5">
+                              <span className="text-xs font-medium text-text truncate">
+                                {def.name}
+                                {cp.completed && (
+                                  <span className="text-correct ml-1.5">&#10003;</span>
+                                )}
+                              </span>
+                              <span className="text-xs text-muted tabular-nums shrink-0 ml-2">
+                                {progress}/{cp.target}
+                              </span>
+                            </div>
+                            <div className="h-1 rounded-full bg-surface overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all ${
+                                  cp.completed ? "bg-correct" : "bg-accent"
+                                }`}
+                                style={{ width: `${Math.round(pct)}%` }}
+                              />
+                            </div>
+                          </div>
+                          {cp.justCompleted && (
+                            <span className="text-[10px] font-bold text-correct bg-correct/10 rounded px-1.5 py-0.5 tabular-nums shrink-0">
+                              +{cp.xpAwarded} XP
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       <button
         onClick={() => onRaceAgain()}
