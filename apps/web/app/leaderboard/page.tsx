@@ -38,6 +38,7 @@ export default async function LeaderboardPage() {
       racesWon: userStats.racesWon,
       avgWpm: userStats.avgWpm,
       maxWpm: userStats.maxWpm,
+      avgAccuracy: userStats.avgAccuracy,
     })
     .from(users)
     .leftJoin(userStats, eq(users.id, userStats.userId))
@@ -61,6 +62,7 @@ export default async function LeaderboardPage() {
         racesWon: userStats.racesWon,
         avgWpm: userStats.avgWpm,
         maxWpm: userStats.maxWpm,
+        avgAccuracy: userStats.avgAccuracy,
       })
       .from(users)
       .leftJoin(userStats, eq(users.id, userStats.userId))
@@ -102,12 +104,14 @@ export default async function LeaderboardPage() {
         ) : (
           <div>
             {/* Header */}
-            <div className="grid grid-cols-[2rem_1fr_4rem_3.5rem] sm:grid-cols-[2rem_1fr_4.5rem_5rem_5rem_3.5rem] items-center gap-3 px-4 py-2 text-xs text-muted/60 uppercase tracking-wider border-b border-white/[0.04]">
+            <div className="grid grid-cols-[2rem_1fr_4rem_3.5rem] sm:grid-cols-[2rem_1fr_4.5rem_5rem_5rem_3.5rem_3.5rem_3.5rem] items-center gap-3 px-4 py-2 text-xs text-muted/60 uppercase tracking-wider border-b border-white/[0.04]">
               <span></span>
               <span>Player</span>
               <span className="text-right">ELO</span>
               <span className="text-right hidden sm:block">Best WPM</span>
               <span className="text-right hidden sm:block">Avg WPM</span>
+              <span className="text-right hidden sm:block">Acc</span>
+              <span className="text-right hidden sm:block">Races</span>
               <span className="text-right">Wins</span>
             </div>
 
@@ -141,7 +145,7 @@ export default async function LeaderboardPage() {
                   <Link
                     key={row.id}
                     href={`/profile/${row.username}`}
-                    className={`grid grid-cols-[2rem_1fr_4rem_3.5rem] sm:grid-cols-[2rem_1fr_4.5rem_5rem_5rem_3.5rem] items-center gap-3 px-4 py-2.5 rounded-lg transition-colors ${rowBg}`}
+                    className={`grid grid-cols-[2rem_1fr_4rem_3.5rem] sm:grid-cols-[2rem_1fr_4.5rem_5rem_5rem_3.5rem_3.5rem_3.5rem] items-center gap-3 px-4 py-2.5 rounded-lg transition-colors ${rowBg}`}
                   >
                     <span className={`text-sm font-bold tabular-nums ${rankDisplay}`}>
                       {rank}
@@ -166,6 +170,12 @@ export default async function LeaderboardPage() {
                     <span className="text-sm text-muted/70 tabular-nums text-right hidden sm:block">
                       {fmtWpm(row.avgWpm)}
                     </span>
+                    <span className="text-sm text-muted/50 tabular-nums text-right hidden sm:block">
+                      {row.avgAccuracy != null ? `${Math.round(row.avgAccuracy)}%` : "-"}
+                    </span>
+                    <span className="text-sm text-muted/50 tabular-nums text-right hidden sm:block">
+                      {racesPlayed}
+                    </span>
                     <span className="text-sm text-muted/50 tabular-nums text-right">
                       {racesWon}
                     </span>
@@ -189,7 +199,7 @@ export default async function LeaderboardPage() {
                   </p>
                   <Link
                     href={`/profile/${row.username}`}
-                    className="grid grid-cols-[2rem_1fr_4rem_3.5rem] sm:grid-cols-[2rem_1fr_4.5rem_5rem_5rem_3.5rem] items-center gap-3 px-4 py-2.5 rounded-lg transition-colors bg-accent/[0.05] ring-1 ring-accent/10"
+                    className="grid grid-cols-[2rem_1fr_4rem_3.5rem] sm:grid-cols-[2rem_1fr_4.5rem_5rem_5rem_3.5rem_3.5rem_3.5rem] items-center gap-3 px-4 py-2.5 rounded-lg transition-colors bg-accent/[0.05] ring-1 ring-accent/10"
                   >
                     <span className="text-sm font-bold tabular-nums text-muted/40">
                       {rank}
@@ -213,6 +223,12 @@ export default async function LeaderboardPage() {
                     </span>
                     <span className="text-sm text-muted/70 tabular-nums text-right hidden sm:block">
                       {fmtWpm(row.avgWpm)}
+                    </span>
+                    <span className="text-sm text-muted/50 tabular-nums text-right hidden sm:block">
+                      {row.avgAccuracy != null ? `${Math.round(row.avgAccuracy)}%` : "-"}
+                    </span>
+                    <span className="text-sm text-muted/50 tabular-nums text-right hidden sm:block">
+                      {racesPlayed}
                     </span>
                     <span className="text-sm text-muted/50 tabular-nums text-right">
                       {racesWon}

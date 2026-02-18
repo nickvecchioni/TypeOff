@@ -63,32 +63,7 @@ export function ChallengesWidget() {
       .catch(() => {});
   }, []);
 
-  if (!data) {
-    return (
-      <div className="w-full rounded-xl bg-surface/50 ring-1 ring-white/[0.04] p-5 space-y-4 animate-pulse">
-        {/* XP level */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-baseline gap-2">
-            <div className="h-3.5 bg-white/[0.06] rounded w-16" />
-            <div className="h-3 bg-white/[0.04] rounded w-20" />
-          </div>
-        </div>
-        <div className="h-1 rounded-full bg-white/[0.04]" />
-        {/* Daily section — 3 rows */}
-        <div className="space-y-2">
-          <div className="h-3.5 bg-white/[0.04] rounded w-28" />
-          <div className="h-6 bg-white/[0.04] rounded" />
-          <div className="h-6 bg-white/[0.04] rounded" />
-          <div className="h-6 bg-white/[0.04] rounded" />
-        </div>
-        {/* Weekly section — 1 row */}
-        <div className="space-y-2">
-          <div className="h-3.5 bg-white/[0.04] rounded w-28" />
-          <div className="h-6 bg-white/[0.04] rounded" />
-        </div>
-      </div>
-    );
-  }
+  if (!data) return null;
 
   const xpInfo = getXpLevel(data.totalXp);
   const dailies = data.challenges.filter((c) => c.type === "daily");

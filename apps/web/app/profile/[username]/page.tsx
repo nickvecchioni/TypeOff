@@ -51,6 +51,7 @@ export default async function ProfilePage({
     .select({
       placement: raceParticipants.placement,
       wpm: raceParticipants.wpm,
+      accuracy: raceParticipants.accuracy,
       eloBefore: raceParticipants.eloBefore,
       eloAfter: raceParticipants.eloAfter,
       finishedAt: raceParticipants.finishedAt,
@@ -221,6 +222,7 @@ export default async function ProfilePage({
                     <th className="px-4 py-2.5 font-medium">Date</th>
                     <th className="px-4 py-2.5 font-medium">Place</th>
                     <th className="px-4 py-2.5 font-medium text-right">WPM</th>
+                    <th className="px-4 py-2.5 font-medium text-right">Acc</th>
                     <th className="px-4 py-2.5 font-medium text-right">ELO</th>
                   </tr>
                 </thead>
@@ -272,6 +274,9 @@ export default async function ProfilePage({
                               </span>
                             </>
                           ) : "-"}
+                        </td>
+                        <td className="px-4 py-2.5 text-right tabular-nums text-muted text-xs">
+                          {race.accuracy != null ? `${Math.round(race.accuracy)}%` : "-"}
                         </td>
                         <td className="px-4 py-2.5 text-right tabular-nums">
                           {eloChange != null ? (

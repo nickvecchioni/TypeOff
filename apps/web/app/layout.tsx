@@ -31,7 +31,7 @@ export default function RootLayout({
           <SocketProvider>
           <SocialProvider>
           <UsernameGuard>
-            <nav className="relative z-30 flex items-center justify-between px-4 sm:px-6 py-3 border-b border-white/[0.04]">
+            <nav className="relative z-30 flex items-center justify-between px-4 sm:px-6 py-3">
               <div className="flex items-center gap-4 sm:gap-8">
                 <Link href="/" className="nav-logo text-accent font-bold text-base">
                   <span className="nav-logo-text transition-[text-shadow] duration-300">
