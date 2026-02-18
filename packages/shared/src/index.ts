@@ -6,4 +6,4 @@ export * from "./elo";
 export * from "./username";
 export * from "./achievements";
 export * from "./challenges";
-export * from "./key-pass";
+export * from "./key-card";

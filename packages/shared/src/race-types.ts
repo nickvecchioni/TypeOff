@@ -107,7 +107,7 @@ export interface ServerToClientEvents {
         xpAwarded: number;
       }>;
       xpEarned?: number;
-      keyPassProgress?: {
+      keyCardProgress?: {
         seasonId: string;
         seasonalXp: number;
         currentTier: number;

@@ -196,9 +196,9 @@ export const userChallengeProgress = pgTable(
   (t) => [primaryKey({ columns: [t.userId, t.challengeId, t.periodKey] })],
 );
 
-// ─── Key Pass ──────────────────────────────────────────────────────────
+// ─── Key Card ──────────────────────────────────────────────────────────
 
-export const userKeyPass = pgTable(
+export const userKeyCard = pgTable(
   "user_key_pass",
   {
     userId: text("user_id")

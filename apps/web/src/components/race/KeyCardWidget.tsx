@@ -2,9 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import type { KeyPassReward, SeasonDefinition } from "@typeoff/shared";
+import type { KeyCardReward, SeasonDefinition } from "@typeoff/shared";
 
-interface KeyPassData {
+interface KeyCardData {
   season: SeasonDefinition | null;
   userState: {
     seasonalXp: number;
@@ -14,11 +14,11 @@ interface KeyPassData {
   cosmetics: string[];
 }
 
-export function KeyPassWidget() {
-  const [data, setData] = useState<KeyPassData | null>(null);
+export function KeyCardWidget() {
+  const [data, setData] = useState<KeyCardData | null>(null);
 
   useEffect(() => {
-    fetch("/api/key-pass")
+    fetch("/api/key-card")
       .then((r) => r.json())
       .then(setData)
       .catch(() => {});
@@ -47,13 +47,13 @@ export function KeyPassWidget() {
 
   return (
     <Link
-      href="/key-pass"
+      href="/key-card"
       className="block w-full rounded-xl bg-surface/50 ring-1 ring-white/[0.04] p-4 hover:ring-accent/20 transition-all animate-fade-in group"
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
-            Key Pass
+            Key Card
           </span>
           {isPremium && (
             <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-400/10 text-amber-400 rounded px-1.5 py-0.5">

@@ -168,7 +168,7 @@ export function RaceResults({
   const hasChallenges =
     myResult?.challengeProgress &&
     myResult.challengeProgress.some((c) => c.progress > 0);
-  const hasKeyPass = myResult?.keyPassProgress != null;
+  const hasKeyCard = myResult?.keyCardProgress != null;
   const season = getCurrentSeason();
 
   return (
@@ -461,9 +461,9 @@ export function RaceResults({
         </div>
       )}
 
-      {/* Key Pass Progress */}
-      {hasKeyPass && season && (() => {
-        const kp = myResult!.keyPassProgress!;
+      {/* Key Card Progress */}
+      {hasKeyCard && season && (() => {
+        const kp = myResult!.keyCardProgress!;
         const xpInTier = kp.seasonalXp % season.xpPerTier;
         const tierPct = kp.currentTier >= season.maxTier
           ? 100

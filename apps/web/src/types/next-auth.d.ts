@@ -14,7 +14,7 @@ declare module "next-auth" {
       currentStreak: number;
       totalXp: number;
       seasonTier: number;
-      hasKeyPass: boolean;
+      hasKeyCard: boolean;
       activeBadge: string | null;
       activeTitle: string | null;
       activeNameColor: string | null;
@@ -32,7 +32,7 @@ declare module "next-auth/jwt" {
     currentStreak?: number;
     totalXp?: number;
     seasonTier?: number;
-    hasKeyPass?: boolean;
+    hasKeyCard?: boolean;
     activeBadge?: string | null;
     activeTitle?: string | null;
     activeNameColor?: string | null;

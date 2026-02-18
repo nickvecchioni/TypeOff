@@ -14,8 +14,8 @@ import { createDb, races, raceParticipants, userStats, users } from "@typeoff/db
 import { eq, inArray, and, sql } from "drizzle-orm";
 import { checkAchievements } from "./achievement-checker.js";
 import { checkChallenges, type ChallengeCheckResult } from "./challenge-checker.js";
-import { checkKeyPass, type KeyPassContext } from "./key-pass-checker.js";
-import type { KeyPassProgress } from "@typeoff/shared";
+import { checkKeyCard, type KeyCardContext } from "./key-card-checker.js";
+import type { KeyCardProgress } from "@typeoff/shared";
 export interface RaceOwner {
   cleanupRace(raceId: string, socketIds: string[]): void;
 }
@@ -570,7 +570,7 @@ export class RaceManager {
         xpAwarded: number;
       }>;
       xpEarned?: number;
-      keyPassProgress?: KeyPassProgress;
+      keyCardProgress?: KeyCardProgress;
     }> = [];
 
     // Track per-player data for results
@@ -580,7 +580,7 @@ export class RaceManager {
     const streakMap = new Map<string, number>();
     const achievementMap = new Map<string, string[]>();
     const challengeMap = new Map<string, ChallengeCheckResult>();
-    const keyPassMap = new Map<string, KeyPassProgress>();
+    const keyCardMap = new Map<string, KeyCardProgress>();
     const playerStatsMap = new Map<string, { racesPlayed: number; racesWon: number; currentStreak: number; maxStreak: number }>();
 
     const db = createDb(process.env.DATABASE_URL!);
@@ -886,12 +886,12 @@ export class RaceManager {
         console.error("[race-manager] challenge check error:", challengeErr);
       }
 
-      // 8. Check key pass for authenticated players
+      // 8. Check key card for authenticated players
       try {
         for (const entry of entries) {
           if (entry.isBot || entry.player.isGuest) continue;
           const finalStats = entry.progress.finalStats!;
-          const kpResult = await checkKeyPass(
+          const kpResult = await checkKeyCard(
             {
               userId: entry.player.id,
               raceWpm: finalStats.wpm,
@@ -902,11 +902,11 @@ export class RaceManager {
             db,
           );
           if (kpResult) {
-            keyPassMap.set(entry.player.id, kpResult);
+            keyCardMap.set(entry.player.id, kpResult);
           }
         }
-      } catch (keyPassErr) {
-        console.error("[race-manager] key pass check error:", keyPassErr);
+      } catch (keyCardErr) {
+        console.error("[race-manager] key card check error:", keyCardErr);
       }
     }
 
@@ -931,7 +931,7 @@ export class RaceManager {
         newAchievements: achievementMap.get(entry.player.id),
         challengeProgress: challengeResult?.results,
         xpEarned: challengeResult?.totalXpEarned,
-        keyPassProgress: keyPassMap.get(entry.player.id),
+        keyCardProgress: keyCardMap.get(entry.player.id),
       });
     }
 

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { userKeyPass, userCosmetics } from "@typeoff/db";
+import { userKeyCard, userCosmetics } from "@typeoff/db";
 import { eq, and } from "drizzle-orm";
 import { getCurrentSeason, getUnlockedRewards } from "@typeoff/shared";
 
@@ -23,11 +23,11 @@ export async function GET() {
 
     const [kpRow] = await db
       .select()
-      .from(userKeyPass)
+      .from(userKeyCard)
       .where(
         and(
-          eq(userKeyPass.userId, session.user.id),
-          eq(userKeyPass.seasonId, season.id),
+          eq(userKeyCard.userId, session.user.id),
+          eq(userKeyCard.seasonId, season.id),
         ),
       )
       .limit(1);
