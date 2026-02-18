@@ -40,7 +40,7 @@ export function RaceTrack({ players, progress, myPlayerId, isPlacement }: RaceTr
                 {isMe && " (you)"}
                 {finished && p?.placement && ` #${p.placement}`}
               </span>
-              <span className="text-muted tabular-nums">{wpm} wpm</span>
+              {finished && <span className="text-muted tabular-nums">{wpm} wpm</span>}
             </div>
             <div className="h-3 rounded-full bg-surface-bright/50 overflow-hidden">
               <div
