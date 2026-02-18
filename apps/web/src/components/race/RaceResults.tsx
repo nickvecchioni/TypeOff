@@ -177,7 +177,7 @@ export function RaceResults({
               className={`grid text-muted text-xs uppercase tracking-wider border-b border-white/[0.06] pb-2.5 ${
                 isPlacement
                   ? "grid-cols-[2.5rem_1fr_5rem]"
-                  : "grid-cols-[2rem_1fr_4rem_3.5rem] sm:grid-cols-[2.5rem_1fr_5rem_4rem]"
+                  : "grid-cols-[2rem_1fr_4rem_3.5rem] sm:grid-cols-[2rem_1fr_5.5rem_4rem_3.5rem]"
               }`}
             >
               <span className="font-semibold">#</span>
@@ -208,7 +208,7 @@ export function RaceResults({
                   className={`grid items-center border-b border-white/[0.04] py-3 ${
                     isPlacement
                       ? "grid-cols-[2.5rem_1fr_5rem]"
-                      : "grid-cols-[2rem_1fr_4rem_3.5rem] sm:grid-cols-[2.5rem_1fr_5rem_4rem]"
+                      : "grid-cols-[2rem_1fr_4rem_3.5rem] sm:grid-cols-[2rem_1fr_5.5rem_4rem_3.5rem]"
                   } ${isMe ? "text-accent" : "text-text"}`}
                 >
                   {/* Placement */}
