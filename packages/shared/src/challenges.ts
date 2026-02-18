@@ -21,6 +21,8 @@ export interface ChallengeDefinition {
   category: ChallengeCategory;
   xpReward: number;
   target: number;
+  /** For binary challenges: the WPM/accuracy threshold to hit (target is then 1) */
+  threshold?: number;
 }
 
 export interface ChallengeProgress {
@@ -41,14 +43,14 @@ export interface XpLevel {
 // ─── Challenge Definitions ────────────────────────────────────────────
 
 export const DAILY_CHALLENGES: ChallengeDefinition[] = [
-  // Speed
-  { id: "d_speed_60", name: "Warm Up", description: "Hit 60+ WPM in a race", icon: "\u26A1", type: "daily", category: "speed", xpReward: 50, target: 60 },
-  { id: "d_speed_80", name: "Cruising", description: "Hit 80+ WPM in a race", icon: "\u26A1", type: "daily", category: "speed", xpReward: 75, target: 80 },
-  { id: "d_speed_100", name: "Triple Digits", description: "Hit 100+ WPM in a race", icon: "\uD83D\uDD25", type: "daily", category: "speed", xpReward: 100, target: 100 },
-  { id: "d_speed_120", name: "Blazing Fast", description: "Hit 120+ WPM in a race", icon: "\uD83D\uDD25", type: "daily", category: "speed", xpReward: 150, target: 120 },
+  // Speed (binary — hit threshold once)
+  { id: "d_speed_60", name: "Warm Up", description: "Hit 60+ WPM in a race", icon: "\u26A1", type: "daily", category: "speed", xpReward: 50, target: 1, threshold: 60 },
+  { id: "d_speed_80", name: "Cruising", description: "Hit 80+ WPM in a race", icon: "\u26A1", type: "daily", category: "speed", xpReward: 75, target: 1, threshold: 80 },
+  { id: "d_speed_100", name: "Triple Digits", description: "Hit 100+ WPM in a race", icon: "\uD83D\uDD25", type: "daily", category: "speed", xpReward: 100, target: 1, threshold: 100 },
+  { id: "d_speed_120", name: "Blazing Fast", description: "Hit 120+ WPM in a race", icon: "\uD83D\uDD25", type: "daily", category: "speed", xpReward: 150, target: 1, threshold: 120 },
   // Accuracy
   { id: "d_acc_95", name: "Sharp Shooter", description: "Finish 2 races with 95%+ accuracy", icon: "\uD83C\uDFAF", type: "daily", category: "accuracy", xpReward: 75, target: 2 },
-  { id: "d_acc_98", name: "Precision", description: "Finish a race with 98%+ accuracy", icon: "\uD83C\uDFAF", type: "daily", category: "accuracy", xpReward: 100, target: 98 },
+  { id: "d_acc_98", name: "Precision", description: "Finish a race with 98%+ accuracy", icon: "\uD83C\uDFAF", type: "daily", category: "accuracy", xpReward: 100, target: 1, threshold: 98 },
   // Volume
   { id: "d_races_3", name: "Daily Grind", description: "Complete 3 ranked races", icon: "\uD83C\uDFC1", type: "daily", category: "volume", xpReward: 60, target: 3 },
   { id: "d_races_5", name: "Five-a-Day", description: "Complete 5 ranked races", icon: "\uD83C\uDFC1", type: "daily", category: "volume", xpReward: 100, target: 5 },

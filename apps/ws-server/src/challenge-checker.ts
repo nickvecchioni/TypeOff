@@ -155,20 +155,19 @@ function computeProgress(
       return ctx.placement === 1 ? prevProgress + 1 : prevProgress;
 
     case "speed":
-      // For daily speed challenges (binary): target is WPM threshold
-      // For weekly speed challenges: count races above 100 WPM
-      if (challenge.type === "daily") {
-        return ctx.raceWpm >= challenge.target ? 1 : prevProgress;
+      // Binary (has threshold): hit WPM once → 1
+      // Cumulative (no threshold): count races above 100 WPM
+      if (challenge.threshold != null) {
+        return ctx.raceWpm >= challenge.threshold ? 1 : prevProgress;
       }
-      // Weekly speed: count races >= 100 WPM
       return ctx.raceWpm >= 100 ? prevProgress + 1 : prevProgress;
 
     case "accuracy":
-      // Daily d_acc_98: binary (target is accuracy threshold)
-      if (challenge.id === "d_acc_98") {
-        return ctx.raceAccuracy >= challenge.target ? 1 : prevProgress;
+      // Binary (has threshold): hit accuracy once → 1
+      // Cumulative (no threshold): count races with 95%+ accuracy
+      if (challenge.threshold != null) {
+        return ctx.raceAccuracy >= challenge.threshold ? 1 : prevProgress;
       }
-      // Others: count races with 95%+ accuracy
       return ctx.raceAccuracy >= 95 ? prevProgress + 1 : prevProgress;
 
     case "streak":
