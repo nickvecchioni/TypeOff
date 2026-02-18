@@ -48,7 +48,7 @@ export function TypePassWidget() {
   return (
     <Link
       href="/type-pass"
-      className="block w-full rounded-xl bg-surface/50 ring-1 ring-white/[0.04] p-4 hover:ring-accent/20 transition-all animate-fade-in group"
+      className="flex flex-col w-full rounded-xl bg-surface/50 ring-1 ring-white/[0.04] p-4 hover:ring-accent/20 transition-all animate-fade-in group"
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">

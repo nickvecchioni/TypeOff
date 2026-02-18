@@ -83,15 +83,15 @@ export function QueueScreen({
 
   /* ── Idle state (main homepage) ─────────────────────────── */
   return (
-    <div className="flex flex-col items-center gap-8 sm:gap-10 animate-fade-in w-full">
-      {/* Hero */}
-      <div className="flex flex-col items-center gap-3 text-center">
-        <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-text">
+    <div className="flex flex-col items-center gap-6 animate-fade-in w-full">
+      {/* Hero — compact for returning users */}
+      <div className="flex flex-col items-center gap-1.5 text-center">
+        <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-text">
           Competitive typing,{" "}
           <span className="text-accent text-glow-accent">ranked.</span>
           <span className="inline-block w-[3px] h-[1.1em] bg-accent ml-1 animate-blink translate-y-[0.15em]" />
         </h1>
-        <p className="text-muted text-lg">
+        <p className="text-muted text-sm sm:text-base">
           Race head-to-head in real-time. Climb from{" "}
           <span className="text-rank-bronze font-semibold">Bronze</span> to{" "}
           <span className="text-rank-grandmaster font-semibold">Grandmaster</span>.
@@ -100,42 +100,54 @@ export function QueueScreen({
 
       {/* CTA */}
       {session?.user ? (
-        <div className="flex flex-col items-center gap-6 w-full max-w-lg">
+        <div className="flex flex-col items-center gap-5 w-full max-w-2xl">
           {inPartyNotLeader ? (
             <div className="text-sm text-muted">
               Waiting for party leader to start...
             </div>
           ) : (
-            <>
+            <div className="flex items-center gap-3 w-full">
               <button
                 onClick={onJoin}
                 disabled={!connected}
-                className="w-full rounded-lg bg-accent text-bg py-3.5 text-sm font-bold tracking-wide uppercase hover:bg-accent/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed glow-accent-strong"
+                className="flex-1 rounded-lg bg-accent text-bg py-3 text-sm font-bold tracking-wide uppercase hover:bg-accent/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed glow-accent-strong"
               >
                 {session.user.placementsCompleted ? "Find Race" : "Start Placement Race"}
               </button>
-              {!session.user.placementsCompleted && (
-                <p className="text-xs text-muted text-center -mt-2">
-                  Complete a placement race to get your rank
-                </p>
+              {session.user.placementsCompleted && !party && (
+                <button
+                  onClick={onCreateParty}
+                  className="shrink-0 rounded-lg bg-white/[0.04] ring-1 ring-white/[0.06] text-muted py-3 px-5 text-sm font-medium hover:text-text hover:ring-white/[0.12] transition-all"
+                >
+                  Create Party
+                </button>
               )}
-            </>
+            </div>
+          )}
+          {!session.user.placementsCompleted && (
+            <p className="text-xs text-muted text-center -mt-2">
+              Complete a placement race to get your rank
+            </p>
           )}
 
-          {/* Party — only show after placements are done */}
+          {/* Party row — show inline when active */}
+          {session.user.placementsCompleted && party && (
+            <PartyPanel
+              party={party}
+              error={partyError}
+              onCreateParty={onCreateParty}
+              onInvite={onInviteToParty}
+              onKick={onKickFromParty}
+              onLeave={onLeaveParty}
+            />
+          )}
+
+          {/* Two-column grid for widgets on desktop */}
           {session.user.placementsCompleted && (
-            <>
-              <PartyPanel
-                party={party}
-                error={partyError}
-                onCreateParty={onCreateParty}
-                onInvite={onInviteToParty}
-                onKick={onKickFromParty}
-                onLeave={onLeaveParty}
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
               <ChallengesWidget />
               <TypePassWidget />
-            </>
+            </div>
           )}
         </div>
       ) : (
