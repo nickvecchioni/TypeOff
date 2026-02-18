@@ -63,7 +63,9 @@ export function ChallengesWidget() {
       .catch(() => {});
   }, []);
 
-  if (!data) return null;
+  if (!data) {
+    return <div className="w-full min-h-[280px]" />;
+  }
 
   const xpInfo = getXpLevel(data.totalXp);
   const dailies = data.challenges.filter((c) => c.type === "daily");

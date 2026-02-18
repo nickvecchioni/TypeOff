@@ -171,7 +171,7 @@ export default async function LeaderboardPage() {
                       {fmtWpm(row.avgWpm)}
                     </span>
                     <span className="text-sm text-muted/50 tabular-nums text-right hidden sm:block">
-                      {row.avgAccuracy != null ? `${Math.round(row.avgAccuracy)}%` : "-"}
+                      {row.avgAccuracy != null ? (<>{Math.floor(row.avgAccuracy)}<span className="text-[0.8em] opacity-50">.{((row.avgAccuracy % 1) * 10).toFixed(0)}%</span></>) : "-"}
                     </span>
                     <span className="text-sm text-muted/50 tabular-nums text-right hidden sm:block">
                       {racesPlayed}
@@ -225,7 +225,7 @@ export default async function LeaderboardPage() {
                       {fmtWpm(row.avgWpm)}
                     </span>
                     <span className="text-sm text-muted/50 tabular-nums text-right hidden sm:block">
-                      {row.avgAccuracy != null ? `${Math.round(row.avgAccuracy)}%` : "-"}
+                      {row.avgAccuracy != null ? (<>{Math.floor(row.avgAccuracy)}<span className="text-[0.8em] opacity-50">.{((row.avgAccuracy % 1) * 10).toFixed(0)}%</span></>) : "-"}
                     </span>
                     <span className="text-sm text-muted/50 tabular-nums text-right hidden sm:block">
                       {racesPlayed}

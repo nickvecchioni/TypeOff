@@ -276,7 +276,7 @@ export default async function ProfilePage({
                           ) : "-"}
                         </td>
                         <td className="px-4 py-2.5 text-right tabular-nums text-muted text-xs">
-                          {race.accuracy != null ? `${Math.round(race.accuracy)}%` : "-"}
+                          {race.accuracy != null ? (<>{Math.floor(race.accuracy)}<span className="text-[0.8em] opacity-50">.{((race.accuracy % 1) * 10).toFixed(0)}%</span></>) : "-"}
                         </td>
                         <td className="px-4 py-2.5 text-right tabular-nums">
                           {eloChange != null ? (

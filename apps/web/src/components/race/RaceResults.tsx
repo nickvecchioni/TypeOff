@@ -87,7 +87,7 @@ function AnimatedElo({
   /* Fade glow out after 2s */
   useEffect(() => {
     if (!glowVisible) return;
-    const timer = setTimeout(() => setGlowVisible(false), 2000);
+    const timer = setTimeout(() => setGlowVisible(false), 500);
     return () => clearTimeout(timer);
   }, [glowVisible]);
 
@@ -328,7 +328,7 @@ export function RaceResults({
 
               {!isPlacement && (
                 <span className="text-right tabular-nums whitespace-nowrap hidden sm:block">
-                  {Math.round(result.accuracy)}%
+                  {Math.floor(result.accuracy)}<span className="text-[0.7em] opacity-50">.{((result.accuracy % 1) * 10).toFixed(0)}%</span>
                 </span>
               )}
 
