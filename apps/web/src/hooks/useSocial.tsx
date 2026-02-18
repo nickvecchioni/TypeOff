@@ -107,13 +107,25 @@ export function SocialProvider({ children }: { children: ReactNode }) {
             online: onlineMap.get(f.userId) ?? f.online ?? false,
           }));
         });
+        // Re-request friend statuses so socket data arrives after friends are populated
+        if (connected) {
+          try {
+            const tokenRes = await fetch("/api/ws-token");
+            if (tokenRes.ok) {
+              const { token } = await tokenRes.json();
+              if (token) emit("requestFriendStatuses", { token });
+            }
+          } catch {
+            // ignore — statuses will arrive via individual friendStatus events
+          }
+        }
       }
     } catch {
       // ignore
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [connected, emit]);
 
   const fetchRequests = useCallback(async () => {
     try {
