@@ -135,29 +135,47 @@ export function RaceArena() {
           className="flex flex-col items-center gap-8 w-full"
           style={{ animation: "fade-in-up 0.4s ease-out both" }}
         >
-          {(race.phase === "countdown" || showGo) && (
-            <CountdownOverlay
-              countdown={race.countdown}
-              showGo={showGo}
-              playerCount={race.raceState.players.length}
-              placementRace={race.raceState.placementRace}
-              players={race.raceState.players}
-            />
-          )}
           <RaceTrack
             players={race.raceState.players}
             progress={race.progress}
             myPlayerId={myPlayerId}
             isPlacement={isInPlacement}
           />
-          <RaceTypingArea
-            seed={race.raceState.seed}
-            wordCount={race.raceState.wordCount}
-            finishTimeoutEnd={race.finishTimeoutEnd}
-            onProgress={race.sendProgress}
-            onFinish={race.sendFinish}
-            disabled={race.phase === "countdown"}
-          />
+          <div className="relative w-full">
+            {/* Countdown overlay — absolutely positioned, no layout shift */}
+            <div
+              className={`absolute inset-0 z-10 flex items-center justify-center pointer-events-none transition-opacity duration-300 ${
+                race.phase === "countdown" || showGo
+                  ? "opacity-100"
+                  : "opacity-0"
+              }`}
+            >
+              <CountdownOverlay
+                countdown={race.countdown}
+                showGo={showGo}
+                playerCount={race.raceState.players.length}
+                placementRace={race.raceState.placementRace}
+                players={race.raceState.players}
+              />
+            </div>
+            {/* Words — blurred during countdown, comes into focus on GO */}
+            <div
+              className="transition-[filter] duration-700 ease-out"
+              style={{
+                filter:
+                  race.phase === "countdown" ? "blur(5px)" : "none",
+              }}
+            >
+              <RaceTypingArea
+                seed={race.raceState.seed}
+                wordCount={race.raceState.wordCount}
+                finishTimeoutEnd={race.finishTimeoutEnd}
+                onProgress={race.sendProgress}
+                onFinish={race.sendFinish}
+                disabled={race.phase === "countdown"}
+              />
+            </div>
+          </div>
         </div>
       )}
 

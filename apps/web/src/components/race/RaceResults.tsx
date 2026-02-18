@@ -45,6 +45,7 @@ function AnimatedElo({
   const [displayElo, setDisplayElo] = useState(oldElo);
   const [showChange, setShowChange] = useState(false);
   const [rankPulse, setRankPulse] = useState(false);
+  const [glowVisible, setGlowVisible] = useState(false);
   const rafRef = useRef<number>(0);
   const prevLabelRef = useRef(getRankInfo(oldElo).label);
 
@@ -65,6 +66,7 @@ function AnimatedElo({
         if (currentLabel !== prevLabelRef.current) {
           prevLabelRef.current = currentLabel;
           setRankPulse(true);
+          setGlowVisible(true);
         }
 
         setDisplayElo(currentElo);
@@ -81,6 +83,13 @@ function AnimatedElo({
       cancelAnimationFrame(rafRef.current);
     };
   }, [oldElo, newElo]);
+
+  /* Fade glow out after 2s */
+  useEffect(() => {
+    if (!glowVisible) return;
+    const timer = setTimeout(() => setGlowVisible(false), 2000);
+    return () => clearTimeout(timer);
+  }, [glowVisible]);
 
   const rankInfo = getRankInfo(displayElo);
 
@@ -99,11 +108,13 @@ function AnimatedElo({
           </span>
         )}
         <span
-          className="transition-all duration-500"
+          className="transition-[filter] duration-1000"
           style={
             rankPulse
               ? {
-                  filter: `drop-shadow(0 0 6px currentColor)`,
+                  filter: glowVisible
+                    ? `drop-shadow(0 0 6px currentColor)`
+                    : "drop-shadow(0 0 0px transparent)",
                   animation: "rank-pulse 0.6s ease-out",
                 }
               : {}
@@ -143,14 +154,20 @@ export function RaceResults({
   const myResult = results.find((r) => r.playerId === myPlayerId);
   const showTwoCol = !isPlacement && myResult != null;
 
-  /* Table column templates — wider rank column for the asymmetric layout */
+  /* Table column templates — 6 columns on desktop (adds Accuracy) */
   const mobileCols = isPlacement
     ? "grid-cols-[2.5rem_1fr_5rem]"
     : "grid-cols-[2rem_1fr_4rem_3.5rem]";
   const desktopCols = isPlacement
     ? ""
-    : "sm:grid-cols-[2rem_1fr_7rem_4.5rem_3.5rem]";
+    : "sm:grid-cols-[2rem_1fr_7rem_4rem_3.5rem_3.5rem]";
   const tableCols = `${mobileCols} ${desktopCols}`;
+
+  const hasAchievements =
+    myResult?.newAchievements && myResult.newAchievements.length > 0;
+  const hasChallenges =
+    myResult?.challengeProgress &&
+    myResult.challengeProgress.some((c) => c.progress > 0);
 
   return (
     <div className="flex flex-col items-center gap-8 w-full">
@@ -177,10 +194,10 @@ export function RaceResults({
         </div>
       )}
 
-      {/* Body — asymmetric 3:2 grid on sm+ when personal results exist */}
+      {/* Body — balanced 5:4 grid on sm+ */}
       <div
         className={`grid grid-cols-1 ${
-          showTwoCol ? "sm:grid-cols-[3fr_2fr]" : ""
+          showTwoCol ? "sm:grid-cols-[5fr_4fr]" : ""
         } gap-x-8 gap-y-6 w-full items-start`}
       >
         {/* ── Left column: leaderboard + ELO ── */}
@@ -196,6 +213,11 @@ export function RaceResults({
                 <span className="font-semibold hidden sm:block">Rank</span>
               )}
               <span className="font-semibold text-right">WPM</span>
+              {!isPlacement && (
+                <span className="font-semibold text-right hidden sm:block">
+                  Acc
+                </span>
+              )}
               {!isPlacement && (
                 <span className="font-semibold text-right">ELO</span>
               )}
@@ -298,6 +320,12 @@ export function RaceResults({
                   </span>
 
                   {!isPlacement && (
+                    <span className="text-right tabular-nums whitespace-nowrap hidden sm:block">
+                      {Math.round(result.accuracy)}%
+                    </span>
+                  )}
+
+                  {!isPlacement && (
                     <span className="text-right tabular-nums whitespace-nowrap">
                       {result.eloChange != null ? (
                         <span
@@ -338,150 +366,161 @@ export function RaceResults({
             )}
         </div>
 
-        {/* ── Right column: performance + progress ── */}
+        {/* ── Right column: performance card only ── */}
         {myResult && (
-          <div className="flex flex-col gap-5">
-            {/* Performance card */}
-            <div className="rounded-xl bg-white/[0.03] ring-1 ring-white/[0.06] p-5 flex flex-col gap-4">
-              <div className="flex items-end justify-center gap-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-accent tabular-nums">
-                    {Math.floor(myResult.wpm)}
-                    <span className="text-[0.65em] opacity-60">
-                      .{(myResult.wpm % 1).toFixed(2).slice(2)}
-                    </span>
-                  </div>
-                  <div className="text-xs text-muted">wpm</div>
+          <div className="rounded-xl bg-white/[0.03] ring-1 ring-white/[0.06] p-5 flex flex-col gap-4">
+            <div className="flex items-end justify-center gap-6">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-accent tabular-nums">
+                  {Math.floor(myResult.wpm)}
+                  <span className="text-[0.65em] opacity-60">
+                    .{(myResult.wpm % 1).toFixed(2).slice(2)}
+                  </span>
                 </div>
+                <div className="text-xs text-muted">wpm</div>
+              </div>
+              <div className="text-center">
+                <div className="text-lg font-bold text-text tabular-nums">
+                  {Math.round(myResult.accuracy)}%
+                </div>
+                <div className="text-xs text-muted">accuracy</div>
+              </div>
+              {myResult.misstypedChars != null && (
                 <div className="text-center">
                   <div className="text-lg font-bold text-text tabular-nums">
-                    {Math.round(myResult.accuracy)}%
+                    {myResult.misstypedChars}
                   </div>
-                  <div className="text-xs text-muted">accuracy</div>
+                  <div className="text-xs text-muted">errors</div>
                 </div>
-                {myResult.misstypedChars != null && (
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-text tabular-nums">
-                      {myResult.misstypedChars}
-                    </div>
-                    <div className="text-xs text-muted">errors</div>
-                  </div>
-                )}
-              </div>
-              {myResult.wpmHistory && myResult.wpmHistory.length >= 2 && (
-                <WpmChart samples={myResult.wpmHistory} />
               )}
             </div>
-
-            {/* Achievement unlocks */}
-            {myResult.newAchievements &&
-              myResult.newAchievements.length > 0 && (
-                <div className="flex flex-col gap-2">
-                  <h3 className="text-xs font-bold text-muted/60 uppercase tracking-wider px-1">
-                    Achievements Unlocked
-                  </h3>
-                  <div className="flex flex-col gap-2">
-                    {myResult.newAchievements.map((id) => {
-                      const def = ACHIEVEMENT_MAP.get(id);
-                      if (!def) return null;
-                      return (
-                        <div
-                          key={id}
-                          className={`flex items-center gap-3 rounded-lg bg-surface/60 px-4 py-3 ring-1 animate-slide-up ${RARITY_RING[def.rarity]}`}
-                        >
-                          <span className="text-2xl shrink-0">{def.icon}</span>
-                          <div className="min-w-0">
-                            <div className="text-sm font-bold text-text">
-                              {def.name}
-                            </div>
-                            <div className="text-xs text-muted truncate">
-                              {def.description}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-            {/* Challenge Progress */}
-            {myResult.challengeProgress &&
-              myResult.challengeProgress.some((c) => c.progress > 0) && (
-                <div className="flex flex-col gap-2 animate-slide-up">
-                  <div className="flex items-center justify-between px-1">
-                    <h3 className="text-xs font-bold text-muted/60 uppercase tracking-wider">
-                      Challenge Progress
-                    </h3>
-                    {myResult.xpEarned != null && myResult.xpEarned > 0 && (
-                      <span className="text-xs font-bold text-accent tabular-nums">
-                        +{myResult.xpEarned} XP
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    {myResult.challengeProgress
-                      .filter((c) => c.progress > 0)
-                      .map((cp) => {
-                        const def = CHALLENGE_MAP.get(cp.challengeId);
-                        if (!def) return null;
-                        const progress = Math.min(cp.progress, cp.target);
-                        const pct =
-                          cp.target > 0 ? (progress / cp.target) * 100 : 0;
-                        return (
-                          <div
-                            key={cp.challengeId}
-                            className={`flex items-center gap-3 rounded-lg bg-surface/60 px-4 py-3 ring-1 ${
-                              cp.justCompleted
-                                ? "ring-correct/30"
-                                : "ring-white/[0.06]"
-                            }`}
-                          >
-                            <span className="text-lg shrink-0">{def.icon}</span>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between mb-0.5">
-                                <span className="text-xs font-medium text-text truncate">
-                                  {def.name}
-                                  {cp.completed && (
-                                    <span className="text-correct ml-1.5">
-                                      &#10003;
-                                    </span>
-                                  )}
-                                </span>
-                                <span className="text-xs text-muted tabular-nums shrink-0 ml-2">
-                                  {progress}/{cp.target}
-                                </span>
-                              </div>
-                              <div className="h-1 rounded-full bg-surface overflow-hidden">
-                                <div
-                                  className={`h-full rounded-full transition-all ${
-                                    cp.completed ? "bg-correct" : "bg-accent"
-                                  }`}
-                                  style={{ width: `${Math.round(pct)}%` }}
-                                />
-                              </div>
-                            </div>
-                            {cp.justCompleted && (
-                              <span className="text-[10px] font-bold text-correct bg-correct/10 rounded px-1.5 py-0.5 tabular-nums shrink-0">
-                                +{cp.xpAwarded} XP
-                              </span>
-                            )}
-                          </div>
-                        );
-                      })}
-                  </div>
-                </div>
-              )}
+            {myResult.wpmHistory && myResult.wpmHistory.length >= 2 && (
+              <WpmChart samples={myResult.wpmHistory} />
+            )}
           </div>
         )}
       </div>
 
-      <button
-        onClick={() => onRaceAgain()}
-        className="rounded-lg bg-accent text-bg px-10 py-3.5 text-sm font-bold tracking-wide uppercase hover:bg-accent/90 transition-colors glow-accent-strong w-full sm:w-auto"
-      >
-        {isPlacement ? "Next Placement" : "Race again"}
-      </button>
+      {/* ── Full-width sections below grid ── */}
+
+      {/* Achievement unlocks */}
+      {hasAchievements && (
+        <div className="flex flex-col gap-2 w-full">
+          <h3 className="text-xs font-bold text-muted/60 uppercase tracking-wider px-1">
+            Achievements Unlocked
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {myResult!.newAchievements!.map((id) => {
+              const def = ACHIEVEMENT_MAP.get(id);
+              if (!def) return null;
+              return (
+                <div
+                  key={id}
+                  className={`flex items-center gap-3 rounded-lg bg-surface/60 px-4 py-3 ring-1 animate-slide-up ${RARITY_RING[def.rarity]}`}
+                >
+                  <span className="text-2xl shrink-0">{def.icon}</span>
+                  <div className="min-w-0">
+                    <div className="text-sm font-bold text-text">
+                      {def.name}
+                    </div>
+                    <div className="text-xs text-muted truncate">
+                      {def.description}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Challenge Progress */}
+      {hasChallenges && (
+        <div className="flex flex-col gap-2 w-full animate-slide-up">
+          <div className="flex items-center justify-between px-1">
+            <h3 className="text-xs font-bold text-muted/60 uppercase tracking-wider">
+              Challenge Progress
+            </h3>
+            {myResult!.xpEarned != null && myResult!.xpEarned > 0 && (
+              <span className="text-xs font-bold text-accent tabular-nums">
+                +{myResult!.xpEarned} XP
+              </span>
+            )}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {myResult!
+              .challengeProgress!.filter((c) => c.progress > 0)
+              .map((cp) => {
+                const def = CHALLENGE_MAP.get(cp.challengeId);
+                if (!def) return null;
+                const progress = Math.min(cp.progress, cp.target);
+                const pct =
+                  cp.target > 0 ? (progress / cp.target) * 100 : 0;
+                return (
+                  <div
+                    key={cp.challengeId}
+                    className={`flex items-start gap-3 rounded-lg bg-surface/60 px-4 py-3 ring-1 ${
+                      cp.justCompleted
+                        ? "ring-correct/30"
+                        : "ring-white/[0.06]"
+                    }`}
+                  >
+                    <span className="text-lg shrink-0 mt-0.5">
+                      {def.icon}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-xs font-medium text-text truncate">
+                          {def.name}
+                          {cp.completed && (
+                            <span className="text-correct ml-1.5">
+                              &#10003;
+                            </span>
+                          )}
+                        </span>
+                        <span className="text-xs text-muted tabular-nums shrink-0 ml-2">
+                          {progress}/{cp.target}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-muted/70 mb-1.5">
+                        {def.description}
+                      </div>
+                      <div className="h-1 rounded-full bg-surface overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${
+                            cp.completed ? "bg-correct" : "bg-accent"
+                          }`}
+                          style={{ width: `${Math.round(pct)}%` }}
+                        />
+                      </div>
+                    </div>
+                    {cp.justCompleted && (
+                      <span className="text-[10px] font-bold text-correct bg-correct/10 rounded px-1.5 py-0.5 tabular-nums shrink-0 mt-0.5">
+                        +{cp.xpAwarded} XP
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="flex flex-col items-center gap-3">
+        <button
+          onClick={() => onRaceAgain()}
+          className="rounded-lg bg-accent text-bg px-10 py-3.5 text-sm font-bold tracking-wide uppercase hover:bg-accent/90 transition-colors glow-accent-strong w-full sm:w-auto"
+        >
+          {isPlacement ? "Next Placement" : "Race again"}
+        </button>
+        <Link
+          href="/"
+          className="text-xs text-muted hover:text-text transition-colors"
+        >
+          or go home
+        </Link>
+      </div>
     </div>
   );
 }
