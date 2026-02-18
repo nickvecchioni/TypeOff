@@ -180,3 +180,32 @@ button, [role="button"], a {
 .nav-logo:hover .nav-logo-text {
   color: #dbeafe;
 }
+
+/* ── Cosmetic name effects ────────────────────────────── */
+
+.glow-subtle {
+  text-shadow: 0 0 8px currentColor;
+}
+
+.glow-pulse {
+  animation: cosmetic-pulse 2s ease-in-out infinite;
+}
+
+@keyframes cosmetic-pulse {
+  0%, 100% { text-shadow: 0 0 4px currentColor; }
+  50% { text-shadow: 0 0 12px currentColor, 0 0 24px currentColor; }
+}
+
+@keyframes cosmetic-rainbow {
+  from { background-position: 0% 0; }
+  to { background-position: 200% 0; }
+}
+
+.glow-rainbow {
+  animation: cosmetic-rainbow 4s linear infinite;
+  background: linear-gradient(90deg, #f87171, #fbbf24, #34d399, #60a5fa, #a78bfa, #f87171);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}

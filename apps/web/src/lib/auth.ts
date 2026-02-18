@@ -3,8 +3,9 @@ import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { getDb } from "./db";
-import { users, accounts, sessions, verificationTokens, userStats } from "@typeoff/db";
-import { eq } from "drizzle-orm";
+import { users, accounts, sessions, verificationTokens, userStats, userKeyPass, userActiveCosmetics } from "@typeoff/db";
+import { getCurrentSeason } from "@typeoff/shared";
+import { eq, and } from "drizzle-orm";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: DrizzleAdapter(getDb(), {
@@ -83,6 +84,43 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           token.currentStreak = row[0].currentStreak ?? 0;
           token.totalXp = row[0].totalXp ?? 0;
         }
+
+        // Fetch key pass + cosmetics
+        const season = getCurrentSeason();
+        if (season) {
+          const [kp] = await db
+            .select({
+              currentTier: userKeyPass.currentTier,
+              isPremium: userKeyPass.isPremium,
+            })
+            .from(userKeyPass)
+            .where(
+              and(
+                eq(userKeyPass.userId, token.id as string),
+                eq(userKeyPass.seasonId, season.id),
+              ),
+            )
+            .limit(1);
+          token.seasonTier = kp?.currentTier ?? 0;
+          token.hasKeyPass = kp?.isPremium ?? false;
+        } else {
+          token.seasonTier = 0;
+          token.hasKeyPass = false;
+        }
+
+        const [cosmetics] = await db
+          .select({
+            activeBadge: userActiveCosmetics.activeBadge,
+            activeTitle: userActiveCosmetics.activeTitle,
+            activeNameColor: userActiveCosmetics.activeNameColor,
+          })
+          .from(userActiveCosmetics)
+          .where(eq(userActiveCosmetics.userId, token.id as string))
+          .limit(1);
+        token.activeBadge = cosmetics?.activeBadge ?? null;
+        token.activeTitle = cosmetics?.activeTitle ?? null;
+        token.activeNameColor = cosmetics?.activeNameColor ?? null;
+
         token.eloRefreshedAt = now;
       }
       return token;
@@ -96,6 +134,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.placementsCompleted = (token.placementsCompleted as boolean) ?? false;
         session.user.currentStreak = (token.currentStreak as number) ?? 0;
         session.user.totalXp = (token.totalXp as number) ?? 0;
+        session.user.seasonTier = (token.seasonTier as number) ?? 0;
+        session.user.hasKeyPass = (token.hasKeyPass as boolean) ?? false;
+        session.user.activeBadge = (token.activeBadge as string) ?? null;
+        session.user.activeTitle = (token.activeTitle as string) ?? null;
+        session.user.activeNameColor = (token.activeNameColor as string) ?? null;
       }
       return session;
     },

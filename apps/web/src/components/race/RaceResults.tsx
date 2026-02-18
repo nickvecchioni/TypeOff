@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import type { RaceResult } from "@/hooks/useRace";
 import type { RankTier } from "@typeoff/shared";
-import { getRankInfo, ACHIEVEMENT_MAP, CHALLENGE_MAP } from "@typeoff/shared";
+import { getRankInfo, ACHIEVEMENT_MAP, CHALLENGE_MAP, getCurrentSeason } from "@typeoff/shared";
 import type { AchievementRarity } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
 
@@ -168,6 +168,8 @@ export function RaceResults({
   const hasChallenges =
     myResult?.challengeProgress &&
     myResult.challengeProgress.some((c) => c.progress > 0);
+  const hasKeyPass = myResult?.keyPassProgress != null;
+  const season = getCurrentSeason();
 
   return (
     <div className="flex flex-col items-center gap-5 w-full">
@@ -458,6 +460,65 @@ export function RaceResults({
           </div>
         </div>
       )}
+
+      {/* Key Pass Progress */}
+      {hasKeyPass && season && (() => {
+        const kp = myResult!.keyPassProgress!;
+        const xpInTier = kp.seasonalXp % season.xpPerTier;
+        const tierPct = kp.currentTier >= season.maxTier
+          ? 100
+          : (xpInTier / season.xpPerTier) * 100;
+
+        return (
+          <div className="flex flex-col gap-1.5 w-full animate-slide-up">
+            <div className="flex items-center justify-between px-1">
+              <h3 className="text-xs font-bold text-amber-400/80 uppercase tracking-wider">
+                Season XP
+              </h3>
+              <span className="text-xs font-bold text-amber-400 tabular-nums">
+                +{kp.xpEarned} XP
+              </span>
+            </div>
+            <div className="rounded-lg bg-surface/60 px-3 py-2.5 ring-1 ring-amber-400/10">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-medium text-text">
+                  Tier {kp.currentTier}
+                  {kp.tierUp && (
+                    <span className="text-amber-400 ml-1.5 font-bold">
+                      &#9650; Tier Up!
+                    </span>
+                  )}
+                </span>
+                <span className="text-[11px] text-muted tabular-nums">
+                  {xpInTier} / {season.xpPerTier}
+                </span>
+              </div>
+              <div className="h-1.5 rounded-full bg-surface overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-amber-400 transition-all"
+                  style={{ width: `${Math.round(tierPct)}%` }}
+                />
+              </div>
+              {kp.newRewards.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {kp.newRewards.map((r) => (
+                    <span
+                      key={r.id}
+                      className={`text-[10px] font-bold rounded px-2 py-1 ${
+                        r.premium
+                          ? "bg-amber-400/10 text-amber-400"
+                          : "bg-white/[0.06] text-text"
+                      }`}
+                    >
+                      {r.type === "badge" ? r.value : ""} {r.name}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Actions */}
       <div className="flex flex-col items-center gap-2">

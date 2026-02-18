@@ -33,6 +33,23 @@ export interface RaceResult {
     xpAwarded: number;
   }>;
   xpEarned?: number;
+  keyPassProgress?: {
+    seasonId: string;
+    seasonalXp: number;
+    currentTier: number;
+    isPremium: boolean;
+    xpEarned: number;
+    tierUp: boolean;
+    newTier: number;
+    newRewards: Array<{
+      tier: number;
+      type: string;
+      id: string;
+      name: string;
+      value: string;
+      premium: boolean;
+    }>;
+  };
 }
 
 export function useRace() {

@@ -13,6 +13,11 @@ declare module "next-auth" {
       placementsCompleted: boolean;
       currentStreak: number;
       totalXp: number;
+      seasonTier: number;
+      hasKeyPass: boolean;
+      activeBadge: string | null;
+      activeTitle: string | null;
+      activeNameColor: string | null;
     };
   }
 }
@@ -26,5 +31,10 @@ declare module "next-auth/jwt" {
     placementsCompleted?: boolean;
     currentStreak?: number;
     totalXp?: number;
+    seasonTier?: number;
+    hasKeyPass?: boolean;
+    activeBadge?: string | null;
+    activeTitle?: string | null;
+    activeNameColor?: string | null;
   }
 }

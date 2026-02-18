@@ -50,6 +50,12 @@ export default function RootLayout({
                 >
                   Ranks
                 </Link>
+                <Link
+                  href="/key-pass"
+                  className="text-sm text-amber-400/70 hover:text-amber-400 transition-colors"
+                >
+                  Key Pass
+                </Link>
               </div>
               <div className="flex items-center gap-4">
                 <UserMenu />

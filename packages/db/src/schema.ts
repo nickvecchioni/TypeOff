@@ -195,3 +195,46 @@ export const userChallengeProgress = pgTable(
   },
   (t) => [primaryKey({ columns: [t.userId, t.challengeId, t.periodKey] })],
 );
+
+// ─── Key Pass ──────────────────────────────────────────────────────────
+
+export const userKeyPass = pgTable(
+  "user_key_pass",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    seasonId: text("season_id").notNull(),
+    seasonalXp: integer("seasonal_xp").notNull().default(0),
+    currentTier: integer("current_tier").notNull().default(0),
+    isPremium: boolean("is_premium").notNull().default(false),
+    stripePaymentId: text("stripe_payment_id"),
+    purchasedAt: timestamp("purchased_at", { mode: "date" }),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.seasonId] })],
+);
+
+export const userCosmetics = pgTable(
+  "user_cosmetics",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    cosmeticId: text("cosmetic_id").notNull(),
+    seasonId: text("season_id").notNull(),
+    unlockedAt: timestamp("unlocked_at", { mode: "date" })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.cosmeticId] })],
+);
+
+export const userActiveCosmetics = pgTable("user_active_cosmetics", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  activeBadge: text("active_badge"),
+  activeTitle: text("active_title"),
+  activeNameColor: text("active_name_color"),
+  activeNameEffect: text("active_name_effect"),
+});

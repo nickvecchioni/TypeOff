@@ -14,6 +14,8 @@ import { createDb, races, raceParticipants, userStats, users } from "@typeoff/db
 import { eq, inArray, and, sql } from "drizzle-orm";
 import { checkAchievements } from "./achievement-checker.js";
 import { checkChallenges, type ChallengeCheckResult } from "./challenge-checker.js";
+import { checkKeyPass, type KeyPassContext } from "./key-pass-checker.js";
+import type { KeyPassProgress } from "@typeoff/shared";
 export interface RaceOwner {
   cleanupRace(raceId: string, socketIds: string[]): void;
 }
@@ -568,6 +570,7 @@ export class RaceManager {
         xpAwarded: number;
       }>;
       xpEarned?: number;
+      keyPassProgress?: KeyPassProgress;
     }> = [];
 
     // Track per-player data for results
@@ -577,6 +580,7 @@ export class RaceManager {
     const streakMap = new Map<string, number>();
     const achievementMap = new Map<string, string[]>();
     const challengeMap = new Map<string, ChallengeCheckResult>();
+    const keyPassMap = new Map<string, KeyPassProgress>();
     const playerStatsMap = new Map<string, { racesPlayed: number; racesWon: number; currentStreak: number; maxStreak: number }>();
 
     const db = createDb(process.env.DATABASE_URL!);
@@ -881,6 +885,29 @@ export class RaceManager {
       } catch (challengeErr) {
         console.error("[race-manager] challenge check error:", challengeErr);
       }
+
+      // 8. Check key pass for authenticated players
+      try {
+        for (const entry of entries) {
+          if (entry.isBot || entry.player.isGuest) continue;
+          const finalStats = entry.progress.finalStats!;
+          const kpResult = await checkKeyPass(
+            {
+              userId: entry.player.id,
+              raceWpm: finalStats.wpm,
+              raceAccuracy: finalStats.accuracy,
+              placement: entry.progress.placement!,
+              playerCount: entries.length,
+            },
+            db,
+          );
+          if (kpResult) {
+            keyPassMap.set(entry.player.id, kpResult);
+          }
+        }
+      } catch (keyPassErr) {
+        console.error("[race-manager] key pass check error:", keyPassErr);
+      }
     }
 
     // Build results array (always runs, even if DB failed)
@@ -904,6 +931,7 @@ export class RaceManager {
         newAchievements: achievementMap.get(entry.player.id),
         challengeProgress: challengeResult?.results,
         xpEarned: challengeResult?.totalXpEarned,
+        keyPassProgress: keyPassMap.get(entry.player.id),
       });
     }
 

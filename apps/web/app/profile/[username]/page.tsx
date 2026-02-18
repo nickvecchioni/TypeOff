@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
-import { users, userStats, raceParticipants, races, userAchievements } from "@typeoff/db";
+import { users, userStats, raceParticipants, races, userAchievements, userActiveCosmetics } from "@typeoff/db";
 import { eq, desc } from "drizzle-orm";
 import { getRankInfo, getRankProgress, getNextDivisionElo, ACHIEVEMENTS, getXpLevel } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
@@ -10,6 +10,10 @@ import { AchievementsGrid } from "./achievements-grid";
 import { UsernameEditor } from "./username-editor";
 import { SignOutButton } from "./sign-out-button";
 import { AddFriendButton } from "@/components/social/AddFriendButton";
+import { CosmeticBadge } from "@/components/CosmeticBadge";
+import { CosmeticTitle } from "@/components/CosmeticTitle";
+import { CosmeticName } from "@/components/CosmeticName";
+import { CosmeticSelector } from "./cosmetic-selector";
 
 export default async function ProfilePage({
   params,
@@ -76,11 +80,17 @@ export default async function ProfilePage({
     unlockedAt: r.unlockedAt.toISOString(),
   }));
 
+  // Load active cosmetics
+  const [activeCosmetics] = await db
+    .select()
+    .from(userActiveCosmetics)
+    .where(eq(userActiveCosmetics.userId, user.id))
+    .limit(1);
+
   // Check if this is own profile
   const { auth } = await import("@/lib/auth");
   const session = await auth();
   const isOwn = session?.user?.id === user.id;
-
 
   const rankInfo = user.placementsCompleted ? getRankInfo(user.eloRating) : null;
   const isOnline = user.lastSeen != null && (Date.now() - new Date(user.lastSeen).getTime()) < 3 * 60 * 1000;
@@ -103,13 +113,24 @@ export default async function ProfilePage({
             {/* Username row */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                {isOwn ? (
-                  <UsernameEditor currentUsername={user.username ?? ""} />
-                ) : (
-                  <h1 className="text-xl font-bold text-text tracking-tight">
-                    {user.username}
-                  </h1>
-                )}
+                <div className="flex items-center gap-2">
+                  <CosmeticBadge badge={activeCosmetics?.activeBadge} />
+                  <div className="flex flex-col">
+                    {isOwn ? (
+                      <UsernameEditor currentUsername={user.username ?? ""} />
+                    ) : (
+                      <h1 className="text-xl font-bold text-text tracking-tight">
+                        <CosmeticName
+                          nameColor={activeCosmetics?.activeNameColor}
+                          nameEffect={activeCosmetics?.activeNameEffect}
+                        >
+                          {user.username}
+                        </CosmeticName>
+                      </h1>
+                    )}
+                    <CosmeticTitle title={activeCosmetics?.activeTitle} />
+                  </div>
+                </div>
                 {isOnline && (
                   <span className="flex items-center gap-1.5 text-xs text-emerald-400">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
@@ -301,6 +322,15 @@ export default async function ProfilePage({
                   })}
                 </tbody>
               </table>
+            </div>
+          </section>
+        )}
+
+        {isOwn && (
+          <section>
+            <SectionHeader>Customize</SectionHeader>
+            <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] p-5">
+              <CosmeticSelector />
             </div>
           </section>
         )}
