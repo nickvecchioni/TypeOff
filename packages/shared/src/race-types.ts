@@ -79,7 +79,7 @@ export interface ClientToServerEvents {
 
 /** Server → Client events */
 export interface ServerToClientEvents {
-  queueUpdate: (data: { count: number }) => void;
+  queueUpdate: (data: { count: number; maxWaitSeconds: number }) => void;
   raceStart: (data: RaceState) => void;
   raceCountdown: (data: { countdown: number }) => void;
   raceProgress: (data: { progress: Record<string, RacePlayerProgress>; finishTimeoutEnd?: number }) => void;
@@ -98,6 +98,15 @@ export interface ServerToClientEvents {
       streak?: number;
       wpmHistory?: import("./types").WpmSample[];
       newAchievements?: string[];
+      challengeProgress?: Array<{
+        challengeId: string;
+        progress: number;
+        target: number;
+        completed: boolean;
+        justCompleted: boolean;
+        xpAwarded: number;
+      }>;
+      xpEarned?: number;
     }>;
     placementRace?: number;
     placementTotal?: number;

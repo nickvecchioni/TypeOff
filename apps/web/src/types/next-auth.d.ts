@@ -12,6 +12,7 @@ declare module "next-auth" {
       username: string | null;
       placementsCompleted: boolean;
       currentStreak: number;
+      totalXp: number;
     };
   }
 }
@@ -24,5 +25,6 @@ declare module "next-auth/jwt" {
     username?: string | null;
     placementsCompleted?: boolean;
     currentStreak?: number;
+    totalXp?: number;
   }
 }

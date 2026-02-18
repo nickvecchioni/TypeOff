@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
 import { users, userStats, raceParticipants, races, userAchievements } from "@typeoff/db";
 import { eq, desc } from "drizzle-orm";
-import { getRankInfo, getRankProgress, getNextDivisionElo, ACHIEVEMENTS } from "@typeoff/shared";
+import { getRankInfo, getRankProgress, getNextDivisionElo, ACHIEVEMENTS, getXpLevel } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
 import { AchievementsGrid } from "./achievements-grid";
 import { UsernameEditor } from "./username-editor";
@@ -159,6 +159,32 @@ export default async function ProfilePage({
             <div className="text-xs text-muted mt-1.5 uppercase tracking-wider">avg wpm</div>
           </div>
         </div>
+
+        {/* ── XP / Level ──────────────────────────────────── */}
+        {stats && stats.totalXp > 0 && (() => {
+          const xpInfo = getXpLevel(stats.totalXp);
+          return (
+            <div className="rounded-xl bg-surface/50 ring-1 ring-white/[0.04] px-5 py-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-bold text-accent">
+                  Level {xpInfo.level}
+                </span>
+                <span className="text-xs text-muted tabular-nums">
+                  {xpInfo.currentXp} / {xpInfo.nextLevelXp} XP
+                </span>
+              </div>
+              <div className="h-1.5 rounded-full bg-surface overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-accent transition-all"
+                  style={{ width: `${Math.round((xpInfo.currentXp / xpInfo.nextLevelXp) * 100)}%` }}
+                />
+              </div>
+              <div className="text-xs text-muted/60 mt-1.5 text-right tabular-nums">
+                {stats.totalXp} total XP
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ── Detail Stats ─────────────────────────────────── */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">

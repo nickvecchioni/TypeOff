@@ -13,6 +13,7 @@ import type { RankTier } from "@typeoff/shared";
 import { createDb, races, raceParticipants, userStats, users } from "@typeoff/db";
 import { eq, inArray, and, sql } from "drizzle-orm";
 import { checkAchievements } from "./achievement-checker.js";
+import { checkChallenges, type ChallengeCheckResult } from "./challenge-checker.js";
 export interface RaceOwner {
   cleanupRace(raceId: string, socketIds: string[]): void;
 }
@@ -39,7 +40,7 @@ interface PlayerEntry {
   progressWindowStart: number;
 }
 
-const COUNTDOWN_SECONDS = 3;
+const COUNTDOWN_SECONDS = 5;
 const PROGRESS_INTERVAL_MS = 100;
 
 const DEFAULT_BOT_WPM_MIN = 40;
@@ -558,6 +559,15 @@ export class RaceManager {
       streak?: number;
       wpmHistory?: WpmSample[];
       newAchievements?: string[];
+      challengeProgress?: Array<{
+        challengeId: string;
+        progress: number;
+        target: number;
+        completed: boolean;
+        justCompleted: boolean;
+        xpAwarded: number;
+      }>;
+      xpEarned?: number;
     }> = [];
 
     // Track per-player data for results
@@ -566,6 +576,7 @@ export class RaceManager {
     const eloAfterMap = new Map<string, number>();
     const streakMap = new Map<string, number>();
     const achievementMap = new Map<string, string[]>();
+    const challengeMap = new Map<string, ChallengeCheckResult>();
     const playerStatsMap = new Map<string, { racesPlayed: number; racesWon: number; currentStreak: number; maxStreak: number }>();
 
     const db = createDb(process.env.DATABASE_URL!);
@@ -843,10 +854,40 @@ export class RaceManager {
       console.error("[race-manager] achievement check error:", achievementErr);
     }
 
+    // 7. Check challenges for authenticated players (skip bots, guests, placement races)
+    if (!this.placementRace) {
+      try {
+        for (const entry of entries) {
+          if (entry.isBot || entry.player.isGuest) continue;
+          const pStats = playerStatsMap.get(entry.player.id);
+          if (!pStats) continue;
+
+          const finalStats = entry.progress.finalStats!;
+          const result = await checkChallenges(
+            {
+              userId: entry.player.id,
+              raceWpm: finalStats.wpm,
+              raceAccuracy: finalStats.accuracy,
+              placement: entry.progress.placement!,
+              playerCount: entries.length,
+              currentStreak: pStats.currentStreak,
+            },
+            db,
+          );
+          if (result.results.length > 0) {
+            challengeMap.set(entry.player.id, result);
+          }
+        }
+      } catch (challengeErr) {
+        console.error("[race-manager] challenge check error:", challengeErr);
+      }
+    }
+
     // Build results array (always runs, even if DB failed)
     for (const entry of entries) {
       const stats = entry.progress.finalStats!;
       const streak = streakMap.get(entry.player.id);
+      const challengeResult = challengeMap.get(entry.player.id);
       results.push({
         playerId: entry.player.id,
         name: entry.player.name,
@@ -861,6 +902,8 @@ export class RaceManager {
         streak: streak !== undefined ? streak : undefined,
         wpmHistory: !entry.isBot ? entry.wpmHistory : undefined,
         newAchievements: achievementMap.get(entry.player.id),
+        challengeProgress: challengeResult?.results,
+        xpEarned: challengeResult?.totalXpEarned,
       });
     }
 

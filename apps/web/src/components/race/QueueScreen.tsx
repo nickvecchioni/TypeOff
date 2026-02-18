@@ -3,11 +3,14 @@
 import React from "react";
 import { useSession, signIn } from "next-auth/react";
 import { PartyPanel } from "@/components/social/PartyPanel";
+import { ChallengesWidget } from "@/components/race/ChallengesWidget";
 import type { PartyState } from "@typeoff/shared";
 
 interface QueueScreenProps {
   isQueuing: boolean;
   queueCount: number;
+  queueElapsed: number;
+  maxWaitSeconds: number;
   connected: boolean;
   onJoin: () => void;
   onLeave: () => void;
@@ -22,6 +25,8 @@ interface QueueScreenProps {
 export function QueueScreen({
   isQueuing,
   queueCount,
+  queueElapsed,
+  maxWaitSeconds,
   connected,
   onJoin,
   onLeave,
@@ -59,7 +64,11 @@ export function QueueScreen({
 
         <div className="flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-          <span className="text-muted text-sm">Searching for opponents...</span>
+          <span className="text-muted text-sm">
+            {queueElapsed < maxWaitSeconds
+              ? `Match starts in ${maxWaitSeconds - queueElapsed}s...`
+              : "Starting match..."}
+          </span>
         </div>
         <button
           onClick={onLeave}
@@ -114,14 +123,17 @@ export function QueueScreen({
 
           {/* Party — only show after placements are done */}
           {session.user.placementsCompleted && (
-            <PartyPanel
-              party={party}
-              error={partyError}
-              onCreateParty={onCreateParty}
-              onInvite={onInviteToParty}
-              onKick={onKickFromParty}
-              onLeave={onLeaveParty}
-            />
+            <>
+              <PartyPanel
+                party={party}
+                error={partyError}
+                onCreateParty={onCreateParty}
+                onInvite={onInviteToParty}
+                onKick={onKickFromParty}
+                onLeave={onLeaveParty}
+              />
+              <ChallengesWidget />
+            </>
           )}
         </div>
       ) : (

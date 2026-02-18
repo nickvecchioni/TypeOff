@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import type { RaceResult } from "@/hooks/useRace";
 import type { RankTier } from "@typeoff/shared";
-import { getRankInfo, ACHIEVEMENT_MAP } from "@typeoff/shared";
+import { getRankInfo, ACHIEVEMENT_MAP, CHALLENGE_MAP } from "@typeoff/shared";
 import type { AchievementRarity } from "@typeoff/shared";
 import { WpmChart } from "@/components/typing/WpmChart";
 import { RankBadge } from "@/components/RankBadge";
@@ -368,6 +368,66 @@ export function RaceResults({
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* Challenge Progress */}
+      {myResult?.challengeProgress && myResult.challengeProgress.some((c) => c.progress > 0) && (
+        <div className="flex flex-col items-center gap-3 w-full max-w-md animate-slide-up">
+          <h3 className="text-xs font-bold text-muted/60 uppercase tracking-wider">
+            Challenge Progress
+          </h3>
+          {myResult.xpEarned != null && myResult.xpEarned > 0 && (
+            <div className="text-sm font-bold text-accent">
+              +{myResult.xpEarned} XP earned
+            </div>
+          )}
+          <div className="flex flex-col gap-2 w-full">
+            {myResult.challengeProgress
+              .filter((c) => c.progress > 0)
+              .map((cp) => {
+                const def = CHALLENGE_MAP.get(cp.challengeId);
+                if (!def) return null;
+                const progress = Math.min(cp.progress, cp.target);
+                const pct = cp.target > 0 ? (progress / cp.target) * 100 : 0;
+                return (
+                  <div
+                    key={cp.challengeId}
+                    className={`flex items-center gap-3 rounded-lg bg-surface/60 px-4 py-3 ring-1 ${
+                      cp.justCompleted ? "ring-correct/30" : "ring-white/[0.06]"
+                    }`}
+                  >
+                    <span className="text-lg shrink-0">{def.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-xs font-medium text-text truncate">
+                          {def.name}
+                          {cp.completed && (
+                            <span className="text-correct ml-1.5">&#10003;</span>
+                          )}
+                        </span>
+                        <span className="text-xs text-muted tabular-nums shrink-0 ml-2">
+                          {progress}/{cp.target}
+                        </span>
+                      </div>
+                      <div className="h-1 rounded-full bg-surface overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${
+                            cp.completed ? "bg-correct" : "bg-accent"
+                          }`}
+                          style={{ width: `${Math.round(pct)}%` }}
+                        />
+                      </div>
+                    </div>
+                    {cp.justCompleted && (
+                      <span className="text-[10px] font-bold text-correct bg-correct/10 rounded px-1.5 py-0.5 tabular-nums shrink-0">
+                        +{cp.xpAwarded} XP
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
           </div>
         </div>
       )}

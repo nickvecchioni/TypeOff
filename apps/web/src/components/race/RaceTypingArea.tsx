@@ -121,11 +121,11 @@ export function RaceTypingArea({
 
   return (
     <div className="w-full relative">
-      {timeoutRemaining != null && timeoutRemaining > 0 && (
-        <div className="text-center text-sm text-muted mb-3 tabular-nums">
-          Time remaining: <span className="text-accent font-bold">{timeoutRemaining}s</span>
-        </div>
-      )}
+      <div className="text-center text-sm text-muted mb-3 tabular-nums h-5">
+        {timeoutRemaining != null && timeoutRemaining > 0 && (
+          <>Time remaining: <span className="text-accent font-bold">{timeoutRemaining}s</span></>
+        )}
+      </div>
       <div
         ref={containerRef}
         tabIndex={0}

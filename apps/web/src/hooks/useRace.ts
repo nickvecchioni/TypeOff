@@ -24,12 +24,23 @@ export interface RaceResult {
   streak?: number;
   wpmHistory?: WpmSample[];
   newAchievements?: string[];
+  challengeProgress?: Array<{
+    challengeId: string;
+    progress: number;
+    target: number;
+    completed: boolean;
+    justCompleted: boolean;
+    xpAwarded: number;
+  }>;
+  xpEarned?: number;
 }
 
 export function useRace() {
   const { connected, emit, on } = useSocket();
   const [phase, setPhase] = useState<RacePhase>("idle");
   const [queueCount, setQueueCount] = useState(0);
+  const [maxWaitSeconds, setMaxWaitSeconds] = useState(5);
+  const [queueElapsed, setQueueElapsed] = useState(0);
   const [countdown, setCountdown] = useState(0);
   const [raceState, setRaceState] = useState<RaceState | null>(null);
   const [progress, setProgress] = useState<Record<string, RacePlayerProgress>>({});
@@ -46,6 +57,7 @@ export function useRace() {
     const unsubs = [
       on("queueUpdate", (data) => {
         setQueueCount(data.count);
+        if (data.maxWaitSeconds != null) setMaxWaitSeconds(data.maxWaitSeconds);
       }),
       on("raceStart", (data) => {
         if (queueTimeoutRef.current) {
@@ -93,6 +105,18 @@ export function useRace() {
 
     return () => unsubs.forEach((unsub) => unsub());
   }, [on]);
+
+  // Tick queueElapsed once per second while queuing
+  useEffect(() => {
+    if (phase !== "queuing") {
+      setQueueElapsed(0);
+      return;
+    }
+    const timer = setInterval(() => {
+      setQueueElapsed((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [phase]);
 
   const queueTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -192,6 +216,8 @@ export function useRace() {
     connected,
     phase,
     queueCount,
+    queueElapsed,
+    maxWaitSeconds,
     countdown,
     raceState,
     progress,

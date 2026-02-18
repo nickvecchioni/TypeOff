@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { RankBadge } from "@/components/RankBadge";
 import type { RankTier } from "@typeoff/shared";
+import { getXpLevel } from "@typeoff/shared";
 
 export function UserMenu() {
   const { data: session, status } = useSession();
@@ -21,6 +22,7 @@ export function UserMenu() {
     : "#";
 
   const streak = session.user.currentStreak ?? 0;
+  const xpInfo = getXpLevel(session.user.totalXp ?? 0);
 
   return (
     <div className="flex items-center gap-3">
@@ -29,6 +31,11 @@ export function UserMenu() {
           tier={session.user.rankTier as RankTier}
           elo={session.user.eloRating}
         />
+      )}
+      {session.user.totalXp > 0 && (
+        <span className="text-xs font-bold text-accent tabular-nums" title={`${session.user.totalXp} total XP`}>
+          Lv.{xpInfo.level}
+        </span>
       )}
       {streak >= 2 && (
         <span className="flex items-center gap-1 text-orange-400" title={`${streak} win streak`}>

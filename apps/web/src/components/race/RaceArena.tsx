@@ -133,12 +133,14 @@ export function RaceArena() {
           className="flex flex-col items-center gap-8 w-full"
           style={{ animation: "fade-in-up 0.4s ease-out both" }}
         >
-          {race.raceState.placementRace != null && (
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-muted">
-                Placement Race
-              </span>
-            </div>
+          {(race.phase === "countdown" || showGo) && (
+            <CountdownOverlay
+              countdown={race.countdown}
+              showGo={showGo}
+              playerCount={race.raceState.players.length}
+              placementRace={race.raceState.placementRace}
+              players={race.raceState.players}
+            />
           )}
           <RaceTrack
             players={race.raceState.players}
@@ -146,25 +148,14 @@ export function RaceArena() {
             myPlayerId={myPlayerId}
             isPlacement={isInPlacement}
           />
-          <div className="relative w-full">
-            <RaceTypingArea
-              seed={race.raceState.seed}
-              wordCount={race.raceState.wordCount}
-              finishTimeoutEnd={race.finishTimeoutEnd}
-              onProgress={race.sendProgress}
-              onFinish={race.sendFinish}
-              disabled={race.phase === "countdown"}
-            />
-            {(race.phase === "countdown" || showGo) && (
-              <CountdownOverlay
-                countdown={race.countdown}
-                showGo={showGo}
-                playerCount={race.raceState.players.length}
-                placementRace={race.raceState.placementRace}
-                players={race.raceState.players}
-              />
-            )}
-          </div>
+          <RaceTypingArea
+            seed={race.raceState.seed}
+            wordCount={race.raceState.wordCount}
+            finishTimeoutEnd={race.finishTimeoutEnd}
+            onProgress={race.sendProgress}
+            onFinish={race.sendFinish}
+            disabled={race.phase === "countdown"}
+          />
         </div>
       )}
 

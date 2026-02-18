@@ -69,6 +69,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             username: users.username,
             placementsCompleted: users.placementsCompleted,
             currentStreak: userStats.currentStreak,
+            totalXp: userStats.totalXp,
           })
           .from(users)
           .leftJoin(userStats, eq(users.id, userStats.userId))
@@ -80,6 +81,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           token.username = row[0].username;
           token.placementsCompleted = row[0].placementsCompleted;
           token.currentStreak = row[0].currentStreak ?? 0;
+          token.totalXp = row[0].totalXp ?? 0;
         }
         token.eloRefreshedAt = now;
       }
@@ -93,6 +95,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.username = (token.username as string) ?? null;
         session.user.placementsCompleted = (token.placementsCompleted as boolean) ?? false;
         session.user.currentStreak = (token.currentStreak as number) ?? 0;
+        session.user.totalXp = (token.totalXp as number) ?? 0;
       }
       return session;
     },

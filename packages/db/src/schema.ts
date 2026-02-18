@@ -172,7 +172,26 @@ export const userStats = pgTable("user_stats", {
   lastRankedDate: text("last_ranked_date"),
   rankedDayStreak: integer("ranked_day_streak").notNull().default(0),
   maxRankedDayStreak: integer("max_ranked_day_streak").notNull().default(0),
+  totalXp: integer("total_xp").notNull().default(0),
   updatedAt: timestamp("updated_at", { mode: "date" })
     .notNull()
     .$defaultFn(() => new Date()),
 });
+
+// ─── Challenge Progress ─────────────────────────────────────────────
+
+export const userChallengeProgress = pgTable(
+  "user_challenge_progress",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    challengeId: text("challenge_id").notNull(),
+    periodKey: text("period_key").notNull(), // "2026-02-17" or "2026-W08"
+    progress: integer("progress").notNull().default(0),
+    completed: boolean("completed").notNull().default(false),
+    completedAt: timestamp("completed_at", { mode: "date" }),
+    xpAwarded: integer("xp_awarded").notNull().default(0),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.challengeId, t.periodKey] })],
+);
