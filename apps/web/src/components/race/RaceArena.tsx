@@ -185,6 +185,7 @@ export function RaceArena() {
             results={race.results}
             myPlayerId={myPlayerId}
             onRaceAgain={race.raceAgain}
+            onGoHome={race.reset}
             placementRace={race.placementRace}
             placementTotal={race.placementTotal}
             rankChange={rankChange}

@@ -16,13 +16,18 @@ const TIER_CLASSES: Record<RankTier, string> = {
 interface RankBadgeProps {
   tier: RankTier;
   elo?: number;
-  size?: "sm" | "md";
+  size?: "xs" | "sm" | "md";
   placementsCompleted?: boolean;
   showElo?: boolean;
 }
 
 export function RankBadge({ tier, elo, size = "sm", placementsCompleted = true, showElo = true }: RankBadgeProps) {
-  const sizeClasses = size === "md" ? "text-sm px-3 py-1" : "text-sm px-2.5 py-0.5";
+  const sizeClasses =
+    size === "md"
+      ? "text-sm px-3 py-1"
+      : size === "xs"
+      ? "text-xs px-2 py-px"
+      : "text-sm px-2.5 py-0.5";
 
   if (!placementsCompleted) {
     return (
