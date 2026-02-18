@@ -37,6 +37,9 @@ export async function GET() {
       activeTitle: null,
       activeNameColor: null,
       activeNameEffect: null,
+      activeCursorStyle: null,
+      activeProfileBorder: null,
+      activeTypingTheme: null,
     },
   });
 }
@@ -49,20 +52,38 @@ export async function PUT(request: Request) {
   }
 
   const body = await request.json();
-  const { activeBadge, activeTitle, activeNameColor, activeNameEffect } = body;
+  const {
+    activeBadge,
+    activeTitle,
+    activeNameColor,
+    activeNameEffect,
+    activeCursorStyle,
+    activeProfileBorder,
+    activeTypingTheme,
+  } = body;
 
   const db = getDb();
 
   // Verify ownership of selected cosmetics
-  if (activeBadge || activeTitle || activeNameColor || activeNameEffect) {
+  const cosmeticIds = [
+    activeBadge,
+    activeTitle,
+    activeNameColor,
+    activeNameEffect,
+    activeCursorStyle,
+    activeProfileBorder,
+    activeTypingTheme,
+  ].filter(Boolean);
+
+  if (cosmeticIds.length > 0) {
     const owned = await db
       .select({ cosmeticId: userCosmetics.cosmeticId })
       .from(userCosmetics)
       .where(eq(userCosmetics.userId, session.user.id));
     const ownedSet = new Set(owned.map((r) => r.cosmeticId));
 
-    for (const id of [activeBadge, activeTitle, activeNameColor, activeNameEffect]) {
-      if (id && !ownedSet.has(id)) {
+    for (const id of cosmeticIds) {
+      if (!ownedSet.has(id)) {
         return NextResponse.json(
           { error: `Cosmetic not owned: ${id}` },
           { status: 403 },
@@ -71,22 +92,30 @@ export async function PUT(request: Request) {
     }
   }
 
+  const values = {
+    userId: session.user.id,
+    activeBadge: activeBadge ?? null,
+    activeTitle: activeTitle ?? null,
+    activeNameColor: activeNameColor ?? null,
+    activeNameEffect: activeNameEffect ?? null,
+    activeCursorStyle: activeCursorStyle ?? null,
+    activeProfileBorder: activeProfileBorder ?? null,
+    activeTypingTheme: activeTypingTheme ?? null,
+  };
+
   await db
     .insert(userActiveCosmetics)
-    .values({
-      userId: session.user.id,
-      activeBadge: activeBadge ?? null,
-      activeTitle: activeTitle ?? null,
-      activeNameColor: activeNameColor ?? null,
-      activeNameEffect: activeNameEffect ?? null,
-    })
+    .values(values)
     .onConflictDoUpdate({
       target: userActiveCosmetics.userId,
       set: {
-        activeBadge: activeBadge ?? null,
-        activeTitle: activeTitle ?? null,
-        activeNameColor: activeNameColor ?? null,
-        activeNameEffect: activeNameEffect ?? null,
+        activeBadge: values.activeBadge,
+        activeTitle: values.activeTitle,
+        activeNameColor: values.activeNameColor,
+        activeNameEffect: values.activeNameEffect,
+        activeCursorStyle: values.activeCursorStyle,
+        activeProfileBorder: values.activeProfileBorder,
+        activeTypingTheme: values.activeTypingTheme,
       },
     });
 

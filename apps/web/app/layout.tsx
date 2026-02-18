@@ -7,6 +7,7 @@ import { UsernameGuard } from "@/components/auth/UsernameGuard";
 import { FriendsButton } from "@/components/social/FriendsButton";
 import { SocketProvider } from "@/hooks/useSocket";
 import { SocialProvider } from "@/hooks/useSocial";
+import { CosmeticProvider } from "@/contexts/CosmeticContext";
 import "./globals.css";
 
 const jetbrainsMono = JetBrains_Mono({
@@ -28,6 +29,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${jetbrainsMono.variable} font-mono antialiased h-full flex flex-col`}>
         <SessionProvider>
+          <CosmeticProvider>
           <SocketProvider>
           <SocialProvider>
           <UsernameGuard>
@@ -68,6 +70,7 @@ export default function RootLayout({
           </UsernameGuard>
           </SocialProvider>
           </SocketProvider>
+          </CosmeticProvider>
         </SessionProvider>
       </body>
     </html>

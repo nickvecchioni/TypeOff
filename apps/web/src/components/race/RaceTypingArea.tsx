@@ -3,6 +3,8 @@
 import React, { useRef, useEffect, useCallback, useState } from "react";
 import { useTypingEngine } from "@/hooks/useTypingEngine";
 import { WordDisplay } from "@/components/typing/WordDisplay";
+import { useActiveCosmetics } from "@/contexts/CosmeticContext";
+import { TYPING_THEMES } from "@typeoff/shared";
 
 interface RaceTypingAreaProps {
   seed: number;
@@ -32,6 +34,9 @@ export function RaceTypingArea({
   onFinish,
   disabled,
 }: RaceTypingAreaProps) {
+  const { activeTypingTheme } = useActiveCosmetics();
+  const themeClass = activeTypingTheme ? TYPING_THEMES[activeTypingTheme]?.className ?? "" : "";
+
   const engine = useTypingEngine({
     externalSeed: seed,
     externalWordCount: wordCount,
@@ -120,7 +125,7 @@ export function RaceTypingArea({
   }, [finishTimeoutEnd, engine.status]);
 
   return (
-    <div className="w-full relative">
+    <div className={`w-full relative ${themeClass}`}>
       <div className="text-center text-sm text-muted mb-3 tabular-nums h-5">
         {timeoutRemaining != null && timeoutRemaining > 0 && (
           <>Time remaining: <span className="text-accent font-bold">{timeoutRemaining}s</span></>

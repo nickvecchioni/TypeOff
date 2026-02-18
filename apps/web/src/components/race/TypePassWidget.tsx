@@ -86,7 +86,19 @@ export function TypePassWidget() {
 
         {nextReward && (
           <span className="text-base shrink-0" title={nextReward.name}>
-            {nextReward.type === "badge" ? nextReward.value : nextReward.type === "nameColor" ? "\uD83C\uDFA8" : nextReward.type === "title" ? "\uD83C\uDFF7\uFE0F" : "\u2728"}
+            {nextReward.type === "badge"
+              ? nextReward.value
+              : nextReward.type === "nameColor"
+              ? "\uD83C\uDFA8"
+              : nextReward.type === "title"
+              ? "\uD83C\uDFF7\uFE0F"
+              : nextReward.type === "cursorStyle"
+              ? "\uD83D\uDD32"
+              : nextReward.type === "profileBorder"
+              ? "\uD83D\uDDBC\uFE0F"
+              : nextReward.type === "typingTheme"
+              ? "\uD83C\uDFA8"
+              : "\u2728"}
           </span>
         )}
       </div>

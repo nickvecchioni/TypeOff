@@ -209,3 +209,95 @@ button, [role="button"], a {
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+
+/* ── Cursor style animations ────────────────────────────── */
+
+@keyframes cursor-pulse-pink {
+  0%, 100% { box-shadow: 0 0 4px rgba(236,72,153,0.4), 0 0 8px rgba(236,72,153,0.2); }
+  50% { box-shadow: 0 0 12px rgba(236,72,153,0.8), 0 0 24px rgba(236,72,153,0.4); }
+}
+
+@keyframes cursor-ember {
+  0%, 100% { box-shadow: 0 0 4px rgba(249,115,22,0.4), 0 0 8px rgba(249,115,22,0.2); }
+  50% { box-shadow: 0 0 12px rgba(249,115,22,0.8), 0 0 24px rgba(249,115,22,0.4); }
+}
+
+@keyframes cursor-rainbow-shift {
+  0% { background-color: #f87171; box-shadow: 0 0 8px rgba(248,113,113,0.6); }
+  16% { background-color: #fbbf24; box-shadow: 0 0 8px rgba(251,191,36,0.6); }
+  33% { background-color: #34d399; box-shadow: 0 0 8px rgba(52,211,153,0.6); }
+  50% { background-color: #60a5fa; box-shadow: 0 0 8px rgba(96,165,250,0.6); }
+  66% { background-color: #a78bfa; box-shadow: 0 0 8px rgba(167,139,250,0.6); }
+  83% { background-color: #ec4899; box-shadow: 0 0 8px rgba(236,72,153,0.6); }
+  100% { background-color: #f87171; box-shadow: 0 0 8px rgba(248,113,113,0.6); }
+}
+
+/* ── Profile border classes ─────────────────────────────── */
+
+.profile-border-ember {
+  box-shadow: 0 0 12px rgba(249,115,22,0.3), 0 0 32px rgba(249,115,22,0.1);
+  animation: border-ember-pulse 2.5s ease-in-out infinite;
+}
+@keyframes border-ember-pulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(249,115,22,0.2), 0 0 32px rgba(249,115,22,0.08); }
+  50% { box-shadow: 0 0 20px rgba(249,115,22,0.4), 0 0 48px rgba(249,115,22,0.15); }
+}
+
+.profile-border-ice {
+  box-shadow: 0 0 12px rgba(56,189,248,0.25), 0 0 32px rgba(56,189,248,0.08);
+  animation: border-ice-shimmer 3s ease-in-out infinite;
+}
+@keyframes border-ice-shimmer {
+  0%, 100% { box-shadow: 0 0 12px rgba(56,189,248,0.2), 0 0 32px rgba(56,189,248,0.06); }
+  50% { box-shadow: 0 0 18px rgba(125,211,252,0.35), 0 0 40px rgba(56,189,248,0.12); }
+}
+
+.profile-border-diamond {
+  animation: border-diamond-sparkle 4s linear infinite;
+}
+@keyframes border-diamond-sparkle {
+  0% { box-shadow: 0 0 16px rgba(96,165,250,0.3), 0 0 40px rgba(96,165,250,0.1); }
+  25% { box-shadow: 0 0 16px rgba(167,139,250,0.3), 0 0 40px rgba(167,139,250,0.1); }
+  50% { box-shadow: 0 0 16px rgba(236,72,153,0.3), 0 0 40px rgba(236,72,153,0.1); }
+  75% { box-shadow: 0 0 16px rgba(52,211,153,0.3), 0 0 40px rgba(52,211,153,0.1); }
+  100% { box-shadow: 0 0 16px rgba(96,165,250,0.3), 0 0 40px rgba(96,165,250,0.1); }
+}
+
+.profile-border-void {
+  box-shadow: 0 0 12px rgba(168,85,247,0.25), 0 0 32px rgba(168,85,247,0.08);
+  animation: border-void-pulse 2s ease-in-out infinite;
+}
+@keyframes border-void-pulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(168,85,247,0.2), 0 0 32px rgba(168,85,247,0.06); }
+  50% { box-shadow: 0 0 20px rgba(168,85,247,0.4), 0 0 48px rgba(168,85,247,0.15); }
+}
+
+/* ── Typing theme overrides ─────────────────────────────── */
+
+.typing-theme-terminal {
+  --color-muted: #4ade80;
+  --color-correct: #22c55e;
+  --color-error: #ef4444;
+  --color-current: #dcfce7;
+}
+
+.typing-theme-neon {
+  --color-muted: #67e8f9;
+  --color-correct: #22d3ee;
+  --color-error: #ec4899;
+  --color-current: #ecfeff;
+}
+
+.typing-theme-sunset {
+  --color-muted: #fdba74;
+  --color-correct: #fb923c;
+  --color-error: #ef4444;
+  --color-current: #fff7ed;
+}
+
+.typing-theme-midnight {
+  --color-muted: #818cf8;
+  --color-correct: #a78bfa;
+  --color-error: #f472b6;
+  --color-current: #ede9fe;
+}

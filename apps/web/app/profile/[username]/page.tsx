@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
 import { users, userStats, raceParticipants, races, userAchievements, userActiveCosmetics } from "@typeoff/db";
 import { eq, desc } from "drizzle-orm";
-import { getRankInfo, getRankProgress, getNextDivisionElo, ACHIEVEMENTS, getXpLevel } from "@typeoff/shared";
+import { getRankInfo, getRankProgress, getNextDivisionElo, ACHIEVEMENTS, getXpLevel, PROFILE_BORDERS } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
 import { AchievementsGrid } from "./achievements-grid";
 import { UsernameEditor } from "./username-editor";
@@ -100,7 +100,11 @@ export default async function ProfilePage({
       <div className="max-w-3xl mx-auto space-y-4 animate-fade-in">
 
         {/* ── Hero ──────────────────────────────────────────── */}
-        <div className="relative rounded-xl bg-surface/50 ring-1 ring-white/[0.04] px-5 py-5 overflow-hidden">
+        <div className={`relative rounded-xl bg-surface/50 ring-1 ring-white/[0.04] px-5 py-5 overflow-hidden ${
+          activeCosmetics?.activeProfileBorder
+            ? PROFILE_BORDERS[activeCosmetics.activeProfileBorder]?.className ?? ""
+            : ""
+        }`}>
           {/* Rank-colored top edge */}
           {rankInfo && (
             <div

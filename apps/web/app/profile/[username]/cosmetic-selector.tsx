@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { SEASON_1 } from "@typeoff/shared";
+import { SEASON_1, CURSOR_STYLES, PROFILE_BORDERS, TYPING_THEMES } from "@typeoff/shared";
 
 interface CosmeticsData {
   unlocked: Array<{ cosmeticId: string; seasonId: string }>;
@@ -10,6 +10,9 @@ interface CosmeticsData {
     activeTitle: string | null;
     activeNameColor: string | null;
     activeNameEffect: string | null;
+    activeCursorStyle: string | null;
+    activeProfileBorder: string | null;
+    activeTypingTheme: string | null;
   };
 }
 
@@ -23,6 +26,9 @@ export function CosmeticSelector() {
     activeTitle: null as string | null,
     activeNameColor: null as string | null,
     activeNameEffect: null as string | null,
+    activeCursorStyle: null as string | null,
+    activeProfileBorder: null as string | null,
+    activeTypingTheme: null as string | null,
   });
 
   useEffect(() => {
@@ -49,6 +55,15 @@ export function CosmeticSelector() {
   const effects = data.unlocked
     .map((u) => REWARD_MAP.get(u.cosmeticId))
     .filter((r) => r?.type === "nameEffect");
+  const cursorStyles = data.unlocked
+    .map((u) => REWARD_MAP.get(u.cosmeticId))
+    .filter((r) => r?.type === "cursorStyle");
+  const profileBorders = data.unlocked
+    .map((u) => REWARD_MAP.get(u.cosmeticId))
+    .filter((r) => r?.type === "profileBorder");
+  const typingThemes = data.unlocked
+    .map((u) => REWARD_MAP.get(u.cosmeticId))
+    .filter((r) => r?.type === "typingTheme");
 
   async function save(newActive: typeof active) {
     setSaving(true);
@@ -162,6 +177,107 @@ export function CosmeticSelector() {
                 {r.name}
               </button>
             ))}
+          </div>
+        </div>
+      )}
+
+      {cursorStyles.length > 0 && (
+        <div>
+          <p className="text-[11px] text-muted mb-1.5">Cursor Styles</p>
+          <div className="flex flex-wrap gap-1.5">
+            {cursorStyles.map((r) => {
+              if (!r) return null;
+              const def = CURSOR_STYLES[r.id];
+              return (
+                <button
+                  key={r.id}
+                  onClick={() => toggleCosmetic("activeCursorStyle", r.id)}
+                  className={`w-9 h-9 rounded-lg flex items-center justify-center ring-1 transition-all ${
+                    active.activeCursorStyle === r.id
+                      ? "ring-amber-400 bg-amber-400/10"
+                      : "ring-white/[0.06] hover:ring-white/[0.12]"
+                  }`}
+                  title={r.name}
+                >
+                  <span
+                    className="rounded-sm"
+                    style={{
+                      width: def?.shape === "block" ? "0.8ch" : def?.shape === "underline" ? "0.8ch" : 2,
+                      height: def?.shape === "underline" ? 2 : 16,
+                      backgroundColor: def?.color ?? "#4d9eff",
+                      boxShadow: def?.glowColor ? `0 0 6px ${def.glowColor}` : undefined,
+                    }}
+                  />
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {profileBorders.length > 0 && (
+        <div>
+          <p className="text-[11px] text-muted mb-1.5">Profile Borders</p>
+          <div className="flex flex-wrap gap-1.5">
+            {profileBorders.map((r) => {
+              if (!r) return null;
+              const def = PROFILE_BORDERS[r.id];
+              return (
+                <button
+                  key={r.id}
+                  onClick={() => toggleCosmetic("activeProfileBorder", r.id)}
+                  className={`w-9 h-9 rounded-lg ring-1 transition-all ${
+                    def?.className ?? ""
+                  } ${
+                    active.activeProfileBorder === r.id
+                      ? "ring-amber-400 bg-amber-400/10"
+                      : "ring-white/[0.06] hover:ring-white/[0.12]"
+                  }`}
+                  title={r.name}
+                />
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {typingThemes.length > 0 && (
+        <div>
+          <p className="text-[11px] text-muted mb-1.5">Typing Themes</p>
+          <div className="flex flex-wrap gap-1.5">
+            {typingThemes.map((r) => {
+              if (!r) return null;
+              const def = TYPING_THEMES[r.id];
+              return (
+                <button
+                  key={r.id}
+                  onClick={() => toggleCosmetic("activeTypingTheme", r.id)}
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-lg ring-1 transition-all ${
+                    active.activeTypingTheme === r.id
+                      ? "ring-amber-400 bg-amber-400/10"
+                      : "ring-white/[0.06] hover:ring-white/[0.12]"
+                  }`}
+                  title={r.name}
+                >
+                  {def && (
+                    <span className="flex gap-0.5">
+                      {def.palette.map((c, i) => (
+                        <span
+                          key={i}
+                          className="w-2 h-2 rounded-full"
+                          style={{ backgroundColor: c }}
+                        />
+                      ))}
+                    </span>
+                  )}
+                  <span className={`text-xs ${
+                    active.activeTypingTheme === r.id ? "text-amber-400" : "text-muted"
+                  }`}>
+                    {r.name}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}

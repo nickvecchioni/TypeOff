@@ -237,4 +237,7 @@ export const userActiveCosmetics = pgTable("user_active_cosmetics", {
   activeTitle: text("active_title"),
   activeNameColor: text("active_name_color"),
   activeNameEffect: text("active_name_effect"),
+  activeCursorStyle: text("active_cursor_style"),
+  activeProfileBorder: text("active_profile_border"),
+  activeTypingTheme: text("active_typing_theme"),
 });
