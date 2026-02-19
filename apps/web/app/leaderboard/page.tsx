@@ -351,7 +351,6 @@ async function SoloLeaderboard({
       usrId: soloResults.userId,
       username: users.username,
       bestWpm: sql<number>`max(${soloResults.wpm})`.as("best_wpm"),
-      bestRawWpm: sql<number>`max(${soloResults.rawWpm})`.as("best_raw_wpm"),
       bestAccuracy: sql<number>`max(${soloResults.accuracy})`.as("best_accuracy"),
       testCount: sql<number>`count(*)`.as("test_count"),
     })
@@ -376,8 +375,7 @@ async function SoloLeaderboard({
         usrId: soloResults.userId,
         username: users.username,
         bestWpm: sql<number>`max(${soloResults.wpm})`.as("best_wpm"),
-        bestRawWpm: sql<number>`max(${soloResults.rawWpm})`.as("best_raw_wpm"),
-        bestAccuracy: sql<number>`max(${soloResults.accuracy})`.as("best_accuracy"),
+          bestAccuracy: sql<number>`max(${soloResults.accuracy})`.as("best_accuracy"),
         testCount: sql<number>`count(*)`.as("test_count"),
       })
       .from(soloResults)
@@ -418,7 +416,7 @@ async function SoloLeaderboard({
   }
 
   const modeLabel = mode === "timed" ? `${duration}s` : `${duration} words`;
-  const soloGridCols = "grid-cols-[2rem_1fr_4rem] sm:grid-cols-[2rem_1fr_5rem_5rem_4rem_3.5rem]";
+  const soloGridCols = "grid-cols-[2rem_1fr_4rem] sm:grid-cols-[2rem_1fr_5rem_4rem_3.5rem]";
 
   return (
     <>
@@ -467,7 +465,6 @@ async function SoloLeaderboard({
             <span></span>
             <span>Player</span>
             <span className="text-right">WPM</span>
-            <span className="text-right hidden sm:block">Raw WPM</span>
             <span className="text-right hidden sm:block">Acc</span>
             <span className="text-right hidden sm:block">Tests</span>
           </div>
@@ -514,9 +511,6 @@ async function SoloLeaderboard({
                   <span className="text-sm tabular-nums text-right font-semibold text-text">
                     {fmtWpm(row.bestWpm)}
                   </span>
-                  <span className="text-sm text-muted/70 tabular-nums text-right hidden sm:block">
-                    {fmtWpm(row.bestRawWpm)}
-                  </span>
                   <span className="text-sm text-muted/50 tabular-nums text-right hidden sm:block">
                     {row.bestAccuracy != null ? (<>{Math.floor(row.bestAccuracy)}<span className="text-[0.8em] opacity-50">.{((row.bestAccuracy % 1) * 10).toFixed(0)}%</span></>) : "-"}
                   </span>
@@ -554,9 +548,6 @@ async function SoloLeaderboard({
                   </div>
                   <span className="text-sm tabular-nums text-right font-semibold text-text">
                     {fmtWpm(row.bestWpm)}
-                  </span>
-                  <span className="text-sm text-muted/70 tabular-nums text-right hidden sm:block">
-                    {fmtWpm(row.bestRawWpm)}
                   </span>
                   <span className="text-sm text-muted/50 tabular-nums text-right hidden sm:block">
                     {row.bestAccuracy != null ? (<>{Math.floor(row.bestAccuracy)}<span className="text-[0.8em] opacity-50">.{((row.bestAccuracy % 1) * 10).toFixed(0)}%</span></>) : "-"}
