@@ -81,7 +81,7 @@ export function PracticeResults({ stats, config, isPb, onRestart }: PracticeResu
               </span>
             </div>
             <div className="text-[11px] text-muted/60 mt-1">
-              {config.mode === "timed" ? "time" : "words"}
+              {config.mode === "timed" ? "time" : "mode"}
             </div>
           </div>
         </div>
