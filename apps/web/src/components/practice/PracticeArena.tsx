@@ -19,6 +19,10 @@ export function PracticeArena() {
   const [scrollOffset, setScrollOffset] = useState(0);
   const [lineHeight, setLineHeight] = useState(40);
   const [pbs, setPbs] = useState<Record<string, number>>({});
+  // Suppress scroll transition when resetting to idle (restart)
+  const suppressTransitionRef = useRef(false);
+  // Cascade key: changes on each restart to re-trigger animations
+  const [cascadeKey, setCascadeKey] = useState(0);
 
   // Fetch PBs on mount (logged-in only)
   useEffect(() => {
@@ -41,6 +45,7 @@ export function PracticeArena() {
   // Word scrolling: keep active word visible within VISIBLE_LINES window
   useEffect(() => {
     if (engine.status === "idle") {
+      suppressTransitionRef.current = true;
       setScrollOffset(0);
       return;
     }
@@ -59,6 +64,15 @@ export function PracticeArena() {
       setScrollOffset(wordTop - lineHeight);
     }
   }, [engine.currentWordIndex, engine.status, lineHeight, scrollOffset]);
+
+  // Clear suppress flag after the instant reset renders
+  useEffect(() => {
+    if (suppressTransitionRef.current) {
+      requestAnimationFrame(() => {
+        suppressTransitionRef.current = false;
+      });
+    }
+  }, [scrollOffset]);
 
   // Focus container on mount and when returning to idle
   useEffect(() => {
@@ -110,11 +124,12 @@ export function PracticeArena() {
       .catch(() => {});
   }, [engine.status, engine.stats, engine.config, session?.user?.id]);
 
-  // Reset save guard on restart
+  // Reset save guard on restart + bump cascade key
   useEffect(() => {
     if (engine.status === "idle") {
       hasSavedRef.current = false;
       setIsPb(null);
+      setCascadeKey((k) => k + 1);
     }
   }, [engine.status]);
 
@@ -137,25 +152,47 @@ export function PracticeArena() {
         isTyping ? "focus-active" : ""
       }`}
     >
+      {/* Live WPM + time (above config, stays visible while typing) */}
+      {isTyping && (
+        <div className="flex items-center gap-4 text-base text-muted tabular-nums">
+          <span>
+            <span className="text-text font-bold">{engine.liveWpm}</span> wpm
+          </span>
+          {engine.config.mode === "timed" && (
+            <span>
+              <span className="text-text font-bold">{engine.timeLeft}</span>s
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Config bar + PB display */}
       {!isFinished && (
-        <div className="flex flex-col items-center gap-2">
+        <div
+          key={`config-${cascadeKey}`}
+          className="flex flex-col items-center gap-2 opacity-0 animate-fade-in"
+          style={{ animationDelay: "0ms", animationFillMode: "both" }}
+        >
           <ConfigBar
             config={engine.config}
             status={engine.status}
             onConfigChange={engine.setConfig}
             onAfterChange={handleAfterConfigChange}
           />
-          {currentPb !== null && session?.user?.id && (
-            <div className="focus-fade text-xs text-muted/50 tabular-nums">
+          {session?.user?.id && (
+            <div className="focus-fade text-sm text-muted/50 tabular-nums">
               pb{" "}
-              <span className="text-muted font-medium">
-                {Math.floor(currentPb)}
-                <span className="opacity-50">
-                  .{(currentPb % 1).toFixed(2).slice(2)}
+              {currentPb !== null ? (
+                <span className="text-muted font-medium">
+                  {Math.floor(currentPb)}
+                  <span className="opacity-50">
+                    .{(currentPb % 1).toFixed(2).slice(2)}
+                  </span>{" "}
+                  wpm
                 </span>
-              </span>
-              {" "}wpm
+              ) : (
+                <span className="text-muted/40 font-medium">n/a</span>
+              )}
             </div>
           )}
         </div>
@@ -164,17 +201,18 @@ export function PracticeArena() {
       {/* Typing area with scroll clipping */}
       {!isFinished && (
         <div
+          key={`words-${cascadeKey}`}
           ref={containerRef}
           tabIndex={0}
           onKeyDown={engine.handleKeyDown}
-          className="w-full outline-none cursor-default select-none overflow-hidden"
-          style={{ height: containerHeight }}
+          className="w-full outline-none cursor-default select-none overflow-hidden opacity-0 animate-fade-in"
+          style={{ height: containerHeight, animationDelay: "80ms", animationFillMode: "both" }}
           role="textbox"
           aria-label="Solo typing area"
         >
           <div
             ref={wordsInnerRef}
-            className="transition-transform duration-150 ease-out"
+            className={suppressTransitionRef.current ? "" : "transition-transform duration-150 ease-out"}
             style={{ transform: `translateY(-${scrollOffset}px)` }}
           >
             <WordDisplay
@@ -187,23 +225,13 @@ export function PracticeArena() {
         </div>
       )}
 
-      {/* Live HUD */}
-      {isTyping && (
-        <div className="focus-fade flex items-center gap-4 text-sm text-muted tabular-nums">
-          <span>
-            <span className="text-text font-bold">{engine.liveWpm}</span> wpm
-          </span>
-          {engine.config.mode === "timed" && (
-            <span>
-              <span className="text-text font-bold">{engine.timeLeft}</span>s
-            </span>
-          )}
-        </div>
-      )}
-
       {/* Hints */}
       {engine.status === "idle" && (
-        <p className="focus-fade text-muted/30 text-xs">
+        <p
+          key={`hint-${cascadeKey}`}
+          className="focus-fade text-muted/30 text-xs opacity-0 animate-fade-in"
+          style={{ animationDelay: "160ms", animationFillMode: "both" }}
+        >
           press{" "}
           <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/50 text-[10px]">
             Tab

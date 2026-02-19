@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import type { TestStats, TestConfig } from "@typeoff/shared";
 import { WpmChart } from "@/components/typing/WpmChart";
 
@@ -12,15 +12,26 @@ interface PracticeResultsProps {
 }
 
 export function PracticeResults({ stats, config, isPb, onRestart }: PracticeResultsProps) {
-  // Enter key shortcut to restart
+  // Tab+Enter shortcut to restart (matches typing engine pattern)
+  const tabPressedRef = useRef(false);
+
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Enter" && !e.metaKey && !e.ctrlKey && !e.altKey) {
-        const tag = (e.target as HTMLElement)?.tagName;
-        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || tag === "BUTTON" || tag === "A") return;
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || tag === "BUTTON" || tag === "A") return;
+
+      if (e.key === "Tab") {
         e.preventDefault();
-        onRestart();
+        tabPressedRef.current = true;
+        return;
       }
+      if (e.key === "Enter" && tabPressedRef.current) {
+        e.preventDefault();
+        tabPressedRef.current = false;
+        onRestart();
+        return;
+      }
+      tabPressedRef.current = false;
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
@@ -37,7 +48,7 @@ export function PracticeResults({ stats, config, isPb, onRestart }: PracticeResu
         <div className="h-0.5 bg-accent opacity-50" />
         <div className="grid gap-px grid-cols-3">
           {/* WPM */}
-          <div className="bg-surface/40 p-4 sm:p-5">
+          <div className="bg-surface/40 p-4 sm:p-5 flex flex-col items-center text-center">
             <div className="flex items-baseline gap-2">
               <div className="text-3xl font-black text-accent tabular-nums">
                 {Math.floor(stats.wpm)}
@@ -55,7 +66,7 @@ export function PracticeResults({ stats, config, isPb, onRestart }: PracticeResu
           </div>
 
           {/* Accuracy */}
-          <div className="bg-surface/40 p-4 sm:p-5">
+          <div className="bg-surface/40 p-4 sm:p-5 flex flex-col items-center text-center">
             <div className="text-3xl font-black text-text tabular-nums">
               {Math.floor(stats.accuracy)}
               <span className="text-lg opacity-50">
@@ -66,7 +77,7 @@ export function PracticeResults({ stats, config, isPb, onRestart }: PracticeResu
           </div>
 
           {/* Time / Mode */}
-          <div className="bg-surface/40 p-4 sm:p-5">
+          <div className="bg-surface/40 p-4 sm:p-5 flex flex-col items-center text-center">
             <div className="text-3xl font-black text-text tabular-nums">
               {stats.time}<span className="text-lg opacity-50">s</span>
             </div>
@@ -88,7 +99,11 @@ export function PracticeResults({ stats, config, isPb, onRestart }: PracticeResu
           <span className="inline-block w-[2px] h-[1em] bg-current animate-blink ml-0.5 translate-y-px" />
         </button>
         <p className="text-muted/30 text-xs">
-          press <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/50 text-[10px]">Enter</kbd> to restart
+          press{" "}
+          <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/50 text-[10px]">Tab</kbd>
+          {" "}+{" "}
+          <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/50 text-[10px]">Enter</kbd>
+          {" "}to restart
         </p>
       </div>
     </div>
