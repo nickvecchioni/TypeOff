@@ -158,6 +158,20 @@ export class Matchmaker implements RaceOwner {
     race?.handleFinish(socketId, data);
   }
 
+  /** Voluntary leave during countdown — no penalty */
+  handleLeaveRace(socketId: string): boolean {
+    const raceId = this.socketToRace.get(socketId);
+    if (!raceId) return false;
+    const race = this.races.get(raceId);
+    if (!race) return false;
+
+    const left = race.handleLeaveCountdown(socketId);
+    if (left) {
+      this.socketToRace.delete(socketId);
+    }
+    return left;
+  }
+
   handleDisconnect(socketId: string) {
     this.removeFromQueue(socketId);
     const raceId = this.socketToRace.get(socketId);

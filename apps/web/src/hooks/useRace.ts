@@ -182,6 +182,15 @@ export function useRace() {
     setQueueCount(0);
   }, [emit]);
 
+  const leaveRace = useCallback(() => {
+    emit("leaveRace");
+    setPhase("idle");
+    setRaceState(null);
+    setProgress({});
+    setCountdown(0);
+    setError(null);
+  }, [emit]);
+
   const sendProgress = useCallback(
     (data: {
       wordIndex: number;
@@ -245,6 +254,7 @@ export function useRace() {
     error,
     joinQueue,
     leaveQueue,
+    leaveRace,
     sendProgress,
     sendFinish,
     reset,

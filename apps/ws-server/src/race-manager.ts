@@ -58,7 +58,7 @@ export interface BotWpmConfig {
 }
 
 const FINISH_TIMEOUT_SECONDS = 15;
-const PLACEMENT_RACE_COUNT = 1;
+const PLACEMENT_RACE_COUNT = 3;
 
 export class RaceManager {
   readonly raceId: string;
@@ -248,9 +248,32 @@ export class RaceManager {
     }
   }
 
+  /** Remove a player during countdown — no penalty, no stats */
+  handleLeaveCountdown(socketId: string): boolean {
+    if (this.status !== "countdown") return false;
+    const entry = this.players.get(socketId);
+    if (!entry) return false;
+
+    entry.socket?.leave(this.raceId);
+    this.players.delete(socketId);
+
+    // Cancel race entirely if no real players remain (don't persist anything)
+    const hasRealPlayers = [...this.players.values()].some((p) => !p.isBot);
+    if (!hasRealPlayers) {
+      this.cancelRace();
+    }
+    return true;
+  }
+
   handleDisconnect(socketId: string) {
     const entry = this.players.get(socketId);
     if (!entry) return;
+
+    // During countdown — clean removal, no penalty
+    if (this.status === "countdown") {
+      this.handleLeaveCountdown(socketId);
+      return;
+    }
 
     // Mark as finished with last placement
     if (!entry.progress.finished && this.status === "racing") {
@@ -729,12 +752,17 @@ export class RaceManager {
             elo: userMap.get(e.player.id)?.eloRating ?? 1000,
             placement: e.progress.placement!,
             gamesPlayed: statsMap.get(e.player.id)?.racesPlayed ?? 0,
+            wpm: e.progress.finalStats?.wpm ?? 0,
+            accuracy: e.progress.finalStats?.accuracy,
+            isBot: false,
           })),
           ...botEntries.map((e) => ({
             id: e.player.id,
             elo: e.player.elo,
             placement: e.progress.placement!,
             gamesPlayed: 30, // Bots use experienced K-factor
+            wpm: e.progress.finalStats?.wpm ?? 0,
+            isBot: true,
           })),
         ];
 
@@ -963,6 +991,13 @@ export class RaceManager {
         placementsCompleted: true,
       })
       .where(eq(users.id, userId));
+  }
+
+  /** Cancel race without persisting anything (e.g. all players left during countdown) */
+  private cancelRace() {
+    if (this.status === "finished") return;
+    this.status = "finished";
+    this.cleanup();
   }
 
   private cleanup() {

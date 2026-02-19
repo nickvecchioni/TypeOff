@@ -89,6 +89,10 @@ io.on("connection", (socket) => {
     matchmaker.removeFromQueue(socket.id);
   });
 
+  socket.on("leaveRace", () => {
+    matchmaker.handleLeaveRace(socket.id);
+  });
+
   // ─── Race Events ──────────────────────────────────────────────────
 
   socket.on("raceProgress", (data) => {
