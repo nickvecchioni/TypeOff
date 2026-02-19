@@ -3,10 +3,22 @@
 import React from "react";
 import { useSession } from "next-auth/react";
 import { PartyPanel } from "@/components/social/PartyPanel";
+import { RankBadge } from "@/components/RankBadge";
 import { ChallengesWidget } from "@/components/race/ChallengesWidget";
 import { TypePassWidget } from "@/components/race/TypePassWidget";
 import { GuestPlacement } from "@/components/race/GuestPlacement";
-import type { PartyState } from "@typeoff/shared";
+import { getXpLevel } from "@typeoff/shared";
+import type { PartyState, RankTier } from "@typeoff/shared";
+
+const RANK_GLOW: Record<RankTier, string> = {
+  bronze: "0 0 40px rgba(217, 119, 6, 0.15)",
+  silver: "0 0 40px rgba(156, 163, 175, 0.12)",
+  gold: "0 0 40px rgba(234, 179, 8, 0.2)",
+  platinum: "0 0 40px rgba(103, 232, 249, 0.15)",
+  diamond: "0 0 40px rgba(59, 130, 246, 0.2)",
+  master: "0 0 40px rgba(168, 85, 247, 0.2)",
+  grandmaster: "0 0 40px rgba(239, 68, 68, 0.2)",
+};
 
 interface QueueScreenProps {
   isQueuing: boolean;
@@ -109,11 +121,43 @@ export function QueueScreen({
     <div className="flex flex-col items-center w-full max-w-3xl">
       {session?.user ? (
         <>
+          {/* Player identity */}
+          {session.user.placementsCompleted && (
+            <div
+              className="flex flex-col items-center gap-1.5 mb-6 opacity-0 animate-fade-in"
+              style={{ animationDelay: "0ms", animationFillMode: "both" }}
+            >
+              <RankBadge
+                tier={session.user.rankTier}
+                elo={session.user.eloRating}
+                size="md"
+                showElo={false}
+              />
+              <div
+                className="text-3xl font-black tabular-nums tracking-tight"
+                style={{ textShadow: RANK_GLOW[session.user.rankTier] }}
+              >
+                {session.user.eloRating.toLocaleString()}
+              </div>
+              <div className="flex items-center gap-3 text-xs text-muted">
+                {session.user.currentStreak > 0 && (
+                  <>
+                    <span className="text-amber-400 font-semibold tabular-nums">
+                      {"\uD83D\uDD25"} {session.user.currentStreak}
+                    </span>
+                    <span className="text-white/[0.08]">&middot;</span>
+                  </>
+                )}
+                <span>Lv {getXpLevel(session.user.totalXp).level}</span>
+              </div>
+            </div>
+          )}
+
           {/* Action area */}
           {inPartyNotLeader ? (
             <div
               className="flex flex-col items-center gap-2 py-3 opacity-0 animate-fade-in"
-              style={{ animationDelay: "0ms", animationFillMode: "both" }}
+              style={{ animationDelay: "80ms", animationFillMode: "both" }}
             >
               <span className="text-sm text-muted">
                 Waiting for party leader to start...
@@ -127,7 +171,7 @@ export function QueueScreen({
           ) : (
             <div
               className="relative flex flex-col items-center w-full max-w-lg opacity-0 animate-fade-in"
-              style={{ animationDelay: "0ms", animationFillMode: "both" }}
+              style={{ animationDelay: "80ms", animationFillMode: "both" }}
             >
               {/* Ambient glow */}
               <div
@@ -201,7 +245,7 @@ export function QueueScreen({
           {session.user.placementsCompleted && party && (
             <div
               className="w-full max-w-lg mt-5 opacity-0 animate-fade-in"
-              style={{ animationDelay: "80ms", animationFillMode: "both" }}
+              style={{ animationDelay: "160ms", animationFillMode: "both" }}
             >
               <PartyPanel
                 party={party}
@@ -217,8 +261,8 @@ export function QueueScreen({
           {/* Dashboard */}
           {session.user.placementsCompleted && (
             <div
-              className="w-full mt-10 grid grid-cols-1 sm:grid-cols-[3fr_2fr] gap-3 items-start opacity-0 animate-fade-in"
-              style={{ animationDelay: "120ms", animationFillMode: "both" }}
+              className="w-full mt-10 grid grid-cols-1 sm:grid-cols-2 gap-3 items-start opacity-0 animate-fade-in"
+              style={{ animationDelay: "220ms", animationFillMode: "both" }}
             >
               <ChallengesWidget />
               <TypePassWidget />
