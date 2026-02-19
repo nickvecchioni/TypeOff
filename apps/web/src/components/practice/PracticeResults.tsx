@@ -88,7 +88,9 @@ export function PracticeResults({ stats, config, isPb, onRestart }: PracticeResu
       </div>
 
       {/* WPM Chart */}
-      <WpmChart samples={stats.wpmHistory} />
+      <div className="w-full max-w-lg mx-auto">
+        <WpmChart samples={stats.wpmHistory} />
+      </div>
 
       {/* Restart button */}
       <div className="flex flex-col items-center gap-2 w-full max-w-xs mx-auto pt-1">

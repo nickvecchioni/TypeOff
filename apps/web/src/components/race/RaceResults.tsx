@@ -469,7 +469,7 @@ export function RaceResults({
 
         {/* WPM Chart */}
         {myWpmHistory && myWpmHistory.length >= 2 && (
-          <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] p-2 sm:p-3 flex items-center">
+          <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] p-2 sm:p-3 flex items-center min-h-0">
             <WpmChart samples={myWpmHistory} />
           </div>
         )}
