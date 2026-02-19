@@ -18,6 +18,9 @@ interface PartyMember {
   name: string;
   socketId: string;
   elo: number;
+  activeBadge?: string | null;
+  activeNameColor?: string | null;
+  activeNameEffect?: string | null;
 }
 
 interface Party {
@@ -39,7 +42,7 @@ export class PartyManager {
     private socialManager: SocialManager,
   ) {}
 
-  createParty(socket: TypedSocket, userId: string, name: string, elo: number) {
+  createParty(socket: TypedSocket, userId: string, name: string, elo: number, cosmetics?: { activeBadge?: string | null; activeNameColor?: string | null; activeNameEffect?: string | null }) {
     // Leave existing party first
     this.leaveParty(socket);
 
@@ -47,7 +50,7 @@ export class PartyManager {
     const party: Party = {
       id: partyId,
       leaderId: userId,
-      members: new Map([[userId, { userId, name, socketId: socket.id, elo }]]),
+      members: new Map([[userId, { userId, name, socketId: socket.id, elo, ...cosmetics }]]),
       pendingInvites: new Set(),
       privateRace: false,
       readyState: new Map(),
@@ -128,7 +131,7 @@ export class PartyManager {
     }, INVITE_EXPIRY_MS);
   }
 
-  respondToInvite(socket: TypedSocket, partyId: string, accept: boolean, userId: string, name: string, elo: number) {
+  respondToInvite(socket: TypedSocket, partyId: string, accept: boolean, userId: string, name: string, elo: number, cosmetics?: { activeBadge?: string | null; activeNameColor?: string | null; activeNameEffect?: string | null }) {
     const party = this.parties.get(partyId);
     if (!party) {
       socket.emit("partyError", { message: "Party no longer exists" });
@@ -152,7 +155,7 @@ export class PartyManager {
     // Leave any existing party
     this.leaveParty(socket);
 
-    party.members.set(userId, { userId, name, socketId: socket.id, elo });
+    party.members.set(userId, { userId, name, socketId: socket.id, elo, ...cosmetics });
     this.userToParty.set(userId, partyId);
     this.socketToUser.set(socket.id, userId);
 
@@ -338,6 +341,9 @@ export class PartyManager {
           name: member.name,
           isGuest: false,
           elo: member.elo,
+          activeBadge: member.activeBadge,
+          activeNameColor: member.activeNameColor,
+          activeNameEffect: member.activeNameEffect,
         },
       });
     }

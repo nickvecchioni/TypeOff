@@ -50,6 +50,9 @@ export interface RaceResult {
       premium: boolean;
     }>;
   };
+  activeBadge?: string | null;
+  activeNameColor?: string | null;
+  activeNameEffect?: string | null;
 }
 
 export function useRace() {

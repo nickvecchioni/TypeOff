@@ -10,13 +10,21 @@ import {
   type EngineAPI,
   type WpmSample,
   generateFromPool,
+  generateSoloWords,
 } from "@typeoff/shared";
 
-const DEFAULT_CONFIG: TestConfig = { mode: "timed", duration: 15 };
+const DEFAULT_CONFIG: TestConfig = {
+  mode: "timed",
+  duration: 15,
+  contentType: "words",
+  difficulty: "easy",
+  punctuation: false,
+};
 const WORD_POOL_SIZE = 200;
 
 export interface TypingEngine extends EngineAPI {
   handleKeyDown: (e: React.KeyboardEvent) => void;
+  timeElapsed: number;
 }
 
 export interface ExternalConfig {
@@ -40,7 +48,7 @@ function createWordStates(wordStrings: string[]): WordState[] {
 export function useTypingEngine(external?: ExternalConfig): TypingEngine {
   const wordCount = external?.externalWords?.length ?? external?.externalWordCount ?? 50;
   const initialConfig: TestConfig = external?.mode === "wordcount"
-    ? { mode: "wordcount", duration: wordCount }
+    ? { ...DEFAULT_CONFIG, mode: "wordcount", duration: wordCount }
     : DEFAULT_CONFIG;
   const [config, setConfig] = useState<TestConfig>(initialConfig);
   const [words, setWords] = useState<WordState[]>([]);
@@ -60,6 +68,13 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
   const misstypedCharsRef = useRef(0);
   const totalCharsRef = useRef(0);
 
+  // Whether the effective behavior is "type all words and finish" (wordcount-like)
+  const isWordcountBehavior =
+    config.mode === "wordcount" ||
+    config.contentType === "quotes" ||
+    config.contentType === "marathon" ||
+    config.contentType === "sprint";
+
   // Generate words on mount (avoids hydration mismatch from Date.now() seed)
   const initialized = useRef(false);
   useEffect(() => {
@@ -67,12 +82,13 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
       initialized.current = true;
       if (external?.externalWords) {
         setWords(createWordStates(external.externalWords));
-      } else {
+      } else if (external?.externalSeed != null || external?.externalWordCount != null) {
         const seed = external?.externalSeed ?? undefined;
-        const count =
-          external?.externalWordCount ??
-          (config.mode === "wordcount" ? config.duration : WORD_POOL_SIZE);
+        const count = external?.externalWordCount ?? WORD_POOL_SIZE;
         const wordStrings = generateFromPool(count, seed);
+        setWords(createWordStates(wordStrings));
+      } else {
+        const wordStrings = generateSoloWords(config);
         setWords(createWordStates(wordStrings));
       }
     }
@@ -149,9 +165,9 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     }, 1000);
   }, []);
 
-  // Check timed mode completion
+  // Check timed mode completion (only for pure timed + words mode)
   useEffect(() => {
-    if (config.mode === "timed" && status === "typing" && timeElapsed >= config.duration) {
+    if (config.mode === "timed" && config.contentType === "words" && status === "typing" && timeElapsed >= config.duration) {
       finishTest();
     }
   }, [config, status, timeElapsed, finishTest]);
@@ -161,12 +177,13 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     let newWords: WordState[];
     if (external?.externalWords) {
       newWords = createWordStates(external.externalWords);
-    } else {
+    } else if (external?.externalSeed != null || external?.externalWordCount != null) {
       const seed = external?.externalSeed ?? undefined;
-      const count =
-        external?.externalWordCount ??
-        (config.mode === "wordcount" ? config.duration : WORD_POOL_SIZE);
+      const count = external?.externalWordCount ?? WORD_POOL_SIZE;
       const wordStrings = generateFromPool(count, seed);
+      newWords = createWordStates(wordStrings);
+    } else {
+      const wordStrings = generateSoloWords(config);
       newWords = createWordStates(wordStrings);
     }
     setWords(newWords);
@@ -220,11 +237,14 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
       setCurrentCharIndex((prev) => prev + 1);
 
       // Auto-finish: last char of last word, only if all chars correct
+      // For wordcount-behavior modes (wordcount, quotes, marathon, sprint), finish when all words typed
+      const totalWordCount = isWordcountBehavior
+        ? words.length
+        : config.mode === "wordcount" ? config.duration : Infinity;
       if (
         isCorrect &&
         currentCharIndex + 1 >= word.chars.length &&
-        config.mode === "wordcount" &&
-        currentWordIndex + 1 >= config.duration &&
+        currentWordIndex + 1 >= totalWordCount &&
         !word.chars.some((c, idx) => idx < currentCharIndex && c.status === "incorrect")
       ) {
         finishTest();
@@ -316,7 +336,10 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     const nextWordIndex = currentWordIndex + 1;
 
     // Last word auto-finishes via handleCharacter, but keep as safety net
-    if (config.mode === "wordcount" && nextWordIndex >= config.duration) {
+    const totalWordCount = isWordcountBehavior
+      ? words.length
+      : config.mode === "wordcount" ? config.duration : Infinity;
+    if (nextWordIndex >= totalWordCount) {
       finishTest();
       return;
     }
@@ -394,6 +417,7 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     currentCharIndex,
     status,
     timeLeft,
+    timeElapsed,
     config,
     liveWpm,
     stats,

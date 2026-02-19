@@ -4,6 +4,8 @@ import React from "react";
 import type { RacePlayer, RacePlayerProgress } from "@typeoff/shared";
 import { getRankTier } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
+import { CosmeticName } from "@/components/CosmeticName";
+import { CosmeticBadge } from "@/components/CosmeticBadge";
 
 interface RaceTrackProps {
   players: RacePlayer[];
@@ -35,7 +37,16 @@ export function RaceTrack({ players, progress, myPlayerId, isPlacement }: RaceTr
             <div className="flex justify-between text-sm">
               <span className={`flex items-center gap-2 min-w-0 ${isMe ? "text-accent font-bold" : "text-text"}`}>
                 {!isPlacement && !isBot && <RankBadge tier={getRankTier(player.elo)} />}
-                <span className="truncate">{player.name}</span>
+                <CosmeticBadge badge={!isMe && !isBot ? player.activeBadge : undefined} />
+                <span className="truncate">
+                  {isMe || isBot ? (
+                    player.name
+                  ) : (
+                    <CosmeticName nameColor={player.activeNameColor} nameEffect={player.activeNameEffect}>
+                      {player.name}
+                    </CosmeticName>
+                  )}
+                </span>
                 {isBot && <span className="text-xs text-muted bg-surface rounded px-1.5 py-0.5 font-normal">BOT</span>}
                 {isMe && " (you)"}
                 {finished && p?.placement && ` #${p.placement}`}

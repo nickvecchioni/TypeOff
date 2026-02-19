@@ -3,6 +3,9 @@
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { RankBadge } from "@/components/RankBadge";
+import { CosmeticName } from "@/components/CosmeticName";
+import { CosmeticBadge } from "@/components/CosmeticBadge";
+import { useActiveCosmetics } from "@/contexts/CosmeticContext";
 import type { RankTier } from "@typeoff/shared";
 import { getXpLevel } from "@typeoff/shared";
 
@@ -16,6 +19,8 @@ export function UserMenu() {
   if (!session?.user) {
     return null;
   }
+
+  const cosmetics = useActiveCosmetics();
 
   const profileHref = session.user.username
     ? `/profile/${session.user.username}`
@@ -38,10 +43,13 @@ export function UserMenu() {
         />
       )}
 
-      {/* Username + meta row */}
+      {/* Badge + Username + meta row */}
+      <CosmeticBadge badge={cosmetics.activeBadge} />
       <div className="flex items-center gap-2">
         <span className="text-sm font-bold text-text group-hover:text-accent transition-colors">
-          {session.user.username ?? "set username"}
+          <CosmeticName nameColor={cosmetics.activeNameColor} nameEffect={cosmetics.activeNameEffect}>
+            {session.user.username ?? "set username"}
+          </CosmeticName>
         </span>
 
         {/* Level + streak badges */}

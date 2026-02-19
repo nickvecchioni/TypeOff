@@ -6,15 +6,11 @@ import { getDb } from "@/lib/db";
 import { users, userStats, userActiveCosmetics, soloResults } from "@typeoff/db";
 import { and, desc, eq, gt, isNotNull, sql, inArray } from "drizzle-orm";
 import type { RankTier } from "@typeoff/shared";
-import { getRankInfo, SEASON_1 } from "@typeoff/shared";
+import { getRankInfo } from "@typeoff/shared";
 import { LeaderboardTabs } from "@/components/leaderboard/LeaderboardTabs";
 import { SoloModeSelector } from "@/components/leaderboard/SoloModeSelector";
-
-const BADGE_EMOJI = new Map(
-  SEASON_1.rewards
-    .filter((r) => r.type === "badge")
-    .map((r) => [r.id, r.value]),
-);
+import { CosmeticName } from "@/components/CosmeticName";
+import { CosmeticBadge } from "@/components/CosmeticBadge";
 
 const TIER_TEXT: Record<RankTier, string> = {
   bronze: "text-rank-bronze",
@@ -131,6 +127,7 @@ async function RankedLeaderboard({ userId, db }: { userId?: string; db: ReturnTy
           userId: userActiveCosmetics.userId,
           activeBadge: userActiveCosmetics.activeBadge,
           activeNameColor: userActiveCosmetics.activeNameColor,
+          activeNameEffect: userActiveCosmetics.activeNameEffect,
         })
         .from(userActiveCosmetics)
         .where(inArray(userActiveCosmetics.userId, allPlayerIds))
@@ -224,20 +221,18 @@ async function RankedLeaderboard({ userId, db }: { userId?: string; db: ReturnTy
                     <span className={`w-2 h-2 rounded-full shrink-0 ${isOnline ? "bg-emerald-400" : "bg-white/10"}`} />
                     {(() => {
                       const cosmetic = cosmeticMap.get(row.id);
-                      const badge = cosmetic?.activeBadge ? BADGE_EMOJI.get(cosmetic.activeBadge) : null;
-                      const nameColor = cosmetic?.activeNameColor;
-                      const colorReward = nameColor ? SEASON_1.rewards.find((r) => r.id === nameColor) : null;
                       return (
                         <div className="flex items-center gap-1.5 min-w-0">
+                          {!isMe && <CosmeticBadge badge={cosmetic?.activeBadge} />}
                           <div className="flex flex-col min-w-0">
-                            <span className="flex items-center gap-1 min-w-0">
-                              <span
-                                className={`truncate text-sm leading-tight ${isMe ? "font-bold" : ""}`}
-                                style={colorReward && !isMe ? { color: colorReward.value } : undefined}
-                              >
-                                {isMe ? <span className="text-accent">{row.username}</span> : row.username}
-                              </span>
-                              {badge && <span className="text-sm shrink-0">{badge}</span>}
+                            <span className={`truncate text-sm leading-tight ${isMe ? "font-bold" : ""}`}>
+                              {isMe ? (
+                                <span className="text-accent">{row.username}</span>
+                              ) : (
+                                <CosmeticName nameColor={cosmetic?.activeNameColor} nameEffect={cosmetic?.activeNameEffect}>
+                                  {row.username}
+                                </CosmeticName>
+                              )}
                             </span>
                             <span className={`text-xs leading-tight ${tierColor}`}>
                               {info.label}
@@ -277,6 +272,7 @@ async function RankedLeaderboard({ userId, db }: { userId?: string; db: ReturnTy
             const tierColor = TIER_TEXT[info.tier];
             const racesPlayed = row.racesPlayed ?? 0;
             const racesWon = row.racesWon ?? 0;
+            const myCosmetic = cosmeticMap.get(row.id);
 
             return (
               <div
@@ -295,6 +291,7 @@ async function RankedLeaderboard({ userId, db }: { userId?: string; db: ReturnTy
                   </span>
                   <div className="flex items-center gap-2.5 min-w-0">
                     <span className="w-2 h-2 rounded-full shrink-0 bg-emerald-400" />
+                    <CosmeticBadge badge={myCosmetic?.activeBadge} />
                     <div className="flex flex-col min-w-0">
                       <span className="truncate text-sm leading-tight text-accent font-bold">
                         {row.username}
@@ -415,6 +412,21 @@ async function SoloLeaderboard({
     }
   }
 
+  // Active cosmetics for solo leaderboard
+  const soloPlayerIds = [...rows.map((r) => r.usrId), ...(myRank ? [myRank.row.usrId] : [])];
+  const soloCosmeticRows = soloPlayerIds.length > 0
+    ? await db
+        .select({
+          userId: userActiveCosmetics.userId,
+          activeBadge: userActiveCosmetics.activeBadge,
+          activeNameColor: userActiveCosmetics.activeNameColor,
+          activeNameEffect: userActiveCosmetics.activeNameEffect,
+        })
+        .from(userActiveCosmetics)
+        .where(inArray(userActiveCosmetics.userId, soloPlayerIds))
+    : [];
+  const soloCosmeticMap = new Map(soloCosmeticRows.map((r) => [r.userId, r]));
+
   const modeLabel = mode === "timed" ? `${duration}s` : `${duration} words`;
   const soloGridCols = "grid-cols-[2rem_1fr_4rem] sm:grid-cols-[2rem_1fr_5rem_4rem_3.5rem]";
 
@@ -477,6 +489,7 @@ async function SoloLeaderboard({
             {rows.map((row, i) => {
               const rank = i + 1;
               const isMe = userId === row.usrId;
+              const soloCosmetic = soloCosmeticMap.get(row.usrId);
 
               const rankDisplay = rank === 1
                 ? "text-rank-gold"
@@ -502,10 +515,15 @@ async function SoloLeaderboard({
                     {rank}
                   </span>
                   <div className="flex items-center gap-2.5 min-w-0">
+                    {!isMe && <CosmeticBadge badge={soloCosmetic?.activeBadge} />}
                     <span
                       className={`truncate text-sm leading-tight ${isMe ? "text-accent font-bold" : ""}`}
                     >
-                      {row.username}
+                      {isMe ? row.username : (
+                        <CosmeticName nameColor={soloCosmetic?.activeNameColor} nameEffect={soloCosmetic?.activeNameEffect}>
+                          {row.username}
+                        </CosmeticName>
+                      )}
                     </span>
                   </div>
                   <span className="text-sm tabular-nums text-right font-semibold text-text">
@@ -525,6 +543,7 @@ async function SoloLeaderboard({
           {/* Your rank anchor */}
           {myRank && (() => {
             const { rank, row } = myRank;
+            const mySoloCosmetic = soloCosmeticMap.get(row.usrId);
 
             return (
               <div
@@ -542,6 +561,7 @@ async function SoloLeaderboard({
                     {rank}
                   </span>
                   <div className="flex items-center gap-2.5 min-w-0">
+                    <CosmeticBadge badge={mySoloCosmetic?.activeBadge} />
                     <span className="truncate text-sm leading-tight text-accent font-bold">
                       {row.username}
                     </span>

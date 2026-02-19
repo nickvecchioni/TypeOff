@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { PartyPanel } from "@/components/social/PartyPanel";
 import { RankBadge } from "@/components/RankBadge";
@@ -192,25 +193,37 @@ export function QueueScreen({
                   : "Start Placement"}
                 <span className="inline-block w-[2px] h-[1.1em] bg-current animate-blink ml-0.5 translate-y-[2px]" />
               </button>
-              <div className="relative flex items-center gap-4 mt-3">
+              <div className="relative flex items-center gap-3 mt-3">
                 <span className="text-[11px] text-muted/25">
                   press{" "}
                   <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.03] ring-1 ring-white/[0.06] text-muted/40 text-[10px] font-medium">
                     Enter ↵
                   </kbd>
                 </span>
-                {session.user.placementsCompleted && !party && (
-                  <>
-                    <span className="text-muted/15">·</span>
-                    <button
-                      onClick={onCreateParty}
-                      className="text-[11px] text-muted/25 hover:text-muted transition-colors"
-                    >
-                      create party
-                    </button>
-                  </>
-                )}
               </div>
+              {session.user.placementsCompleted && !party && (
+                <div className="relative flex items-center gap-2 mt-4">
+                  <Link
+                    href="/solo"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium text-muted/40 bg-white/[0.02] ring-1 ring-white/[0.04] hover:text-muted hover:bg-white/[0.04] hover:ring-white/[0.08] transition-all"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="opacity-60">
+                      <path d="M8 1v14M1 8h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    </svg>
+                    Solo Practice
+                  </Link>
+                  <button
+                    onClick={onCreateParty}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium text-muted/40 bg-white/[0.02] ring-1 ring-white/[0.04] hover:text-muted hover:bg-white/[0.04] hover:ring-white/[0.08] transition-all"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="opacity-60">
+                      <circle cx="6" cy="6" r="3" stroke="currentColor" strokeWidth="1.5"/>
+                      <circle cx="11" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.5"/>
+                    </svg>
+                    Create Party
+                  </button>
+                </div>
+              )}
               {/* Private race toggle — visible to party leaders with 2+ members */}
               {party && isPartyLeader && party.members.length >= 2 && session.user.placementsCompleted && (
                 <label className="relative flex items-center gap-2 mt-3 cursor-pointer select-none group">
@@ -268,14 +281,17 @@ export function QueueScreen({
               <ChallengesWidget />
               <div className="grid grid-rows-2 gap-3">
                 {/* User XP */}
-                <div className="rounded-xl bg-surface/50 ring-1 ring-white/[0.04] overflow-hidden flex flex-col">
+                <Link
+                  href={session.user.username ? `/profile/${session.user.username}` : "#"}
+                  className="rounded-xl bg-surface/50 ring-1 ring-white/[0.04] overflow-hidden flex flex-col hover:ring-accent/20 transition-all group"
+                >
                   <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
                   <div className="p-4 flex-1 flex flex-col justify-center">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs font-bold text-accent uppercase tracking-wider">
                         Level {xpInfo!.level}
                       </span>
-                      <span className="text-xs text-muted tabular-nums">
+                      <span className="text-xs text-muted tabular-nums group-hover:text-muted/80 transition-colors">
                         {xpInfo!.currentXp} / {xpInfo!.nextLevelXp} XP
                       </span>
                     </div>
@@ -286,7 +302,7 @@ export function QueueScreen({
                       />
                     </div>
                   </div>
-                </div>
+                </Link>
                 {/* Season XP */}
                 <TypePassWidget />
               </div>

@@ -2,16 +2,24 @@
 
 import React, { useRef, useEffect, useCallback, useState } from "react";
 import { useSession } from "next-auth/react";
+import { getPbKey } from "@typeoff/shared";
 import { useTypingEngine } from "@/hooks/useTypingEngine";
 import { WordDisplay } from "@/components/typing/WordDisplay";
 import { ConfigBar } from "./ConfigBar";
 import { PracticeResults } from "./PracticeResults";
 
-const VISIBLE_LINES = 3;
+function getVisibleLines(contentType: string | undefined): number {
+  switch (contentType) {
+    case "marathon": return 6;
+    case "sprint": return 1;
+    default: return 3;
+  }
+}
 
 export function PracticeArena() {
   const { data: session } = useSession();
   const engine = useTypingEngine();
+  const visibleLines = getVisibleLines(engine.config.contentType);
   const containerRef = useRef<HTMLDivElement>(null);
   const wordsInnerRef = useRef<HTMLDivElement>(null);
   const hasSavedRef = useRef(false);
@@ -102,6 +110,9 @@ export function PracticeArena() {
       body: JSON.stringify({
         mode: config.mode === "wordcount" ? "wordcount" : "timed",
         duration: config.duration,
+        contentType: config.contentType ?? "words",
+        difficulty: config.difficulty ?? "easy",
+        punctuation: config.punctuation ?? false,
         wpm: stats.wpm,
         rawWpm: stats.rawWpm,
         accuracy: stats.accuracy,
@@ -117,7 +128,7 @@ export function PracticeArena() {
         if (data.isPb) {
           setIsPb(true);
           // Update local PB cache
-          const key = `${config.mode === "wordcount" ? "wordcount" : "timed"}:${config.duration}`;
+          const key = getPbKey(config);
           setPbs((prev) => ({ ...prev, [key]: stats.wpm }));
         }
       })
@@ -147,11 +158,16 @@ export function PracticeArena() {
   const isTyping = engine.status === "typing";
   const isFinished = engine.status === "finished";
 
-  // Current PB for the active mode/duration
-  const pbKey = `${engine.config.mode === "wordcount" ? "wordcount" : "timed"}:${engine.config.duration}`;
+  // Current PB for the active config combo
+  const pbKey = getPbKey(engine.config);
   const currentPb = pbs[pbKey] ?? null;
 
-  const containerHeight = lineHeight * VISIBLE_LINES;
+  const containerHeight = lineHeight * visibleLines;
+
+  // Whether to show a stopwatch (elapsed time) instead of countdown
+  const ct = engine.config.contentType ?? "words";
+  const showStopwatch = ct === "quotes" || ct === "marathon" || ct === "sprint" ||
+    (ct === "words" && engine.config.mode === "wordcount");
 
   return (
     <div
@@ -226,11 +242,15 @@ export function PracticeArena() {
           <span className="text-muted text-sm inline-flex items-baseline">
             <span className="text-accent font-black text-5xl inline-block w-[3ch] text-right">{engine.liveWpm}</span> wpm
           </span>
-          {engine.config.mode === "timed" && (
+          {showStopwatch ? (
+            <span className="text-muted text-sm inline-flex items-baseline">
+              <span className="text-accent font-black text-5xl inline-block w-[3ch] text-right">{engine.timeElapsed}</span>s
+            </span>
+          ) : engine.config.mode === "timed" ? (
             <span className="text-muted text-sm inline-flex items-baseline">
               <span className="text-accent font-black text-5xl inline-block w-[3ch] text-right">{engine.timeLeft}</span>s
             </span>
-          )}
+          ) : null}
         </div>
       )}
 

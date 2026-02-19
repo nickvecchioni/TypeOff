@@ -13,9 +13,25 @@ export interface WordState {
 
 export type TestMode = "timed" | "wordcount";
 
+export type ContentType = "words" | "quotes" | "marathon" | "sprint";
+export type Difficulty = "easy" | "medium" | "hard";
+
 export interface TestConfig {
   mode: TestMode;
   duration: number; // seconds for timed, word count for wordcount
+  contentType: ContentType;
+  difficulty: Difficulty;
+  punctuation: boolean;
+}
+
+/** Build a key for the word-pool column: "words:easy:false" */
+export function getWordPoolKey(config: TestConfig): string {
+  return `${config.contentType ?? "words"}:${config.difficulty ?? "easy"}:${config.punctuation ?? false}`;
+}
+
+/** Build a key for PB lookup: "timed:15:words:easy:false" */
+export function getPbKey(config: TestConfig): string {
+  return `${config.mode}:${config.duration}:${getWordPoolKey(config)}`;
 }
 
 export type EngineStatus = "idle" | "typing" | "finished";

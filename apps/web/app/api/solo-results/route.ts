@@ -14,21 +14,24 @@ export async function GET() {
 
   const db = getDb();
 
-  // Get best WPM for each (mode, duration) combo
+  // Get best WPM for each (mode, duration, wordPool) combo
   const rows = await db
     .select({
       mode: soloResults.mode,
       duration: soloResults.duration,
+      wordPool: soloResults.wordPool,
       bestWpm: sql<number>`max(${soloResults.wpm})`.as("best_wpm"),
     })
     .from(soloResults)
     .where(eq(soloResults.userId, session.user.id))
-    .groupBy(soloResults.mode, soloResults.duration);
+    .groupBy(soloResults.mode, soloResults.duration, soloResults.wordPool);
 
-  // Shape as { "timed:15": 120.5, "wordcount:25": 95.3, ... }
+  // Shape as { "timed:15:words:easy:false": 120.5, ... }
   const pbs: Record<string, number> = {};
   for (const row of rows) {
-    pbs[`${row.mode}:${row.duration}`] = row.bestWpm;
+    // Old records with wordPool = null map to "words:easy:false"
+    const pool = row.wordPool ?? "words:easy:false";
+    pbs[`${row.mode}:${row.duration}:${pool}`] = row.bestWpm;
   }
 
   return NextResponse.json({ pbs });
@@ -42,12 +45,16 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { mode, duration, wpm, rawWpm, accuracy, correctChars, incorrectChars, extraChars, totalChars, time } = body;
+  const {
+    mode, duration, wpm, rawWpm, accuracy,
+    correctChars, incorrectChars, extraChars, totalChars, time,
+    contentType, difficulty, punctuation,
+  } = body;
 
   // Validate required fields
   if (
     (mode !== "timed" && mode !== "wordcount") ||
-    typeof duration !== "number" || duration < 1 ||
+    typeof duration !== "number" || duration < 0 ||
     typeof wpm !== "number" || wpm < 0 || wpm > 500 ||
     typeof rawWpm !== "number" || rawWpm < 0 ||
     typeof accuracy !== "number" || accuracy < 0 || accuracy > 100 ||
@@ -63,7 +70,10 @@ export async function POST(request: Request) {
   const db = getDb();
   const userId = session.user.id;
 
-  // PB detection: best WPM for this (userId, mode, duration) triple
+  // Build wordPool key from content config
+  const wordPool = `${contentType ?? "words"}:${difficulty ?? "easy"}:${punctuation ?? false}`;
+
+  // PB detection: best WPM for this (userId, mode, duration, wordPool) tuple
   const [bestResult] = await db
     .select({ wpm: soloResults.wpm })
     .from(soloResults)
@@ -72,6 +82,7 @@ export async function POST(request: Request) {
         eq(soloResults.userId, userId),
         eq(soloResults.mode, mode),
         eq(soloResults.duration, duration),
+        eq(soloResults.wordPool, wordPool),
       )
     )
     .orderBy(desc(soloResults.wpm))
@@ -83,6 +94,7 @@ export async function POST(request: Request) {
     userId,
     mode,
     duration,
+    wordPool,
     wpm,
     rawWpm,
     accuracy,

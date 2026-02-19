@@ -10,6 +10,9 @@ export interface RacePlayer {
   name: string;
   isGuest: boolean;
   elo: number;
+  activeBadge?: string | null;
+  activeNameColor?: string | null;
+  activeNameEffect?: string | null;
 }
 
 /** Real-time progress of a player */
@@ -137,6 +140,9 @@ export interface ServerToClientEvents {
           premium: boolean;
         }>;
       };
+      activeBadge?: string | null;
+      activeNameColor?: string | null;
+      activeNameEffect?: string | null;
     }>;
     placementRace?: number;
     placementTotal?: number;

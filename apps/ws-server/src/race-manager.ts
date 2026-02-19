@@ -10,7 +10,7 @@ import type {
 } from "@typeoff/shared";
 import { calculateRaceElo, getRankTier, generateWordsForMode, quotes } from "@typeoff/shared";
 import type { RankTier, RaceMode } from "@typeoff/shared";
-import { createDb, races, raceParticipants, userStats, users } from "@typeoff/db";
+import { createDb, races, raceParticipants, userStats, users, userActiveCosmetics } from "@typeoff/db";
 import { eq, inArray, and, sql } from "drizzle-orm";
 import { checkAchievements } from "./achievement-checker.js";
 import { checkChallenges, type ChallengeCheckResult } from "./challenge-checker.js";
@@ -562,6 +562,9 @@ export class RaceManager {
           accuracy: entry.progress.finalStats?.accuracy ?? 0,
           eloChange: null as number | null,
           elo: entry.player.elo,
+          activeBadge: entry.player.activeBadge,
+          activeNameColor: entry.player.activeNameColor,
+          activeNameEffect: entry.player.activeNameEffect,
         }))
         .sort((a, b) => a.placement - b.placement);
     }
@@ -606,6 +609,9 @@ export class RaceManager {
       }>;
       xpEarned?: number;
       typePassProgress?: TypePassProgress;
+      activeBadge?: string | null;
+      activeNameColor?: string | null;
+      activeNameEffect?: string | null;
     }> = [];
 
     // Track per-player data for results
@@ -617,6 +623,7 @@ export class RaceManager {
     const challengeMap = new Map<string, ChallengeCheckResult>();
     const typePassMap = new Map<string, TypePassProgress>();
     const playerStatsMap = new Map<string, { racesPlayed: number; racesWon: number; currentStreak: number; maxStreak: number }>();
+    const cosmeticsMap = new Map<string, { activeBadge: string | null; activeNameColor: string | null; activeNameEffect: string | null }>();
 
     const db = createDb(process.env.DATABASE_URL!);
 
@@ -828,7 +835,7 @@ export class RaceManager {
       console.error("[race-manager] DB error (persist):", err);
     }
 
-    // 4. Load display data (usernames + elo for players not yet in eloAfterMap)
+    // 4. Load display data (usernames + elo + cosmetics for players not yet in eloAfterMap)
     try {
       const authPlayerIds = entries
         .filter((e) => !e.player.isGuest && !e.isBot)
@@ -841,6 +848,20 @@ export class RaceManager {
         for (const row of userRows) {
           if (row.username) usernameMap.set(row.id, row.username);
           if (!eloAfterMap.has(row.id)) eloAfterMap.set(row.id, row.eloRating);
+        }
+
+        // Load active cosmetics
+        const cosmeticRows = await db
+          .select({
+            userId: userActiveCosmetics.userId,
+            activeBadge: userActiveCosmetics.activeBadge,
+            activeNameColor: userActiveCosmetics.activeNameColor,
+            activeNameEffect: userActiveCosmetics.activeNameEffect,
+          })
+          .from(userActiveCosmetics)
+          .where(inArray(userActiveCosmetics.userId, authPlayerIds));
+        for (const row of cosmeticRows) {
+          cosmeticsMap.set(row.userId, row);
         }
       }
     } catch (displayErr) {
@@ -955,6 +976,7 @@ export class RaceManager {
       const stats = entry.progress.finalStats!;
       const streak = streakMap.get(entry.player.id);
       const challengeResult = challengeMap.get(entry.player.id);
+      const cosmetics = cosmeticsMap.get(entry.player.id);
       results.push({
         playerId: entry.player.id,
         name: entry.player.name,
@@ -972,6 +994,9 @@ export class RaceManager {
         challengeProgress: challengeResult?.results,
         xpEarned: challengeResult?.totalXpEarned,
         typePassProgress: typePassMap.get(entry.player.id),
+        activeBadge: cosmetics?.activeBadge ?? entry.player.activeBadge,
+        activeNameColor: cosmetics?.activeNameColor ?? entry.player.activeNameColor,
+        activeNameEffect: cosmetics?.activeNameEffect ?? entry.player.activeNameEffect,
       });
     }
 

@@ -74,15 +74,34 @@ export function PracticeResults({ stats, config, isPb, onRestart }: PracticeResu
 
           {/* Mode */}
           <div className="bg-surface/40 p-4 sm:p-5 flex flex-col items-center text-center">
-            <div className="text-3xl font-black text-text tabular-nums">
-              {config.duration}
-              <span className="text-lg opacity-50">
-                {config.mode === "timed" ? "s" : " words"}
-              </span>
-            </div>
-            <div className="text-[11px] text-muted/60 mt-1">
-              {config.mode === "timed" ? "time" : "mode"}
-            </div>
+            {(config.contentType === "quotes" || config.contentType === "marathon" || config.contentType === "sprint") ? (
+              <>
+                <div className="text-3xl font-black text-text tabular-nums">
+                  {stats.time}
+                  <span className="text-lg opacity-50">s</span>
+                </div>
+                <div className="text-[11px] text-muted/60 mt-1">
+                  {config.contentType}{config.punctuation ? " + punct" : ""}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="text-3xl font-black text-text tabular-nums">
+                  {config.duration}
+                  <span className="text-lg opacity-50">
+                    {config.mode === "timed" ? "s" : " words"}
+                  </span>
+                </div>
+                <div className="text-[11px] text-muted/60 mt-1">
+                  {config.difficulty !== "easy" ? config.difficulty : ""}
+                  {config.difficulty !== "easy" && config.punctuation ? " + " : ""}
+                  {config.punctuation ? "punct" : ""}
+                  {config.difficulty === "easy" && !config.punctuation
+                    ? (config.mode === "timed" ? "time" : "words")
+                    : ""}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>

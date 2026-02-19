@@ -1,6 +1,7 @@
-import { commonWords } from "./words";
+import { commonWords, wordPoolByDifficulty } from "./words";
 import { getQuoteWords } from "./quotes";
 import type { RaceMode } from "./race-types";
+import type { TestConfig } from "./types";
 
 /** Mulberry32 seeded PRNG — fast, deterministic, good distribution */
 export function mulberry32(seed: number): () => number {
@@ -119,4 +120,90 @@ export function generateWordsForMode(mode: RaceMode, seed: number): string[] {
     case "quotes":
       return getQuoteWords(seed);
   }
+}
+
+/**
+ * Deterministic punctuation transform.
+ * Capitalizes first word, adds periods every 6-10 words,
+ * ~12% commas, occasional ? and !.
+ */
+export function applyPunctuation(words: string[], seed?: number): string[] {
+  if (words.length === 0) return words;
+  const rng = mulberry32(seed ?? Date.now());
+  const result = [...words];
+
+  // Capitalize first word
+  result[0] = result[0].charAt(0).toUpperCase() + result[0].slice(1);
+
+  let sinceLastPeriod = 0;
+  // Random sentence length 6-10 words
+  let nextPeriodAt = 6 + Math.floor(rng() * 5);
+
+  for (let i = 0; i < result.length; i++) {
+    sinceLastPeriod++;
+
+    if (i === result.length - 1) {
+      // Last word always gets a period
+      result[i] = result[i] + ".";
+      break;
+    }
+
+    if (sinceLastPeriod >= nextPeriodAt) {
+      // End of sentence
+      const r = rng();
+      const mark = r < 0.1 ? "?" : r < 0.2 ? "!" : ".";
+      result[i] = result[i] + mark;
+      // Capitalize next word
+      if (i + 1 < result.length) {
+        result[i + 1] = result[i + 1].charAt(0).toUpperCase() + result[i + 1].slice(1);
+      }
+      sinceLastPeriod = 0;
+      nextPeriodAt = 6 + Math.floor(rng() * 5);
+    } else if (sinceLastPeriod > 2 && rng() < 0.12) {
+      // ~12% chance of comma (not at start of sentence)
+      result[i] = result[i] + ",";
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Unified word generator for solo mode.
+ * Dispatches based on contentType, applies punctuation if enabled.
+ */
+export function generateSoloWords(config: TestConfig, seed?: number): string[] {
+  const s = seed ?? Date.now();
+  const pool = wordPoolByDifficulty[config.difficulty ?? "easy"];
+  let words: string[];
+
+  switch (config.contentType ?? "words") {
+    case "words": {
+      const count = config.mode === "wordcount" ? config.duration : 200;
+      words = generateWords(pool, count, s);
+      break;
+    }
+    case "quotes": {
+      // For quotes, seed selects the quote index
+      words = getQuoteWords(s);
+      break;
+    }
+    case "marathon": {
+      words = generateWordsForLines(pool, LINE_WIDTH_CH, MARATHON_LINES, s);
+      break;
+    }
+    case "sprint": {
+      words = generateWordsForLines(pool, LINE_WIDTH_CH, SPRINT_LINES, s);
+      break;
+    }
+    default:
+      words = generateWords(pool, 200, s);
+  }
+
+  // Apply punctuation (quotes already have their own)
+  if (config.punctuation && config.contentType !== "quotes") {
+    words = applyPunctuation(words, s + 1);
+  }
+
+  return words;
 }

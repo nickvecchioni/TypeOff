@@ -8,6 +8,8 @@ import { getRankInfo, ACHIEVEMENT_MAP, CHALLENGE_MAP, getCurrentSeason, getXpLev
 import { WpmChart } from "@/components/typing/WpmChart";
 import type { AchievementRarity, PartyState } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
+import { CosmeticName } from "@/components/CosmeticName";
+import { CosmeticBadge } from "@/components/CosmeticBadge";
 import { useSession } from "next-auth/react";
 
 interface RankChange {
@@ -367,14 +369,21 @@ export function RaceResults({
                 </span>
 
                 <span className="flex items-center gap-2 min-w-0 pr-3">
+                  {!isMe && !isBot && <CosmeticBadge badge={result.activeBadge} />}
                   {result.username && !isGuest ? (
                     <Link
                       href={`/profile/${result.username}`}
                       className="hover:text-accent transition-colors truncate"
                     >
-                      {displayName}
-                      {isMe && (
-                        <span className="text-muted text-xs ml-1">(you)</span>
+                      {isMe ? (
+                        <>
+                          {displayName}
+                          <span className="text-muted text-xs ml-1">(you)</span>
+                        </>
+                      ) : (
+                        <CosmeticName nameColor={result.activeNameColor} nameEffect={result.activeNameEffect}>
+                          {displayName}
+                        </CosmeticName>
                       )}
                     </Link>
                   ) : (
