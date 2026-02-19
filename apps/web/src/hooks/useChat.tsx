@@ -9,6 +9,7 @@ import {
   useRef,
   type ReactNode,
 } from "react";
+import { useSession } from "next-auth/react";
 import { useSocket } from "./useSocket";
 
 interface Message {
@@ -35,6 +36,10 @@ interface ChatContextValue {
 const ChatContext = createContext<ChatContextValue | null>(null);
 
 export function ChatProvider({ children }: { children: ReactNode }) {
+  const { data: session } = useSession();
+  const currentUserId = session?.user?.id ?? null;
+  const currentUserIdRef = useRef<string | null>(null);
+  currentUserIdRef.current = currentUserId;
   const { on, emit, connected } = useSocket();
   const [activeChat, setActiveChat] = useState<string | null>(null);
   const [messagesMap, setMessagesMap] = useState<Map<string, Message[]>>(new Map());
@@ -75,6 +80,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   // Listen for incoming messages
   useEffect(() => {
     const unsub = on("directMessage", (data) => {
+      const isMine = data.senderId === currentUserIdRef.current;
+      // Conversation key is always the friend's ID
+      const friendId = isMine ? data.recipientId : data.senderId;
+
       const msg: Message = {
         id: data.messageId,
         senderId: data.senderId,
@@ -83,56 +92,20 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         readAt: null,
       };
 
-      // Determine which friend this conversation is with
-      // We need to figure out the friendId — if we sent it, it's the recipient;
-      // but the server emits the same payload to both. We figure out who
-      // the "other" person is by checking if senderId matches current user.
-      // Since we don't have userId here, we use the activeChat to determine.
-      // For the messagesMap, we key by the friend's ID.
-      // We'll add to both possible keys and deduplicate.
-
       setMessagesMap((prev) => {
         const next = new Map(prev);
-
-        // Try to add to existing conversations
-        // The message could belong to a conversation keyed by senderId or
-        // we need to check all keys. Simpler: we add it for any conversation
-        // that involves this senderId.
-        let added = false;
-
-        for (const [friendId, msgs] of next) {
-          // Check if this message belongs to this conversation
-          if (friendId === data.senderId || msgs.some((m) => m.senderId === data.senderId)) {
-            if (!msgs.some((m) => m.id === data.messageId)) {
-              next.set(friendId, [...msgs, msg]);
-            }
-            added = true;
-            break;
-          }
+        const existing = next.get(friendId) ?? [];
+        if (!existing.some((m) => m.id === data.messageId)) {
+          next.set(friendId, [...existing, msg]);
         }
-
-        // If no existing conversation found, the sender might be a friend
-        // messaging us for the first time in this session
-        if (!added) {
-          // Key by senderId (the friend who sent us the message)
-          // or if we sent it, it's in activeChatRef
-          const chatKey = activeChatRef.current === data.senderId
-            ? data.senderId
-            : data.senderId; // For new convos, key by the friend's ID
-          const existing = next.get(chatKey) ?? [];
-          if (!existing.some((m) => m.id === data.messageId)) {
-            next.set(chatKey, [...existing, msg]);
-          }
-        }
-
         return next;
       });
 
-      // Increment unread if this chat isn't active
-      if (activeChatRef.current !== data.senderId) {
+      // Only increment unread for messages from others, when that chat isn't open
+      if (!isMine && activeChatRef.current !== friendId) {
         setUnreadCounts((prev) => {
           const next = new Map(prev);
-          next.set(data.senderId, (next.get(data.senderId) ?? 0) + 1);
+          next.set(friendId, (next.get(friendId) ?? 0) + 1);
           return next;
         });
       }

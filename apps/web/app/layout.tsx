@@ -60,6 +60,12 @@ export default function RootLayout({
                 >
                   TypePass
                 </Link>
+                <Link
+                  href="/cosmetics"
+                  className="text-sm text-muted hover:text-text transition-colors"
+                >
+                  Cosmetics
+                </Link>
               </div>
               <div className="flex items-center gap-4">
                 <UserMenu />

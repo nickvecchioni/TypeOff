@@ -70,6 +70,7 @@ export class ChatManager {
       const payload = {
         messageId: msg.id,
         senderId: sender.id,
+        recipientId: data.recipientId,
         senderName: sender.name,
         content,
         createdAt: msg.createdAt.toISOString(),

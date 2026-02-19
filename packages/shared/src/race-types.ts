@@ -147,6 +147,7 @@ export interface ServerToClientEvents {
   directMessage: (data: {
     messageId: string;
     senderId: string;
+    recipientId: string;
     senderName: string;
     content: string;
     createdAt: string;
