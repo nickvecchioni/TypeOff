@@ -22,6 +22,7 @@ export interface TypingEngine extends EngineAPI {
 export interface ExternalConfig {
   externalSeed?: number;
   externalWordCount?: number;
+  externalWords?: string[]; // pre-built word list (e.g. quotes mode)
   mode?: "timed" | "wordcount";
 }
 
@@ -37,8 +38,9 @@ function createWordStates(wordStrings: string[]): WordState[] {
 }
 
 export function useTypingEngine(external?: ExternalConfig): TypingEngine {
+  const wordCount = external?.externalWords?.length ?? external?.externalWordCount ?? 50;
   const initialConfig: TestConfig = external?.mode === "wordcount"
-    ? { mode: "wordcount", duration: external.externalWordCount ?? 50 }
+    ? { mode: "wordcount", duration: wordCount }
     : DEFAULT_CONFIG;
   const [config, setConfig] = useState<TestConfig>(initialConfig);
   const [words, setWords] = useState<WordState[]>([]);
@@ -63,12 +65,16 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
   useEffect(() => {
     if (!initialized.current) {
       initialized.current = true;
-      const seed = external?.externalSeed ?? undefined;
-      const count =
-        external?.externalWordCount ??
-        (config.mode === "wordcount" ? config.duration : WORD_POOL_SIZE);
-      const wordStrings = generateFromPool(count, seed);
-      setWords(createWordStates(wordStrings));
+      if (external?.externalWords) {
+        setWords(createWordStates(external.externalWords));
+      } else {
+        const seed = external?.externalSeed ?? undefined;
+        const count =
+          external?.externalWordCount ??
+          (config.mode === "wordcount" ? config.duration : WORD_POOL_SIZE);
+        const wordStrings = generateFromPool(count, seed);
+        setWords(createWordStates(wordStrings));
+      }
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -152,12 +158,17 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
 
   const restart = useCallback(() => {
     stopTimer();
-    const seed = external?.externalSeed ?? undefined;
-    const count =
-      external?.externalWordCount ??
-      (config.mode === "wordcount" ? config.duration : WORD_POOL_SIZE);
-    const wordStrings = generateFromPool(count, seed);
-    const newWords = createWordStates(wordStrings);
+    let newWords: WordState[];
+    if (external?.externalWords) {
+      newWords = createWordStates(external.externalWords);
+    } else {
+      const seed = external?.externalSeed ?? undefined;
+      const count =
+        external?.externalWordCount ??
+        (config.mode === "wordcount" ? config.duration : WORD_POOL_SIZE);
+      const wordStrings = generateFromPool(count, seed);
+      newWords = createWordStates(wordStrings);
+    }
     setWords(newWords);
     setCurrentWordIndex(0);
     setCurrentCharIndex(0);
@@ -182,7 +193,7 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
       const word = words[currentWordIndex];
       if (!word || currentCharIndex >= word.chars.length) return;
 
-      const isCorrect = char.toLowerCase() === word.chars[currentCharIndex].expected.toLowerCase();
+      const isCorrect = char === word.chars[currentCharIndex].expected;
 
       setWords((prev) => {
         const newWords = [...prev];

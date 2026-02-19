@@ -188,6 +188,7 @@ export function RaceArena() {
               <CountdownOverlay
                 countdown={race.countdown}
                 placementRace={race.raceState.placementRace}
+                mode={race.raceState.mode}
               />
               {race.phase === "countdown" && (
                 <button
@@ -210,6 +211,7 @@ export function RaceArena() {
               <RaceTypingArea
                 seed={race.raceState.seed}
                 wordCount={race.raceState.wordCount}
+                mode={race.raceState.mode}
                 finishTimeoutEnd={race.finishTimeoutEnd}
                 onProgress={race.sendProgress}
                 onFinish={handleFinish}

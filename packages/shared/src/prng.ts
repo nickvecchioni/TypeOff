@@ -1,4 +1,6 @@
 import { commonWords } from "./words";
+import { getQuoteWords } from "./quotes";
+import type { RaceMode } from "./race-types";
 
 /** Mulberry32 seeded PRNG — fast, deterministic, good distribution */
 export function mulberry32(seed: number): () => number {
@@ -45,6 +47,10 @@ export const LINE_WIDTH_CH = 62;
 
 /** Number of lines the race text should fill */
 export const TARGET_LINES = 3;
+
+/** Line counts for marathon and sprint modes */
+export const MARATHON_LINES = 6;
+export const SPRINT_LINES = 1;
 
 /**
  * Generate words that fill exactly `numLines` lines of `lineWidthCh` characters.
@@ -97,4 +103,20 @@ export function generateFromPoolForLines(
   seed?: number
 ): string[] {
   return generateWordsForLines(commonWords, lineWidthCh, numLines, seed);
+}
+
+/** Generate words for a given race mode.
+ *  For quotes mode, seed is the quote index.
+ *  For other modes, seed is the PRNG seed. */
+export function generateWordsForMode(mode: RaceMode, seed: number): string[] {
+  switch (mode) {
+    case "standard":
+      return generateFromPoolForLines(LINE_WIDTH_CH, TARGET_LINES, seed);
+    case "marathon":
+      return generateFromPoolForLines(LINE_WIDTH_CH, MARATHON_LINES, seed);
+    case "sprint":
+      return generateFromPoolForLines(LINE_WIDTH_CH, SPRINT_LINES, seed);
+    case "quotes":
+      return getQuoteWords(seed);
+  }
 }

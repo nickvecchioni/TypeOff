@@ -40,7 +40,77 @@ export const quotes: string[] = [
   "The best and most beautiful things in the world cannot be seen or even touched. They must be felt with the heart.",
   "Whoever is happy will make others happy too.",
   "You must be the change you wish to see in the world.",
+  "The only thing we have to fear is fear itself.",
+  "In three words I can sum up everything I learned about life: it goes on.",
+  "To be yourself in a world that is constantly trying to make you something else is the greatest accomplishment.",
+  "Two things are infinite: the universe and human stupidity; and I am not sure about the universe.",
+  "Be the change that you wish to see in the world.",
+  "A room without books is like a body without a soul.",
+  "You miss one hundred percent of the shots you do not take.",
+  "I have not failed. I have just found ten thousand ways that will not work.",
+  "The only true wisdom is in knowing you know nothing.",
+  "The unexamined life is not worth living.",
+  "Turn your wounds into wisdom.",
+  "The greatest wealth is to live content with little.",
+  "It is never too late to be what you might have been.",
+  "Everything has beauty, but not everyone sees it.",
+  "The journey of a thousand miles begins with one step.",
+  "That which does not kill us makes us stronger.",
+  "Life is really simple, but we insist on making it complicated.",
+  "The only thing standing between you and your goal is the story you keep telling yourself.",
+  "Dream big and dare to fail.",
+  "What you get by achieving your goals is not as important as what you become by achieving your goals.",
+  "You cannot shake hands with a clenched fist.",
+  "Education is the most powerful weapon which you can use to change the world.",
+  "The best way to predict the future is to create it.",
+  "Knowledge speaks, but wisdom listens.",
+  "Life shrinks or expands in proportion to one's courage.",
+  "The greatest discovery of all time is that a person can change their future by merely changing their attitude.",
+  "We are what we repeatedly do. Excellence, then, is not an act, but a habit.",
+  "Imagination is more important than knowledge. Knowledge is limited. Imagination encircles the world.",
+  "Try not to become a man of success. Rather become a man of value.",
+  "In the end, it is not the years in your life that count. It is the life in your years.",
+  "Not everything that is faced can be changed, but nothing can be changed until it is faced.",
+  "The power of imagination makes us infinite.",
+  "Perfection is not attainable, but if we chase perfection we can catch excellence.",
+  "Life is ten percent what happens to you and ninety percent how you react to it.",
+  "An unexamined life is not worth living.",
+  "Peace begins with a smile.",
+  "The best way out is always through.",
+  "Keep your face always toward the sunshine, and shadows will fall behind you.",
+  "Spread love everywhere you go. Let no one ever come to you without leaving happier.",
+  "The purpose of life is not to be happy. It is to be useful, to be honorable, to be compassionate.",
+  "Nothing is impossible. The word itself says I am possible.",
+  "What we achieve inwardly will change outer reality.",
+  "If you cannot do great things, do small things in a great way.",
+  "Simplicity is the ultimate sophistication.",
+  "The best preparation for tomorrow is doing your best today.",
+  "You are never too old to set another goal or to dream a new dream.",
+  "Darkness cannot drive out darkness; only light can do that. Hate cannot drive out hate; only love can do that.",
+  "Our lives begin to end the day we become silent about things that matter.",
+  "If opportunity does not knock, build a door.",
+  "The harder you work for something, the greater you will feel when you achieve it.",
+  "Do not watch the clock; do what it does. Keep going.",
+  "Everything you can imagine is real.",
+  "Talent wins games, but teamwork and intelligence win championships.",
+  "A person who never made a mistake never tried anything new.",
+  "I think, therefore I am.",
+  "The only person you are destined to become is the person you decide to be.",
+  "Go confidently in the direction of your dreams. Live the life you have imagined.",
+  "When you reach the end of your rope, tie a knot in it and hang on.",
+  "Change is the law of life, and those who look only to the past or present are certain to miss the future.",
+  "The most difficult thing is the decision to act. The rest is merely tenacity.",
 ];
+
+/** Get a quote by index (wraps around if index exceeds array length) */
+export function getQuoteByIndex(index: number): string {
+  return quotes[index % quotes.length];
+}
+
+/** Get a quote split into words by index */
+export function getQuoteWords(index: number): string[] {
+  return getQuoteByIndex(index).split(" ").filter((w) => w.length > 0);
+}
 
 /** Split a quote into words by spaces */
 export function quoteToWords(quote: string): string[] {

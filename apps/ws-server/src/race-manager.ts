@@ -8,8 +8,8 @@ import type {
   RaceStatus,
   WpmSample,
 } from "@typeoff/shared";
-import { calculateRaceElo, getRankTier, generateFromPoolForLines, LINE_WIDTH_CH, TARGET_LINES } from "@typeoff/shared";
-import type { RankTier } from "@typeoff/shared";
+import { calculateRaceElo, getRankTier, generateWordsForMode, quotes } from "@typeoff/shared";
+import type { RankTier, RaceMode } from "@typeoff/shared";
 import { createDb, races, raceParticipants, userStats, users } from "@typeoff/db";
 import { eq, inArray, and, sql } from "drizzle-orm";
 import { checkAchievements } from "./achievement-checker.js";
@@ -76,6 +76,9 @@ export class RaceManager {
   private wordCount: number;
   private expectedWords: string[] = [];
   private playerFlags = new Map<string, string[]>();
+  private mode: RaceMode;
+
+  private static readonly MODES: RaceMode[] = ["standard", "quotes", "marathon", "sprint"];
 
   constructor(
     private io: TypedServer,
@@ -87,9 +90,18 @@ export class RaceManager {
   ) {
     this.placementRace = placementRace;
     this.raceId = crypto.randomUUID();
-    this.seed = Math.floor(Math.random() * 2147483647);
-    // Generate words that fill exactly TARGET_LINES lines
-    this.expectedWords = generateFromPoolForLines(LINE_WIDTH_CH, TARGET_LINES, this.seed);
+
+    // Select race mode (placement races always use standard)
+    this.mode = placementRace
+      ? "standard"
+      : RaceManager.MODES[Math.floor(Math.random() * RaceManager.MODES.length)];
+
+    // For quotes mode, seed is a quote index; otherwise a PRNG seed
+    this.seed = this.mode === "quotes"
+      ? Math.floor(Math.random() * quotes.length)
+      : Math.floor(Math.random() * 2147483647);
+
+    this.expectedWords = generateWordsForMode(this.mode, this.seed);
     this.wordCount = this.expectedWords.length;
     this.totalChars = this.expectedWords.reduce((sum, w) => sum + w.length, 0) + (this.wordCount - 1);
 
@@ -615,7 +627,7 @@ export class RaceManager {
         id: this.raceId,
         seed: this.seed,
         wordCount: this.wordCount,
-        wordPool: "common",
+        wordPool: this.mode,
         playerCount: entries.length,
         startedAt: this.startedAt ?? new Date(),
         finishedAt: new Date(),
@@ -1058,6 +1070,7 @@ export class RaceManager {
       countdown: 0,
       finishTimeoutEnd: this.finishTimeoutEnd,
       placementRace: this.placementRace,
+      mode: this.mode,
     };
   }
 }

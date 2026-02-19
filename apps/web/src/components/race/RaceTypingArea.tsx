@@ -1,14 +1,16 @@
 "use client";
 
-import React, { useRef, useEffect, useCallback, useState } from "react";
+import React, { useRef, useEffect, useCallback, useState, useMemo } from "react";
 import { useTypingEngine } from "@/hooks/useTypingEngine";
 import { WordDisplay } from "@/components/typing/WordDisplay";
 import { useActiveCosmetics } from "@/contexts/CosmeticContext";
-import { TYPING_THEMES } from "@typeoff/shared";
+import { TYPING_THEMES, generateWordsForMode } from "@typeoff/shared";
+import type { RaceMode } from "@typeoff/shared";
 
 interface RaceTypingAreaProps {
   seed: number;
   wordCount: number;
+  mode: RaceMode;
   finishTimeoutEnd?: number | null;
   onProgress: (data: {
     wordIndex: number;
@@ -29,6 +31,7 @@ interface RaceTypingAreaProps {
 export function RaceTypingArea({
   seed,
   wordCount,
+  mode,
   finishTimeoutEnd,
   onProgress,
   onFinish,
@@ -37,9 +40,14 @@ export function RaceTypingArea({
   const { activeTypingTheme } = useActiveCosmetics();
   const themeClass = activeTypingTheme ? TYPING_THEMES[activeTypingTheme]?.className ?? "" : "";
 
+  // Use the same generation function as the server for all modes
+  const externalWords = useMemo(
+    () => generateWordsForMode(mode, seed),
+    [mode, seed],
+  );
+
   const engine = useTypingEngine({
-    externalSeed: seed,
-    externalWordCount: wordCount,
+    externalWords,
     mode: "wordcount",
   });
 

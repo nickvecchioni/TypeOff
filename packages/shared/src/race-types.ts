@@ -1,6 +1,9 @@
 /** Status of a race room */
 export type RaceStatus = "waiting" | "countdown" | "racing" | "finished";
 
+/** Race mode determines text generation and display */
+export type RaceMode = "standard" | "quotes" | "marathon" | "sprint";
+
 /** A player in a race */
 export interface RacePlayer {
   id: string;
@@ -36,6 +39,7 @@ export interface RaceState {
   countdown: number; // seconds remaining in countdown
   finishTimeoutEnd: number | null; // timestamp when race force-ends
   placementRace?: number; // 1-3 during placement, undefined for ranked
+  mode: RaceMode; // race mode (standard, quotes, marathon, sprint)
 }
 
 /** Party state */
