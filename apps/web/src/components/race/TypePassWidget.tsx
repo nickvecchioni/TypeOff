@@ -24,7 +24,8 @@ export function TypePassWidget() {
       .catch(() => {});
   }, []);
 
-  if (!data?.season) return null;
+  if (!data) return <div className="w-full min-h-[100px]" />;
+  if (!data.season) return null;
 
   const season = data.season;
   const tier = data.userState?.currentTier ?? 0;

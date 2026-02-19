@@ -13,6 +13,7 @@ import { AddFriendButton } from "@/components/social/AddFriendButton";
 import { CosmeticBadge } from "@/components/CosmeticBadge";
 import { CosmeticTitle } from "@/components/CosmeticTitle";
 import { CosmeticName } from "@/components/CosmeticName";
+import { LocalDateTime } from "./local-date-time";
 
 
 export default async function ProfilePage({
@@ -249,11 +250,11 @@ export default async function ProfilePage({
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="text-xs text-muted/60 uppercase tracking-wider border-b border-white/[0.04]">
-                    <th className="px-4 py-2.5 font-medium">Date</th>
-                    <th className="px-4 py-2.5 font-medium">Place</th>
-                    <th className="px-4 py-2.5 font-medium text-right">WPM</th>
-                    <th className="px-4 py-2.5 font-medium text-right">Acc</th>
-                    <th className="px-4 py-2.5 font-medium text-right">ELO</th>
+                    <th className="px-3 sm:px-4 py-2.5 font-medium">Date</th>
+                    <th className="px-3 sm:px-4 py-2.5 font-medium">Place</th>
+                    <th className="px-3 sm:px-4 py-2.5 font-medium text-right">WPM</th>
+                    <th className="px-3 sm:px-4 py-2.5 font-medium text-right">Acc</th>
+                    <th className="px-3 sm:px-4 py-2.5 font-medium text-right">ELO</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -285,17 +286,17 @@ export default async function ProfilePage({
                         key={i}
                         className="border-b border-white/[0.02] last:border-0 hover:bg-white/[0.015] transition-colors"
                       >
-                        <td className="px-4 py-2.5 text-muted tabular-nums text-xs">
+                        <td className="px-3 sm:px-4 py-2.5 text-muted tabular-nums text-xs" suppressHydrationWarning>
                           {race.finishedAt
-                            ? new Date(race.finishedAt).toLocaleDateString()
+                            ? <LocalDateTime date={race.finishedAt.toISOString()} />
                             : "-"}
                         </td>
-                        <td className="px-4 py-2.5">
+                        <td className="px-3 sm:px-4 py-2.5">
                           <span className={`text-xs font-bold ${placementColor}`}>
                             {ordinal}
                           </span>
                         </td>
-                        <td className="px-4 py-2.5 text-right tabular-nums text-text text-xs">
+                        <td className="px-3 sm:px-4 py-2.5 text-right tabular-nums text-text text-xs">
                           {race.wpm != null ? (
                             <>
                               {Math.floor(race.wpm)}
@@ -305,10 +306,10 @@ export default async function ProfilePage({
                             </>
                           ) : "-"}
                         </td>
-                        <td className="px-4 py-2.5 text-right tabular-nums text-muted text-xs">
+                        <td className="px-3 sm:px-4 py-2.5 text-right tabular-nums text-muted text-xs">
                           {race.accuracy != null ? (<>{Math.floor(race.accuracy)}<span className="text-[0.8em] opacity-50">.{((race.accuracy % 1) * 10).toFixed(0)}%</span></>) : "-"}
                         </td>
-                        <td className="px-4 py-2.5 text-right tabular-nums">
+                        <td className="px-3 sm:px-4 py-2.5 text-right tabular-nums">
                           {eloChange != null ? (
                             <span
                               className={`text-xs font-medium ${

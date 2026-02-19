@@ -31,6 +31,12 @@ const RARITY_RING: Record<AchievementRarity, string> = {
   legendary: "ring-yellow-400/50",
 };
 
+const PLACEMENT_STYLE: Record<number, { bar: string; text: string }> = {
+  1: { bar: "bg-rank-gold", text: "text-rank-gold" },
+  2: { bar: "bg-rank-silver", text: "text-rank-silver" },
+  3: { bar: "bg-rank-bronze", text: "text-rank-bronze" },
+};
+
 function ordinal(n: number): string {
   const s = ["th", "st", "nd", "rd"];
   const v = n % 100;
@@ -203,76 +209,82 @@ export function RaceResults({
     ? "grid-cols-2 sm:grid-cols-4"
     : "grid-cols-2 sm:grid-cols-3";
 
+  const pStyle = myResult
+    ? PLACEMENT_STYLE[myResult.placement] ?? { bar: "bg-muted/30", text: "text-muted" }
+    : null;
+
   return (
-    <div className="flex flex-col gap-5 w-full">
-      {/* ── Stats summary bar ────────────────────────────── */}
+    <div className="flex flex-col gap-4 w-full">
+      {/* ── Stats summary ──────────────────────────────────── */}
       {myResult ? (
-        <div
-          className={`grid gap-px rounded-lg overflow-hidden ring-1 ring-white/[0.04] w-full animate-slide-up ${statCols}`}
-        >
-          {/* Position */}
-          <div className="bg-surface/30 p-4 sm:p-5">
-            <div className="text-3xl font-black text-text tabular-nums">
-              {ordinal(myResult.placement)}
+        <div className="rounded-xl overflow-hidden ring-1 ring-white/[0.04] animate-slide-up">
+          {/* Placement-colored accent bar */}
+          <div className={`h-0.5 ${pStyle!.bar} opacity-50`} />
+          <div className={`grid gap-px ${statCols}`}>
+            {/* Position */}
+            <div className="bg-surface/40 p-4 sm:p-5">
+              <div className={`text-3xl font-black tabular-nums ${pStyle!.text}`}>
+                {ordinal(myResult.placement)}
+              </div>
+              <div className="text-[11px] text-muted/60 mt-1">
+                of {results.length}
+              </div>
             </div>
-            <div className="text-[11px] text-muted mt-1">
-              of {results.length}
-            </div>
-          </div>
 
-          {/* WPM */}
-          <div className="bg-surface/30 p-4 sm:p-5">
-            <div className="text-3xl font-black text-text tabular-nums">
-              {Math.floor(myResult.wpm)}
-              <span className="text-lg opacity-50">
-                .{(myResult.wpm % 1).toFixed(2).slice(2)}
-              </span>
-            </div>
-            <div className="text-[11px] text-muted mt-1">wpm</div>
-          </div>
-
-          {/* Accuracy (ranked only) */}
-          {!isPlacement && (
-            <div className="bg-surface/30 p-4 sm:p-5">
+            {/* WPM */}
+            <div className="bg-surface/40 p-4 sm:p-5">
               <div className="text-3xl font-black text-text tabular-nums">
-                {Math.floor(myResult.accuracy)}
+                {Math.floor(myResult.wpm)}
                 <span className="text-lg opacity-50">
-                  .{((myResult.accuracy % 1) * 10).toFixed(0)}%
+                  .{(myResult.wpm % 1).toFixed(2).slice(2)}
                 </span>
               </div>
-              <div className="text-[11px] text-muted mt-1">accuracy</div>
+              <div className="text-[11px] text-muted/60 mt-1">wpm</div>
             </div>
-          )}
 
-          {/* ELO cell (ranked) or Placement progress */}
-          {isPlacement ? (
-            <div className="bg-surface/30 p-4 sm:p-5 col-span-2 sm:col-span-1">
-              <div className="text-sm font-bold text-accent">
-                Race {placementRace} / {placementTotal}
+            {/* Accuracy (ranked only) */}
+            {!isPlacement && (
+              <div className="bg-surface/40 p-4 sm:p-5">
+                <div className="text-3xl font-black text-text tabular-nums">
+                  {Math.floor(myResult.accuracy)}
+                  <span className="text-lg opacity-50">
+                    .{((myResult.accuracy % 1) * 10).toFixed(0)}%
+                  </span>
+                </div>
+                <div className="text-[11px] text-muted/60 mt-1">accuracy</div>
               </div>
-              <div className="flex items-center gap-1.5 mt-2">
-                {Array.from({ length: placementTotal! }, (_, i) => (
-                  <div
-                    key={i}
-                    className={`w-2 h-2 rounded-full ${
-                      i < placementRace! ? "bg-accent" : "bg-surface-bright"
-                    }`}
+            )}
+
+            {/* ELO cell (ranked) or Placement progress */}
+            {isPlacement ? (
+              <div className="bg-surface/40 p-4 sm:p-5 col-span-2 sm:col-span-1">
+                <div className="text-sm font-bold text-accent">
+                  Race {placementRace} / {placementTotal}
+                </div>
+                <div className="flex items-center gap-1.5 mt-2">
+                  {Array.from({ length: placementTotal! }, (_, i) => (
+                    <div
+                      key={i}
+                      className={`w-2 h-2 rounded-full ${
+                        i < placementRace! ? "bg-accent" : "bg-surface-bright"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              hasElo && (
+                <div className="bg-surface/40 p-4 sm:p-5">
+                  <AnimatedElo
+                    oldElo={myResult.elo! - myResult.eloChange!}
+                    newElo={myResult.elo!}
+                    change={myResult.eloChange!}
+                    rankChange={rankChange}
                   />
-                ))}
-              </div>
-            </div>
-          ) : (
-            hasElo && (
-              <div className="bg-surface/30 p-4 sm:p-5">
-                <AnimatedElo
-                  oldElo={myResult.elo! - myResult.eloChange!}
-                  newElo={myResult.elo!}
-                  change={myResult.eloChange!}
-                  rankChange={rankChange}
-                />
-              </div>
-            )
-          )}
+                </div>
+              )
+            )}
+          </div>
         </div>
       ) : (
         <h2 className="text-lg font-bold text-text animate-slide-up">
@@ -280,27 +292,32 @@ export function RaceResults({
         </h2>
       )}
 
-      {/* ── Standings table ──────────────────────────────── */}
-      <div className="w-full">
+      {/* ── Standings ──────────────────────────────────────── */}
+      <div
+        className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden w-full"
+        style={{ animation: "slide-up 0.5s ease-out 0.08s both" }}
+      >
+        {/* Header */}
         <div
-          className={`grid text-muted text-xs uppercase tracking-wider border-b border-white/[0.06] pb-2.5 ${tableCols}`}
+          className={`grid text-muted/50 text-xs uppercase tracking-wider px-3 sm:px-4 py-2.5 border-b border-white/[0.06] ${tableCols}`}
         >
-          <span className="font-semibold">#</span>
-          <span className="font-semibold">Name</span>
+          <span className="font-medium">#</span>
+          <span className="font-medium">Name</span>
           {!isPlacement && (
-            <span className="font-semibold hidden sm:block">Rank</span>
+            <span className="font-medium hidden sm:block">Rank</span>
           )}
-          <span className="font-semibold text-right">WPM</span>
+          <span className="font-medium text-right">WPM</span>
           {!isPlacement && (
-            <span className="font-semibold text-right hidden sm:block">
+            <span className="font-medium text-right hidden sm:block">
               Acc
             </span>
           )}
           {!isPlacement && (
-            <span className="font-semibold text-right">ELO</span>
+            <span className="font-medium text-right">ELO</span>
           )}
         </div>
 
+        {/* Rows */}
         {results.map((result) => {
           const isMe = result.playerId === myPlayerId;
           const isBot = result.playerId.startsWith("bot_");
@@ -316,8 +333,12 @@ export function RaceResults({
           return (
             <div
               key={result.playerId}
-              className={`grid items-center border-b border-white/[0.04] py-2.5 ${tableCols} ${
-                isMe ? "text-accent" : "text-text"
+              className={`grid items-center px-3 sm:px-4 py-2.5 border-b border-white/[0.03] last:border-0 transition-colors ${tableCols} ${
+                isMe
+                  ? "bg-accent/[0.05] text-accent"
+                  : isBot
+                  ? "text-text/60"
+                  : "text-text hover:bg-white/[0.015]"
               }`}
             >
               <span className="font-bold tabular-nums">
@@ -427,7 +448,10 @@ export function RaceResults({
 
       {/* ── Achievements ─────────────────────────────────── */}
       {hasAchievements && (
-        <div className="flex flex-col gap-1.5 w-full">
+        <div
+          className="flex flex-col gap-1.5 w-full"
+          style={{ animation: "slide-up 0.5s ease-out 0.14s both" }}
+        >
           <h3 className="text-xs font-bold text-muted/60 uppercase tracking-wider">
             Achievements Unlocked
           </h3>
@@ -458,11 +482,14 @@ export function RaceResults({
 
       {/* ── Progress: Challenges + TypePass ───────────────── */}
       {hasProgress && (
-        <div className="grid grid-cols-1 sm:grid-cols-[1fr_16rem] gap-6 w-full border-t border-white/[0.04] pt-5">
-          {/* Challenges */}
-          <div>
+        <div
+          className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden w-full"
+          style={{ animation: "slide-up 0.5s ease-out 0.18s both" }}
+        >
+          <div className="flex flex-col sm:flex-row divide-y sm:divide-y-0 sm:divide-x divide-white/[0.04]">
+            {/* Challenges */}
             {hasChallenges && (
-              <div>
+              <div className="flex-1 p-4 sm:p-5">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-xs font-bold text-muted/60 uppercase tracking-wider">
                     Challenges
@@ -518,10 +545,8 @@ export function RaceResults({
                 </div>
               </div>
             )}
-          </div>
 
-          {/* TypePass */}
-          <div>
+            {/* TypePass */}
             {hasTypePass &&
               season &&
               (() => {
@@ -533,7 +558,7 @@ export function RaceResults({
                     : (xpInTier / season.xpPerTier) * 100;
 
                 return (
-                  <div>
+                  <div className="sm:w-64 p-4 sm:p-5">
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="text-xs font-bold text-amber-400/80 uppercase tracking-wider">
                         Season XP
@@ -587,7 +612,10 @@ export function RaceResults({
       )}
 
       {/* ── Actions ──────────────────────────────────────── */}
-      <div className="flex flex-col items-center gap-2 w-full max-w-xs mx-auto pt-1">
+      <div
+        className="flex flex-col items-center gap-2 w-full max-w-xs mx-auto pt-1"
+        style={{ animation: "slide-up 0.5s ease-out 0.22s both" }}
+      >
         <button
           onClick={() => onRaceAgain()}
           className="w-full rounded-lg bg-accent/[0.06] ring-1 ring-accent/20 text-accent py-3 text-sm font-medium hover:bg-accent hover:text-bg hover:ring-accent transition-all"
