@@ -102,16 +102,22 @@ export function QueueScreen({
 
   /* ── Idle state ─────────────────────────────────────────── */
   return (
-    <div className="flex flex-col items-center animate-fade-in w-full max-w-xl">
+    <div className="flex flex-col items-center w-full max-w-xl">
       {session?.user ? (
         <>
           {/* Action area */}
           {inPartyNotLeader ? (
-            <div className="text-sm text-muted py-3">
+            <div
+              className="text-sm text-muted py-3 opacity-0 animate-fade-in"
+              style={{ animationDelay: "0ms", animationFillMode: "both" }}
+            >
               Waiting for party leader to start...
             </div>
           ) : (
-            <div className="flex flex-col items-center w-full">
+            <div
+              className="flex flex-col items-center w-full opacity-0 animate-fade-in"
+              style={{ animationDelay: "0ms", animationFillMode: "both" }}
+            >
               <button
                 onClick={onJoin}
                 disabled={!connected}
@@ -132,7 +138,8 @@ export function QueueScreen({
           {session.user.placementsCompleted && !party && (
             <button
               onClick={onCreateParty}
-              className="text-xs text-muted/40 hover:text-muted transition-colors mt-3"
+              className="text-xs text-muted/40 hover:text-muted transition-colors mt-3 opacity-0 animate-fade-in"
+              style={{ animationDelay: "60ms", animationFillMode: "both" }}
             >
               create party
             </button>
@@ -140,7 +147,10 @@ export function QueueScreen({
 
           {/* Party panel */}
           {session.user.placementsCompleted && party && (
-            <div className="w-full mt-5">
+            <div
+              className="w-full mt-5 opacity-0 animate-fade-in"
+              style={{ animationDelay: "80ms", animationFillMode: "both" }}
+            >
               <PartyPanel
                 party={party}
                 error={partyError}
@@ -154,7 +164,10 @@ export function QueueScreen({
 
           {/* Dashboard */}
           {session.user.placementsCompleted && (
-            <div className="w-full mt-6 pt-6 border-t border-white/[0.04] flex flex-col gap-3">
+            <div
+              className="w-full mt-6 pt-6 border-t border-white/[0.04] flex flex-col gap-3 opacity-0 animate-fade-in"
+              style={{ animationDelay: "120ms", animationFillMode: "both" }}
+            >
               <ChallengesWidget />
               <TypePassWidget />
             </div>

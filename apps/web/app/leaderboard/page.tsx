@@ -120,8 +120,11 @@ export default async function LeaderboardPage() {
 
   return (
     <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
-      <div className="max-w-3xl mx-auto animate-fade-in">
-        <div className="flex items-baseline justify-between mb-6">
+      <div className="max-w-3xl mx-auto">
+        <div
+          className="flex items-baseline justify-between mb-6 opacity-0 animate-fade-in"
+          style={{ animationDelay: "0ms", animationFillMode: "both" }}
+        >
           <h1 className="text-lg font-black text-text uppercase tracking-wider">
             Leaderboard
           </h1>
@@ -131,13 +134,19 @@ export default async function LeaderboardPage() {
         </div>
 
         {rows.length === 0 ? (
-          <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] py-16 text-center">
+          <div
+            className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] py-16 text-center opacity-0 animate-fade-in"
+            style={{ animationDelay: "80ms", animationFillMode: "both" }}
+          >
             <p className="text-muted text-sm">No ranked players yet. Be the first.</p>
           </div>
         ) : (
           <div>
             {/* Header */}
-            <div className="grid grid-cols-[2rem_1fr_4rem_3.5rem] sm:grid-cols-[2rem_1fr_4.5rem_5rem_5rem_5rem_3.5rem_3.5rem_3.5rem] items-center gap-3 px-4 py-2 text-xs text-muted/60 uppercase tracking-wider border-b border-white/[0.04]">
+            <div
+              className="grid grid-cols-[2rem_1fr_4rem_3.5rem] sm:grid-cols-[2rem_1fr_4.5rem_5rem_5rem_5rem_3.5rem_3.5rem_3.5rem] items-center gap-3 px-4 py-2 text-xs text-muted/60 uppercase tracking-wider border-b border-white/[0.04] opacity-0 animate-fade-in"
+              style={{ animationDelay: "60ms", animationFillMode: "both" }}
+            >
               <span></span>
               <span>Player</span>
               <span className="text-right">ELO</span>
@@ -150,7 +159,10 @@ export default async function LeaderboardPage() {
             </div>
 
             {/* Rows */}
-            <div className="divide-y divide-white/[0.03]">
+            <div
+              className="divide-y divide-white/[0.03] opacity-0 animate-fade-in"
+              style={{ animationDelay: "120ms", animationFillMode: "both" }}
+            >
               {rows.map((row, i) => {
                 const rank = i + 1;
                 const isMe = session?.user?.id === row.id;
@@ -247,7 +259,10 @@ export default async function LeaderboardPage() {
               const racesWon = row.racesWon ?? 0;
 
               return (
-                <div className="mt-3 border-t border-white/[0.04] pt-3">
+                <div
+                  className="mt-3 border-t border-white/[0.04] pt-3 opacity-0 animate-fade-in"
+                  style={{ animationDelay: "200ms", animationFillMode: "both" }}
+                >
                   <p className="text-center text-muted/30 text-sm select-none leading-none mb-3">
                     &middot;&middot;&middot;
                   </p>

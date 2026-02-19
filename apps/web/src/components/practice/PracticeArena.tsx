@@ -74,12 +74,12 @@ export function PracticeArena() {
     }
   }, [scrollOffset]);
 
-  // Focus container on mount and when returning to idle
+  // Focus container on mount, when returning to idle, and after cascade remount
   useEffect(() => {
     if (engine.status === "idle" || engine.status === "typing") {
       requestAnimationFrame(() => containerRef.current?.focus());
     }
-  }, [engine.status]);
+  }, [engine.status, cascadeKey]);
 
   // Refocus after config change
   const handleAfterConfigChange = useCallback(() => {
@@ -152,33 +152,13 @@ export function PracticeArena() {
         isTyping ? "focus-active" : ""
       }`}
     >
-      {/* Live WPM + time (above config, stays visible while typing) */}
-      {isTyping && (
-        <div className="flex items-center gap-4 text-base text-muted tabular-nums">
-          <span>
-            <span className="text-text font-bold">{engine.liveWpm}</span> wpm
-          </span>
-          {engine.config.mode === "timed" && (
-            <span>
-              <span className="text-text font-bold">{engine.timeLeft}</span>s
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* Config bar + PB display */}
+      {/* PB + Config bar */}
       {!isFinished && (
         <div
           key={`config-${cascadeKey}`}
           className="flex flex-col items-center gap-2 opacity-0 animate-fade-in"
           style={{ animationDelay: "0ms", animationFillMode: "both" }}
         >
-          <ConfigBar
-            config={engine.config}
-            status={engine.status}
-            onConfigChange={engine.setConfig}
-            onAfterChange={handleAfterConfigChange}
-          />
           {session?.user?.id && (
             <div className="focus-fade text-sm text-muted/50 tabular-nums">
               pb{" "}
@@ -195,6 +175,12 @@ export function PracticeArena() {
               )}
             </div>
           )}
+          <ConfigBar
+            config={engine.config}
+            status={engine.status}
+            onConfigChange={engine.setConfig}
+            onAfterChange={handleAfterConfigChange}
+          />
         </div>
       )}
 
@@ -222,6 +208,20 @@ export function PracticeArena() {
               isTyping={isTyping}
             />
           </div>
+        </div>
+      )}
+
+      {/* Live WPM + time (below words, stays visible while typing) */}
+      {isTyping && (
+        <div className="flex items-center gap-4 text-base text-muted tabular-nums -mt-2">
+          <span>
+            <span className="text-text font-bold">{engine.liveWpm}</span> wpm
+          </span>
+          {engine.config.mode === "timed" && (
+            <span>
+              <span className="text-text font-bold">{engine.timeLeft}</span>s
+            </span>
+          )}
         </div>
       )}
 

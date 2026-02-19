@@ -37,10 +37,6 @@ export function PracticeResults({ stats, config, isPb, onRestart }: PracticeResu
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onRestart]);
 
-  const modeLabel = config.mode === "timed"
-    ? `${config.duration}s`
-    : `${config.duration} words`;
-
   return (
     <div className="flex flex-col items-center gap-6 w-full animate-slide-up">
       {/* Stats grid */}
@@ -76,12 +72,17 @@ export function PracticeResults({ stats, config, isPb, onRestart }: PracticeResu
             <div className="text-[11px] text-muted/60 mt-1">accuracy</div>
           </div>
 
-          {/* Time / Mode */}
+          {/* Mode */}
           <div className="bg-surface/40 p-4 sm:p-5 flex flex-col items-center text-center">
             <div className="text-3xl font-black text-text tabular-nums">
-              {stats.time}<span className="text-lg opacity-50">s</span>
+              {config.duration}
+              <span className="text-lg opacity-50">
+                {config.mode === "timed" ? "s" : " words"}
+              </span>
             </div>
-            <div className="text-[11px] text-muted/60 mt-1">{modeLabel}</div>
+            <div className="text-[11px] text-muted/60 mt-1">
+              {config.mode === "timed" ? "time" : "words"}
+            </div>
           </div>
         </div>
       </div>
