@@ -146,8 +146,10 @@ export function RaceTypingArea({
           isTyping={engine.status === "typing"}
         />
       </div>
-      <div className="flex items-baseline justify-center text-muted text-sm tabular-nums mt-4">
-        <span className="text-accent font-black text-5xl inline-block w-[3ch] text-right">{engine.status === "typing" ? engine.liveWpm : 0}</span> wpm
+      <div className={`flex items-baseline justify-center text-muted text-sm tabular-nums mt-4 transition-opacity duration-200 ${
+        engine.status === "typing" ? "opacity-100" : "opacity-0"
+      }`}>
+        <span className="text-accent font-black text-5xl inline-block w-[3ch] text-right">{engine.liveWpm}</span> wpm
       </div>
     </div>
   );

@@ -218,26 +218,32 @@ export function PracticeArena() {
         </div>
       )}
 
-      {/* Live WPM + time (always visible, shows 0 before typing starts) */}
+      {/* Live WPM + time (fades in when typing starts, always reserves space) */}
       {!isFinished && (
-        <div className="flex items-center justify-center gap-6 tabular-nums -mt-2">
+        <div className={`flex items-center justify-center gap-6 tabular-nums -mt-2 transition-opacity duration-200 ${
+          isTyping ? "opacity-100" : "opacity-0"
+        }`}>
           <span className="text-muted text-sm inline-flex items-baseline">
-            <span className="text-accent font-black text-5xl inline-block w-[3ch] text-right">{isTyping ? engine.liveWpm : 0}</span> wpm
+            <span className="text-accent font-black text-5xl inline-block w-[3ch] text-right">{engine.liveWpm}</span> wpm
           </span>
           {engine.config.mode === "timed" && (
             <span className="text-muted text-sm inline-flex items-baseline">
-              <span className="text-accent font-black text-5xl inline-block w-[3ch] text-right">{isTyping ? engine.timeLeft : engine.config.duration}</span>s
+              <span className="text-accent font-black text-5xl inline-block w-[3ch] text-right">{engine.timeLeft}</span>s
             </span>
           )}
         </div>
       )}
 
-      {/* Hints */}
-      {engine.status === "idle" && (
+      {/* Hints (always reserves space to prevent layout shift) */}
+      {!isFinished && (
         <p
           key={`hint-${cascadeKey}`}
-          className="focus-fade text-muted/30 text-xs opacity-0 animate-fade-in"
-          style={{ animationDelay: "160ms", animationFillMode: "both" }}
+          className={`text-muted/30 text-xs ${
+            engine.status === "idle"
+              ? "opacity-0 animate-fade-in"
+              : "invisible"
+          }`}
+          style={engine.status === "idle" ? { animationDelay: "160ms", animationFillMode: "both" } : undefined}
         >
           press{" "}
           <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/50 text-[10px]">
