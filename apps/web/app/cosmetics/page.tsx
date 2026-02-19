@@ -58,6 +58,19 @@ export default function CosmeticsPage() {
   const [saving, setSaving] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Category>("badge");
 
+  // Preview state — overrides for locked items being previewed
+  const [previewOverrides, setPreviewOverrides] = useState<Partial<ActiveState>>({});
+
+  const hasPreview = Object.values(previewOverrides).some((v) => v != null);
+
+  // Merged state for the preview card: active + preview overrides
+  const displayState: ActiveState = {
+    ...active,
+    ...Object.fromEntries(
+      Object.entries(previewOverrides).filter(([, v]) => v != null),
+    ),
+  } as ActiveState;
+
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/");
@@ -91,11 +104,31 @@ export default function CosmeticsPage() {
 
   const toggleCosmetic = useCallback(
     (field: keyof ActiveState, id: string) => {
+      // Clear any preview on this field when equipping
+      setPreviewOverrides((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
       const newActive = { ...active, [field]: active[field] === id ? null : id };
       save(newActive);
     },
     [active, save],
   );
+
+  const togglePreview = useCallback(
+    (field: keyof ActiveState, id: string) => {
+      setPreviewOverrides((prev) => ({
+        ...prev,
+        [field]: prev[field] === id ? null : id,
+      }));
+    },
+    [],
+  );
+
+  const clearPreview = useCallback(() => {
+    setPreviewOverrides({});
+  }, []);
 
   if (status === "loading" || !data) {
     return (
@@ -132,7 +165,12 @@ export default function CosmeticsPage() {
 
         {/* Live Preview Card */}
         <div className="mb-8">
-          <PreviewCard active={active} username={username} />
+          <PreviewCard
+            active={displayState}
+            username={username}
+            hasPreview={hasPreview}
+            onClearPreview={clearPreview}
+          />
         </div>
 
         {/* Category Tabs */}
@@ -178,6 +216,7 @@ export default function CosmeticsPage() {
                     item={item}
                     active={active[categoryInfo.field] === item.id}
                     locked={false}
+                    previewing={false}
                     onToggle={() => toggleCosmetic(categoryInfo.field, item.id)}
                   />
                 ))}
@@ -188,9 +227,14 @@ export default function CosmeticsPage() {
           {/* Locked items */}
           {lockedItems.length > 0 && (
             <section>
-              <h3 className="text-[11px] font-bold text-muted/40 uppercase tracking-widest mb-3">
-                Locked
-              </h3>
+              <div className="flex items-center gap-3 mb-3">
+                <h3 className="text-[11px] font-bold text-muted/50 uppercase tracking-widest">
+                  Locked
+                </h3>
+                <span className="text-[10px] text-muted/30">
+                  Click to preview
+                </span>
+              </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {lockedItems.map((item) => (
                   <ItemCard
@@ -198,7 +242,8 @@ export default function CosmeticsPage() {
                     item={item}
                     active={false}
                     locked
-                    onToggle={() => {}}
+                    previewing={previewOverrides[categoryInfo.field] === item.id}
+                    onToggle={() => togglePreview(categoryInfo.field, item.id)}
                   />
                 ))}
               </div>
@@ -220,7 +265,17 @@ export default function CosmeticsPage() {
 
 const PREVIEW_TEXT = "the quick brown fox jumps over the lazy dog";
 
-function PreviewCard({ active, username }: { active: ActiveState; username: string }) {
+function PreviewCard({
+  active,
+  username,
+  hasPreview,
+  onClearPreview,
+}: {
+  active: ActiveState;
+  username: string;
+  hasPreview: boolean;
+  onClearPreview: () => void;
+}) {
   const cursorStyle = active.activeCursorStyle ? CURSOR_STYLES[active.activeCursorStyle] : null;
   const borderDef = active.activeProfileBorder ? PROFILE_BORDERS[active.activeProfileBorder] : null;
   const themeDef = active.activeTypingTheme ? TYPING_THEMES[active.activeTypingTheme] : null;
@@ -293,124 +348,156 @@ function PreviewCard({ active, username }: { active: ActiveState; username: stri
     : "blink 1s step-end infinite";
 
   return (
-    <div className={`rounded-xl bg-surface/50 ring-1 ring-white/[0.04] overflow-hidden ${
-      borderDef?.className ?? ""
-    }`}>
-      {/* Profile preview */}
-      <div className="px-5 py-5 border-b border-white/[0.04]">
-        <div className="flex items-center gap-3">
-          {active.activeBadge && BADGE_EMOJIS[active.activeBadge] && (
-            <span className="text-lg shrink-0">{BADGE_EMOJIS[active.activeBadge]}</span>
-          )}
-          <div className="flex flex-col">
-            <span className={`text-lg font-bold text-text ${nameClass}`} style={nameStyle}>
-              {username}
+    <div className="relative">
+      {/* Preview mode banner — sits above the card */}
+      {hasPreview && (
+        <div className="flex items-center justify-between mb-2 animate-fade-in">
+          <div className="flex items-center gap-2">
+            <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-amber-400/80">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              Preview Mode
             </span>
-            {active.activeTitle && TITLE_TEXTS[active.activeTitle] && (
-              <span className="text-xs text-amber-400/70 font-medium">
-                {TITLE_TEXTS[active.activeTitle]}
+            <span className="text-[10px] text-muted/40">
+              Showing how locked items would look
+            </span>
+          </div>
+          <button
+            onClick={onClearPreview}
+            className="text-[10px] text-muted/40 hover:text-text transition-colors px-2 py-1 rounded hover:bg-white/[0.04]"
+          >
+            Clear
+          </button>
+        </div>
+      )}
+
+      <div className={`rounded-xl bg-surface/50 overflow-hidden transition-all duration-300 ${
+        borderDef?.className ?? ""
+      } ${
+        hasPreview
+          ? "ring-1 ring-amber-400/20 shadow-[0_0_20px_rgba(251,191,36,0.04)]"
+          : "ring-1 ring-white/[0.04]"
+      }`}>
+        {/* Profile preview */}
+        <div className="px-5 py-5 border-b border-white/[0.04]">
+          <div className="flex items-center gap-3">
+            <div className="flex flex-col">
+              <span className="flex items-center gap-2">
+                <span className={`text-lg font-bold text-text ${nameClass}`} style={nameStyle}>
+                  {username}
+                </span>
+                {active.activeBadge && BADGE_EMOJIS[active.activeBadge] && (
+                  <span className="text-lg shrink-0">{BADGE_EMOJIS[active.activeBadge]}</span>
+                )}
               </span>
+              {active.activeTitle && TITLE_TEXTS[active.activeTitle] && (
+                <span className="text-xs text-amber-400/70 font-medium">
+                  {TITLE_TEXTS[active.activeTitle]}
+                </span>
+              )}
+            </div>
+          </div>
+          {!active.activeBadge && !active.activeTitle && !active.activeNameColor && !active.activeNameEffect && !active.activeProfileBorder && (
+            <p className="text-xs text-muted/30 mt-2">Equip items below to see them here</p>
+          )}
+        </div>
+
+        {/* Interactive typing preview */}
+        <div
+          ref={containerRef}
+          tabIndex={0}
+          onKeyDown={handleKeyDown}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          onClick={() => containerRef.current?.focus()}
+          className={`px-5 py-5 outline-none cursor-text transition-colors ${
+            themeDef?.className ?? ""
+          } ${focused ? "bg-white/[0.02]" : ""}`}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[11px] text-muted/40 uppercase tracking-widest">
+              Typing Preview
+            </p>
+            {typed.length > 0 && !isComplete && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setTyped("");
+                  containerRef.current?.focus();
+                }}
+                className="text-[10px] text-muted/30 hover:text-muted/60 transition-colors uppercase tracking-wider"
+              >
+                Reset
+              </button>
             )}
           </div>
-        </div>
-        {!active.activeBadge && !active.activeTitle && !active.activeNameColor && !active.activeNameEffect && !active.activeProfileBorder && (
-          <p className="text-xs text-muted/30 mt-2">Equip items below to see them here</p>
-        )}
-      </div>
 
-      {/* Interactive typing preview */}
-      <div
-        ref={containerRef}
-        tabIndex={0}
-        onKeyDown={handleKeyDown}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        onClick={() => containerRef.current?.focus()}
-        className={`px-5 py-5 outline-none cursor-text transition-colors ${
-          themeDef?.className ?? ""
-        } ${focused ? "bg-white/[0.02]" : ""}`}
-      >
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-[11px] text-muted/40 uppercase tracking-widest">
-            Typing Preview
-          </p>
-          {typed.length > 0 && !isComplete && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setTyped("");
-                containerRef.current?.focus();
-              }}
-              className="text-[10px] text-muted/30 hover:text-muted/60 transition-colors uppercase tracking-wider"
-            >
-              Reset
-            </button>
+          <div className="relative font-mono text-base leading-relaxed no-ligatures select-none">
+            {/* Render each character */}
+            {PREVIEW_TEXT.split("").map((char, i) => {
+              if (i < typed.length) {
+                // Typed character — correct or error
+                const isCorrect = typed[i] === char;
+                return (
+                  <span
+                    key={i}
+                    className={isCorrect ? "text-correct" : "text-error"}
+                  >
+                    {isCorrect ? char : typed[i]}
+                  </span>
+                );
+              }
+
+              if (i === typed.length && focused && !isComplete) {
+                // Cursor position
+                return (
+                  <span key={i} className="relative">
+                    <span
+                      className="inline-block absolute"
+                      style={{
+                        width: cursorW,
+                        height: cursorH,
+                        backgroundColor: cursorColor,
+                        boxShadow: cursorGlow,
+                        opacity: cursorOpacity,
+                        verticalAlign: cursorVAlign,
+                        animation: cursorAnim,
+                        top: cursorStyle?.shape === "underline" ? undefined : 0,
+                        bottom: cursorStyle?.shape === "underline" ? 0 : undefined,
+                        left: 0,
+                        zIndex: 1,
+                      }}
+                    />
+                    <span className="text-muted">{char}</span>
+                  </span>
+                );
+              }
+
+              // Untyped
+              return (
+                <span key={i} className="text-muted">
+                  {char}
+                </span>
+              );
+            })}
+          </div>
+
+          {/* Focus hint */}
+          {!focused && typed.length === 0 && (
+            <p className="text-[10px] text-muted/25 mt-3">
+              Click here to start typing
+            </p>
+          )}
+
+          {/* Tab to reset hint */}
+          {focused && typed.length > 0 && !isComplete && (
+            <p className="text-[10px] text-muted/20 mt-3">
+              Tab to reset
+            </p>
           )}
         </div>
-
-        <div className="relative font-mono text-base leading-relaxed no-ligatures select-none">
-          {/* Render each character */}
-          {PREVIEW_TEXT.split("").map((char, i) => {
-            if (i < typed.length) {
-              // Typed character — correct or error
-              const isCorrect = typed[i] === char;
-              return (
-                <span
-                  key={i}
-                  className={isCorrect ? "text-correct" : "text-error"}
-                >
-                  {isCorrect ? char : typed[i]}
-                </span>
-              );
-            }
-
-            if (i === typed.length && focused && !isComplete) {
-              // Cursor position
-              return (
-                <span key={i} className="relative">
-                  <span
-                    className="inline-block absolute"
-                    style={{
-                      width: cursorW,
-                      height: cursorH,
-                      backgroundColor: cursorColor,
-                      boxShadow: cursorGlow,
-                      opacity: cursorOpacity,
-                      verticalAlign: cursorVAlign,
-                      animation: cursorAnim,
-                      top: cursorStyle?.shape === "underline" ? undefined : 0,
-                      bottom: cursorStyle?.shape === "underline" ? 0 : undefined,
-                      left: 0,
-                      zIndex: 1,
-                    }}
-                  />
-                  <span className="text-muted">{char}</span>
-                </span>
-              );
-            }
-
-            // Untyped
-            return (
-              <span key={i} className="text-muted">
-                {char}
-              </span>
-            );
-          })}
-        </div>
-
-        {/* Focus hint */}
-        {!focused && typed.length === 0 && (
-          <p className="text-[10px] text-muted/25 mt-3">
-            Click here to start typing
-          </p>
-        )}
-
-        {/* Tab to reset hint */}
-        {focused && typed.length > 0 && !isComplete && (
-          <p className="text-[10px] text-muted/20 mt-3">
-            Tab to reset
-          </p>
-        )}
       </div>
     </div>
   );
@@ -422,41 +509,74 @@ function ItemCard({
   item,
   active,
   locked,
+  previewing,
   onToggle,
 }: {
   item: TypePassReward;
   active: boolean;
   locked: boolean;
+  previewing: boolean;
   onToggle: () => void;
 }) {
   return (
     <button
-      onClick={locked ? undefined : onToggle}
-      disabled={locked}
-      className={`relative text-left rounded-lg px-4 py-3.5 ring-1 transition-all ${
-        locked
-          ? "ring-white/[0.03] bg-surface/20 opacity-40 cursor-not-allowed"
+      onClick={onToggle}
+      className={`group relative text-left rounded-lg px-4 py-3.5 ring-1 transition-all ${
+        previewing
+          ? "ring-amber-400/30 bg-amber-400/[0.06]"
+          : locked
+          ? "ring-white/[0.05] bg-surface/30 hover:ring-white/[0.12] hover:bg-white/[0.03] cursor-pointer"
           : active
           ? "ring-accent/40 bg-accent/[0.08]"
           : "ring-white/[0.06] bg-surface/40 hover:ring-white/[0.12] hover:bg-white/[0.03]"
       }`}
     >
-      {/* Active indicator */}
+      {/* Active indicator (equipped) */}
       {active && (
         <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-accent shadow-[0_0_6px_rgba(77,158,255,0.5)]" />
       )}
 
+      {/* Preview indicator (eye icon) */}
+      {previewing && (
+        <span className="absolute top-2.5 right-2.5 text-amber-400/70">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        </span>
+      )}
+
+      {/* Lock icon — visible on locked non-previewing items */}
+      {locked && !previewing && (
+        <span className="absolute top-2.5 right-2.5 text-muted/20 group-hover:text-muted/40 transition-colors">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+        </span>
+      )}
+
       {/* Item visual */}
-      <div className="mb-2">
+      <div className={`mb-2 ${locked && !previewing ? "opacity-60 saturate-[0.4]" : ""}`}>
         <ItemVisual item={item} />
       </div>
 
       {/* Label */}
-      <p className={`text-xs font-medium truncate ${active ? "text-accent" : locked ? "text-muted/50" : "text-text"}`}>
+      <p className={`text-xs font-medium truncate ${
+        previewing
+          ? "text-amber-400/90"
+          : active
+          ? "text-accent"
+          : locked
+          ? "text-muted/60"
+          : "text-text"
+      }`}>
         {item.name}
       </p>
       <p className="text-[10px] text-muted/40 mt-0.5">
-        {locked ? (
+        {previewing ? (
+          <span className="text-amber-400/50">Previewing</span>
+        ) : locked ? (
           <>
             Tier {item.tier} {item.premium && <span className="text-amber-400/40">Premium</span>}
           </>

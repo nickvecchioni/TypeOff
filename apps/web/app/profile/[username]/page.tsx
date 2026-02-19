@@ -118,20 +118,22 @@ export default async function ProfilePage({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2">
-                  <CosmeticBadge badge={activeCosmetics?.activeBadge} />
                   <div className="flex flex-col">
-                    {isOwn ? (
-                      <UsernameEditor currentUsername={user.username ?? ""} />
-                    ) : (
-                      <h1 className="text-xl font-bold text-text tracking-tight">
-                        <CosmeticName
-                          nameColor={activeCosmetics?.activeNameColor}
-                          nameEffect={activeCosmetics?.activeNameEffect}
-                        >
-                          {user.username}
-                        </CosmeticName>
-                      </h1>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {isOwn ? (
+                        <UsernameEditor currentUsername={user.username ?? ""} />
+                      ) : (
+                        <h1 className="text-xl font-bold text-text tracking-tight">
+                          <CosmeticName
+                            nameColor={activeCosmetics?.activeNameColor}
+                            nameEffect={activeCosmetics?.activeNameEffect}
+                          >
+                            {user.username}
+                          </CosmeticName>
+                        </h1>
+                      )}
+                      <CosmeticBadge badge={activeCosmetics?.activeBadge} />
+                    </div>
                     <CosmeticTitle title={activeCosmetics?.activeTitle} />
                   </div>
                 </div>

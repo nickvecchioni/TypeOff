@@ -5,189 +5,157 @@ const RANK_TIERS = [
     name: "Grandmaster",
     range: "2500+",
     wpm: "200+",
-    text: "text-rank-grandmaster",
-    ring: "ring-rank-grandmaster/30",
-    bg: "bg-rank-grandmaster/[0.06]",
-    glowClass: "glow-gm",
+    color: "#ef4444",
+    textClass: "text-rank-grandmaster",
     flavor: "The pinnacle. Reserved for the fastest typists on the planet.",
-    divisions: null,
+    hasDivisions: false,
   },
   {
     name: "Master",
     range: "2200 – 2499",
     wpm: "~170–200",
-    text: "text-rank-master",
-    ring: "ring-rank-master/20",
-    bg: "bg-rank-master/[0.04]",
-    glowClass: "",
+    color: "#a855f7",
+    textClass: "text-rank-master",
     flavor: "The apex. You type faster than most people think.",
-    divisions: "III → II → I",
+    hasDivisions: true,
   },
   {
     name: "Diamond",
     range: "1900 – 2199",
     wpm: "~140–170",
-    text: "text-rank-diamond",
-    ring: "ring-rank-diamond/20",
-    bg: "bg-rank-diamond/[0.04]",
-    glowClass: "",
+    color: "#3b82f6",
+    textClass: "text-rank-diamond",
     flavor: "Elite speed and consistency. Competitors fear your speed.",
-    divisions: "III → II → I",
+    hasDivisions: true,
   },
   {
     name: "Platinum",
     range: "1600 – 1899",
     wpm: "~110–140",
-    text: "text-rank-platinum",
-    ring: "ring-rank-platinum/15",
-    bg: "bg-rank-platinum/[0.03]",
-    glowClass: "",
+    color: "#67e8f9",
+    textClass: "text-rank-platinum",
     flavor: "Serious skill. You're outpacing the majority.",
-    divisions: "III → II → I",
+    hasDivisions: true,
   },
   {
     name: "Gold",
     range: "1300 – 1599",
     wpm: "~80–110",
-    text: "text-rank-gold",
-    ring: "ring-rank-gold/15",
-    bg: "bg-rank-gold/[0.03]",
-    glowClass: "",
+    color: "#eab308",
+    textClass: "text-rank-gold",
     flavor: "Above average and climbing. Keep the momentum.",
-    divisions: "III → II → I",
+    hasDivisions: true,
   },
   {
     name: "Silver",
     range: "1000 – 1299",
     wpm: "~50–80",
-    text: "text-rank-silver",
-    ring: "ring-rank-silver/15",
-    bg: "bg-rank-silver/[0.03]",
-    glowClass: "",
+    color: "#9ca3af",
+    textClass: "text-rank-silver",
     flavor: "Solid foundation. Your fingers are warming up.",
-    divisions: "III → II → I",
+    hasDivisions: true,
   },
   {
     name: "Bronze",
     range: "0 – 999",
     wpm: "< 50",
-    text: "text-rank-bronze",
-    ring: "ring-rank-bronze/15",
-    bg: "bg-rank-bronze/[0.03]",
-    glowClass: "",
+    color: "#d97706",
+    textClass: "text-rank-bronze",
     flavor: "Everyone starts here. Every race makes you faster.",
-    divisions: "III → II → I",
+    hasDivisions: true,
   },
 ];
 
 export default function RanksPage() {
   return (
-    <main className="flex-1 overflow-y-auto px-6 py-8">
-      <div className="max-w-2xl mx-auto space-y-8 animate-fade-in">
+    <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
+      <div className="max-w-3xl mx-auto">
         {/* Header */}
-        <div>
+        <div className="mb-10 animate-fade-in">
           <h1 className="text-lg font-black text-text uppercase tracking-wider">
             Rank System
           </h1>
           <p className="text-muted text-sm mt-1">
-            Every race changes your ELO. Climb from Bronze III to Grandmaster.
+            Every race changes your ELO. Climb from Bronze&nbsp;III to Grandmaster.
           </p>
         </div>
 
-        {/* Rank Tier Cards */}
+        {/* Rank Ladder */}
         <div className="space-y-2">
-          {RANK_TIERS.map((tier) => {
-            const isGM = tier.name === "Grandmaster";
-            return (
-              <div
-                key={tier.name}
-                className={`relative rounded-lg ring-1 ${tier.ring} ${tier.bg} px-4 py-3.5 ${isGM ? "py-5" : ""} ${tier.glowClass}`}
-              >
-                <div className="flex items-baseline justify-between gap-4">
-                  <div className="flex items-baseline gap-2">
-                    <span className={`font-bold ${tier.text} ${isGM ? "text-lg" : "text-base"}`}>
-                      {tier.name}
-                    </span>
-                    {tier.divisions && (
-                      <span className="text-xs text-muted/50 hidden sm:inline">
-                        {tier.divisions}
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-xs text-muted tabular-nums font-medium">
-                    {tier.range}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between mt-1 gap-4">
-                  <p className="text-xs text-muted">{tier.flavor}</p>
-                  <span className="text-xs text-muted/50 tabular-nums shrink-0">
-                    {tier.wpm} wpm
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+          {RANK_TIERS.map((tier, i) => (
+            <div
+              key={tier.name}
+              className="animate-slide-up"
+              style={{ animationDelay: `${i * 60}ms` }}
+            >
+              {tier.name === "Grandmaster" ? (
+                <GrandmasterCard tier={tier} />
+              ) : (
+                <RankCard tier={tier} />
+              )}
+            </div>
+          ))}
         </div>
 
-        {/* Info sections */}
-        <div className="space-y-6">
-          <InfoSection title="Divisions">
-            Each rank (except Grandmaster) has three divisions: III, II, and I.
-            Division III is the entry point, I is the top. Promote through
-            divisions by placing well in races, and when you clear Division I
-            you advance to the next rank.
-          </InfoSection>
+        {/* Info Grid */}
+        <div
+          className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-12 animate-slide-up"
+          style={{ animationDelay: "450ms" }}
+        >
+          <InfoCard title="Divisions">
+            Each rank has three divisions: III, II, and I. Division&nbsp;III is the
+            entry point, I is the top. Clear Division&nbsp;I to advance to the next
+            rank. Grandmaster has no divisions.
+          </InfoCard>
 
-          <InfoSection title="How ELO Works">
-            <p>
-              Each race is 4 players. Your ELO changes based on where you
-              place relative to each opponent&apos;s rating — finish above a
-              higher-rated player and you&apos;ll gain more, finish below a
-              lower-rated one and the penalty is steeper.
-            </p>
-            <p className="mt-2">
-              Your first 30 races use a higher adjustment factor so you reach
-              your true skill level faster. After that, changes settle down.
-            </p>
-          </InfoSection>
+          <InfoCard title="ELO System">
+            4-player races. Your ELO shifts based on relative skill — beat
+            higher-rated players for bigger gains, lose to lower-rated ones for
+            steeper penalties. First 30 races adjust faster.
+          </InfoCard>
 
-          <InfoSection title="Placement Races">
-            Before you get a rank, you play a placement race. Your typing
-            speed determines your starting ELO so you&apos;re matched with
-            players of a similar skill level from the start.
-          </InfoSection>
+          <InfoCard title="Placement">
+            Your first race determines your starting ELO based on typing speed,
+            so you match with players at your level from the start.
+          </InfoCard>
 
-          <InfoSection title="Matchmaking">
-            You&apos;re matched with players close to your skill level. If no
-            human opponent is found quickly, the search widens. If it still
-            can&apos;t find anyone, you&apos;ll race a bot calibrated to your
+          <InfoCard title="Matchmaking">
+            Matched by skill level. If no opponent is found quickly, the search
+            widens. After 20 seconds, you&apos;ll race a bot calibrated to your
             ELO.
-          </InfoSection>
+          </InfoCard>
+        </div>
 
-          <InfoSection title="Tips for Climbing">
-            <ul className="space-y-1 text-sm text-text/70 list-none">
-              <li className="flex items-center gap-2">
-                <span className="w-1 h-1 rounded-full bg-accent/50 shrink-0" />
-                Stay accurate — mistakes cost time
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1 h-1 rounded-full bg-accent/50 shrink-0" />
-                Warm up before ranked
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1 h-1 rounded-full bg-accent/50 shrink-0" />
-                Common words repeat — pattern recognition &gt; raw speed
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1 h-1 rounded-full bg-accent/50 shrink-0" />
-                Stay consistent, don&apos;t tilt
-              </li>
-            </ul>
-          </InfoSection>
+        {/* Tips */}
+        <div
+          className="mt-4 animate-slide-up"
+          style={{ animationDelay: "520ms" }}
+        >
+          <div className="rounded-lg bg-surface/25 ring-1 ring-white/[0.04] px-5 py-4">
+            <h3 className="text-[11px] font-bold text-accent/60 uppercase tracking-widest mb-3">
+              Tips for Climbing
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
+              {[
+                "Stay accurate — mistakes cost time",
+                "Warm up before ranked",
+                "Pattern recognition > raw speed",
+                "Stay consistent, don\u2019t tilt",
+              ].map((tip) => (
+                <div key={tip} className="flex items-center gap-2 text-xs text-text/60">
+                  <span className="w-1 h-1 rounded-full bg-accent/40 shrink-0" />
+                  {tip}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* CTA */}
-        <div className="pb-8">
+        <div
+          className="mt-10 pb-8 animate-slide-up"
+          style={{ animationDelay: "580ms" }}
+        >
           <Link
             href="/"
             className="inline-block rounded-lg bg-accent text-bg px-8 py-3 text-sm font-bold tracking-wide uppercase hover:bg-accent/90 transition-colors glow-accent"
@@ -200,7 +168,88 @@ export default function RanksPage() {
   );
 }
 
-function InfoSection({
+/* ── Grandmaster Hero Card ────────────────────────────────── */
+
+function GrandmasterCard({ tier }: { tier: (typeof RANK_TIERS)[number] }) {
+  return (
+    <div className="relative rounded-lg overflow-hidden glow-gm">
+      {/* Top gradient accent bar */}
+      <div
+        className="h-[3px]"
+        style={{
+          background: `linear-gradient(90deg, ${tier.color}, ${tier.color}80, transparent)`,
+        }}
+      />
+      <div className="bg-rank-grandmaster/[0.06] px-5 py-5">
+        <div className="flex items-baseline justify-between gap-4">
+          <span className="text-lg font-black text-rank-grandmaster tracking-tight">
+            {tier.name}
+          </span>
+          <div className="text-right">
+            <span className="text-sm text-muted tabular-nums font-bold">
+              {tier.range}
+            </span>
+            <span className="block text-[10px] text-muted/40 tabular-nums mt-0.5">
+              {tier.wpm} wpm
+            </span>
+          </div>
+        </div>
+        <p className="text-xs text-muted/70 mt-2">{tier.flavor}</p>
+      </div>
+    </div>
+  );
+}
+
+/* ── Standard Rank Card ───────────────────────────────────── */
+
+function RankCard({ tier }: { tier: (typeof RANK_TIERS)[number] }) {
+  return (
+    <div className="relative rounded-lg overflow-hidden bg-surface/20 ring-1 ring-white/[0.04] hover:ring-white/[0.08] transition-all">
+      {/* Left accent bar */}
+      <div
+        className="absolute left-0 top-0 bottom-0 w-[3px]"
+        style={{ backgroundColor: tier.color }}
+      />
+      <div className="pl-5 pr-4 py-3.5">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span className={`font-bold ${tier.textClass}`}>{tier.name}</span>
+            {/* Division segments — 3 bars of increasing opacity */}
+            {tier.hasDivisions && (
+              <div className="flex items-center gap-[3px]">
+                <span
+                  className="w-3 h-[3px] rounded-full"
+                  style={{ backgroundColor: tier.color, opacity: 0.2 }}
+                />
+                <span
+                  className="w-3 h-[3px] rounded-full"
+                  style={{ backgroundColor: tier.color, opacity: 0.45 }}
+                />
+                <span
+                  className="w-3 h-[3px] rounded-full"
+                  style={{ backgroundColor: tier.color, opacity: 0.8 }}
+                />
+              </div>
+            )}
+          </div>
+          <div className="text-right">
+            <span className="text-xs text-muted tabular-nums font-medium">
+              {tier.range}
+            </span>
+            <span className="block text-[10px] text-muted/40 tabular-nums">
+              {tier.wpm} wpm
+            </span>
+          </div>
+        </div>
+        <p className="text-xs text-muted/50 mt-1.5">{tier.flavor}</p>
+      </div>
+    </div>
+  );
+}
+
+/* ── Info Card ────────────────────────────────────────────── */
+
+function InfoCard({
   title,
   children,
 }: {
@@ -208,12 +257,11 @@ function InfoSection({
   children: React.ReactNode;
 }) {
   return (
-    <div>
-      <h2 className="text-xs font-bold text-muted/60 uppercase tracking-wider mb-2 flex items-center gap-3">
+    <div className="rounded-lg bg-surface/25 ring-1 ring-white/[0.04] px-4 py-3.5">
+      <h3 className="text-[11px] font-bold text-muted/50 uppercase tracking-widest mb-2">
         {title}
-        <span className="flex-1 h-px bg-white/[0.03]" />
-      </h2>
-      <div className="text-sm text-text/70">{children}</div>
+      </h3>
+      <p className="text-xs text-text/60 leading-relaxed">{children}</p>
     </div>
   );
 }

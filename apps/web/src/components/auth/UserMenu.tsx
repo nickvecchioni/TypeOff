@@ -27,7 +27,7 @@ export function UserMenu() {
   return (
     <Link
       href={profileHref}
-      className="flex items-center gap-2.5 rounded-lg bg-white/[0.04] ring-1 ring-white/[0.06] px-2.5 py-1.5 hover:bg-white/[0.07] hover:ring-white/[0.1] transition-all group"
+      className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 hover:bg-white/[0.05] transition-colors group"
     >
       {/* Rank badge */}
       {session.user.placementsCompleted && (
@@ -36,11 +36,6 @@ export function UserMenu() {
           elo={session.user.eloRating}
           size="xs"
         />
-      )}
-
-      {/* Divider */}
-      {session.user.placementsCompleted && (
-        <span className="w-px h-4 bg-white/[0.08]" />
       )}
 
       {/* Username + meta row */}

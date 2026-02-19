@@ -180,13 +180,15 @@ export default async function LeaderboardPage() {
                         const colorReward = nameColor ? SEASON_1.rewards.find((r) => r.id === nameColor) : null;
                         return (
                           <div className="flex items-center gap-1.5 min-w-0">
-                            {badge && <span className="text-sm shrink-0">{badge}</span>}
                             <div className="flex flex-col min-w-0">
-                              <span
-                                className={`truncate text-sm leading-tight ${isMe ? "font-bold" : ""}`}
-                                style={colorReward && !isMe ? { color: colorReward.value } : undefined}
-                              >
-                                {isMe ? <span className="text-accent">{row.username}</span> : row.username}
+                              <span className="flex items-center gap-1 min-w-0">
+                                <span
+                                  className={`truncate text-sm leading-tight ${isMe ? "font-bold" : ""}`}
+                                  style={colorReward && !isMe ? { color: colorReward.value } : undefined}
+                                >
+                                  {isMe ? <span className="text-accent">{row.username}</span> : row.username}
+                                </span>
+                                {badge && <span className="text-sm shrink-0">{badge}</span>}
                               </span>
                               <span className={`text-xs leading-tight ${tierColor}`}>
                                 {info.label}
