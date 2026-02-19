@@ -7,6 +7,9 @@ import type { RankTier } from "@typeoff/shared";
 interface PlacementRevealProps {
   elo: number;
   onContinue: () => void;
+  subtitle?: string;
+  ctaLabel?: string;
+  ctaContent?: React.ReactNode;
 }
 
 const TIER_GLOW: Record<RankTier, string> = {
@@ -19,7 +22,7 @@ const TIER_GLOW: Record<RankTier, string> = {
   grandmaster: "drop-shadow(0 0 24px rgba(239, 68, 68, 0.4))",
 };
 
-export function PlacementReveal({ elo, onContinue }: PlacementRevealProps) {
+export function PlacementReveal({ elo, onContinue, subtitle, ctaLabel, ctaContent }: PlacementRevealProps) {
   const [phase, setPhase] = useState<"intro" | "reveal">("intro");
   const tier = getRankTier(elo) as RankTier;
   const rankInfo = getRankInfo(elo);
@@ -60,18 +63,20 @@ export function PlacementReveal({ elo, onContinue }: PlacementRevealProps) {
 
       {/* Subtitle */}
       <p className="text-muted text-sm text-center whitespace-nowrap">
-        Win ranked matches to climb the ladder.
+        {subtitle ?? "Win ranked matches to climb the ladder."}
       </p>
 
       {/* CTA */}
-      <button
-        onClick={onContinue}
-        className={`rounded-lg bg-accent text-bg px-10 py-3.5 text-sm font-bold tracking-wide uppercase hover:bg-accent/90 transition-colors glow-accent-strong ${
-          phase === "reveal" ? "opacity-100" : "opacity-0"
-        } transition-opacity duration-500`}
-      >
-        Start Ranked
-      </button>
+      <div className={`${phase === "reveal" ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}>
+        {ctaContent ?? (
+          <button
+            onClick={onContinue}
+            className="rounded-lg bg-accent text-bg px-10 py-3.5 text-sm font-bold tracking-wide uppercase hover:bg-accent/90 transition-colors glow-accent-strong"
+          >
+            {ctaLabel ?? "Start Ranked"}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

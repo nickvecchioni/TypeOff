@@ -83,6 +83,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           token.placementsCompleted = row[0].placementsCompleted;
           token.currentStreak = row[0].currentStreak ?? 0;
           token.totalXp = row[0].totalXp ?? 0;
+        } else {
+          // User was deleted from DB — invalidate the session
+          return {} as typeof token;
         }
 
         // Fetch type pass + cosmetics

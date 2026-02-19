@@ -91,6 +91,15 @@ export function getNextDivisionElo(elo: number): number | null {
 }
 
 /**
+ * Calibrate initial ELO from a single WPM result (used for placements).
+ * Formula: clamp(600, 2600, round(500 + wpm * 10))
+ */
+export function calibrateElo(wpm: number): { elo: number; tier: RankTier } {
+  const elo = Math.min(2600, Math.max(600, Math.round(500 + wpm * 10)));
+  return { elo, tier: getRankTier(elo) };
+}
+
+/**
  * Calculate ELO change for a pairwise matchup.
  * @param ratingA - Player A's rating
  * @param ratingB - Player B's rating

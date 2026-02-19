@@ -14,6 +14,7 @@ import { CosmeticBadge } from "@/components/CosmeticBadge";
 import { CosmeticTitle } from "@/components/CosmeticTitle";
 import { CosmeticName } from "@/components/CosmeticName";
 import { LocalDateTime } from "./local-date-time";
+import { PerformanceCharts } from "@/components/profile/PerformanceCharts";
 
 
 export default async function ProfilePage({
@@ -51,11 +52,12 @@ export default async function ProfilePage({
     .limit(1);
   const stats = statsRows[0] ?? null;
 
-  // Load recent races (last 20)
+  // Load recent races (last 50)
   const recentRaces = await db
     .select({
       placement: raceParticipants.placement,
       wpm: raceParticipants.wpm,
+      rawWpm: raceParticipants.rawWpm,
       accuracy: raceParticipants.accuracy,
       eloBefore: raceParticipants.eloBefore,
       eloAfter: raceParticipants.eloAfter,
@@ -66,7 +68,7 @@ export default async function ProfilePage({
     .innerJoin(races, eq(raceParticipants.raceId, races.id))
     .where(eq(raceParticipants.userId, user.id))
     .orderBy(desc(raceParticipants.finishedAt))
-    .limit(20);
+    .limit(50);
 
   // Load achievements
   const achievementRows = await db
@@ -92,6 +94,16 @@ export default async function ProfilePage({
   const { auth } = await import("@/lib/auth");
   const session = await auth();
   const isOwn = session?.user?.id === user.id;
+
+  // Build chart data from races with complete info
+  const chartData = recentRaces
+    .filter((r) => r.finishedAt && r.wpm != null && r.accuracy != null && r.eloAfter != null)
+    .map((r) => ({
+      date: r.finishedAt!.toISOString(),
+      wpm: r.wpm!,
+      accuracy: r.accuracy!,
+      elo: r.eloAfter!,
+    }));
 
   const rankInfo = user.placementsCompleted ? getRankInfo(user.eloRating) : null;
   const isOnline = user.lastSeen != null && (Date.now() - new Date(user.lastSeen).getTime()) < 3 * 60 * 1000;
@@ -227,6 +239,14 @@ export default async function ProfilePage({
             <StatCard label="Best Day" value={stats?.maxRankedDayStreak ?? 0} />
           </div>
         </div>
+
+        {/* ── Performance Charts ─────────────────────────── */}
+        {chartData.length >= 2 && (
+          <section className="rounded-xl bg-surface/50 ring-1 ring-white/[0.04] px-5 py-4">
+            <SectionHeader>Performance</SectionHeader>
+            <PerformanceCharts races={chartData} />
+          </section>
+        )}
 
         {/* ── Achievements ────────────────────────────────── */}
         <section>

@@ -238,9 +238,9 @@ export default function TypePassPage() {
 
   return (
     <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
-      <div className="max-w-4xl mx-auto animate-fade-in">
+      <div className="max-w-4xl mx-auto">
         {/* ── Season Header ─────────────────────────────── */}
-        <div className="flex items-start justify-between gap-4 mb-5">
+        <div className="flex items-start justify-between gap-4 mb-5 animate-fade-in">
           <div>
             <h1 className="text-lg font-bold text-text tracking-tight">
               TypePass
@@ -277,7 +277,7 @@ export default function TypePassPage() {
         </div>
 
         {/* ── Segmented Progress ────────────────────────── */}
-        <div className="mb-8">
+        <div className="mb-8 animate-slide-up" style={{ animationDelay: "60ms" }}>
           <div className="flex gap-px mb-1.5">
             {Array.from({ length: season.maxTier }, (_, i) => {
               const t = i + 1;
@@ -320,7 +320,7 @@ export default function TypePassPage() {
 
         {/* ── Premium upsell (if not premium and rewards are locked) ── */}
         {!isPremium && premiumLockedCount > 0 && (
-          <div className="mb-6 rounded-lg bg-amber-400/[0.04] ring-1 ring-amber-400/10 px-4 py-3 flex items-center justify-between gap-4">
+          <div className="mb-6 rounded-lg bg-amber-400/[0.04] ring-1 ring-amber-400/10 px-4 py-3 flex items-center justify-between gap-4 animate-slide-up" style={{ animationDelay: "120ms" }}>
             <div className="flex items-center gap-2 min-w-0">
               <svg
                 width="14"
@@ -351,7 +351,7 @@ export default function TypePassPage() {
         )}
 
         {/* ── Live Preview Card ─────────────────────────── */}
-        <div className="mb-8">
+        <div className="mb-8 animate-slide-up" style={{ animationDelay: "180ms" }}>
           <PreviewCard
             active={displayState}
             username={username}
@@ -361,7 +361,7 @@ export default function TypePassPage() {
         </div>
 
         {/* ── Category Tabs ─────────────────────────────── */}
-        <div className="flex gap-1 mb-6 overflow-x-auto pb-1 -mx-1 px-1">
+        <div className="flex gap-1 mb-6 overflow-x-auto pb-1 -mx-1 px-1 animate-slide-up" style={{ animationDelay: "240ms" }}>
           {CATEGORIES.map((cat) => {
             const count = SEASON_1.rewards.filter(
               (r) => r.type === cat.key && ownedIds.has(r.id),
@@ -395,7 +395,7 @@ export default function TypePassPage() {
         </div>
 
         {/* ── Items Grid ────────────────────────────────── */}
-        <div className="space-y-6">
+        <div className="space-y-6 animate-slide-up" style={{ animationDelay: "300ms" }}>
           {ownedItems.length > 0 && (
             <section>
               <h3 className="text-[11px] font-bold text-correct/70 uppercase tracking-widest mb-3">

@@ -29,6 +29,30 @@ export function RaceArena() {
 
   const myPlayerId = session?.user?.id ?? null;
 
+  // Auto-claim guest placement on sign-in
+  React.useEffect(() => {
+    if (!session?.user?.id || session.user.placementsCompleted) return;
+    let stored: string | null = null;
+    try { stored = localStorage.getItem("guest-placement"); } catch {}
+    if (!stored) return;
+    let data: { wpm: number };
+    try { data = JSON.parse(stored); } catch { return; }
+    if (typeof data.wpm !== "number") return;
+
+    fetch("/api/claim-placement", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ wpm: data.wpm }),
+    })
+      .then((res) => {
+        if (res.ok) {
+          localStorage.removeItem("guest-placement");
+          updateSession({});
+        }
+      })
+      .catch(() => {});
+  }, [session?.user?.id, session?.user?.placementsCompleted, updateSession]);
+
   // Delay showing the queue screen so fast matches (placements) skip it
   const [showQueuing, setShowQueuing] = React.useState(false);
   React.useEffect(() => {
