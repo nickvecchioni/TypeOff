@@ -147,6 +147,8 @@ export function RaceArena() {
           onInviteToParty={partyHook.inviteToParty}
           onKickFromParty={partyHook.kickMember}
           onLeaveParty={partyHook.leaveParty}
+          privateRace={partyHook.party?.privateRace}
+          onSetPrivateRace={partyHook.setPrivateRace}
         />
       )}
 
@@ -202,12 +204,14 @@ export function RaceArena() {
           <RaceResults
             results={race.results}
             myPlayerId={myPlayerId}
-            onRaceAgain={race.raceAgain}
+            onRaceAgain={() => race.raceAgain({ privateRace: partyHook.party?.privateRace })}
             onGoHome={race.reset}
             placementRace={race.placementRace}
             placementTotal={race.placementTotal}
             rankChange={rankChange}
             myWpmHistory={wpmHistoryRef.current}
+            party={partyHook.party}
+            onMarkReady={partyHook.markReady}
           />
         </div>
       )}

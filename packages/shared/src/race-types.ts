@@ -43,11 +43,13 @@ export interface PartyState {
   partyId: string;
   leaderId: string;
   members: Array<{ userId: string; name: string }>;
+  privateRace: boolean;
+  readyState: Record<string, boolean>;
 }
 
 /** Client → Server events */
 export interface ClientToServerEvents {
-  joinQueue: (data: { token?: string }) => void;
+  joinQueue: (data: { token?: string; privateRace?: boolean }) => void;
   leaveQueue: () => void;
   raceProgress: (data: {
     wordIndex: number;
@@ -71,6 +73,9 @@ export interface ClientToServerEvents {
   respondToPartyInvite: (data: { partyId: string; accept: boolean; token?: string }) => void;
   leaveParty: () => void;
   kickFromParty: (data: { userId: string }) => void;
+  // Party race events
+  partySetPrivateRace: (data: { privateRace: boolean }) => void;
+  partyMarkReady: () => void;
   // Spectator events
   listActiveRaces: () => void;
   spectateRace: (data: { raceId: string }) => void;
@@ -135,6 +140,7 @@ export interface ServerToClientEvents {
   partyUpdate: (data: PartyState) => void;
   partyInvite: (data: { partyId: string; fromUserId: string; fromName: string }) => void;
   partyDisbanded: () => void;
+  partyReadyReset: () => void;
   partyError: (data: { message: string }) => void;
   // Spectator events
   activeRaces: (data: { races: Array<{ raceId: string; players: RacePlayer[]; status: RaceStatus }> }) => void;

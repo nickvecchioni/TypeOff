@@ -25,6 +25,8 @@ interface Party {
   leaderId: string; // userId
   members: Map<string, PartyMember>; // userId → member
   pendingInvites: Set<string>; // userIds with outstanding invites
+  privateRace: boolean;
+  readyState: Map<string, boolean>; // userId → ready
 }
 
 export class PartyManager {
@@ -47,6 +49,8 @@ export class PartyManager {
       leaderId: userId,
       members: new Map([[userId, { userId, name, socketId: socket.id, elo }]]),
       pendingInvites: new Set(),
+      privateRace: false,
+      readyState: new Map(),
     };
 
     this.parties.set(partyId, party);
@@ -170,6 +174,7 @@ export class PartyManager {
     }
 
     party.members.delete(userId);
+    party.readyState.delete(userId);
     this.userToParty.delete(userId);
     this.socketToUser.delete(socket.id);
 
@@ -220,6 +225,7 @@ export class PartyManager {
     }
 
     party.members.delete(targetUserId);
+    party.readyState.delete(targetUserId);
     this.userToParty.delete(targetUserId);
     this.socketToUser.delete(target.socketId);
 
@@ -247,6 +253,7 @@ export class PartyManager {
     }
 
     party.members.delete(userId);
+    party.readyState.delete(userId);
     this.userToParty.delete(userId);
     this.socketToUser.delete(socketId);
 
@@ -263,6 +270,51 @@ export class PartyManager {
       }
     }
 
+    this.broadcastPartyUpdate(party);
+  }
+
+  setPrivateRace(socket: TypedSocket, privateRace: boolean) {
+    const userId = this.socketToUser.get(socket.id);
+    if (!userId) return;
+
+    const partyId = this.userToParty.get(userId);
+    if (!partyId) return;
+
+    const party = this.parties.get(partyId);
+    if (!party) return;
+
+    if (party.leaderId !== userId) {
+      socket.emit("partyError", { message: "Only the leader can change race mode" });
+      return;
+    }
+
+    party.privateRace = privateRace;
+    this.broadcastPartyUpdate(party);
+  }
+
+  markReady(socket: TypedSocket) {
+    const userId = this.socketToUser.get(socket.id);
+    if (!userId) return;
+
+    const partyId = this.userToParty.get(userId);
+    if (!partyId) return;
+
+    const party = this.parties.get(partyId);
+    if (!party) return;
+
+    party.readyState.set(userId, true);
+    this.broadcastPartyUpdate(party);
+  }
+
+  resetReadyState(partyId: string) {
+    const party = this.parties.get(partyId);
+    if (!party) return;
+
+    party.readyState.clear();
+    // Notify all members that ready state was reset
+    for (const member of party.members.values()) {
+      this.io.to(member.socketId).emit("partyReadyReset");
+    }
     this.broadcastPartyUpdate(party);
   }
 
@@ -312,6 +364,8 @@ export class PartyManager {
         userId: m.userId,
         name: m.name,
       })),
+      privateRace: party.privateRace,
+      readyState: Object.fromEntries(party.readyState),
     };
 
     for (const member of party.members.values()) {

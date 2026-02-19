@@ -38,6 +38,9 @@ export function useParty() {
       on("partyError", (data) => {
         setError(data.message);
       }),
+      on("partyReadyReset", () => {
+        setParty((prev) => prev ? { ...prev, readyState: {} } : prev);
+      }),
     ];
 
     return () => {
@@ -111,6 +114,17 @@ export function useParty() {
     [emit],
   );
 
+  const setPrivateRace = useCallback(
+    (privateRace: boolean) => {
+      emit("partySetPrivateRace", { privateRace });
+    },
+    [emit],
+  );
+
+  const markReady = useCallback(() => {
+    emit("partyMarkReady");
+  }, [emit]);
+
   return {
     party,
     pendingInvite,
@@ -120,5 +134,7 @@ export function useParty() {
     respondToInvite,
     leaveParty,
     kickMember,
+    setPrivateRace,
+    markReady,
   };
 }

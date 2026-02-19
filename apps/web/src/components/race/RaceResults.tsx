@@ -6,7 +6,7 @@ import type { RaceResult } from "@/hooks/useRace";
 import type { RankTier, WpmSample } from "@typeoff/shared";
 import { getRankInfo, ACHIEVEMENT_MAP, CHALLENGE_MAP, getCurrentSeason, getXpLevel } from "@typeoff/shared";
 import { WpmChart } from "@/components/typing/WpmChart";
-import type { AchievementRarity } from "@typeoff/shared";
+import type { AchievementRarity, PartyState } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
 import { useSession } from "next-auth/react";
 
@@ -25,6 +25,8 @@ interface RaceResultsProps {
   placementTotal?: number;
   rankChange?: RankChange | null;
   myWpmHistory?: WpmSample[];
+  party?: PartyState | null;
+  onMarkReady?: () => void;
 }
 
 const RARITY_RING: Record<AchievementRarity, string> = {
@@ -170,24 +172,34 @@ export function RaceResults({
   placementTotal,
   rankChange,
   myWpmHistory,
+  party,
+  onMarkReady,
 }: RaceResultsProps) {
   const { data: session } = useSession();
   const isPlacement = placementRace != null && placementTotal != null;
   const myResult = results.find((r) => r.playerId === myPlayerId);
 
-  // Enter key shortcut to race again
+  const inParty = party != null && party.members.length >= 2;
+  const isLeader = party?.leaderId === myPlayerId;
+  const amReady = myPlayerId ? party?.readyState[myPlayerId] ?? false : false;
+
+  // Enter key shortcut to race again (or mark ready for non-leaders)
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Enter" && !e.metaKey && !e.ctrlKey && !e.altKey) {
         const tag = (e.target as HTMLElement)?.tagName;
         if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || tag === "BUTTON" || tag === "A") return;
         e.preventDefault();
-        onRaceAgain();
+        if (inParty && !isLeader) {
+          if (!amReady) onMarkReady?.();
+        } else {
+          onRaceAgain();
+        }
       }
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onRaceAgain]);
+  }, [onRaceAgain, inParty, isLeader, amReady, onMarkReady]);
 
   const mobileCols = isPlacement
     ? "grid-cols-[2.5rem_1fr_5rem]"
@@ -301,7 +313,7 @@ export function RaceResults({
       <div
         className={`grid gap-3 w-full ${
           myWpmHistory && myWpmHistory.length >= 2
-            ? "sm:grid-cols-[1fr_1fr]"
+            ? "sm:grid-cols-[3fr_2fr]"
             : ""
         }`}
         style={{ animation: "slide-up 0.5s ease-out 0.08s both" }}
@@ -485,10 +497,10 @@ export function RaceResults({
                 >
                   <span className="text-lg shrink-0">{def.icon}</span>
                   <div className="min-w-0">
-                    <div className="text-xs font-bold text-text">
+                    <div className="text-sm font-bold text-text">
                       {def.name}
                     </div>
-                    <div className="text-[11px] text-muted truncate">
+                    <div className="text-xs text-muted truncate">
                       {def.description}
                     </div>
                   </div>
@@ -655,18 +667,72 @@ export function RaceResults({
         </div>
       )}
 
+      {/* ── Party ready state ─────────────────────────────── */}
+      {inParty && !isPlacement && (
+        <div
+          className="flex items-center justify-center gap-3 flex-wrap"
+          style={{ animation: "slide-up 0.5s ease-out 0.20s both" }}
+        >
+          {party!.members.map((m) => {
+            const ready = party!.readyState[m.userId] ?? false;
+            const isMe = m.userId === myPlayerId;
+            return (
+              <div
+                key={m.userId}
+                className="flex items-center gap-1.5 text-xs"
+              >
+                <span
+                  className={`w-2 h-2 rounded-full transition-colors ${
+                    ready ? "bg-correct" : "bg-white/[0.12]"
+                  }`}
+                />
+                <span className={isMe ? "text-accent" : "text-muted"}>
+                  {m.name}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {/* ── Actions ──────────────────────────────────────── */}
       <div
         className="flex flex-col items-center gap-1.5 w-full max-w-xs mx-auto"
         style={{ animation: "slide-up 0.5s ease-out 0.22s both" }}
       >
-        <button
-          onClick={() => onRaceAgain()}
-          className="w-full rounded-lg bg-accent/[0.06] ring-1 ring-accent/20 text-accent py-2.5 text-sm font-medium hover:bg-accent hover:text-bg hover:ring-accent transition-all"
-        >
-          {isPlacement ? "Next Placement" : "Race Again"}
-          <span className="inline-block w-[2px] h-[1em] bg-current animate-blink ml-0.5 translate-y-px" />
-        </button>
+        {inParty && !isLeader && !isPlacement ? (
+          <button
+            onClick={() => !amReady && onMarkReady?.()}
+            disabled={amReady}
+            className={`w-full rounded-lg py-2.5 text-sm font-medium transition-all ${
+              amReady
+                ? "bg-correct/[0.08] ring-1 ring-correct/20 text-correct cursor-default"
+                : "bg-accent/[0.06] ring-1 ring-accent/20 text-accent hover:bg-accent hover:text-bg hover:ring-accent"
+            }`}
+          >
+            {amReady ? "Ready!" : "Ready"}
+          </button>
+        ) : (
+          <>
+            <button
+              onClick={() => onRaceAgain()}
+              className="w-full rounded-lg bg-accent/[0.06] ring-1 ring-accent/20 text-accent py-2.5 text-sm font-medium hover:bg-accent hover:text-bg hover:ring-accent transition-all"
+            >
+              {isPlacement ? "Next Placement" : "Race Again"}
+              <span className="inline-block w-[2px] h-[1em] bg-current animate-blink ml-0.5 translate-y-px" />
+            </button>
+            {inParty && (() => {
+              const allReady = party!.members
+                .filter((m) => m.userId !== myPlayerId)
+                .every((m) => party!.readyState[m.userId]);
+              return !allReady ? (
+                <span className="text-[10px] text-muted/40">
+                  waiting for party...
+                </span>
+              ) : null;
+            })()}
+          </>
+        )}
         <button
           onClick={onGoHome}
           className="text-xs text-muted/40 hover:text-muted transition-colors"

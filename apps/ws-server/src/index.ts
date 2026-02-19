@@ -62,8 +62,15 @@ io.on("connection", (socket) => {
             return s ? { socket: s, player: m.player } : null;
           }).filter((e): e is NonNullable<typeof e> => e !== null);
 
-          await matchmaker.addPartyToQueue(partyEntries, party.id);
-          console.log(`[joinQueue] party ${party.id} enqueued ${partyEntries.length} members`);
+          // Reset ready state before starting
+          partyManager.resetReadyState(party.id);
+
+          if (data.privateRace) {
+            await matchmaker.startPrivatePartyRace(partyEntries);
+          } else {
+            await matchmaker.addPartyToQueue(partyEntries, party.id);
+          }
+          console.log(`[joinQueue] party ${party.id} ${data.privateRace ? "private race" : "enqueued"} ${partyEntries.length} members`);
           return;
         }
       }
@@ -128,6 +135,14 @@ io.on("connection", (socket) => {
 
   socket.on("kickFromParty", (data) => {
     partyManager.kickMember(socket, data.userId);
+  });
+
+  socket.on("partySetPrivateRace", (data) => {
+    partyManager.setPrivateRace(socket, data.privateRace);
+  });
+
+  socket.on("partyMarkReady", () => {
+    partyManager.markReady(socket);
   });
 
   // ─── Social Events ───────────────────────────────────────────────

@@ -21,7 +21,7 @@ interface QueueEntry {
 }
 
 const MAX_PLAYERS = 4;
-const PLACEMENT_RACES = 1;
+const PLACEMENT_RACES = 3;
 const ELO_WINDOW_INITIAL = 100;
 const ELO_WINDOW_EXPAND = 50;
 const ELO_WINDOW_EXPAND_INTERVAL_MS = 5_000;
@@ -369,6 +369,58 @@ export class Matchmaker implements RaceOwner {
       this.socketToRace.set(entry.socket.id, race.raceId);
     }
     race.start();
+  }
+
+  async startPrivatePartyRace(
+    entries: Array<{ socket: TypedSocket; player: RacePlayer }>,
+  ) {
+    if (entries.length < 2) {
+      entries[0]?.socket.emit("error", {
+        message: "Private races require at least 2 party members",
+      });
+      return;
+    }
+
+    // Remove all from queue if they happen to be there
+    for (const entry of entries) {
+      this.removeFromQueue(entry.socket.id);
+      if (this.socketToRace.has(entry.socket.id)) {
+        console.log(`[matchmaker] private race: ${entry.player.id} already in race, skipping`);
+        return;
+      }
+    }
+
+    // Check placement for each member
+    for (const entry of entries) {
+      if (!entry.player.isGuest) {
+        const playerData = await this.getPlayerData(entry.player.id);
+        if (playerData === undefined) {
+          entries[0].socket.emit("error", {
+            message: "Could not verify placement status. Please try again.",
+          });
+          return;
+        }
+        if (playerData.racesPlayed < PLACEMENT_RACES) {
+          entries[0].socket.emit("error", {
+            message: `${entry.player.name} needs to complete placement races first`,
+          });
+          return;
+        }
+      }
+    }
+
+    // Start race directly — no bots, no queue
+    const race = new RaceManager(
+      this.io, entries, this,
+    );
+
+    this.races.set(race.raceId, race);
+    for (const entry of entries) {
+      this.socketToRace.set(entry.socket.id, race.raceId);
+    }
+
+    race.start();
+    console.log(`[matchmaker] private party race ${race.raceId} started with ${entries.length} members`);
   }
 
   getActiveRaces() {
