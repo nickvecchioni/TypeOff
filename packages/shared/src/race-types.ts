@@ -75,6 +75,9 @@ export interface ClientToServerEvents {
   listActiveRaces: () => void;
   spectateRace: (data: { raceId: string }) => void;
   stopSpectating: () => void;
+  // Chat events
+  sendDirectMessage: (data: { token?: string; recipientId: string; content: string }) => void;
+  markMessagesRead: (data: { token?: string; friendId: string }) => void;
 }
 
 /** Server → Client events */
@@ -140,4 +143,13 @@ export interface ServerToClientEvents {
   // Social events
   friendStatus: (data: { userId: string; online: boolean }) => void;
   friendStatuses: (data: Array<{ userId: string; online: boolean }>) => void;
+  // Chat events
+  directMessage: (data: {
+    messageId: string;
+    senderId: string;
+    senderName: string;
+    content: string;
+    createdAt: string;
+  }) => void;
+  messagesMarkedRead: (data: { byUserId: string; friendId: string }) => void;
 }

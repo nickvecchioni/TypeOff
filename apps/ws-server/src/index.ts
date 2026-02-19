@@ -9,6 +9,7 @@ import { authenticateSocket } from "./auth.js";
 import { Matchmaker } from "./matchmaker.js";
 import { PartyManager } from "./party-manager.js";
 import { SocialManager } from "./social-manager.js";
+import { ChatManager } from "./chat-manager.js";
 
 const PORT = parseInt(process.env.PORT ?? "3001", 10);
 const CORS_ORIGIN = process.env.CORS_ORIGIN ?? "http://localhost:3000";
@@ -33,6 +34,7 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
 const matchmaker = new Matchmaker(io);
 const socialManager = new SocialManager(io);
 const partyManager = new PartyManager(io, socialManager);
+const chatManager = new ChatManager(io, socialManager);
 
 // Track spectators: socketId → raceId
 const spectators = new Map<string, string>();
@@ -136,6 +138,31 @@ io.on("connection", (socket) => {
       socialManager.trackConnection(socket, player.id).catch(() => {});
       const statuses = await socialManager.getFriendsStatus(player.id);
       socket.emit("friendStatuses", statuses);
+    } catch (err) {
+      socket.emit("error", {
+        message: err instanceof Error ? err.message : "Auth failed",
+      });
+    }
+  });
+
+  // ─── Chat Events ────────────────────────────────────────────────
+
+  socket.on("sendDirectMessage", async (data) => {
+    try {
+      const player = await authenticateSocket(data, socket.id);
+      socialManager.trackConnection(socket, player.id).catch(() => {});
+      await chatManager.handleSendMessage(socket, data, player);
+    } catch (err) {
+      socket.emit("error", {
+        message: err instanceof Error ? err.message : "Auth failed",
+      });
+    }
+  });
+
+  socket.on("markMessagesRead", async (data) => {
+    try {
+      const player = await authenticateSocket(data, socket.id);
+      await chatManager.handleMarkRead(socket, data, player.id);
     } catch (err) {
       socket.emit("error", {
         message: err instanceof Error ? err.message : "Auth failed",

@@ -2,10 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
+import { useChat } from "@/hooks/useChat";
 import { FriendsDrawer } from "./FriendsDrawer";
 
 export function FriendsButton() {
   const { data: session } = useSession();
+  const { totalUnread } = useChat();
   const [open, setOpen] = useState(false);
   const [hasRequests, setHasRequests] = useState(false);
 
@@ -59,10 +61,14 @@ export function FriendsButton() {
           <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
           <path d="M16 3.13a4 4 0 0 1 0 7.75" />
         </svg>
-        {/* Notification dot */}
-        {hasRequests && (
+        {/* Unread count badge (priority) or friend request dot */}
+        {totalUnread > 0 ? (
+          <span className="absolute -top-2 -right-2.5 min-w-[16px] h-[16px] flex items-center justify-center rounded-full bg-accent text-bg text-[9px] font-bold tabular-nums px-1">
+            {totalUnread > 99 ? "99+" : totalUnread}
+          </span>
+        ) : hasRequests ? (
           <span className="absolute -top-1 -right-1 w-2 h-2 bg-accent rounded-full" />
-        )}
+        ) : null}
       </button>
       <FriendsDrawer open={open} onClose={handleClose} />
     </>

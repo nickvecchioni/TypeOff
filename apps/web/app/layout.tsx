@@ -7,6 +7,7 @@ import { UsernameGuard } from "@/components/auth/UsernameGuard";
 import { FriendsButton } from "@/components/social/FriendsButton";
 import { SocketProvider } from "@/hooks/useSocket";
 import { SocialProvider } from "@/hooks/useSocial";
+import { ChatProvider } from "@/hooks/useChat";
 import { CosmeticProvider } from "@/contexts/CosmeticContext";
 import "./globals.css";
 
@@ -32,6 +33,7 @@ export default function RootLayout({
           <CosmeticProvider>
           <SocketProvider>
           <SocialProvider>
+          <ChatProvider>
           <UsernameGuard>
             <nav className="relative z-30 flex items-center justify-between px-4 sm:px-6 py-3">
               <div className="flex items-center gap-4 sm:gap-8">
@@ -68,6 +70,7 @@ export default function RootLayout({
               {children}
             </div>
           </UsernameGuard>
+          </ChatProvider>
           </SocialProvider>
           </SocketProvider>
           </CosmeticProvider>

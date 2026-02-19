@@ -116,6 +116,23 @@ export const friendships = pgTable("friendships", {
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
 });
 
+// ─── Direct Messages ───────────────────────────────────────────────
+
+export const directMessages = pgTable("direct_messages", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  senderId: text("sender_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  recipientId: text("recipient_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at", { mode: "date" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  readAt: timestamp("read_at", { mode: "date" }),
+});
+
 // ─── Solo Results ──────────────────────────────────────────────────
 
 export const soloResults = pgTable("solo_results", {
