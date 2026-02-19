@@ -4,9 +4,10 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import type { RaceResult } from "@/hooks/useRace";
 import type { RankTier } from "@typeoff/shared";
-import { getRankInfo, ACHIEVEMENT_MAP, CHALLENGE_MAP, getCurrentSeason } from "@typeoff/shared";
+import { getRankInfo, ACHIEVEMENT_MAP, CHALLENGE_MAP, getCurrentSeason, getXpLevel } from "@typeoff/shared";
 import type { AchievementRarity } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
+import { useSession } from "next-auth/react";
 
 interface RankChange {
   direction: "up" | "down";
@@ -106,11 +107,24 @@ function AnimatedElo({
   const rankInfo = getRankInfo(displayElo);
 
   return (
-    <div className="flex flex-col gap-1">
-      <div className="flex items-center gap-1.5">
+    <div>
+      <div className="flex items-baseline gap-2">
+        <span className="text-3xl font-black text-text tabular-nums">
+          {displayElo}
+        </span>
+        <span
+          className={`text-sm font-bold tabular-nums transition-opacity duration-300 ${
+            showChange ? "opacity-100" : "opacity-0"
+          } ${change > 0 ? "text-correct" : change < 0 ? "text-error" : "text-muted"}`}
+        >
+          {change > 0 ? "+" : ""}
+          {change}
+        </span>
+      </div>
+      <div className="flex items-center gap-1.5 mt-1">
         {rankPulse && rankChange && (
           <span
-            className={`text-xs font-bold ${
+            className={`text-[10px] font-bold ${
               rankChange.direction === "up" ? "text-correct" : "text-error"
             }`}
             style={{ animation: "fade-in 0.3s ease-out" }}
@@ -135,21 +149,8 @@ function AnimatedElo({
             tier={rankInfo.tier}
             elo={displayElo}
             showElo={false}
-            size={rankPulse ? "md" : "sm"}
+            size="xs"
           />
-        </span>
-      </div>
-      <div className="flex items-baseline gap-2">
-        <span className="text-3xl font-black text-text tabular-nums">
-          {displayElo}
-        </span>
-        <span
-          className={`text-sm font-bold tabular-nums transition-opacity duration-300 ${
-            showChange ? "opacity-100" : "opacity-0"
-          } ${change > 0 ? "text-correct" : change < 0 ? "text-error" : "text-muted"}`}
-        >
-          {change > 0 ? "+" : ""}
-          {change}
         </span>
       </div>
     </div>
@@ -167,6 +168,7 @@ export function RaceResults({
   placementTotal,
   rankChange,
 }: RaceResultsProps) {
+  const { data: session } = useSession();
   const isPlacement = placementRace != null && placementTotal != null;
   const myResult = results.find((r) => r.playerId === myPlayerId);
 
@@ -515,14 +517,19 @@ export function RaceResults({
                           className="flex items-center gap-2.5 py-1.5"
                         >
                           <span className="text-sm shrink-0">{def.icon}</span>
-                          <span className="text-xs font-medium text-text min-w-0 truncate flex-1">
-                            {def.name}
-                            {cp.completed && (
-                              <span className="text-correct ml-1.5">
-                                &#10003;
-                              </span>
-                            )}
-                          </span>
+                          <div className="min-w-0 flex-1">
+                            <span className="text-xs font-medium text-text truncate block">
+                              {def.name}
+                              {cp.completed && (
+                                <span className="text-correct ml-1.5">
+                                  &#10003;
+                                </span>
+                              )}
+                            </span>
+                            <span className="text-[10px] text-muted/50 truncate block">
+                              {def.description}
+                            </span>
+                          </div>
                           <span className="text-[11px] text-muted tabular-nums shrink-0">
                             {progress}/{cp.target}
                           </span>
@@ -546,7 +553,7 @@ export function RaceResults({
               </div>
             )}
 
-            {/* TypePass */}
+            {/* TypePass + Level */}
             {hasTypePass &&
               season &&
               (() => {
@@ -556,6 +563,8 @@ export function RaceResults({
                   kp.currentTier >= season.maxTier
                     ? 100
                     : (xpInTier / season.xpPerTier) * 100;
+                const totalXp = session?.user?.totalXp ?? 0;
+                const xpInfo = totalXp > 0 ? getXpLevel(totalXp) : null;
 
                 return (
                   <div className="sm:w-64 p-4 sm:p-5">
@@ -604,6 +613,24 @@ export function RaceResults({
                         </div>
                       )}
                     </div>
+                    {xpInfo && (
+                      <div className="mt-3 rounded-lg bg-surface/60 px-3 py-2.5 ring-1 ring-accent/10">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-bold text-accent">
+                            Level {xpInfo.level}
+                          </span>
+                          <span className="text-[11px] text-muted tabular-nums">
+                            {xpInfo.currentXp} / {xpInfo.nextLevelXp}
+                          </span>
+                        </div>
+                        <div className="h-1.5 rounded-full bg-surface overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-accent transition-all"
+                            style={{ width: `${Math.round((xpInfo.currentXp / xpInfo.nextLevelXp) * 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })()}
