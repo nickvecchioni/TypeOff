@@ -26,7 +26,7 @@ const ELO_WINDOW_INITIAL = 100;
 const ELO_WINDOW_EXPAND = 50;
 const ELO_WINDOW_EXPAND_INTERVAL_MS = 5_000;
 const ELO_WINDOW_MAX = 400;
-const BOT_FILL_DELAY_MS = 5_000;
+const BOT_FILL_DELAY_MS = 0;
 
 const BOT_NAMES = [
   "SpeedyBot", "TypeRacer", "KeyMaster", "SwiftKeys",
