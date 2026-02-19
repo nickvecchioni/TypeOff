@@ -1,9 +1,38 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { soloResults } from "@typeoff/db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
+
+export async function GET() {
+  const { auth } = await import("@/lib/auth");
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ pbs: {} });
+  }
+
+  const db = getDb();
+
+  // Get best WPM for each (mode, duration) combo
+  const rows = await db
+    .select({
+      mode: soloResults.mode,
+      duration: soloResults.duration,
+      bestWpm: sql<number>`max(${soloResults.wpm})`.as("best_wpm"),
+    })
+    .from(soloResults)
+    .where(eq(soloResults.userId, session.user.id))
+    .groupBy(soloResults.mode, soloResults.duration);
+
+  // Shape as { "timed:15": 120.5, "wordcount:25": 95.3, ... }
+  const pbs: Record<string, number> = {};
+  for (const row of rows) {
+    pbs[`${row.mode}:${row.duration}`] = row.bestWpm;
+  }
+
+  return NextResponse.json({ pbs });
+}
 
 export async function POST(request: Request) {
   const { auth } = await import("@/lib/auth");

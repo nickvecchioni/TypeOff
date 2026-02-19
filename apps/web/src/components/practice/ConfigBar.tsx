@@ -8,12 +8,13 @@ interface ConfigBarProps {
   config: TestConfig;
   status: EngineStatus;
   onConfigChange: (config: TestConfig) => void;
+  onAfterChange?: () => void;
 }
 
 const TIME_OPTIONS = [15, 30, 60, 120];
 const WORD_OPTIONS = [10, 25, 50, 100];
 
-export function ConfigBar({ config, status, onConfigChange }: ConfigBarProps) {
+export function ConfigBar({ config, status, onConfigChange, onAfterChange }: ConfigBarProps) {
   const isTyping = status === "typing";
   const mode = config.mode === "wordcount" ? "words" : "time";
   const durations = mode === "time" ? TIME_OPTIONS : WORD_OPTIONS;
@@ -28,13 +29,13 @@ export function ConfigBar({ config, status, onConfigChange }: ConfigBarProps) {
       <div className="flex items-center gap-1">
         <Chip
           active={mode === "time"}
-          onClick={() => onConfigChange({ mode: "timed", duration: TIME_OPTIONS[0] })}
+          onClick={() => { onConfigChange({ mode: "timed", duration: TIME_OPTIONS[0] }); onAfterChange?.(); }}
         >
           time
         </Chip>
         <Chip
           active={mode === "words"}
-          onClick={() => onConfigChange({ mode: "wordcount", duration: WORD_OPTIONS[0] })}
+          onClick={() => { onConfigChange({ mode: "wordcount", duration: WORD_OPTIONS[0] }); onAfterChange?.(); }}
         >
           words
         </Chip>
@@ -48,7 +49,7 @@ export function ConfigBar({ config, status, onConfigChange }: ConfigBarProps) {
           <Chip
             key={d}
             active={config.duration === d}
-            onClick={() => onConfigChange({ ...config, duration: d })}
+            onClick={() => { onConfigChange({ ...config, duration: d }); onAfterChange?.(); }}
           >
             {d}
           </Chip>

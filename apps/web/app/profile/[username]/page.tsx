@@ -2,8 +2,8 @@ export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
-import { users, userStats, raceParticipants, races, userAchievements, userActiveCosmetics } from "@typeoff/db";
-import { eq, desc } from "drizzle-orm";
+import { users, userStats, raceParticipants, races, userAchievements, userActiveCosmetics, soloResults } from "@typeoff/db";
+import { eq, desc, sql } from "drizzle-orm";
 import { getRankInfo, getRankProgress, getNextDivisionElo, ACHIEVEMENTS, getXpLevel, PROFILE_BORDERS } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
 import { AchievementsGrid } from "./achievements-grid";
@@ -82,6 +82,24 @@ export default async function ProfilePage({
     id: r.achievementId,
     unlockedAt: r.unlockedAt.toISOString(),
   }));
+
+  // Load solo personal bests (best WPM per mode+duration)
+  const soloPbs = await db
+    .select({
+      mode: soloResults.mode,
+      duration: soloResults.duration,
+      bestWpm: sql<number>`max(${soloResults.wpm})`.as("best_wpm"),
+      bestAccuracy: sql<number>`max(${soloResults.accuracy})`.as("best_accuracy"),
+      totalTests: sql<number>`count(*)`.as("total_tests"),
+    })
+    .from(soloResults)
+    .where(eq(soloResults.userId, user.id))
+    .groupBy(soloResults.mode, soloResults.duration);
+
+  // Overall solo best
+  const soloBestWpm = soloPbs.length > 0
+    ? Math.max(...soloPbs.map((r) => r.bestWpm))
+    : null;
 
   // Load active cosmetics
   const [activeCosmetics] = await db
@@ -199,6 +217,17 @@ export default async function ProfilePage({
                   </div>
                   <div className="text-[10px] text-muted mt-1 uppercase tracking-wider">avg wpm</div>
                 </div>
+                {soloBestWpm != null && (
+                  <div className="text-center">
+                    <div className="text-2xl font-black text-text tabular-nums leading-none">
+                      {Math.floor(soloBestWpm)}
+                      <span className="text-[0.55em] opacity-60">
+                        .{(soloBestWpm % 1).toFixed(2).slice(2)}
+                      </span>
+                    </div>
+                    <div className="text-[10px] text-muted mt-1 uppercase tracking-wider">solo best</div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -239,6 +268,38 @@ export default async function ProfilePage({
             <StatCard label="Best Day" value={stats?.maxRankedDayStreak ?? 0} />
           </div>
         </div>
+
+        {/* ── Solo Personal Bests ──────────────────────────── */}
+        {soloPbs.length > 0 && (
+          <section>
+            <SectionHeader>Solo Personal Bests</SectionHeader>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+              {soloPbs
+                .sort((a, b) => {
+                  if (a.mode !== b.mode) return a.mode === "timed" ? -1 : 1;
+                  return a.duration - b.duration;
+                })
+                .map((pb) => {
+                  const label = pb.mode === "timed" ? `${pb.duration}s` : `${pb.duration} words`;
+                  return (
+                    <div
+                      key={`${pb.mode}:${pb.duration}`}
+                      className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2.5"
+                    >
+                      <div className="text-base font-bold text-accent tabular-nums leading-tight">
+                        {Math.floor(pb.bestWpm)}
+                        <span className="text-[0.7em] opacity-50">
+                          .{(pb.bestWpm % 1).toFixed(2).slice(2)}
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-muted/60 mt-0.5">{label}</div>
+                      <div className="text-[10px] text-muted/40 tabular-nums">{pb.totalTests} tests</div>
+                    </div>
+                  );
+                })}
+            </div>
+          </section>
+        )}
 
         {/* ── Performance Charts ─────────────────────────── */}
         {chartData.length >= 2 && (

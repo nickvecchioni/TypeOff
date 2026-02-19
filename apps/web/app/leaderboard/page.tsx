@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { getDb } from "@/lib/db";
-import { users, userStats, userActiveCosmetics } from "@typeoff/db";
+import { users, userStats, userActiveCosmetics, soloResults } from "@typeoff/db";
 import { and, desc, eq, gt, isNotNull, sql, inArray } from "drizzle-orm";
 import type { RankTier } from "@typeoff/shared";
 import { getRankInfo, SEASON_1 } from "@typeoff/shared";
@@ -91,8 +91,21 @@ export default async function LeaderboardPage() {
     }
   }
 
-  // Load active cosmetics (badges) for leaderboard players
+  // Load solo best WPM for leaderboard players
   const allPlayerIds = [...rows.map((r) => r.id), ...(myRank ? [myRank.row.id] : [])];
+  const soloBestRows = allPlayerIds.length > 0
+    ? await db
+        .select({
+          userId: soloResults.userId,
+          bestWpm: sql<number>`max(${soloResults.wpm})`.as("best_wpm"),
+        })
+        .from(soloResults)
+        .where(inArray(soloResults.userId, allPlayerIds))
+        .groupBy(soloResults.userId)
+    : [];
+  const soloBestMap = new Map(soloBestRows.map((r) => [r.userId, r.bestWpm]));
+
+  // Load active cosmetics (badges) for leaderboard players
   const cosmeticRows = allPlayerIds.length > 0
     ? await db
         .select({
@@ -124,12 +137,13 @@ export default async function LeaderboardPage() {
         ) : (
           <div>
             {/* Header */}
-            <div className="grid grid-cols-[2rem_1fr_4rem_3.5rem] sm:grid-cols-[2rem_1fr_4.5rem_5rem_5rem_3.5rem_3.5rem_3.5rem] items-center gap-3 px-4 py-2 text-xs text-muted/60 uppercase tracking-wider border-b border-white/[0.04]">
+            <div className="grid grid-cols-[2rem_1fr_4rem_3.5rem] sm:grid-cols-[2rem_1fr_4.5rem_5rem_5rem_5rem_3.5rem_3.5rem_3.5rem] items-center gap-3 px-4 py-2 text-xs text-muted/60 uppercase tracking-wider border-b border-white/[0.04]">
               <span></span>
               <span>Player</span>
               <span className="text-right">ELO</span>
               <span className="text-right hidden sm:block">Best WPM</span>
               <span className="text-right hidden sm:block">Avg WPM</span>
+              <span className="text-right hidden sm:block">Solo</span>
               <span className="text-right hidden sm:block">Acc</span>
               <span className="text-right hidden sm:block">Races</span>
               <span className="text-right">Wins</span>
@@ -165,7 +179,7 @@ export default async function LeaderboardPage() {
                   <Link
                     key={row.id}
                     href={`/profile/${row.username}`}
-                    className={`grid grid-cols-[2rem_1fr_4rem_3.5rem] sm:grid-cols-[2rem_1fr_4.5rem_5rem_5rem_3.5rem_3.5rem_3.5rem] items-center gap-3 px-4 py-2.5 rounded-lg transition-colors ${rowBg}`}
+                    className={`grid grid-cols-[2rem_1fr_4rem_3.5rem] sm:grid-cols-[2rem_1fr_4.5rem_5rem_5rem_5rem_3.5rem_3.5rem_3.5rem] items-center gap-3 px-4 py-2.5 rounded-lg transition-colors ${rowBg}`}
                   >
                     <span className={`text-sm font-bold tabular-nums ${rankDisplay}`}>
                       {rank}
@@ -207,6 +221,9 @@ export default async function LeaderboardPage() {
                     <span className="text-sm text-muted/70 tabular-nums text-right hidden sm:block">
                       {fmtWpm(row.avgWpm)}
                     </span>
+                    <span className="text-sm text-muted/70 tabular-nums text-right hidden sm:block">
+                      {soloBestMap.has(row.id) ? fmtWpm(soloBestMap.get(row.id)!) : <span className="text-muted/30">-</span>}
+                    </span>
                     <span className="text-sm text-muted/50 tabular-nums text-right hidden sm:block">
                       {row.avgAccuracy != null ? (<>{Math.floor(row.avgAccuracy)}<span className="text-[0.8em] opacity-50">.{((row.avgAccuracy % 1) * 10).toFixed(0)}%</span></>) : "-"}
                     </span>
@@ -236,7 +253,7 @@ export default async function LeaderboardPage() {
                   </p>
                   <Link
                     href={`/profile/${row.username}`}
-                    className="grid grid-cols-[2rem_1fr_4rem_3.5rem] sm:grid-cols-[2rem_1fr_4.5rem_5rem_5rem_3.5rem_3.5rem_3.5rem] items-center gap-3 px-4 py-2.5 rounded-lg transition-colors bg-accent/[0.05] ring-1 ring-accent/10"
+                    className="grid grid-cols-[2rem_1fr_4rem_3.5rem] sm:grid-cols-[2rem_1fr_4.5rem_5rem_5rem_5rem_3.5rem_3.5rem_3.5rem] items-center gap-3 px-4 py-2.5 rounded-lg transition-colors bg-accent/[0.05] ring-1 ring-accent/10"
                   >
                     <span className="text-sm font-bold tabular-nums text-muted/40">
                       {rank}
@@ -260,6 +277,9 @@ export default async function LeaderboardPage() {
                     </span>
                     <span className="text-sm text-muted/70 tabular-nums text-right hidden sm:block">
                       {fmtWpm(row.avgWpm)}
+                    </span>
+                    <span className="text-sm text-muted/70 tabular-nums text-right hidden sm:block">
+                      {soloBestMap.has(row.id) ? fmtWpm(soloBestMap.get(row.id)!) : <span className="text-muted/30">-</span>}
                     </span>
                     <span className="text-sm text-muted/50 tabular-nums text-right hidden sm:block">
                       {row.avgAccuracy != null ? (<>{Math.floor(row.avgAccuracy)}<span className="text-[0.8em] opacity-50">.{((row.avgAccuracy % 1) * 10).toFixed(0)}%</span></>) : "-"}

@@ -55,10 +55,10 @@ export default function RootLayout({
                   Ranks
                 </Link>
                 <Link
-                  href="/practice"
+                  href="/solo"
                   className="text-sm text-muted hover:text-text transition-colors"
                 >
-                  Practice
+                  Solo
                 </Link>
                 <Link
                   href="/type-pass"
