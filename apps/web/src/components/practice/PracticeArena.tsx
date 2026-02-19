@@ -213,13 +213,13 @@ export function PracticeArena() {
 
       {/* Live WPM + time (below words, stays visible while typing) */}
       {isTyping && (
-        <div className="flex items-center gap-4 text-base text-muted tabular-nums -mt-2">
-          <span>
-            <span className="text-text font-bold">{engine.liveWpm}</span> wpm
+        <div className="flex items-center gap-6 tabular-nums -mt-2">
+          <span className="text-muted text-sm">
+            <span className="text-text font-black text-3xl">{engine.liveWpm}</span> wpm
           </span>
           {engine.config.mode === "timed" && (
-            <span>
-              <span className="text-text font-bold">{engine.timeLeft}</span>s
+            <span className="text-muted text-sm">
+              <span className="text-text font-black text-3xl">{engine.timeLeft}</span>s
             </span>
           )}
         </div>

@@ -96,7 +96,7 @@ export function PracticeResults({ stats, config, isPb, onRestart }: PracticeResu
           onClick={onRestart}
           className="w-full rounded-lg bg-accent/[0.06] ring-1 ring-accent/20 text-accent py-3 text-sm font-medium hover:bg-accent hover:text-bg hover:ring-accent transition-all"
         >
-          Try Again
+          Type Again
           <span className="inline-block w-[2px] h-[1em] bg-current animate-blink ml-0.5 translate-y-px" />
         </button>
         <p className="text-muted/30 text-xs">

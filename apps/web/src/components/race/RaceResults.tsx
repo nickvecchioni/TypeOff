@@ -3,8 +3,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import type { RaceResult } from "@/hooks/useRace";
-import type { RankTier } from "@typeoff/shared";
+import type { RankTier, WpmSample } from "@typeoff/shared";
 import { getRankInfo, ACHIEVEMENT_MAP, CHALLENGE_MAP, getCurrentSeason, getXpLevel } from "@typeoff/shared";
+import { WpmChart } from "@/components/typing/WpmChart";
 import type { AchievementRarity } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
 import { useSession } from "next-auth/react";
@@ -23,6 +24,7 @@ interface RaceResultsProps {
   placementRace?: number;
   placementTotal?: number;
   rankChange?: RankChange | null;
+  myWpmHistory?: WpmSample[];
 }
 
 const RARITY_RING: Record<AchievementRarity, string> = {
@@ -109,7 +111,7 @@ function AnimatedElo({
   return (
     <div>
       <div className="flex items-baseline gap-2">
-        <span className="text-3xl font-black text-text tabular-nums">
+        <span className="text-2xl font-black text-text tabular-nums">
           {displayElo}
         </span>
         <span
@@ -167,6 +169,7 @@ export function RaceResults({
   placementRace,
   placementTotal,
   rankChange,
+  myWpmHistory,
 }: RaceResultsProps) {
   const { data: session } = useSession();
   const isPlacement = placementRace != null && placementTotal != null;
@@ -216,7 +219,7 @@ export function RaceResults({
     : null;
 
   return (
-    <div className="flex flex-col gap-4 w-full">
+    <div className="flex flex-col gap-3 w-full pt-4">
       {/* ── Stats summary ──────────────────────────────────── */}
       {myResult ? (
         <div className="rounded-xl overflow-hidden ring-1 ring-white/[0.04] animate-slide-up">
@@ -224,42 +227,42 @@ export function RaceResults({
           <div className={`h-0.5 ${pStyle!.bar} opacity-50`} />
           <div className={`grid gap-px ${statCols}`}>
             {/* Position */}
-            <div className="bg-surface/40 p-4 sm:p-5">
-              <div className={`text-3xl font-black tabular-nums ${pStyle!.text}`}>
+            <div className="bg-surface/40 p-3 sm:p-4">
+              <div className={`text-2xl font-black tabular-nums ${pStyle!.text}`}>
                 {ordinal(myResult.placement)}
               </div>
-              <div className="text-[11px] text-muted/60 mt-1">
+              <div className="text-[11px] text-muted/60 mt-0.5">
                 of {results.length}
               </div>
             </div>
 
             {/* WPM */}
-            <div className="bg-surface/40 p-4 sm:p-5">
-              <div className="text-3xl font-black text-text tabular-nums">
+            <div className="bg-surface/40 p-3 sm:p-4">
+              <div className="text-2xl font-black text-text tabular-nums">
                 {Math.floor(myResult.wpm)}
-                <span className="text-lg opacity-50">
+                <span className="text-base opacity-50">
                   .{(myResult.wpm % 1).toFixed(2).slice(2)}
                 </span>
               </div>
-              <div className="text-[11px] text-muted/60 mt-1">wpm</div>
+              <div className="text-[11px] text-muted/60 mt-0.5">wpm</div>
             </div>
 
             {/* Accuracy (ranked only) */}
             {!isPlacement && (
-              <div className="bg-surface/40 p-4 sm:p-5">
-                <div className="text-3xl font-black text-text tabular-nums">
+              <div className="bg-surface/40 p-3 sm:p-4">
+                <div className="text-2xl font-black text-text tabular-nums">
                   {Math.floor(myResult.accuracy)}
-                  <span className="text-lg opacity-50">
+                  <span className="text-base opacity-50">
                     .{((myResult.accuracy % 1) * 10).toFixed(0)}%
                   </span>
                 </div>
-                <div className="text-[11px] text-muted/60 mt-1">accuracy</div>
+                <div className="text-[11px] text-muted/60 mt-0.5">accuracy</div>
               </div>
             )}
 
             {/* ELO cell (ranked) or Placement progress */}
             {isPlacement ? (
-              <div className="bg-surface/40 p-4 sm:p-5 col-span-2 sm:col-span-1">
+              <div className="bg-surface/40 p-3 sm:p-4 col-span-2 sm:col-span-1">
                 <div className="text-sm font-bold text-accent">
                   Race {placementRace} / {placementTotal}
                 </div>
@@ -276,7 +279,7 @@ export function RaceResults({
               </div>
             ) : (
               hasElo && (
-                <div className="bg-surface/40 p-4 sm:p-5">
+                <div className="bg-surface/40 p-3 sm:p-4">
                   <AnimatedElo
                     oldElo={myResult.elo! - myResult.eloChange!}
                     newElo={myResult.elo!}
@@ -301,7 +304,7 @@ export function RaceResults({
       >
         {/* Header */}
         <div
-          className={`grid text-muted/50 text-xs uppercase tracking-wider px-3 sm:px-4 py-2.5 border-b border-white/[0.06] ${tableCols}`}
+          className={`grid text-muted/50 text-xs uppercase tracking-wider px-3 sm:px-4 py-2 border-b border-white/[0.06] ${tableCols}`}
         >
           <span className="font-medium">#</span>
           <span className="font-medium">Name</span>
@@ -335,7 +338,7 @@ export function RaceResults({
           return (
             <div
               key={result.playerId}
-              className={`grid items-center px-3 sm:px-4 py-2.5 border-b border-white/[0.03] last:border-0 transition-colors ${tableCols} ${
+              className={`grid items-center px-3 sm:px-4 py-2 border-b border-white/[0.03] last:border-0 transition-colors ${tableCols} ${
                 isMe
                   ? "bg-accent/[0.05] text-accent"
                   : isBot
@@ -448,6 +451,16 @@ export function RaceResults({
         })}
       </div>
 
+      {/* ── WPM Chart ──────────────────────────────────── */}
+      {myWpmHistory && myWpmHistory.length >= 2 && (
+        <div
+          className="w-full flex justify-center"
+          style={{ animation: "slide-up 0.5s ease-out 0.12s both" }}
+        >
+          <WpmChart samples={myWpmHistory} />
+        </div>
+      )}
+
       {/* ── Achievements ─────────────────────────────────── */}
       {hasAchievements && (
         <div
@@ -491,8 +504,8 @@ export function RaceResults({
           <div className="flex flex-col sm:flex-row divide-y sm:divide-y-0 sm:divide-x divide-white/[0.04]">
             {/* Challenges */}
             {hasChallenges && (
-              <div className="flex-1 p-4 sm:p-5">
-                <div className="flex items-center justify-between mb-3">
+              <div className="flex-1 p-3 sm:p-4">
+                <div className="flex items-center justify-between mb-2">
                   <h3 className="text-xs font-bold text-muted/60 uppercase tracking-wider">
                     Challenges
                   </h3>
@@ -567,8 +580,8 @@ export function RaceResults({
                 const xpInfo = totalXp > 0 ? getXpLevel(totalXp) : null;
 
                 return (
-                  <div className="sm:w-64 p-4 sm:p-5">
-                    <div className="flex items-center justify-between mb-3">
+                  <div className="sm:w-64 p-3 sm:p-4">
+                    <div className="flex items-center justify-between mb-2">
                       <h3 className="text-xs font-bold text-amber-400/80 uppercase tracking-wider">
                         Season XP
                       </h3>
@@ -640,12 +653,12 @@ export function RaceResults({
 
       {/* ── Actions ──────────────────────────────────────── */}
       <div
-        className="flex flex-col items-center gap-2 w-full max-w-xs mx-auto pt-1"
+        className="flex flex-col items-center gap-1.5 w-full max-w-xs mx-auto"
         style={{ animation: "slide-up 0.5s ease-out 0.22s both" }}
       >
         <button
           onClick={() => onRaceAgain()}
-          className="w-full rounded-lg bg-accent/[0.06] ring-1 ring-accent/20 text-accent py-3 text-sm font-medium hover:bg-accent hover:text-bg hover:ring-accent transition-all"
+          className="w-full rounded-lg bg-accent/[0.06] ring-1 ring-accent/20 text-accent py-2.5 text-sm font-medium hover:bg-accent hover:text-bg hover:ring-accent transition-all"
         >
           {isPlacement ? "Next Placement" : "Race Again"}
           <span className="inline-block w-[2px] h-[1em] bg-current animate-blink ml-0.5 translate-y-px" />

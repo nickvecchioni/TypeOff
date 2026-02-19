@@ -148,7 +148,7 @@ export function RaceTypingArea({
       </div>
       {engine.status === "typing" && (
         <div className="text-center text-muted text-sm tabular-nums mt-4">
-          <span className="text-text font-bold">{engine.liveWpm}</span> wpm
+          <span className="text-text font-black text-3xl">{engine.liveWpm}</span> wpm
         </div>
       )}
     </div>

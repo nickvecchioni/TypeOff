@@ -12,7 +12,7 @@ import { RaceResults } from "./RaceResults";
 import { PlacementReveal } from "./PlacementReveal";
 import { PartyInviteToast } from "@/components/social/PartyInviteToast";
 import { getRankInfo } from "@typeoff/shared";
-import type { RankTier } from "@typeoff/shared";
+import type { RankTier, WpmSample } from "@typeoff/shared";
 
 const TIER_ORDER: RankTier[] = [
   "bronze", "silver", "gold", "platinum", "diamond", "master", "grandmaster",
@@ -126,12 +126,22 @@ export function RaceArena() {
     }
   }, [race.phase, race.results, session?.user?.id, updateSession]);
 
+  // Capture wpmHistory locally (not sent to server, only used for chart)
+  const wpmHistoryRef = React.useRef<WpmSample[]>([]);
+  const handleFinish = React.useCallback(
+    (data: { wpm: number; rawWpm: number; accuracy: number; misstypedChars: number; wpmHistory?: WpmSample[] }) => {
+      wpmHistoryRef.current = data.wpmHistory ?? [];
+      race.sendFinish(data);
+    },
+    [race.sendFinish],
+  );
+
   const isInPlacement = race.raceState?.placementRace != null
     || race.phase === "placed"
     || (race.phase === "finished" && race.placementRace != null);
 
   return (
-    <div className="flex flex-col items-center gap-8 w-full max-w-4xl mx-auto">
+    <div className="flex flex-col items-center gap-8 w-full max-w-4xl mx-auto flex-1">
       {race.error && (
         <div className="text-error text-sm">{race.error}</div>
       )}
@@ -195,7 +205,7 @@ export function RaceArena() {
                 wordCount={race.raceState.wordCount}
                 finishTimeoutEnd={race.finishTimeoutEnd}
                 onProgress={race.sendProgress}
-                onFinish={race.sendFinish}
+                onFinish={handleFinish}
                 disabled={race.phase === "countdown"}
               />
             </div>
@@ -204,7 +214,7 @@ export function RaceArena() {
       )}
 
       {race.phase === "finished" && (
-        <div className="w-full" style={{ animation: "fade-in-up 0.4s ease-out both" }}>
+        <div className="w-full flex-1 flex flex-col justify-center" style={{ animation: "fade-in-up 0.4s ease-out both" }}>
           <RaceResults
             results={race.results}
             myPlayerId={myPlayerId}
@@ -213,6 +223,7 @@ export function RaceArena() {
             placementRace={race.placementRace}
             placementTotal={race.placementTotal}
             rankChange={rankChange}
+            myWpmHistory={wpmHistoryRef.current}
           />
         </div>
       )}
