@@ -141,8 +141,8 @@ export function RaceArena() {
     || (race.phase === "finished" && race.placementRace != null);
 
   return (
-    <div className={`flex flex-col items-center gap-8 w-full max-w-4xl mx-auto ${
-      race.phase === "idle" || race.phase === "queuing" ? "" : "flex-1"
+    <div className={`flex flex-col items-center gap-8 w-full max-w-4xl mx-auto flex-1 ${
+      race.phase === "idle" || race.phase === "queuing" ? "justify-center" : ""
     }`}>
       {race.error && (
         <div className="text-error text-sm">{race.error}</div>
