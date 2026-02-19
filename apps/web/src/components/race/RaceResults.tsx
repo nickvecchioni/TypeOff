@@ -231,7 +231,7 @@ export function RaceResults({
     : null;
 
   return (
-    <div className="flex flex-col gap-3 w-full pt-4">
+    <div className="flex flex-col gap-2 w-full">
       {/* ── Stats summary ──────────────────────────────────── */}
       {myResult ? (
         <div className="rounded-xl overflow-hidden ring-1 ring-white/[0.04] animate-slide-up">
@@ -239,7 +239,7 @@ export function RaceResults({
           <div className={`h-0.5 ${pStyle!.bar} opacity-50`} />
           <div className={`grid gap-px ${statCols}`}>
             {/* Position */}
-            <div className="bg-surface/40 p-3 sm:p-4">
+            <div className="bg-surface/40 px-3 py-2 sm:px-4 sm:py-2.5">
               <div className={`text-2xl font-black tabular-nums ${pStyle!.text}`}>
                 {ordinal(myResult.placement)}
               </div>
@@ -249,7 +249,7 @@ export function RaceResults({
             </div>
 
             {/* WPM */}
-            <div className="bg-surface/40 p-3 sm:p-4">
+            <div className="bg-surface/40 px-3 py-2 sm:px-4 sm:py-2.5">
               <div className="text-2xl font-black text-text tabular-nums">
                 {Math.floor(myResult.wpm)}
                 <span className="text-base opacity-50">
@@ -261,7 +261,7 @@ export function RaceResults({
 
             {/* Accuracy (ranked only) */}
             {!isPlacement && (
-              <div className="bg-surface/40 p-3 sm:p-4">
+              <div className="bg-surface/40 px-3 py-2 sm:px-4 sm:py-2.5">
                 <div className="text-2xl font-black text-text tabular-nums">
                   {Math.floor(myResult.accuracy)}
                   <span className="text-base opacity-50">
@@ -291,7 +291,7 @@ export function RaceResults({
               </div>
             ) : (
               hasElo && (
-                <div className="bg-surface/40 p-3 sm:p-4">
+                <div className="bg-surface/40 px-3 py-2 sm:px-4 sm:py-2.5">
                   <AnimatedElo
                     oldElo={myResult.elo! - myResult.eloChange!}
                     newElo={myResult.elo!}
@@ -311,14 +311,16 @@ export function RaceResults({
 
       {/* ── Standings + Chart ─────────────────────────────── */}
       <div
-        className="grid gap-3 w-full"
+        className={`grid gap-2 w-full ${
+          myWpmHistory && myWpmHistory.length >= 2 ? "sm:grid-cols-[3fr_2fr]" : ""
+        }`}
         style={{ animation: "slide-up 0.5s ease-out 0.08s both" }}
       >
         {/* Standings table */}
         <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden">
           {/* Header */}
           <div
-            className={`grid text-muted/50 text-xs uppercase tracking-wider px-3 sm:px-4 py-2 border-b border-white/[0.06] ${tableCols}`}
+            className={`grid text-muted/50 text-xs uppercase tracking-wider px-3 sm:px-4 py-1.5 border-b border-white/[0.06] ${tableCols}`}
           >
             <span className="font-medium">#</span>
             <span className="font-medium">Name</span>
@@ -352,7 +354,7 @@ export function RaceResults({
             return (
               <div
                 key={result.playerId}
-                className={`grid items-center px-3 sm:px-4 py-2 border-b border-white/[0.03] last:border-0 transition-colors ${tableCols} ${
+                className={`grid items-center px-3 sm:px-4 py-1.5 border-b border-white/[0.03] last:border-0 transition-colors ${tableCols} ${
                   isMe
                     ? "bg-accent/[0.05] text-accent"
                     : isBot
@@ -467,7 +469,7 @@ export function RaceResults({
 
         {/* WPM Chart */}
         {myWpmHistory && myWpmHistory.length >= 2 && (
-          <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] p-3 sm:p-4 h-48 sm:h-56">
+          <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] p-2 sm:p-3 flex items-center">
             <WpmChart samples={myWpmHistory} />
           </div>
         )}
@@ -476,13 +478,13 @@ export function RaceResults({
       {/* ── Achievements ─────────────────────────────────── */}
       {hasAchievements && (
         <div
-          className="flex flex-col gap-1.5 w-full"
+          className="flex flex-col gap-1 w-full"
           style={{ animation: "slide-up 0.5s ease-out 0.14s both" }}
         >
           <h3 className="text-xs font-bold text-muted/60 uppercase tracking-wider">
             Achievements Unlocked
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
             {myResult!.newAchievements!.map((id) => {
               const def = ACHIEVEMENT_MAP.get(id);
               if (!def) return null;
@@ -510,7 +512,7 @@ export function RaceResults({
       {/* ── Progress: Challenges + TypePass ───────────────── */}
       {hasProgress && (
         <div
-          className={`grid gap-3 w-full ${
+          className={`grid gap-2 w-full ${
             hasChallenges && hasTypePass && season
               ? "sm:grid-cols-[3fr_2fr]"
               : ""
@@ -519,8 +521,8 @@ export function RaceResults({
         >
             {/* Challenges */}
             {hasChallenges && (
-              <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden p-3 sm:p-4">
-                <div className="flex items-center justify-between mb-2">
+              <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden px-3 py-2 sm:px-4 sm:py-2.5">
+                <div className="flex items-center justify-between mb-1">
                   <h3 className="text-xs font-bold text-muted/60 uppercase tracking-wider">
                     Challenges
                   </h3>
@@ -542,7 +544,7 @@ export function RaceResults({
                       return (
                         <div
                           key={cp.challengeId}
-                          className="flex items-center gap-2.5 py-1.5"
+                          className="flex items-center gap-2 py-1"
                         >
                           <span className="text-sm shrink-0">{def.icon}</span>
                           <div className="min-w-0 flex-1">
@@ -595,8 +597,8 @@ export function RaceResults({
                 const xpInfo = totalXp > 0 ? getXpLevel(totalXp) : null;
 
                 return (
-                  <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden p-3 sm:p-4">
-                    <div className="flex items-center justify-between mb-2">
+                  <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden px-3 py-2 sm:px-4 sm:py-2.5">
+                    <div className="flex items-center justify-between mb-1">
                       <h3 className="text-xs font-bold text-amber-400/80 uppercase tracking-wider">
                         Season XP
                       </h3>
@@ -604,8 +606,8 @@ export function RaceResults({
                         +{kp.xpEarned} XP
                       </span>
                     </div>
-                    <div className="rounded-lg bg-surface/60 px-3 py-2.5 ring-1 ring-amber-400/10">
-                      <div className="flex items-center justify-between mb-1">
+                    <div className="rounded-lg bg-surface/60 px-3 py-2 ring-1 ring-amber-400/10">
+                      <div className="flex items-center justify-between mb-0.5">
                         <span className="text-xs font-medium text-text">
                           Tier {kp.currentTier}
                           {kp.tierUp && (
@@ -643,7 +645,7 @@ export function RaceResults({
                     </div>
                     {xpInfo && (
                       <>
-                        <div className="flex items-center justify-between mt-4 mb-2">
+                        <div className="flex items-center justify-between mt-2.5 mb-1">
                           <h3 className="text-xs font-bold text-accent/80 uppercase tracking-wider">
                             User XP
                           </h3>
@@ -653,8 +655,8 @@ export function RaceResults({
                             </span>
                           )}
                         </div>
-                        <div className="rounded-lg bg-surface/60 px-3 py-2.5 ring-1 ring-accent/10">
-                          <div className="flex items-center justify-between mb-1">
+                        <div className="rounded-lg bg-surface/60 px-3 py-2 ring-1 ring-accent/10">
+                          <div className="flex items-center justify-between mb-0.5">
                             <span className="text-xs font-bold text-accent">
                               Level {xpInfo.level}
                             </span>
@@ -707,7 +709,7 @@ export function RaceResults({
 
       {/* ── Actions ──────────────────────────────────────── */}
       <div
-        className="flex flex-col items-center gap-1.5 w-full max-w-xs mx-auto"
+        className="flex flex-col items-center gap-1 w-full max-w-xs mx-auto"
         style={{ animation: "slide-up 0.5s ease-out 0.22s both" }}
       >
         {inParty && !isLeader && !isPlacement ? (
@@ -726,7 +728,7 @@ export function RaceResults({
           <>
             <button
               onClick={() => onRaceAgain()}
-              className="w-full rounded-lg bg-accent/[0.06] ring-1 ring-accent/20 text-accent py-2.5 text-sm font-medium hover:bg-accent hover:text-bg hover:ring-accent transition-all"
+              className="w-full rounded-lg bg-accent/[0.06] ring-1 ring-accent/20 text-accent py-2 text-sm font-medium hover:bg-accent hover:text-bg hover:ring-accent transition-all"
             >
               {isPlacement ? "Next Placement" : "Race Again"}
               <span className="inline-block w-[2px] h-[1em] bg-current animate-blink ml-0.5 translate-y-px" />
