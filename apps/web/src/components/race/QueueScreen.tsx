@@ -60,6 +60,7 @@ export function QueueScreen({
   const myUserId = session?.user?.id;
   const isPartyLeader = party?.leaderId === myUserId;
   const inPartyNotLeader = party != null && !isPartyLeader;
+  const xpInfo = session?.user ? getXpLevel(session.user.totalXp) : null;
 
   // Enter key shortcut to join queue
   React.useEffect(() => {
@@ -137,7 +138,7 @@ export function QueueScreen({
                 className="text-3xl font-black tabular-nums tracking-tight"
                 style={{ textShadow: RANK_GLOW[session.user.rankTier] }}
               >
-                {session.user.eloRating.toLocaleString()}
+                {session.user.eloRating}
               </div>
               <div className="flex items-center gap-3 text-xs text-muted">
                 {session.user.currentStreak > 0 && (
@@ -148,7 +149,7 @@ export function QueueScreen({
                     <span className="text-white/[0.08]">&middot;</span>
                   </>
                 )}
-                <span>Lv {getXpLevel(session.user.totalXp).level}</span>
+                <span>Level {xpInfo!.level}</span>
               </div>
             </div>
           )}
@@ -265,7 +266,30 @@ export function QueueScreen({
               style={{ animationDelay: "220ms", animationFillMode: "both" }}
             >
               <ChallengesWidget />
-              <TypePassWidget />
+              <div className="grid grid-rows-2 gap-3">
+                {/* User XP */}
+                <div className="rounded-xl bg-surface/50 ring-1 ring-white/[0.04] overflow-hidden flex flex-col">
+                  <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
+                  <div className="p-4 flex-1 flex flex-col justify-center">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold text-accent uppercase tracking-wider">
+                        Level {xpInfo!.level}
+                      </span>
+                      <span className="text-xs text-muted tabular-nums">
+                        {xpInfo!.currentXp} / {xpInfo!.nextLevelXp} XP
+                      </span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-surface overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-accent transition-all"
+                        style={{ width: `${Math.round((xpInfo!.currentXp / xpInfo!.nextLevelXp) * 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+                {/* Season XP */}
+                <TypePassWidget />
+              </div>
             </div>
           )}
         </>
