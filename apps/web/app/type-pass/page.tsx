@@ -19,6 +19,7 @@ interface TypePassData {
 export default function TypePassPage() {
   const [data, setData] = useState<TypePassData | null>(null);
   const [purchasing, setPurchasing] = useState(false);
+  const [purchaseError, setPurchaseError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/type-pass")
@@ -56,13 +57,18 @@ export default function TypePassPage() {
 
   async function handlePurchase() {
     setPurchasing(true);
+    setPurchaseError(null);
     try {
       const res = await fetch("/api/type-pass/checkout", { method: "POST" });
       const body = await res.json();
       if (body.url) {
         window.location.href = body.url;
+      } else {
+        setPurchaseError(body.error ?? "Checkout failed");
+        setPurchasing(false);
       }
     } catch {
+      setPurchaseError("Network error");
       setPurchasing(false);
     }
   }
@@ -76,6 +82,7 @@ export default function TypePassPage() {
           xp={xp}
           isPremium={isPremium}
           purchasing={purchasing}
+          purchaseError={purchaseError}
           onPurchase={handlePurchase}
         />
 

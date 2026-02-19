@@ -9,6 +9,7 @@ interface ProgressHeaderProps {
   xp: number;
   isPremium: boolean;
   purchasing: boolean;
+  purchaseError: string | null;
   onPurchase: () => void;
 }
 
@@ -44,6 +45,7 @@ export function ProgressHeader({
   xp,
   isPremium,
   purchasing,
+  purchaseError,
   onPurchase,
 }: ProgressHeaderProps) {
   const timeLeft = useSeasonCountdown(season.endDate);
@@ -63,13 +65,18 @@ export function ProgressHeader({
           </p>
         </div>
         {!isPremium && (
-          <button
-            onClick={onPurchase}
-            disabled={purchasing}
-            className="rounded-lg bg-amber-400 text-bg px-6 py-2.5 text-sm font-bold tracking-wide uppercase hover:bg-amber-300 transition-colors disabled:opacity-50 shrink-0"
-          >
-            {purchasing ? "Loading..." : `Upgrade \u2014 $${season.priceUsd}`}
-          </button>
+          <div className="flex flex-col items-end gap-1.5 shrink-0">
+            <button
+              onClick={onPurchase}
+              disabled={purchasing}
+              className="rounded-lg bg-amber-400 text-bg px-6 py-2.5 text-sm font-bold tracking-wide uppercase hover:bg-amber-300 transition-colors disabled:opacity-50"
+            >
+              {purchasing ? "Loading..." : `Upgrade \u2014 $${season.priceUsd}`}
+            </button>
+            {purchaseError && (
+              <p className="text-xs text-error">{purchaseError}</p>
+            )}
+          </div>
         )}
         {isPremium && (
           <span className="text-sm font-bold text-amber-400 bg-amber-400/10 rounded-lg px-4 py-2 uppercase tracking-wider">
