@@ -319,7 +319,7 @@ export function RaceResults({
         style={{ animation: "slide-up 0.5s ease-out 0.08s both" }}
       >
         {/* Standings table */}
-        <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden self-start">
+        <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden">
           {/* Header */}
           <div
             className={`grid text-muted/50 text-xs uppercase tracking-wider px-3 sm:px-4 py-2 border-b border-white/[0.06] ${tableCols}`}
@@ -471,7 +471,7 @@ export function RaceResults({
 
         {/* WPM Chart (beside standings on desktop, below on mobile) */}
         {myWpmHistory && myWpmHistory.length >= 2 && (
-          <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] p-3 flex items-center self-start">
+          <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] p-3 flex items-center">
             <WpmChart samples={myWpmHistory} />
           </div>
         )}
@@ -514,13 +514,16 @@ export function RaceResults({
       {/* ── Progress: Challenges + TypePass ───────────────── */}
       {hasProgress && (
         <div
-          className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden w-full"
+          className={`grid gap-3 w-full ${
+            hasChallenges && hasTypePass && season
+              ? "sm:grid-cols-[3fr_2fr]"
+              : ""
+          }`}
           style={{ animation: "slide-up 0.5s ease-out 0.18s both" }}
         >
-          <div className="flex flex-col sm:flex-row divide-y sm:divide-y-0 sm:divide-x divide-white/[0.04]">
             {/* Challenges */}
             {hasChallenges && (
-              <div className="flex-1 p-3 sm:p-4">
+              <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden p-3 sm:p-4">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-xs font-bold text-muted/60 uppercase tracking-wider">
                     Challenges
@@ -596,7 +599,7 @@ export function RaceResults({
                 const xpInfo = totalXp > 0 ? getXpLevel(totalXp) : null;
 
                 return (
-                  <div className="sm:w-64 p-3 sm:p-4">
+                  <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden p-3 sm:p-4">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-xs font-bold text-amber-400/80 uppercase tracking-wider">
                         Season XP
@@ -663,7 +666,6 @@ export function RaceResults({
                   </div>
                 );
               })()}
-          </div>
         </div>
       )}
 

@@ -101,11 +101,8 @@ export function calibrateElo(wpm: number): { elo: number; tier: RankTier } {
 
 /**
  * Calculate ELO change for a pairwise matchup.
- * @param ratingA - Player A's rating
- * @param ratingB - Player B's rating
- * @param scoreA - 1 if A won, 0 if A lost, 0.5 for draw
- * @param gamesPlayed - Number of games player A has played (affects K-factor)
- * @returns ELO change for player A (negate for player B)
+ * Uses a graduated K-factor: K = max(16, round(40 - 0.8 * gamesPlayed))
+ * New players (0 games) get K=40 for fast convergence; veterans (30+) settle at K=16.
  */
 export function calculateEloChange(
   ratingA: number,
@@ -113,15 +110,22 @@ export function calculateEloChange(
   scoreA: number,
   gamesPlayed: number
 ): number {
-  const K = gamesPlayed < 30 ? 32 : 16;
+  const K = Math.max(16, Math.round(40 - 0.8 * gamesPlayed));
   const expectedA = 1 / (1 + Math.pow(10, (ratingB - ratingA) / 400));
   return Math.round(K * (scoreA - expectedA));
 }
 
+/** Weight applied to ELO changes from bot pairings */
+const BOT_WEIGHT = 0.6;
+
 /**
- * Calculate ELO changes for all players in a race based on placements.
- * Uses pairwise comparisons: each player "wins" against those placed below,
- * "loses" against those placed above.
+ * Calculate ELO changes for all players in a race.
+ * Uses pairwise comparisons with WPM-margin sigmoid scoring:
+ *   scoreA = 1 / (1 + exp(-wpmDiff / 15))
+ * Close races → near-draw; blowouts → larger swings.
+ *
+ * Bot pairings are weighted at 60% to reduce bot-RNG influence.
+ * Accuracy multiplier: gains scaled by min(1, accuracy / 96) — losses unaffected.
  */
 export function calculateRaceElo(
   players: Array<{
@@ -129,6 +133,9 @@ export function calculateRaceElo(
     elo: number;
     placement: number;
     gamesPlayed: number;
+    wpm: number;
+    accuracy?: number;
+    isBot?: boolean;
   }>
 ): Map<string, number> {
   const changes = new Map<string, number>();
@@ -142,13 +149,31 @@ export function calculateRaceElo(
       const a = players[i];
       const b = players[j];
 
-      // Lower placement = better (1st place beats 2nd place)
-      const scoreA = a.placement < b.placement ? 1 : a.placement > b.placement ? 0 : 0.5;
+      // Sigmoid score based on WPM difference (positive = A faster)
+      const wpmDiff = a.wpm - b.wpm;
+      const scoreA = 1 / (1 + Math.exp(-wpmDiff / 15));
 
-      const changeA = calculateEloChange(a.elo, b.elo, scoreA, a.gamesPlayed);
+      let changeA = calculateEloChange(a.elo, b.elo, scoreA, a.gamesPlayed);
+      let changeB = -calculateEloChange(b.elo, a.elo, 1 - scoreA, b.gamesPlayed);
+
+      // Reduce weight for bot pairings
+      const isBotPairing = a.isBot || b.isBot;
+      if (isBotPairing) {
+        changeA = Math.round(changeA * BOT_WEIGHT);
+        changeB = Math.round(changeB * BOT_WEIGHT);
+      }
 
       changes.set(a.id, (changes.get(a.id) ?? 0) + changeA);
-      changes.set(b.id, (changes.get(b.id) ?? 0) - changeA);
+      changes.set(b.id, (changes.get(b.id) ?? 0) + changeB);
+    }
+  }
+
+  // Apply accuracy multiplier to gains only
+  for (const player of players) {
+    const change = changes.get(player.id) ?? 0;
+    if (change > 0 && player.accuracy !== undefined) {
+      const accuracyMultiplier = player.accuracy >= 96 ? 1 : player.accuracy / 96;
+      changes.set(player.id, Math.round(change * accuracyMultiplier));
     }
   }
 
