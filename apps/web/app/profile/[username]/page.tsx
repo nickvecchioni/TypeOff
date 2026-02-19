@@ -13,7 +13,7 @@ import { AddFriendButton } from "@/components/social/AddFriendButton";
 import { CosmeticBadge } from "@/components/CosmeticBadge";
 import { CosmeticTitle } from "@/components/CosmeticTitle";
 import { CosmeticName } from "@/components/CosmeticName";
-import { CosmeticSelector } from "./cosmetic-selector";
+
 
 export default async function ProfilePage({
   params,
@@ -329,15 +329,6 @@ export default async function ProfilePage({
                   })}
                 </tbody>
               </table>
-            </div>
-          </section>
-        )}
-
-        {isOwn && (
-          <section>
-            <SectionHeader>Customize</SectionHeader>
-            <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] p-5">
-              <CosmeticSelector />
             </div>
           </section>
         )}

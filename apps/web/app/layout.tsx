@@ -55,19 +55,19 @@ export default function RootLayout({
                   Ranks
                 </Link>
                 <Link
-                  href="/type-pass"
-                  className="text-sm text-amber-400/70 hover:text-amber-400 transition-colors"
-                >
-                  TypePass
-                </Link>
-                <Link
                   href="/cosmetics"
                   className="text-sm text-muted hover:text-text transition-colors"
                 >
                   Cosmetics
                 </Link>
+                <Link
+                  href="/type-pass"
+                  className="text-sm text-amber-400/70 hover:text-amber-400 transition-colors"
+                >
+                  TypePass
+                </Link>
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
                 <UserMenu />
                 <FriendsButton />
               </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
@@ -113,7 +113,7 @@ export default function CosmeticsPage() {
   const ownedItems = allItems.filter((r) => ownedIds.has(r.id));
   const lockedItems = allItems.filter((r) => !ownedIds.has(r.id));
 
-  const username = session?.user?.name ?? "Player";
+  const username = session?.user?.username ?? session?.user?.name ?? "Player";
 
   return (
     <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
@@ -218,10 +218,16 @@ export default function CosmeticsPage() {
 
 /* ── Preview Card ──────────────────────────────────────── */
 
+const PREVIEW_TEXT = "the quick brown fox jumps over the lazy dog";
+
 function PreviewCard({ active, username }: { active: ActiveState; username: string }) {
   const cursorStyle = active.activeCursorStyle ? CURSOR_STYLES[active.activeCursorStyle] : null;
   const borderDef = active.activeProfileBorder ? PROFILE_BORDERS[active.activeProfileBorder] : null;
   const themeDef = active.activeTypingTheme ? TYPING_THEMES[active.activeTypingTheme] : null;
+
+  const [typed, setTyped] = useState("");
+  const [focused, setFocused] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Name styling
   const nameStyle: React.CSSProperties = {};
@@ -232,6 +238,59 @@ function PreviewCard({ active, username }: { active: ActiveState; username: stri
   if (active.activeNameEffect && NAME_EFFECT_CLASSES[active.activeNameEffect]) {
     nameClass = NAME_EFFECT_CLASSES[active.activeNameEffect];
   }
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Tab" || e.key === "Escape") {
+        e.preventDefault();
+        setTyped("");
+        return;
+      }
+
+      // Ignore modifier combos and non-character keys
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.key === "Shift" || e.key === "CapsLock") return;
+
+      e.preventDefault();
+
+      if (e.key === "Backspace") {
+        setTyped((prev) => prev.slice(0, -1));
+        return;
+      }
+
+      // Only accept single printable characters
+      if (e.key.length !== 1) return;
+
+      setTyped((prev) => {
+        if (prev.length >= PREVIEW_TEXT.length) return prev;
+        return prev + e.key;
+      });
+    },
+    [],
+  );
+
+  // Auto-reset when complete
+  useEffect(() => {
+    if (typed.length >= PREVIEW_TEXT.length) {
+      const t = setTimeout(() => setTyped(""), 800);
+      return () => clearTimeout(t);
+    }
+  }, [typed]);
+
+  const isComplete = typed.length >= PREVIEW_TEXT.length;
+
+  // Build cursor style
+  const cursorColor = cursorStyle?.color ?? "#4d9eff";
+  const cursorGlow = cursorStyle?.glowColor
+    ? `0 0 8px ${cursorStyle.glowColor}, 0 0 2px ${cursorStyle.glowColor}`
+    : `0 0 8px ${cursorColor}40`;
+  const cursorW = cursorStyle?.shape === "block" ? "1ch" : cursorStyle?.shape === "underline" ? "1ch" : 2;
+  const cursorH = cursorStyle?.shape === "underline" ? 2 : "1.2em";
+  const cursorOpacity = cursorStyle?.shape === "block" ? 0.3 : 1;
+  const cursorVAlign = cursorStyle?.shape === "underline" ? "bottom" : ("text-bottom" as const);
+  const cursorAnim = cursorStyle?.animation
+    ? `${cursorStyle.animation} 2s ease-in-out infinite`
+    : "blink 1s step-end infinite";
 
   return (
     <div className={`rounded-xl bg-surface/50 ring-1 ring-white/[0.04] overflow-hidden ${
@@ -259,32 +318,99 @@ function PreviewCard({ active, username }: { active: ActiveState; username: stri
         )}
       </div>
 
-      {/* Typing preview */}
-      <div className={`px-5 py-5 ${themeDef?.className ?? ""}`}>
-        <p className="text-[11px] text-muted/40 uppercase tracking-widest mb-3">Typing Preview</p>
-        <div className="relative font-mono text-base leading-relaxed no-ligatures">
-          {/* Simulated typed text */}
-          <span className="text-correct">the quick </span>
-          <span className="text-current">b</span>
-          {/* Cursor */}
-          <span
-            className="inline-block relative"
-            style={{
-              width: cursorStyle?.shape === "block" ? "1ch" : cursorStyle?.shape === "underline" ? "1ch" : 2,
-              height: cursorStyle?.shape === "underline" ? 2 : "1.2em",
-              backgroundColor: cursorStyle?.color ?? "#4d9eff",
-              boxShadow: cursorStyle?.glowColor
-                ? `0 0 8px ${cursorStyle.glowColor}, 0 0 2px ${cursorStyle.glowColor}`
-                : "0 0 8px rgba(96, 165, 250, 0.5)",
-              opacity: cursorStyle?.shape === "block" ? 0.3 : 1,
-              verticalAlign: cursorStyle?.shape === "underline" ? "bottom" : "text-bottom",
-              animation: cursorStyle?.animation
-                ? `${cursorStyle.animation} 2s ease-in-out infinite`
-                : "blink 1s step-end infinite",
-            }}
-          />
-          <span className="text-muted">rown fox jumps over</span>
+      {/* Interactive typing preview */}
+      <div
+        ref={containerRef}
+        tabIndex={0}
+        onKeyDown={handleKeyDown}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        onClick={() => containerRef.current?.focus()}
+        className={`px-5 py-5 outline-none cursor-text transition-colors ${
+          themeDef?.className ?? ""
+        } ${focused ? "bg-white/[0.02]" : ""}`}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-[11px] text-muted/40 uppercase tracking-widest">
+            Typing Preview
+          </p>
+          {typed.length > 0 && !isComplete && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setTyped("");
+                containerRef.current?.focus();
+              }}
+              className="text-[10px] text-muted/30 hover:text-muted/60 transition-colors uppercase tracking-wider"
+            >
+              Reset
+            </button>
+          )}
         </div>
+
+        <div className="relative font-mono text-base leading-relaxed no-ligatures select-none">
+          {/* Render each character */}
+          {PREVIEW_TEXT.split("").map((char, i) => {
+            if (i < typed.length) {
+              // Typed character — correct or error
+              const isCorrect = typed[i] === char;
+              return (
+                <span
+                  key={i}
+                  className={isCorrect ? "text-correct" : "text-error"}
+                >
+                  {isCorrect ? char : typed[i]}
+                </span>
+              );
+            }
+
+            if (i === typed.length && focused && !isComplete) {
+              // Cursor position
+              return (
+                <span key={i} className="relative">
+                  <span
+                    className="inline-block absolute"
+                    style={{
+                      width: cursorW,
+                      height: cursorH,
+                      backgroundColor: cursorColor,
+                      boxShadow: cursorGlow,
+                      opacity: cursorOpacity,
+                      verticalAlign: cursorVAlign,
+                      animation: cursorAnim,
+                      top: cursorStyle?.shape === "underline" ? undefined : 0,
+                      bottom: cursorStyle?.shape === "underline" ? 0 : undefined,
+                      left: 0,
+                      zIndex: 1,
+                    }}
+                  />
+                  <span className="text-muted">{char}</span>
+                </span>
+              );
+            }
+
+            // Untyped
+            return (
+              <span key={i} className="text-muted">
+                {char}
+              </span>
+            );
+          })}
+        </div>
+
+        {/* Focus hint */}
+        {!focused && typed.length === 0 && (
+          <p className="text-[10px] text-muted/25 mt-3">
+            Click here to start typing
+          </p>
+        )}
+
+        {/* Tab to reset hint */}
+        {focused && typed.length > 0 && !isComplete && (
+          <p className="text-[10px] text-muted/20 mt-3">
+            Tab to reset
+          </p>
+        )}
       </div>
     </div>
   );
