@@ -37,27 +37,41 @@ export async function POST() {
     );
   }
 
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+  const stripeKey = process.env.STRIPE_SECRET_KEY;
   const priceId = process.env.STRIPE_SEASON_1_PRICE_ID;
-  if (!priceId) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+
+  if (!stripeKey || !priceId) {
+    const missing = [
+      !stripeKey && "STRIPE_SECRET_KEY",
+      !priceId && "STRIPE_SEASON_1_PRICE_ID",
+    ].filter(Boolean).join(", ");
+    console.error(`[checkout] Missing env vars: ${missing}`);
     return NextResponse.json(
-      { error: "Stripe not configured" },
+      { error: `Server misconfigured — missing: ${missing}` },
       { status: 500 },
     );
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const stripe = new Stripe(stripeKey);
+  const baseUrl = appUrl ?? "http://localhost:3000";
 
-  const checkoutSession = await stripe.checkout.sessions.create({
-    mode: "payment",
-    line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${appUrl}/type-pass?purchased=true`,
-    cancel_url: `${appUrl}/type-pass`,
-    metadata: {
-      userId: session.user.id,
-      seasonId: season.id,
-    },
-  });
+  try {
+    const checkoutSession = await stripe.checkout.sessions.create({
+      mode: "payment",
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${baseUrl}/type-pass?purchased=true`,
+      cancel_url: `${baseUrl}/type-pass`,
+      metadata: {
+        userId: session.user.id,
+        seasonId: season.id,
+      },
+    });
 
-  return NextResponse.json({ url: checkoutSession.url });
+    return NextResponse.json({ url: checkoutSession.url });
+  } catch (err) {
+    console.error("[checkout] Stripe error:", err);
+    const message = err instanceof Error ? err.message : "Stripe checkout failed";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
