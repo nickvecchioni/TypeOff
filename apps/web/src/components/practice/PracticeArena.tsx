@@ -125,11 +125,18 @@ export function PracticeArena() {
   }, [engine.status, engine.stats, engine.config, session?.user?.id]);
 
   // Reset save guard on restart + bump cascade key
+  const prevStatusRef = useRef(engine.status);
   useEffect(() => {
+    const prev = prevStatusRef.current;
+    prevStatusRef.current = engine.status;
     if (engine.status === "idle") {
       hasSavedRef.current = false;
       setIsPb(null);
-      setCascadeKey((k) => k + 1);
+      // Skip cascade bump when coming from results — the typing area is
+      // already freshly mounting; a key change would double-mount it (flash).
+      if (prev !== "finished") {
+        setCascadeKey((k) => k + 1);
+      }
     }
   }, [engine.status]);
 
@@ -211,15 +218,15 @@ export function PracticeArena() {
         </div>
       )}
 
-      {/* Live WPM + time (below words, stays visible while typing) */}
-      {isTyping && (
+      {/* Live WPM + time (always visible, shows 0 before typing starts) */}
+      {!isFinished && (
         <div className="flex items-center justify-center gap-6 tabular-nums -mt-2">
           <span className="text-muted text-sm inline-flex items-baseline">
-            <span className="text-accent font-black text-5xl inline-block w-[3ch] text-right">{engine.liveWpm}</span> wpm
+            <span className="text-accent font-black text-5xl inline-block w-[3ch] text-right">{isTyping ? engine.liveWpm : 0}</span> wpm
           </span>
           {engine.config.mode === "timed" && (
             <span className="text-muted text-sm inline-flex items-baseline">
-              <span className="text-accent font-black text-5xl inline-block w-[3ch] text-right">{engine.timeLeft}</span>s
+              <span className="text-accent font-black text-5xl inline-block w-[3ch] text-right">{isTyping ? engine.timeLeft : engine.config.duration}</span>s
             </span>
           )}
         </div>
