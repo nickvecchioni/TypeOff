@@ -63,22 +63,6 @@ export function RaceArena() {
     setShowQueuing(false);
   }, [race.phase]);
 
-  // Track transition from countdown → racing with a brief "GO!" hold
-  const [showGo, setShowGo] = React.useState(false);
-  const prevPhaseRef = React.useRef(race.phase);
-
-  React.useEffect(() => {
-    const prev = prevPhaseRef.current;
-    prevPhaseRef.current = race.phase;
-
-    if (prev === "countdown" && race.phase === "racing") {
-      setShowGo(true);
-      const timer = setTimeout(() => setShowGo(false), 600);
-      return () => clearTimeout(timer);
-    } else if (race.phase !== "racing") {
-      setShowGo(false);
-    }
-  }, [race.phase]);
 
   // Refresh session when race finishes
   const sessionRefreshed = React.useRef(false);
@@ -168,7 +152,7 @@ export function RaceArena() {
 
       {(race.phase === "countdown" || race.phase === "racing") && race.raceState && (
         <div
-          className="flex flex-col items-center gap-8 w-full"
+          className="flex flex-col items-center gap-8 w-full pt-6"
           style={{ animation: "fade-in-up 0.4s ease-out both" }}
         >
           <RaceTrack
@@ -181,25 +165,23 @@ export function RaceArena() {
             {/* Countdown overlay — absolutely positioned, no layout shift */}
             <div
               className={`absolute inset-0 z-10 flex items-center justify-center pointer-events-none transition-opacity duration-300 ${
-                race.phase === "countdown" || showGo
+                race.phase === "countdown"
                   ? "opacity-100"
                   : "opacity-0"
               }`}
             >
               <CountdownOverlay
                 countdown={race.countdown}
-                showGo={showGo}
-                playerCount={race.raceState.players.length}
                 placementRace={race.raceState.placementRace}
-                players={race.raceState.players}
               />
             </div>
             {/* Words — blurred during countdown, comes into focus on GO */}
             <div
-              className="transition-[filter] duration-700 ease-out"
+              className="transition-[filter,opacity] duration-700 ease-out"
               style={{
                 filter:
-                  race.phase === "countdown" ? "blur(5px)" : "none",
+                  race.phase === "countdown" ? "blur(12px)" : "none",
+                opacity: race.phase === "countdown" ? 0.3 : 1,
               }}
             >
               <RaceTypingArea
