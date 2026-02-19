@@ -297,169 +297,173 @@ export function RaceResults({
         </h2>
       )}
 
-      {/* ── Standings ──────────────────────────────────────── */}
+      {/* ── Standings + Chart ─────────────────────────────── */}
       <div
-        className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden w-full"
+        className={`grid gap-3 w-full ${
+          myWpmHistory && myWpmHistory.length >= 2
+            ? "sm:grid-cols-[1fr_1fr]"
+            : ""
+        }`}
         style={{ animation: "slide-up 0.5s ease-out 0.08s both" }}
       >
-        {/* Header */}
-        <div
-          className={`grid text-muted/50 text-xs uppercase tracking-wider px-3 sm:px-4 py-2 border-b border-white/[0.06] ${tableCols}`}
-        >
-          <span className="font-medium">#</span>
-          <span className="font-medium">Name</span>
-          {!isPlacement && (
-            <span className="font-medium hidden sm:block">Rank</span>
-          )}
-          <span className="font-medium text-right">WPM</span>
-          {!isPlacement && (
-            <span className="font-medium text-right hidden sm:block">
-              Acc
-            </span>
-          )}
-          {!isPlacement && (
-            <span className="font-medium text-right">ELO</span>
-          )}
-        </div>
-
-        {/* Rows */}
-        {results.map((result) => {
-          const isMe = result.playerId === myPlayerId;
-          const isBot = result.playerId.startsWith("bot_");
-          const isGuest = result.playerId.startsWith("guest_") || isBot;
-          const displayName = result.username ?? result.name;
-          const showStreak =
-            result.placement === 1 &&
-            result.streak != null &&
-            result.streak >= 3;
-          const rInfo =
-            !isGuest && result.elo != null ? getRankInfo(result.elo) : null;
-
-          return (
-            <div
-              key={result.playerId}
-              className={`grid items-center px-3 sm:px-4 py-2 border-b border-white/[0.03] last:border-0 transition-colors ${tableCols} ${
-                isMe
-                  ? "bg-accent/[0.05] text-accent"
-                  : isBot
-                  ? "text-text/60"
-                  : "text-text hover:bg-white/[0.015]"
-              }`}
-            >
-              <span className="font-bold tabular-nums">
-                {result.placement}
+        {/* Standings table */}
+        <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden self-start">
+          {/* Header */}
+          <div
+            className={`grid text-muted/50 text-xs uppercase tracking-wider px-3 sm:px-4 py-2 border-b border-white/[0.06] ${tableCols}`}
+          >
+            <span className="font-medium">#</span>
+            <span className="font-medium">Name</span>
+            {!isPlacement && (
+              <span className="font-medium hidden sm:block">Rank</span>
+            )}
+            <span className="font-medium text-right">WPM</span>
+            {!isPlacement && (
+              <span className="font-medium text-right hidden sm:block">
+                Acc
               </span>
+            )}
+            {!isPlacement && (
+              <span className="font-medium text-right">ELO</span>
+            )}
+          </div>
 
-              <span className="flex items-center gap-2 min-w-0 pr-3">
-                {result.username && !isGuest ? (
-                  <Link
-                    href={`/profile/${result.username}`}
-                    className="hover:text-accent transition-colors truncate"
-                  >
-                    {displayName}
-                    {isMe && (
-                      <span className="text-muted text-xs ml-1">(you)</span>
-                    )}
-                  </Link>
-                ) : (
-                  <span className="truncate">
-                    {displayName}
-                    {isMe && (
-                      <span className="text-muted text-xs ml-1">(you)</span>
-                    )}
-                  </span>
-                )}
-                {isBot && (
-                  <span className="text-[10px] text-muted/70 bg-white/[0.06] rounded px-1.5 py-0.5 shrink-0 uppercase tracking-wider font-semibold">
-                    Bot
-                  </span>
-                )}
-                {showStreak && (
-                  <span
-                    className="text-orange-400 flex items-center gap-0.5 shrink-0"
-                    title={`${result.streak} win streak`}
-                  >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      className="shrink-0"
+          {/* Rows */}
+          {results.map((result) => {
+            const isMe = result.playerId === myPlayerId;
+            const isBot = result.playerId.startsWith("bot_");
+            const isGuest = result.playerId.startsWith("guest_") || isBot;
+            const displayName = result.username ?? result.name;
+            const showStreak =
+              result.placement === 1 &&
+              result.streak != null &&
+              result.streak >= 3;
+            const rInfo =
+              !isGuest && result.elo != null ? getRankInfo(result.elo) : null;
+
+            return (
+              <div
+                key={result.playerId}
+                className={`grid items-center px-3 sm:px-4 py-2 border-b border-white/[0.03] last:border-0 transition-colors ${tableCols} ${
+                  isMe
+                    ? "bg-accent/[0.05] text-accent"
+                    : isBot
+                    ? "text-text/60"
+                    : "text-text hover:bg-white/[0.015]"
+                }`}
+              >
+                <span className="font-bold tabular-nums">
+                  {result.placement}
+                </span>
+
+                <span className="flex items-center gap-2 min-w-0 pr-3">
+                  {result.username && !isGuest ? (
+                    <Link
+                      href={`/profile/${result.username}`}
+                      className="hover:text-accent transition-colors truncate"
                     >
-                      <path d="M12 23c-3.866 0-7-2.686-7-6 0-1.665.753-3.488 2.127-5.244.883-1.128 1.873-2.1 2.873-3.006V2l4.386 4.506c.953.979 1.893 2.09 2.614 3.25C18.36 11.715 19 13.578 19 15.5 19 19.642 16.09 23 12 23z" />
-                    </svg>
-                    <span className="text-xs font-bold tabular-nums">
-                      {result.streak}
-                    </span>
-                  </span>
-                )}
-              </span>
-
-              {!isPlacement && (
-                <span className="hidden sm:block">
-                  {rInfo ? (
-                    <RankBadge
-                      tier={rInfo.tier}
-                      elo={result.elo!}
-                      showElo={false}
-                      size="xs"
-                    />
+                      {displayName}
+                      {isMe && (
+                        <span className="text-muted text-xs ml-1">(you)</span>
+                      )}
+                    </Link>
                   ) : (
-                    <span className="text-muted/40 text-sm">—</span>
+                    <span className="truncate">
+                      {displayName}
+                      {isMe && (
+                        <span className="text-muted text-xs ml-1">(you)</span>
+                      )}
+                    </span>
                   )}
-                </span>
-              )}
-
-              <span className="text-right tabular-nums whitespace-nowrap">
-                {Math.floor(result.wpm)}
-                <span className="text-[0.7em] opacity-50">
-                  .{(result.wpm % 1).toFixed(2).slice(2)}
-                </span>
-              </span>
-
-              {!isPlacement && (
-                <span className="text-right tabular-nums whitespace-nowrap hidden sm:block">
-                  {Math.floor(result.accuracy)}
-                  <span className="text-[0.7em] opacity-50">
-                    .{((result.accuracy % 1) * 10).toFixed(0)}%
-                  </span>
-                </span>
-              )}
-
-              {!isPlacement && (
-                <span className="text-right tabular-nums whitespace-nowrap">
-                  {result.eloChange != null ? (
+                  {isBot && (
+                    <span className="text-[10px] text-muted/70 bg-white/[0.06] rounded px-1.5 py-0.5 shrink-0 uppercase tracking-wider font-semibold">
+                      Bot
+                    </span>
+                  )}
+                  {showStreak && (
                     <span
-                      className={`font-semibold ${
-                        result.eloChange > 0
-                          ? "text-correct"
-                          : result.eloChange < 0
-                          ? "text-error"
-                          : "text-muted"
-                      }`}
+                      className="text-orange-400 flex items-center gap-0.5 shrink-0"
+                      title={`${result.streak} win streak`}
                     >
-                      {result.eloChange > 0 ? "+" : ""}
-                      {result.eloChange}
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        className="shrink-0"
+                      >
+                        <path d="M12 23c-3.866 0-7-2.686-7-6 0-1.665.753-3.488 2.127-5.244.883-1.128 1.873-2.1 2.873-3.006V2l4.386 4.506c.953.979 1.893 2.09 2.614 3.25C18.36 11.715 19 13.578 19 15.5 19 19.642 16.09 23 12 23z" />
+                      </svg>
+                      <span className="text-xs font-bold tabular-nums">
+                        {result.streak}
+                      </span>
                     </span>
-                  ) : (
-                    <span className="text-muted/40">—</span>
                   )}
                 </span>
-              )}
-            </div>
-          );
-        })}
-      </div>
 
-      {/* ── WPM Chart ──────────────────────────────────── */}
-      {myWpmHistory && myWpmHistory.length >= 2 && (
-        <div
-          className="w-full flex justify-center"
-          style={{ animation: "slide-up 0.5s ease-out 0.12s both" }}
-        >
-          <WpmChart samples={myWpmHistory} />
+                {!isPlacement && (
+                  <span className="hidden sm:block">
+                    {rInfo ? (
+                      <RankBadge
+                        tier={rInfo.tier}
+                        elo={result.elo!}
+                        showElo={false}
+                        size="xs"
+                      />
+                    ) : (
+                      <span className="text-muted/40 text-sm">—</span>
+                    )}
+                  </span>
+                )}
+
+                <span className="text-right tabular-nums whitespace-nowrap">
+                  {Math.floor(result.wpm)}
+                  <span className="text-[0.7em] opacity-50">
+                    .{(result.wpm % 1).toFixed(2).slice(2)}
+                  </span>
+                </span>
+
+                {!isPlacement && (
+                  <span className="text-right tabular-nums whitespace-nowrap hidden sm:block">
+                    {Math.floor(result.accuracy)}
+                    <span className="text-[0.7em] opacity-50">
+                      .{((result.accuracy % 1) * 10).toFixed(0)}%
+                    </span>
+                  </span>
+                )}
+
+                {!isPlacement && (
+                  <span className="text-right tabular-nums whitespace-nowrap">
+                    {result.eloChange != null ? (
+                      <span
+                        className={`font-semibold ${
+                          result.eloChange > 0
+                            ? "text-correct"
+                            : result.eloChange < 0
+                            ? "text-error"
+                            : "text-muted"
+                        }`}
+                      >
+                        {result.eloChange > 0 ? "+" : ""}
+                        {result.eloChange}
+                      </span>
+                    ) : (
+                      <span className="text-muted/40">—</span>
+                    )}
+                  </span>
+                )}
+              </div>
+            );
+          })}
         </div>
-      )}
+
+        {/* WPM Chart (beside standings on desktop, below on mobile) */}
+        {myWpmHistory && myWpmHistory.length >= 2 && (
+          <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] p-3 flex items-center self-start">
+            <WpmChart samples={myWpmHistory} />
+          </div>
+        )}
+      </div>
 
       {/* ── Achievements ─────────────────────────────────── */}
       {hasAchievements && (

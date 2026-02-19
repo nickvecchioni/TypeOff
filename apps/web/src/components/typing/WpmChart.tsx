@@ -8,8 +8,8 @@ interface WpmChartProps {
 }
 
 const CHART_WIDTH = 600;
-const CHART_HEIGHT = 220;
-const PADDING = { top: 16, right: 20, bottom: 32, left: 52 };
+const CHART_HEIGHT = 180;
+const PADDING = { top: 12, right: 16, bottom: 28, left: 44 };
 
 export function WpmChart({ samples }: WpmChartProps) {
   if (samples.length < 2) return null;
@@ -47,7 +47,7 @@ export function WpmChart({ samples }: WpmChartProps) {
   return (
     <svg
       viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
-      className="w-full max-w-2xl"
+      className="w-full"
       role="img"
       aria-label="WPM over time chart"
     >
@@ -73,7 +73,7 @@ export function WpmChart({ samples }: WpmChartProps) {
             x={PADDING.left - 10}
             y={scaleY(tick) + 5}
             fill="var(--color-muted)"
-            fontSize={13}
+            fontSize={12}
             textAnchor="end"
           >
             {tick}
