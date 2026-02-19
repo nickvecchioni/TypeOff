@@ -38,6 +38,47 @@ function formatDate(iso: string): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+function formatDateTime(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+/** Build smart X-axis labels: include time if multiple races share a date */
+function buildXLabels(dates: string[]): string[] {
+  const dateOnly = dates.map(formatDate);
+  const uniqueDates = new Set(dateOnly);
+  // If most labels would be duplicates, include time
+  if (uniqueDates.size < dates.length * 0.6) {
+    return dates.map(formatDateTime);
+  }
+  return dateOnly;
+}
+
+/** Pick ~maxTicks evenly spaced tick indices */
+function tickIndices(count: number, maxTicks: number): number[] {
+  if (count <= maxTicks) return Array.from({ length: count }, (_, i) => i);
+  const step = (count - 1) / (maxTicks - 1);
+  const indices: number[] = [];
+  for (let i = 0; i < maxTicks; i++) {
+    indices.push(Math.round(i * step));
+  }
+  return indices;
+}
+
+/** Compute a nice Y-axis domain with padding around the data range */
+function niceDomain(values: number[], paddingPct = 0.1): [number, number] {
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+  const pad = range * paddingPct;
+  return [Math.floor(min - pad), Math.ceil(max + pad)];
+}
+
 const TABS: { key: Tab; label: string }[] = [
   { key: "wpm", label: "WPM" },
   { key: "accuracy", label: "Accuracy" },
@@ -48,10 +89,13 @@ export function PerformanceCharts({ races }: PerformanceChartsProps) {
   const [tab, setTab] = useState<Tab>("wpm");
 
   // Reverse so oldest is first (left side of chart)
-  const data = [...races].reverse().map((r) => ({
+  const reversed = [...races].reverse();
+  const xLabels = buildXLabels(reversed.map((r) => r.date));
+  const data = reversed.map((r, i) => ({
     ...r,
-    dateLabel: formatDate(r.date),
+    dateLabel: xLabels[i],
   }));
+  const xTicks = tickIndices(data.length, 5).map((i) => data[i].dateLabel);
 
   return (
     <div>
@@ -76,11 +120,11 @@ export function PerformanceCharts({ races }: PerformanceChartsProps) {
       <div className="h-48">
         <ResponsiveContainer width="100%" height="100%">
           {tab === "wpm" ? (
-            <WpmChart data={data} />
+            <WpmChart data={data} xTicks={xTicks} />
           ) : tab === "accuracy" ? (
-            <AccuracyChart data={data} />
+            <AccuracyChart data={data} xTicks={xTicks} />
           ) : (
-            <EloChart data={data} />
+            <EloChart data={data} xTicks={xTicks} />
           )}
         </ResponsiveContainer>
       </div>
@@ -90,14 +134,18 @@ export function PerformanceCharts({ races }: PerformanceChartsProps) {
 
 function ChartTooltipContent({ active, payload, label, unit }: {
   active?: boolean;
-  payload?: Array<{ value: number }>;
+  payload?: Array<{ value: number; payload?: { date?: string } }>;
   label?: string;
   unit: string;
 }) {
   if (!active || !payload?.length) return null;
+  // Show full date/time from the raw ISO date if available
+  const tooltipDate = payload[0]?.payload?.date
+    ? formatDateTime(payload[0].payload.date)
+    : label;
   return (
     <div className="rounded-lg bg-[#1a1a24] ring-1 ring-white/[0.08] px-3 py-2 text-xs shadow-xl">
-      <div className="text-muted/60 mb-0.5">{label}</div>
+      <div className="text-muted/60 mb-0.5">{tooltipDate}</div>
       <div className="text-text font-bold tabular-nums">
         {unit === "%" ? `${payload[0].value.toFixed(1)}%` : Math.round(payload[0].value)}
         {unit !== "%" && <span className="text-muted/60 font-normal ml-1">{unit}</span>}
@@ -106,7 +154,8 @@ function ChartTooltipContent({ active, payload, label, unit }: {
   );
 }
 
-function WpmChart({ data }: { data: Array<{ dateLabel: string; wpm: number }> }) {
+function WpmChart({ data, xTicks }: { data: Array<{ dateLabel: string; wpm: number }>; xTicks: string[] }) {
+  const [yMin, yMax] = niceDomain(data.map((d) => d.wpm));
   return (
     <AreaChart data={data}>
       <defs>
@@ -117,11 +166,13 @@ function WpmChart({ data }: { data: Array<{ dateLabel: string; wpm: number }> })
       </defs>
       <XAxis
         dataKey="dateLabel"
+        ticks={xTicks}
         tick={{ fontSize: 10, fill: "rgba(255,255,255,0.3)" }}
         axisLine={false}
         tickLine={false}
       />
       <YAxis
+        domain={[yMin, yMax]}
         tick={{ fontSize: 10, fill: "rgba(255,255,255,0.3)" }}
         axisLine={false}
         tickLine={false}
@@ -141,7 +192,7 @@ function WpmChart({ data }: { data: Array<{ dateLabel: string; wpm: number }> })
   );
 }
 
-function AccuracyChart({ data }: { data: Array<{ dateLabel: string; accuracy: number }> }) {
+function AccuracyChart({ data, xTicks }: { data: Array<{ dateLabel: string; accuracy: number }>; xTicks: string[] }) {
   const minAcc = Math.max(0, Math.floor(Math.min(...data.map((d) => d.accuracy)) - 2));
   return (
     <AreaChart data={data}>
@@ -153,6 +204,7 @@ function AccuracyChart({ data }: { data: Array<{ dateLabel: string; accuracy: nu
       </defs>
       <XAxis
         dataKey="dateLabel"
+        ticks={xTicks}
         tick={{ fontSize: 10, fill: "rgba(255,255,255,0.3)" }}
         axisLine={false}
         tickLine={false}
@@ -178,12 +230,11 @@ function AccuracyChart({ data }: { data: Array<{ dateLabel: string; accuracy: nu
   );
 }
 
-function EloChart({ data }: { data: Array<{ dateLabel: string; elo: number }> }) {
+function EloChart({ data, xTicks }: { data: Array<{ dateLabel: string; elo: number }>; xTicks: string[] }) {
   const eloValues = data.map((d) => d.elo);
-  const minElo = Math.min(...eloValues);
-  const maxElo = Math.max(...eloValues);
+  const [yMin, yMax] = niceDomain(eloValues);
   const visibleTiers = TIER_LINES.filter(
-    (t) => t.elo >= minElo - 100 && t.elo <= maxElo + 100
+    (t) => t.elo >= yMin && t.elo <= yMax
   );
 
   return (
@@ -196,11 +247,13 @@ function EloChart({ data }: { data: Array<{ dateLabel: string; elo: number }> })
       </defs>
       <XAxis
         dataKey="dateLabel"
+        ticks={xTicks}
         tick={{ fontSize: 10, fill: "rgba(255,255,255,0.3)" }}
         axisLine={false}
         tickLine={false}
       />
       <YAxis
+        domain={[yMin, yMax]}
         tick={{ fontSize: 10, fill: "rgba(255,255,255,0.3)" }}
         axisLine={false}
         tickLine={false}
