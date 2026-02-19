@@ -47,7 +47,7 @@ export function WpmChart({ samples }: WpmChartProps) {
   return (
     <svg
       viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
-      className="w-full"
+      className="w-full h-full"
       role="img"
       aria-label="WPM over time chart"
     >

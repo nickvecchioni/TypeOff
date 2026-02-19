@@ -311,11 +311,7 @@ export function RaceResults({
 
       {/* ── Standings + Chart ─────────────────────────────── */}
       <div
-        className={`grid gap-3 w-full ${
-          myWpmHistory && myWpmHistory.length >= 2
-            ? "sm:grid-cols-[3fr_2fr]"
-            : ""
-        }`}
+        className="grid gap-3 w-full"
         style={{ animation: "slide-up 0.5s ease-out 0.08s both" }}
       >
         {/* Standings table */}
@@ -469,9 +465,9 @@ export function RaceResults({
           })}
         </div>
 
-        {/* WPM Chart (beside standings on desktop, below on mobile) */}
+        {/* WPM Chart */}
         {myWpmHistory && myWpmHistory.length >= 2 && (
-          <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] p-3 flex items-center">
+          <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] p-3 sm:p-4 h-48 sm:h-56">
             <WpmChart samples={myWpmHistory} />
           </div>
         )}
@@ -646,22 +642,34 @@ export function RaceResults({
                       )}
                     </div>
                     {xpInfo && (
-                      <div className="mt-3 rounded-lg bg-surface/60 px-3 py-2.5 ring-1 ring-accent/10">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-bold text-accent">
-                            Level {xpInfo.level}
-                          </span>
-                          <span className="text-[11px] text-muted tabular-nums">
-                            {xpInfo.currentXp} / {xpInfo.nextLevelXp}
-                          </span>
+                      <>
+                        <div className="flex items-center justify-between mt-4 mb-2">
+                          <h3 className="text-xs font-bold text-accent/80 uppercase tracking-wider">
+                            User XP
+                          </h3>
+                          {myResult!.xpEarned != null && myResult!.xpEarned > 0 && (
+                            <span className="text-xs font-bold text-accent tabular-nums">
+                              +{myResult!.xpEarned} XP
+                            </span>
+                          )}
                         </div>
-                        <div className="h-1.5 rounded-full bg-surface overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-accent transition-all"
-                            style={{ width: `${Math.round((xpInfo.currentXp / xpInfo.nextLevelXp) * 100)}%` }}
-                          />
+                        <div className="rounded-lg bg-surface/60 px-3 py-2.5 ring-1 ring-accent/10">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-bold text-accent">
+                              Level {xpInfo.level}
+                            </span>
+                            <span className="text-[11px] text-muted tabular-nums">
+                              {xpInfo.currentXp} / {xpInfo.nextLevelXp}
+                            </span>
+                          </div>
+                          <div className="h-1.5 rounded-full bg-surface overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-accent transition-all"
+                              style={{ width: `${Math.round((xpInfo.currentXp / xpInfo.nextLevelXp) * 100)}%` }}
+                            />
+                          </div>
                         </div>
-                      </div>
+                      </>
                     )}
                   </div>
                 );

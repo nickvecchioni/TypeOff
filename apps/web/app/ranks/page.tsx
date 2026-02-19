@@ -153,7 +153,7 @@ export default function RanksPage() {
 
         {/* CTA */}
         <div
-          className="mt-10 pb-8 animate-slide-up"
+          className="mt-10 pb-8 text-center animate-slide-up"
           style={{ animationDelay: "580ms" }}
         >
           <Link

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { getXpLevel, CHALLENGE_MAP, type ChallengeDefinition } from "@typeoff/shared";
+import { CHALLENGE_MAP, type ChallengeDefinition } from "@typeoff/shared";
 
 interface ChallengeWithProgress extends ChallengeDefinition {
   progress: number;
@@ -67,30 +67,13 @@ export function ChallengesWidget() {
     return <div className="w-full min-h-[280px]" />;
   }
 
-  const xpInfo = getXpLevel(data.totalXp);
   const dailies = data.challenges.filter((c) => c.type === "daily");
   const weeklies = data.challenges.filter((c) => c.type === "weekly");
 
   return (
-    <div className="w-full rounded-xl bg-surface/50 ring-1 ring-white/[0.04] p-5 space-y-4 animate-fade-in">
-      {/* XP Level */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-baseline gap-2">
-          <span className="text-xs font-bold text-accent uppercase tracking-wider">
-            Level {xpInfo.level}
-          </span>
-          <span className="text-xs text-muted tabular-nums">
-            {xpInfo.currentXp} / {xpInfo.nextLevelXp} XP
-          </span>
-        </div>
-      </div>
-      <div className="h-1 rounded-full bg-surface overflow-hidden">
-        <div
-          className="h-full rounded-full bg-accent transition-all"
-          style={{ width: `${Math.round((xpInfo.currentXp / xpInfo.nextLevelXp) * 100)}%` }}
-        />
-      </div>
-
+    <div className="w-full rounded-xl bg-surface/50 ring-1 ring-white/[0.04] overflow-hidden animate-fade-in">
+      <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
+      <div className="p-5 space-y-4">
       {/* Daily Challenges */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
@@ -115,6 +98,7 @@ export function ChallengesWidget() {
         {weeklies.map((c) => (
           <ChallengeRow key={c.id} challenge={c} accent />
         ))}
+      </div>
       </div>
     </div>
   );

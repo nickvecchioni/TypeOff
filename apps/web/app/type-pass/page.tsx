@@ -99,8 +99,6 @@ export default function TypePassPage() {
 
   // TypePass state
   const [passData, setPassData] = useState<TypePassData | null>(null);
-  const [purchasing, setPurchasing] = useState(false);
-  const [purchaseError, setPurchaseError] = useState<string | null>(null);
 
   const hasPreview = Object.values(previewOverrides).some((v) => v != null);
   const displayState: ActiveState = {
@@ -173,22 +171,8 @@ export default function TypePassPage() {
     setPreviewOverrides({});
   }, []);
 
-  async function handlePurchase() {
-    setPurchasing(true);
-    setPurchaseError(null);
-    try {
-      const res = await fetch("/api/type-pass/checkout", { method: "POST" });
-      const body = await res.json();
-      if (body.url) {
-        window.location.href = body.url;
-      } else {
-        setPurchaseError(body.error ?? "Checkout failed");
-        setPurchasing(false);
-      }
-    } catch {
-      setPurchaseError("Network error");
-      setPurchasing(false);
-    }
+  function handlePurchase() {
+    router.push("/type-pass/checkout");
   }
 
   // Loading
@@ -259,16 +243,10 @@ export default function TypePassPage() {
             ) : (
               <button
                 onClick={handlePurchase}
-                disabled={purchasing}
-                className="text-[11px] font-bold text-bg bg-amber-400 hover:bg-amber-300 px-3 py-1.5 rounded-md transition-colors disabled:opacity-50 uppercase tracking-wider"
+                className="text-[11px] font-bold text-bg bg-amber-400 hover:bg-amber-300 px-3 py-1.5 rounded-md transition-colors uppercase tracking-wider"
               >
-                {purchasing ? "..." : `Upgrade $${season.priceUsd}`}
+                Upgrade ${season.priceUsd}
               </button>
-            )}
-            {purchaseError && (
-              <p className="text-[10px] text-error max-w-48 text-right">
-                {purchaseError}
-              </p>
             )}
             {saving && (
               <span className="text-[10px] text-accent/50">saving...</span>
@@ -342,7 +320,6 @@ export default function TypePassPage() {
             </div>
             <button
               onClick={handlePurchase}
-              disabled={purchasing}
               className="text-[10px] font-bold text-amber-400 hover:text-amber-300 transition-colors shrink-0 uppercase tracking-wider"
             >
               Unlock ${season.priceUsd}

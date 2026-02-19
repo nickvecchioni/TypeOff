@@ -59,16 +59,16 @@ export async function POST() {
   try {
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: "payment",
+      ui_mode: "embedded",
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${baseUrl}/type-pass?purchased=true`,
-      cancel_url: `${baseUrl}/type-pass`,
+      return_url: `${baseUrl}/type-pass/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
       metadata: {
         userId: session.user.id,
         seasonId: season.id,
       },
     });
 
-    return NextResponse.json({ url: checkoutSession.url });
+    return NextResponse.json({ clientSecret: checkoutSession.client_secret });
   } catch (err) {
     console.error("[checkout] Stripe error:", err);
     const message = err instanceof Error ? err.message : "Stripe checkout failed";

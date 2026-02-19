@@ -49,8 +49,10 @@ export function TypePassWidget() {
   return (
     <Link
       href="/type-pass"
-      className="flex flex-col w-full rounded-xl bg-surface/50 ring-1 ring-white/[0.04] p-4 hover:ring-accent/20 transition-all animate-fade-in group"
+      className="flex flex-col w-full h-full rounded-xl bg-surface/50 ring-1 ring-white/[0.04] overflow-hidden hover:ring-amber-400/20 transition-all animate-fade-in group"
     >
+      <div className="h-px bg-gradient-to-r from-transparent via-amber-400/20 to-transparent" />
+      <div className="p-4">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
@@ -109,6 +111,7 @@ export function TypePassWidget() {
           ? "Max tier reached!"
           : `${season.xpPerTier - xpInTier} XP to next tier`}
       </p>
+      </div>
     </Link>
   );
 }
