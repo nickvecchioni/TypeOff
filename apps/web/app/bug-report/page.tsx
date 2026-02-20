@@ -84,10 +84,10 @@ export default function BugReportPage() {
   }
 
   return (
-    <main className="flex-1 overflow-y-auto flex flex-col items-center px-4 py-12">
+    <main className="flex-1 flex flex-col items-center justify-center px-4 py-6">
       <div className="animate-fade-in flex flex-col items-center w-full max-w-md">
         <h1 className="text-3xl font-bold text-accent mb-2">Report a Bug</h1>
-        <p className="text-muted mb-8 text-center">
+        <p className="text-muted mb-4 text-center">
           Found something broken? Let us know and we&apos;ll fix it.
         </p>
 
@@ -100,7 +100,7 @@ export default function BugReportPage() {
 
         <form
           onSubmit={handleSubmit}
-          className="flex flex-col gap-4 w-full"
+          className="flex flex-col gap-3 w-full"
         >
           <div>
             <label className="text-xs text-muted mb-1 block">Title</label>
@@ -148,7 +148,7 @@ export default function BugReportPage() {
               }}
               placeholder="What happened? What did you expect?"
               maxLength={2000}
-              rows={5}
+              rows={3}
               className="w-full bg-surface rounded-lg px-4 py-3 text-text outline-none focus:ring-2 focus:ring-accent/50 placeholder:text-muted/50 resize-none"
             />
             <p className="text-xs text-muted mt-1">
@@ -165,7 +165,7 @@ export default function BugReportPage() {
               value={steps}
               onChange={(e) => setSteps(e.target.value)}
               placeholder="1. Go to...&#10;2. Click on...&#10;3. See error"
-              rows={3}
+              rows={2}
               className="w-full bg-surface rounded-lg px-4 py-3 text-text outline-none focus:ring-2 focus:ring-accent/50 placeholder:text-muted/50 resize-none"
             />
           </div>
