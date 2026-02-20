@@ -38,7 +38,7 @@ export function CountdownOverlay({
       </div>
       {placementRace != null && (
         <p className="text-muted text-xs">
-          Placement Race &mdash; type to determine your starting rank
+          Placement Test &mdash; type to determine your starting rank
         </p>
       )}
     </div>

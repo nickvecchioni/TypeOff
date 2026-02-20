@@ -16,13 +16,61 @@ export function GuestPlacement() {
   const [finishedWpm, setFinishedWpm] = useState(0);
   const [finishedAccuracy, setFinishedAccuracy] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const wordsInnerRef = useRef<HTMLDivElement>(null);
+  const tabPressedRef = useRef(false);
   const [seed, setSeed] = useState(() => Date.now());
+  const [scrollOffset, setScrollOffset] = useState(0);
+  const [lineHeight, setLineHeight] = useState(40);
+  const suppressTransitionRef = useRef(false);
 
   const engine = useTypingEngine({
     externalSeed: seed,
     externalWordCount: GUEST_WORD_COUNT,
     mode: "wordcount",
   });
+
+  const visibleLines = 3;
+  const containerHeight = lineHeight * visibleLines;
+
+  // Measure line height from the words container
+  useEffect(() => {
+    const el = wordsInnerRef.current?.querySelector(".no-ligatures");
+    if (el) {
+      const computed = parseFloat(getComputedStyle(el).lineHeight);
+      if (computed > 0) setLineHeight(computed);
+    }
+  }, [engine.words]);
+
+  // Word scrolling: keep active word visible within visible lines window
+  useEffect(() => {
+    if (engine.status === "idle") {
+      suppressTransitionRef.current = true;
+      setScrollOffset(0);
+      return;
+    }
+
+    const inner = wordsInnerRef.current;
+    if (!inner) return;
+
+    const wordSpans = inner.querySelectorAll(".no-ligatures > span");
+    const activeSpan = wordSpans[engine.currentWordIndex] as HTMLElement;
+    if (!activeSpan) return;
+
+    const wordTop = activeSpan.offsetTop;
+    const threshold = scrollOffset + lineHeight;
+    if (wordTop > threshold) {
+      setScrollOffset(wordTop - lineHeight);
+    }
+  }, [engine.currentWordIndex, engine.status, lineHeight, scrollOffset]);
+
+  // Clear suppress flag after the instant reset renders
+  useEffect(() => {
+    if (suppressTransitionRef.current) {
+      requestAnimationFrame(() => {
+        suppressTransitionRef.current = false;
+      });
+    }
+  }, [scrollOffset]);
 
   // Track engine status → update phase
   useEffect(() => {
@@ -32,7 +80,6 @@ export function GuestPlacement() {
     if (engine.status === "finished" && engine.stats && phase === "racing") {
       setFinishedWpm(engine.stats.wpm);
       setFinishedAccuracy(engine.stats.accuracy);
-      // Save to localStorage for auto-claim on sign-in
       try {
         localStorage.setItem(
           "guest-placement",
@@ -56,23 +103,40 @@ export function GuestPlacement() {
     if (phase === "idle" || phase === "racing") {
       requestAnimationFrame(() => containerRef.current?.focus());
     }
-  }, [phase]);
+  }, [phase, seed]);
 
-  // Handle restart via Tab/Escape
+  // Restart helper
+  const restart = useCallback(() => {
+    setSeed(Date.now());
+    setPhase("idle");
+    setFinishedWpm(0);
+    setFinishedAccuracy(0);
+    setScrollOffset(0);
+    suppressTransitionRef.current = true;
+    tabPressedRef.current = false;
+  }, []);
+
+  // Handle Tab+Enter restart (matching Solo behavior)
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.key === "Tab" || e.key === "Escape") {
+      if (e.key === "Tab") {
         e.preventDefault();
-        // Restart by remounting via seed change
-        setSeed(Date.now());
-        setPhase("idle");
-        setFinishedWpm(0);
-        setFinishedAccuracy(0);
+        tabPressedRef.current = true;
+        return;
+      }
+      if (e.key === "Enter" && tabPressedRef.current) {
+        e.preventDefault();
+        restart();
+        return;
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        restart();
         return;
       }
       engine.handleKeyDown(e);
     },
-    [engine.handleKeyDown]
+    [engine.handleKeyDown, restart]
   );
 
   // Enter key to start from idle CTA
@@ -91,6 +155,7 @@ export function GuestPlacement() {
   }, [phase]);
 
   const { elo } = calibrateElo(finishedWpm);
+  const isTyping = engine.status === "typing";
 
   /* ── Reveal phase ────────────────────────────────────── */
   if (phase === "reveal") {
@@ -98,7 +163,7 @@ export function GuestPlacement() {
       <PlacementReveal
         elo={elo}
         onContinue={() => signIn("google", { callbackUrl: "/" })}
-        subtitle="Sign in with Google to save your rank"
+        subtitle="Sign in to save your rank"
         ctaContent={
           <button
             onClick={() => signIn("google", { callbackUrl: "/" })}
@@ -141,42 +206,81 @@ export function GuestPlacement() {
 
   /* ── Idle / Racing ───────────────────────────────────── */
   return (
-    <div className="flex flex-col items-center gap-6 w-full animate-fade-in" key={seed}>
+    <div
+      className={`flex flex-col items-center gap-6 w-full max-w-4xl mx-auto ${
+        isTyping ? "focus-active" : ""
+      }`}
+      key={seed}
+    >
+      {/* Header */}
       {phase === "idle" && (
-        <div className="flex flex-col items-center gap-1 mb-2">
+        <div
+          className="flex flex-col items-center gap-1 mb-2 opacity-0 animate-fade-in"
+          style={{ animationDelay: "0ms", animationFillMode: "both" }}
+        >
           <span className="text-accent text-xs uppercase tracking-[0.25em] font-bold">
-            Placement Race
+            Placement Test
           </span>
-          <p className="text-muted/60 text-xs text-center max-w-xs">
-            Type the words below to find your rank. Start typing when ready.
+          <p className="text-muted/60 text-xs text-center max-w-sm">
+            Just type naturally to set your starting rank. Don&apos;t stress
+            it&mdash;your first few races carry extra weight, so your rank
+            adjusts quickly.
           </p>
         </div>
       )}
+
+      {/* Typing area with scroll clipping */}
       <div
         ref={containerRef}
         tabIndex={0}
         onKeyDown={handleKeyDown}
-        className="w-full outline-none cursor-default select-none"
+        className="w-full outline-none cursor-default select-none overflow-hidden opacity-0 animate-fade-in"
+        style={{ height: containerHeight, animationDelay: "80ms", animationFillMode: "both" }}
         role="textbox"
-        aria-label="Guest placement typing area"
+        aria-label="Placement typing area"
       >
-        <WordDisplay
-          words={engine.words}
-          currentWordIndex={engine.currentWordIndex}
-          currentCharIndex={engine.currentCharIndex}
-          isTyping={engine.status === "typing"}
-        />
-      </div>
-      {engine.status === "typing" && (
-        <div className="text-center text-muted text-sm tabular-nums">
-          <span className="text-text font-bold">{engine.liveWpm}</span> wpm
+        <div
+          ref={wordsInnerRef}
+          className={suppressTransitionRef.current ? "" : "transition-transform duration-150 ease-out"}
+          style={{ transform: `translateY(-${scrollOffset}px)` }}
+        >
+          <WordDisplay
+            words={engine.words}
+            currentWordIndex={engine.currentWordIndex}
+            currentCharIndex={engine.currentCharIndex}
+            isTyping={isTyping}
+          />
         </div>
-      )}
-      {phase === "idle" && (
-        <p className="text-muted/30 text-xs">
-          press <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/50 text-[10px]">Tab</kbd> to restart
-        </p>
-      )}
+      </div>
+
+      {/* Live WPM (always reserves space to prevent layout shift) */}
+      <div className={`flex items-center justify-center gap-6 tabular-nums -mt-2 transition-opacity duration-200 ${
+        isTyping ? "opacity-100" : "opacity-0"
+      }`}>
+        <span className="text-muted text-sm inline-flex items-baseline">
+          <span className="text-accent font-black text-5xl inline-block w-[3ch] text-right">{engine.liveWpm}</span> wpm
+        </span>
+      </div>
+
+      {/* Tab+Enter hint (always reserves space to prevent layout shift) */}
+      <p
+        className={`text-muted/30 text-xs ${
+          phase === "idle"
+            ? "opacity-0 animate-fade-in"
+            : "invisible"
+        }`}
+        style={phase === "idle" ? { animationDelay: "160ms", animationFillMode: "both" } : undefined}
+      >
+        press{" "}
+        <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/50 text-[10px]">
+          Tab
+        </kbd>{" "}
+        +{" "}
+        <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/50 text-[10px]">
+          Enter
+        </kbd>{" "}
+        to restart
+      </p>
     </div>
   );
 }

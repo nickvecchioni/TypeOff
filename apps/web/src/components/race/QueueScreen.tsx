@@ -277,7 +277,7 @@ export function QueueScreen({
               )}
               {!session.user.placementsCompleted && (
                 <p className="relative text-[11px] text-muted/30 mt-1">
-                  complete a placement race to unlock ranked
+                  complete a placement test to unlock ranked
                 </p>
               )}
             </div>
@@ -339,7 +339,7 @@ export function QueueScreen({
         </>
       ) : (
         /* ── Signed-out: Guest Placement ─────────────────── */
-        <div className="w-full max-w-xl">
+        <div className="w-full max-w-4xl">
           <GuestPlacement />
         </div>
       )}
