@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata } from "next"; // trigger deploy
 import { JetBrains_Mono } from "next/font/google";
 import Link from "next/link";
 import { SessionProvider } from "@/components/auth/SessionProvider";
