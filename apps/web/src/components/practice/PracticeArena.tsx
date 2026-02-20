@@ -27,6 +27,10 @@ export function PracticeArena() {
   const suppressTransitionRef = useRef(false);
   // Cascade key: changes on each restart to re-trigger animations
   const [cascadeKey, setCascadeKey] = useState(0);
+  // Custom text words (for "custom" content type)
+  const [customWords, setCustomWords] = useState<string[] | null>(null);
+  // Weak keys for practice mode
+  const [weakKeys, setWeakKeys] = useState<string[]>([]);
 
   // Fetch PBs on mount (logged-in only)
   useEffect(() => {
@@ -34,6 +38,15 @@ export function PracticeArena() {
     fetch("/api/solo-results")
       .then((res) => res.json())
       .then((data) => { if (data.pbs) setPbs(data.pbs); })
+      .catch(() => {});
+  }, [session?.user?.id]);
+
+  // Fetch weak keys for practice mode (logged-in only)
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    fetch("/api/key-accuracy")
+      .then((res) => res.json())
+      .then((data) => { if (data.weakKeys) setWeakKeys(data.weakKeys); })
       .catch(() => {});
   }, [session?.user?.id]);
 
@@ -136,6 +149,8 @@ export function PracticeArena() {
         extraChars: stats.extraChars,
         totalChars: stats.totalChars,
         time: stats.time,
+        consistency: stats.consistency,
+        keyStats: stats.keyStats,
       }),
     })
       .then((res) => res.json())
@@ -181,7 +196,7 @@ export function PracticeArena() {
 
   // Whether to show a stopwatch (elapsed time) instead of countdown
   const ct = engine.config.contentType ?? "words";
-  const showStopwatch = ct === "quotes" ||
+  const showStopwatch = ct === "quotes" || ct === "custom" || ct === "practice" ||
     (ct === "words" && engine.config.mode === "wordcount");
 
   return (
@@ -217,8 +232,20 @@ export function PracticeArena() {
           <ConfigBar
             config={engine.config}
             status={engine.status}
-            onConfigChange={engine.setConfig}
+            onConfigChange={(c) => {
+              // Inject weakKeys into config for practice mode
+              if (c.contentType === "practice") {
+                engine.setConfig({ ...c, weakKeys });
+              } else {
+                engine.setConfig(c);
+              }
+            }}
             onAfterChange={handleAfterConfigChange}
+            onCustomTextChange={(words) => {
+              setCustomWords(words);
+              engine.setConfig({ ...engine.config, contentType: "custom", customText: words.join(" "), mode: "wordcount", duration: 0 });
+            }}
+            practiceWeakKeys={weakKeys}
           />
         </div>
       )}

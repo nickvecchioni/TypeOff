@@ -9,15 +9,18 @@ interface ConfigBarProps {
   status: EngineStatus;
   onConfigChange: (config: TestConfig) => void;
   onAfterChange?: () => void;
+  onCustomTextChange?: (words: string[]) => void;
+  practiceWeakKeys?: string[];
 }
 
 const TIME_OPTIONS = [15, 30, 60, 120];
 const WORD_OPTIONS = [10, 25, 50, 100];
 
 /** Content types that use a fixed word set (no time/words toggle or duration picker) */
-const FIXED_CONTENT_TYPES: ContentType[] = ["quotes"];
+const FIXED_CONTENT_TYPES: ContentType[] = ["quotes", "custom", "practice"];
 
-export function ConfigBar({ config, status, onConfigChange, onAfterChange }: ConfigBarProps) {
+export function ConfigBar({ config, status, onConfigChange, onAfterChange, onCustomTextChange, practiceWeakKeys }: ConfigBarProps) {
+  const [customInput, setCustomInput] = React.useState("");
   const isTyping = status === "typing";
   const ct = config.contentType ?? "words";
   const isFixed = FIXED_CONTENT_TYPES.includes(ct);
@@ -78,6 +81,14 @@ export function ConfigBar({ config, status, onConfigChange, onAfterChange }: Con
         <Chip active={ct === "quotes"} onClick={() => setContentType("quotes")}>
           quotes
         </Chip>
+        <Chip active={ct === "custom"} onClick={() => setContentType("custom")}>
+          custom
+        </Chip>
+        {practiceWeakKeys && practiceWeakKeys.length > 0 && (
+          <Chip active={ct === "practice"} onClick={() => setContentType("practice")}>
+            practice
+          </Chip>
+        )}
       </div>
 
       {/* Time/words toggle + duration (hidden for fixed content types) */}
@@ -113,6 +124,35 @@ export function ConfigBar({ config, status, onConfigChange, onAfterChange }: Con
             ))}
           </div>
         </>
+      )}
+
+      {/* Custom text input */}
+      {ct === "custom" && !isTyping && (
+        <div className="w-full max-w-lg">
+          <textarea
+            value={customInput}
+            onChange={(e) => {
+              setCustomInput(e.target.value);
+              const words = e.target.value.trim().split(/\s+/).filter(Boolean);
+              if (words.length > 0) onCustomTextChange?.(words);
+            }}
+            placeholder="Paste or type your custom text here..."
+            className="w-full h-20 rounded-lg bg-surface/60 ring-1 ring-white/[0.08] px-3 py-2 text-sm text-text placeholder:text-muted/30 resize-none focus:outline-none focus:ring-accent/30"
+          />
+        </div>
+      )}
+
+      {/* Practice mode weak keys info */}
+      {ct === "practice" && !isTyping && practiceWeakKeys && practiceWeakKeys.length > 0 && (
+        <div className="text-xs text-muted/50">
+          practicing:{" "}
+          {practiceWeakKeys.map((k, i) => (
+            <span key={k}>
+              <span className="text-accent font-bold">{k}</span>
+              {i < practiceWeakKeys.length - 1 ? ", " : ""}
+            </span>
+          ))}
+        </div>
       )}
     </div>
   );

@@ -11,6 +11,8 @@ import { AchievementsGrid } from "./achievements-grid";
 import { UsernameEditor } from "./username-editor";
 import { SignOutButton } from "./sign-out-button";
 import { AddFriendButton } from "@/components/social/AddFriendButton";
+import { ReportBlockButton } from "@/components/social/ReportBlockButton";
+import { ActivityCalendar } from "@/components/profile/ActivityCalendar";
 import { CosmeticBadge } from "@/components/CosmeticBadge";
 import { CosmeticTitle } from "@/components/CosmeticTitle";
 import { CosmeticName } from "@/components/CosmeticName";
@@ -130,6 +132,34 @@ export default async function ProfilePage({
     .limit(1);
   const isProUser = subRow?.status === "active";
 
+  // Fetch activity data (tests per day for the last year)
+  const activityRows = await db
+    .select({
+      date: sql<string>`date_trunc('day', ${soloResults.createdAt})::date::text`.as("date"),
+      count: sql<number>`count(*)`.as("count"),
+    })
+    .from(soloResults)
+    .where(eq(soloResults.userId, user.id))
+    .groupBy(sql`date_trunc('day', ${soloResults.createdAt})`);
+  // Also include race participation
+  const raceActivityRows = await db
+    .select({
+      date: sql<string>`date_trunc('day', ${raceParticipants.finishedAt})::date::text`.as("date"),
+      count: sql<number>`count(*)`.as("count"),
+    })
+    .from(raceParticipants)
+    .where(eq(raceParticipants.userId, user.id))
+    .groupBy(sql`date_trunc('day', ${raceParticipants.finishedAt})`);
+  // Merge into a single map
+  const activityMap: Record<string, number> = {};
+  for (const row of activityRows) {
+    activityMap[row.date] = (activityMap[row.date] ?? 0) + row.count;
+  }
+  for (const row of raceActivityRows) {
+    activityMap[row.date] = (activityMap[row.date] ?? 0) + row.count;
+  }
+  const activityData = Object.entries(activityMap).map(([date, count]) => ({ date, count }));
+
   // Check if this is own profile
   const { auth } = await import("@/lib/auth");
   const session = await auth();
@@ -208,7 +238,10 @@ export default async function ProfilePage({
                 )}
               </div>
               {!isOwn && session?.user?.id && (
-                <AddFriendButton targetUserId={user.id} />
+                <div className="flex items-center gap-2">
+                  <AddFriendButton targetUserId={user.id} />
+                  <ReportBlockButton targetUserId={user.id} targetUsername={user.username ?? ""} />
+                </div>
               )}
             </div>
 
@@ -329,6 +362,16 @@ export default async function ProfilePage({
                     </div>
                   );
                 })}
+            </div>
+          </section>
+        )}
+
+        {/* ── Activity Calendar ──────────────────────────── */}
+        {activityData.length > 0 && (
+          <section>
+            <SectionHeader>Activity</SectionHeader>
+            <div className="rounded-xl bg-surface/50 ring-1 ring-white/[0.04] px-5 py-4">
+              <ActivityCalendar activity={activityData} />
             </div>
           </section>
         )}

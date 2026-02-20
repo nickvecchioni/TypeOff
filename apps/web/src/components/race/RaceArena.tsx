@@ -12,6 +12,8 @@ import { RaceResults } from "./RaceResults";
 import { PlacementReveal } from "./PlacementReveal";
 import { PartyInviteToast } from "@/components/social/PartyInviteToast";
 import { SpectatorIndicator } from "./SpectatorIndicator";
+import { RaceEmoteBar } from "./RaceEmoteBar";
+import { FloatingEmote, type EmoteEvent } from "./FloatingEmote";
 import { useSocket } from "@/hooks/useSocket";
 import { getRankInfo } from "@typeoff/shared";
 import type { RankTier, WpmSample } from "@typeoff/shared";
@@ -52,6 +54,39 @@ export function RaceArena() {
       setSpectators([]);
       setSpectatorCount(0);
     }
+  }, [race.phase]);
+
+  // Emote events
+  const [emotes, setEmotes] = React.useState<EmoteEvent[]>([]);
+  const emoteTimersRef = React.useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
+
+  React.useEffect(() => {
+    const unsub = on("raceEmote", (data) => {
+      const event: EmoteEvent = {
+        id: crypto.randomUUID(),
+        playerId: data.playerId,
+        playerName: data.playerName,
+        emote: data.emote,
+        receivedAt: Date.now(),
+      };
+      setEmotes((prev) => [...prev, event]);
+      // Auto-cleanup after 3s
+      const timer = setTimeout(() => {
+        emoteTimersRef.current.delete(timer);
+        setEmotes((prev) => prev.filter((e) => e.id !== event.id));
+      }, 3000);
+      emoteTimersRef.current.add(timer);
+    });
+    return () => {
+      unsub();
+      emoteTimersRef.current.forEach(clearTimeout);
+      emoteTimersRef.current.clear();
+    };
+  }, [on]);
+
+  // Reset emotes on race reset
+  React.useEffect(() => {
+    if (race.phase === "idle") setEmotes([]);
   }, [race.phase]);
 
   // Auto-claim guest placement on sign-in
@@ -202,12 +237,22 @@ export function RaceArena() {
               <SpectatorIndicator count={spectatorCount} spectators={spectators} />
             </div>
           )}
-          <RaceTrack
-            players={race.raceState.players}
-            progress={race.progress}
-            myPlayerId={myPlayerId}
-            isPlacement={isInPlacement}
-          />
+          <div className="relative w-full">
+            <RaceTrack
+              players={race.raceState.players}
+              progress={race.progress}
+              myPlayerId={myPlayerId}
+              isPlacement={isInPlacement}
+            />
+            {/* Floating emotes */}
+            {emotes.map((e) => (
+              <FloatingEmote key={e.id} event={e} />
+            ))}
+          </div>
+          {/* Emote bar during racing */}
+          {race.phase === "racing" && !isInPlacement && (
+            <RaceEmoteBar disabled={false} />
+          )}
           <div className="relative w-full">
             {/* Countdown overlay — absolutely positioned, no layout shift */}
             <div

@@ -87,6 +87,12 @@
   100% { transform: scale(1); }
 }
 
+@keyframes emote-float {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-60px) scale(1.2); }
+}
+
 /* ── Base ────────────────────────────────────────────────── */
 
 html, body {

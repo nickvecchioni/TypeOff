@@ -4,6 +4,7 @@ import type {
   ServerToClientEvents,
   RacePlayer,
   WpmSample,
+  EmoteKey,
 } from "@typeoff/shared";
 import { RaceManager } from "./race-manager.js";
 import type { RaceOwner } from "./race-manager.js";
@@ -164,6 +165,13 @@ export class Matchmaker implements RaceOwner {
     if (!raceId) return;
     const race = this.races.get(raceId);
     race?.handleFinish(socketId, data);
+  }
+
+  handleEmote(socketId: string, emote: EmoteKey) {
+    const raceId = this.socketToRace.get(socketId);
+    if (!raceId) return;
+    const race = this.races.get(raceId);
+    race?.handleEmote(socketId, emote);
   }
 
   /** Voluntary leave during countdown — no penalty */

@@ -4,7 +4,7 @@ import type {
   ServerToClientEvents,
   RacePlayer,
 } from "@typeoff/shared";
-import { createDb, friendships, directMessages, users } from "@typeoff/db";
+import { createDb, friendships, directMessages, users, userBlocks } from "@typeoff/db";
 import { eq, or, and, desc, lt, isNull } from "drizzle-orm";
 import { SocialManager } from "./social-manager.js";
 
@@ -30,6 +30,22 @@ export class ChatManager {
 
     try {
       const db = createDb(process.env.DATABASE_URL!);
+
+      // Check if either user has blocked the other
+      const blockCheck = await db
+        .select()
+        .from(userBlocks)
+        .where(
+          or(
+            and(eq(userBlocks.blockerId, sender.id), eq(userBlocks.blockedId, data.recipientId)),
+            and(eq(userBlocks.blockerId, data.recipientId), eq(userBlocks.blockedId, sender.id)),
+          ),
+        )
+        .limit(1);
+      if (blockCheck.length > 0) {
+        socket.emit("error", { message: "Cannot send message to this user" });
+        return;
+      }
 
       // Verify friendship exists
       const friendship = await db

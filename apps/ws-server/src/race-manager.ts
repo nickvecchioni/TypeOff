@@ -7,8 +7,9 @@ import type {
   RaceState,
   RaceStatus,
   WpmSample,
+  EmoteKey,
 } from "@typeoff/shared";
-import { calculateRaceElo, getRankTier, generateWordsForMode, quotes, calculateClanElo } from "@typeoff/shared";
+import { calculateRaceElo, getRankTier, generateWordsForMode, quotes, calculateClanElo, EMOTE_KEYS } from "@typeoff/shared";
 import type { RankTier, RaceMode, ReplaySnapshot } from "@typeoff/shared";
 import type { NotificationManager } from "./notification-manager.js";
 import { createDb, races, raceParticipants, userStats, users, userActiveCosmetics, clans, clanMembers } from "@typeoff/db";
@@ -42,6 +43,7 @@ interface PlayerEntry {
   lastProgressTime: number;
   progressEventsInWindow: number;
   progressWindowStart: number;
+  lastEmoteAt: number;
 }
 
 const COUNTDOWN_SECONDS = 3;
@@ -137,6 +139,7 @@ export class RaceManager {
         lastProgressTime: now,
         progressEventsInWindow: 0,
         progressWindowStart: now,
+        lastEmoteAt: 0,
       });
     }
 
@@ -175,6 +178,7 @@ export class RaceManager {
         lastProgressTime: now,
         progressEventsInWindow: 0,
         progressWindowStart: now,
+        lastEmoteAt: 0,
       });
     }
   }
@@ -1146,6 +1150,23 @@ export class RaceManager {
       }
     }
     this.owner.cleanupRace(this.raceId, socketIds);
+  }
+
+  handleEmote(socketId: string, emote: EmoteKey) {
+    if (!EMOTE_KEYS.includes(emote)) return;
+    const entry = this.players.get(socketId);
+    if (!entry || this.status !== "racing") return;
+
+    // Rate limit: 2s cooldown per player
+    const now = Date.now();
+    if (now - entry.lastEmoteAt < 2000) return;
+    entry.lastEmoteAt = now;
+
+    this.io.to(this.raceId).emit("raceEmote", {
+      playerId: entry.player.id,
+      playerName: entry.player.name,
+      emote,
+    });
   }
 
   getSpectatorState(): RaceState {

@@ -1,3 +1,18 @@
+/** Emote keys for in-race reactions */
+export const EMOTE_KEYS = ["gg", "nice", "oof", "wow", "gl", "lol"] as const;
+export type EmoteKey = (typeof EMOTE_KEYS)[number];
+
+/** Global chat message */
+export interface GlobalChatMessage {
+  id: string;
+  userId: string;
+  username: string;
+  content: string;
+  createdAt: string;
+  activeBadge?: string | null;
+  activeNameColor?: string | null;
+}
+
 /** Status of a race room */
 export type RaceStatus = "waiting" | "countdown" | "racing" | "finished";
 
@@ -97,6 +112,11 @@ export interface ClientToServerEvents {
   stopFollowing: () => void;
   // Clan events
   respondToClanInvite: (data: { inviteId: string; accept: boolean; token?: string }) => void;
+  // Emote events
+  sendRaceEmote: (data: { emote: EmoteKey; token?: string }) => void;
+  // Global chat events
+  joinGlobalChat: (data: { token?: string }) => void;
+  sendGlobalMessage: (data: { token?: string; content: string }) => void;
 }
 
 /** Server → Client events */
@@ -183,4 +203,9 @@ export interface ServerToClientEvents {
   notification: (data: { id: string; type: string; title: string; body: string; metadata?: string; actionUrl?: string; createdAt: string }) => void;
   // Clan events
   clanInvite: (data: { inviteId: string; clanId: string; clanName: string; clanTag: string; fromName: string }) => void;
+  // Emote events
+  raceEmote: (data: { playerId: string; playerName: string; emote: EmoteKey }) => void;
+  // Global chat events
+  globalChatHistory: (data: { messages: GlobalChatMessage[] }) => void;
+  globalChatMessage: (data: GlobalChatMessage) => void;
 }

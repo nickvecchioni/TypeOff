@@ -9,6 +9,7 @@ import {
   type EngineStatus,
   type EngineAPI,
   type WpmSample,
+  type KeyStatsMap,
   generateFromPool,
   generateSoloWords,
 } from "@typeoff/shared";
@@ -67,13 +68,16 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
   const extraCharsRef = useRef(0);
   const misstypedCharsRef = useRef(0);
   const totalCharsRef = useRef(0);
+  const keyStatsRef = useRef<Map<string, { correct: number; total: number }>>(new Map());
 
   // Whether the effective behavior is "type all words and finish" (wordcount-like)
   const isWordcountBehavior =
     config.mode === "wordcount" ||
     config.contentType === "quotes" ||
     config.contentType === "marathon" ||
-    config.contentType === "sprint";
+    config.contentType === "sprint" ||
+    config.contentType === "custom" ||
+    config.contentType === "practice";
 
   // Generate words on mount (avoids hydration mismatch from Date.now() seed)
   const initialized = useRef(false);
@@ -132,6 +136,20 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     const totalKeystrokes = correct + mistyped;
     const accuracy = totalKeystrokes > 0 ? Math.round((correct / totalKeystrokes) * 100 * 10) / 10 : 100;
 
+    // Convert per-key stats Map to plain Record
+    const keyStats: KeyStatsMap = {};
+    keyStatsRef.current.forEach((v, k) => { keyStats[k] = v; });
+
+    // Consistency: 100 - coefficient of variation of WPM samples
+    const wpmSamples = wpmHistoryRef.current.map(s => s.wpm).filter(v => v > 0);
+    let consistency = 100;
+    if (wpmSamples.length >= 2) {
+      const mean = wpmSamples.reduce((a, b) => a + b, 0) / wpmSamples.length;
+      const variance = wpmSamples.reduce((s, v) => s + (v - mean) ** 2, 0) / wpmSamples.length;
+      const cv = mean > 0 ? (Math.sqrt(variance) / mean) * 100 : 100;
+      consistency = Math.round(Math.max(0, Math.min(100, 100 - cv)));
+    }
+
     setStats({
       wpm,
       rawWpm,
@@ -143,6 +161,8 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
       totalChars: total,
       time: Math.round(elapsed),
       wpmHistory: wpmHistoryRef.current,
+      keyStats,
+      consistency,
     });
     setStatus("finished");
   }, [stopTimer]);
@@ -197,6 +217,7 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     extraCharsRef.current = 0;
     misstypedCharsRef.current = 0;
     totalCharsRef.current = 0;
+    keyStatsRef.current = new Map();
     wpmHistoryRef.current = [];
   }, [stopTimer, config]);
 
@@ -234,6 +255,14 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
         misstypedCharsRef.current++;
       }
       totalCharsRef.current++;
+
+      // Track per-key accuracy
+      const expectedKey = word.chars[currentCharIndex].expected.toLowerCase();
+      const existing = keyStatsRef.current.get(expectedKey) ?? { correct: 0, total: 0 };
+      keyStatsRef.current.set(expectedKey, {
+        correct: existing.correct + (isCorrect ? 1 : 0),
+        total: existing.total + 1,
+      });
       setCurrentCharIndex((prev) => prev + 1);
 
       // Auto-finish: last char of last word, only if all chars correct

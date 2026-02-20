@@ -169,6 +169,52 @@ export function applyPunctuation(words: string[], seed?: number): string[] {
 }
 
 /**
+ * Generate words biased toward keys in `weakKeys`.
+ * Words containing more weak keys get proportionally more draw weight.
+ * Falls back to normal generation if no weak keys are provided.
+ */
+export function generatePracticeWords(
+  pool: string[],
+  count: number,
+  weakKeys: string[],
+  seed?: number
+): string[] {
+  if (weakKeys.length === 0) return generateWords(pool, count, seed);
+
+  const weakSet = new Set(weakKeys.map(k => k.toLowerCase()));
+  const scored = pool.map(word => {
+    const hits = word.split("").filter(ch => weakSet.has(ch)).length;
+    return { word, weight: 1 + hits * 2 };
+  });
+
+  const totalWeight = scored.reduce((s, e) => s + e.weight, 0);
+  const rng = mulberry32(seed ?? Date.now());
+  const words: string[] = [];
+  let prevWord = "";
+
+  for (let i = 0; i < count; i++) {
+    let target = rng() * totalWeight;
+    let chosen = scored[scored.length - 1].word;
+    for (const entry of scored) {
+      target -= entry.weight;
+      if (target <= 0) { chosen = entry.word; break; }
+    }
+    if (chosen === prevWord && scored.length > 1) {
+      target = rng() * totalWeight;
+      for (const entry of scored) {
+        if (entry.word === chosen) continue;
+        target -= entry.weight;
+        if (target <= 0) { chosen = entry.word; break; }
+      }
+    }
+    prevWord = chosen;
+    words.push(chosen);
+  }
+
+  return words;
+}
+
+/**
  * Unified word generator for solo mode.
  * Dispatches based on contentType, applies punctuation if enabled.
  */
@@ -194,6 +240,18 @@ export function generateSoloWords(config: TestConfig, seed?: number): string[] {
     }
     case "sprint": {
       words = generateWordsForLines(pool, LINE_WIDTH_CH, SPRINT_LINES, s);
+      break;
+    }
+    case "custom":
+      if (config.customText) {
+        words = config.customText.trim().split(/\s+/).filter(Boolean);
+      } else {
+        words = generateWords(pool, 200, s);
+      }
+      break;
+    case "practice": {
+      const count = config.mode === "wordcount" ? config.duration : 200;
+      words = generatePracticeWords(pool, count, config.weakKeys ?? [], s);
       break;
     }
     default:

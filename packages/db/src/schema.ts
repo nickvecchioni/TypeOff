@@ -155,10 +155,62 @@ export const soloResults = pgTable("solo_results", {
   totalChars: integer("total_chars").notNull(),
   time: integer("time").notNull(), // actual elapsed seconds
   isPb: boolean("is_pb").notNull().default(false),
+  consistency: real("consistency"),
+  keyStatsJson: text("key_stats_json"),
   createdAt: timestamp("created_at", { mode: "date" })
     .notNull()
     .$defaultFn(() => new Date()),
 });
+
+// ─── Key Accuracy (cumulative per-user per-key stats) ───────────────
+
+export const userKeyAccuracy = pgTable(
+  "user_key_accuracy",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    key: text("key").notNull(),
+    correctCount: integer("correct_count").notNull().default(0),
+    totalCount: integer("total_count").notNull().default(0),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.key] })],
+);
+
+// ─── Reports ──────────────────────────────────────────────────────
+
+export const userReports = pgTable("user_reports", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  reporterId: text("reporter_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  reportedId: text("reported_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  reason: text("reason").notNull(),
+  details: text("details"),
+  status: text("status").notNull().default("pending"),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+});
+
+// ─── Blocks ───────────────────────────────────────────────────────
+
+export const userBlocks = pgTable(
+  "user_blocks",
+  {
+    blockerId: text("blocker_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    blockedId: text("blocked_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.blockerId, t.blockedId] })],
+);
 
 // ─── Achievements ───────────────────────────────────────────────────
 

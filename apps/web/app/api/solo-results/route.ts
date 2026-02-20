@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
-import { soloResults } from "@typeoff/db";
+import { soloResults, userKeyAccuracy } from "@typeoff/db";
 import { eq, and, desc, sql } from "drizzle-orm";
+import type { KeyStatsMap } from "@typeoff/shared";
 
 export const dynamic = "force-dynamic";
 
@@ -49,6 +50,7 @@ export async function POST(request: Request) {
     mode, duration, wpm, rawWpm, accuracy,
     correctChars, incorrectChars, extraChars, totalChars, time,
     contentType, difficulty, punctuation,
+    consistency, keyStats,
   } = body;
 
   // Validate required fields
@@ -88,7 +90,9 @@ export async function POST(request: Request) {
     .orderBy(desc(soloResults.wpm))
     .limit(1);
 
-  const isPb = !bestResult || wpm > bestResult.wpm;
+  // Block PBs for custom and practice content types
+  const isPbEligible = contentType !== "custom" && contentType !== "practice";
+  const isPb = isPbEligible ? (!bestResult || wpm > bestResult.wpm) : false;
 
   await db.insert(soloResults).values({
     userId,
@@ -104,7 +108,40 @@ export async function POST(request: Request) {
     totalChars,
     time,
     isPb,
+    consistency: typeof consistency === "number" ? consistency : null,
+    keyStatsJson: keyStats ? JSON.stringify(keyStats) : null,
   });
+
+  // Upsert per-key accuracy (skip custom — arbitrary text)
+  if (keyStats && contentType !== "custom" && typeof keyStats === "object") {
+    const entries = Object.entries(keyStats as KeyStatsMap)
+      .filter(([key]) => key.length === 1)
+      .slice(0, 52); // cap at a-z + A-Z to prevent abuse
+
+    if (entries.length > 0) {
+      const now = new Date();
+      const values = entries.map(([key, stat]) => ({
+        userId,
+        key,
+        correctCount: stat.correct,
+        totalCount: stat.total,
+        updatedAt: now,
+      }));
+      for (const val of values) {
+        await db
+          .insert(userKeyAccuracy)
+          .values(val)
+          .onConflictDoUpdate({
+            target: [userKeyAccuracy.userId, userKeyAccuracy.key],
+            set: {
+              correctCount: sql`${userKeyAccuracy.correctCount} + ${val.correctCount}`,
+              totalCount: sql`${userKeyAccuracy.totalCount} + ${val.totalCount}`,
+              updatedAt: now,
+            },
+          });
+      }
+    }
+  }
 
   return NextResponse.json({ isPb });
 }

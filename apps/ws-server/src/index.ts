@@ -11,6 +11,7 @@ import { PartyManager } from "./party-manager.js";
 import { SocialManager } from "./social-manager.js";
 import { ChatManager } from "./chat-manager.js";
 import { NotificationManager } from "./notification-manager.js";
+import { GlobalChatManager } from "./global-chat-manager.js";
 
 const PORT = parseInt(process.env.PORT ?? "3001", 10);
 const CORS_ORIGIN = process.env.CORS_ORIGIN ?? "http://localhost:3000";
@@ -37,6 +38,7 @@ const notificationManager = new NotificationManager(io, socialManager);
 const matchmaker = new Matchmaker(io, socialManager, notificationManager);
 const partyManager = new PartyManager(io, socialManager);
 const chatManager = new ChatManager(io, socialManager);
+const globalChatManager = new GlobalChatManager(io, socialManager);
 
 // Track spectators: socketId → raceId
 const spectators = new Map<string, string>();
@@ -215,6 +217,42 @@ io.on("connection", (socket) => {
       socket.emit("error", {
         message: err instanceof Error ? err.message : "Auth failed",
       });
+    }
+  });
+
+  // ─── Emote Events ───────────────────────────────────────────────
+
+  socket.on("sendRaceEmote", async (data) => {
+    try {
+      await authenticateSocket(data, socket.id);
+      matchmaker.handleEmote(socket.id, data.emote);
+    } catch {
+      // silently ignore auth failures for emotes
+    }
+  });
+
+  // ─── Global Chat Events ───────────────────────────────────────────
+
+  socket.on("joinGlobalChat", async (data) => {
+    try {
+      await authenticateSocket(data, socket.id);
+      globalChatManager.handleJoin(socket);
+    } catch {
+      // allow join to fail silently
+    }
+  });
+
+  socket.on("sendGlobalMessage", async (data) => {
+    try {
+      const player = await authenticateSocket(data, socket.id);
+      globalChatManager.handleMessage(socket, data.content, {
+        id: player.id,
+        name: player.name,
+        activeBadge: player.activeBadge,
+        activeNameColor: player.activeNameColor,
+      });
+    } catch {
+      // silently ignore auth failures
     }
   });
 

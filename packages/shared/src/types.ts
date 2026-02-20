@@ -13,7 +13,7 @@ export interface WordState {
 
 export type TestMode = "timed" | "wordcount";
 
-export type ContentType = "words" | "quotes" | "marathon" | "sprint";
+export type ContentType = "words" | "quotes" | "marathon" | "sprint" | "custom" | "practice";
 export type Difficulty = "easy" | "medium" | "hard";
 
 export interface TestConfig {
@@ -22,6 +22,8 @@ export interface TestConfig {
   contentType: ContentType;
   difficulty: Difficulty;
   punctuation: boolean;
+  customText?: string;    // raw pasted text for "custom" mode
+  weakKeys?: string[];    // populated from server for "practice" mode
 }
 
 /** Build a key for the word-pool column: "words:easy:false" */
@@ -42,6 +44,15 @@ export interface WpmSample {
   raw: number;
 }
 
+/** Per-key accuracy stat tracked during a test */
+export interface KeyStat {
+  correct: number;
+  total: number;
+}
+
+/** Map from key character to its accuracy stat */
+export type KeyStatsMap = Record<string, KeyStat>;
+
 export interface TestStats {
   wpm: number;
   rawWpm: number;
@@ -53,6 +64,8 @@ export interface TestStats {
   totalChars: number;
   time: number;
   wpmHistory: WpmSample[];
+  keyStats: KeyStatsMap;
+  consistency: number; // 0-100, higher = more consistent WPM
 }
 
 export interface ReplaySnapshot {

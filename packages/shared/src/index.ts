@@ -8,3 +8,4 @@ export * from "./username";
 export * from "./achievements";
 export * from "./challenges";
 export * from "./type-pass";
+export * from "./chat-utils";

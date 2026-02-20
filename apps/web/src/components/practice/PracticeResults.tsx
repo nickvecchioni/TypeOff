@@ -4,6 +4,8 @@ import React, { useEffect, useRef } from "react";
 import { useSession, signIn } from "next-auth/react";
 import type { TestStats, TestConfig } from "@typeoff/shared";
 import { WpmChart } from "@/components/typing/WpmChart";
+import { KeyboardHeatmap } from "@/components/typing/KeyboardHeatmap";
+import { ShareResultCard } from "@/components/shared/ShareResultCard";
 
 interface PracticeResultsProps {
   stats: TestStats;
@@ -44,7 +46,7 @@ export function PracticeResults({ stats, config, isPb, onRestart }: PracticeResu
       {/* Stats grid */}
       <div className="rounded-xl overflow-hidden ring-1 ring-white/[0.04] w-full">
         <div className="h-0.5 bg-accent opacity-50" />
-        <div className="grid gap-px grid-cols-3">
+        <div className="grid gap-px grid-cols-2 sm:grid-cols-4">
           {/* WPM */}
           <div className="bg-surface/40 p-4 sm:p-5 flex flex-col items-center text-center">
             <div className="flex items-baseline gap-2">
@@ -68,15 +70,24 @@ export function PracticeResults({ stats, config, isPb, onRestart }: PracticeResu
             <div className="text-3xl font-black text-text tabular-nums">
               {Math.floor(stats.accuracy)}
               <span className="text-lg opacity-50">
-                .{((stats.accuracy % 1) * 10).toFixed(0)}%
+                .{(stats.accuracy % 1).toFixed(2).slice(2)}%
               </span>
             </div>
             <div className="text-[11px] text-muted/60 mt-1">accuracy</div>
           </div>
 
+          {/* Consistency */}
+          <div className="bg-surface/40 p-4 sm:p-5 flex flex-col items-center text-center">
+            <div className="text-3xl font-black text-text tabular-nums">
+              {Math.floor(stats.consistency)}
+              <span className="text-lg opacity-50">%</span>
+            </div>
+            <div className="text-[11px] text-muted/60 mt-1">consistency</div>
+          </div>
+
           {/* Mode */}
           <div className="bg-surface/40 p-4 sm:p-5 flex flex-col items-center text-center">
-            {config.contentType === "quotes" ? (
+            {config.contentType === "quotes" || config.contentType === "custom" || config.contentType === "practice" ? (
               <>
                 <div className="text-3xl font-black text-text tabular-nums">
                   {stats.time}
@@ -112,6 +123,23 @@ export function PracticeResults({ stats, config, isPb, onRestart }: PracticeResu
       <div className="w-full max-w-lg mx-auto">
         <WpmChart samples={stats.wpmHistory} />
       </div>
+
+      {/* Keyboard Heatmap */}
+      {stats.keyStats && Object.keys(stats.keyStats).length > 0 && (
+        <div className="w-full max-w-lg mx-auto">
+          <KeyboardHeatmap keyStats={stats.keyStats} />
+        </div>
+      )}
+
+      {/* Share Result Card */}
+      {session?.user && (
+        <ShareResultCard
+          wpm={stats.wpm}
+          accuracy={stats.accuracy}
+          username={session.user.name ?? session.user.username ?? ""}
+          mode={config.contentType === "quotes" ? "quotes" : `${config.mode === "timed" ? config.duration + "s" : config.duration + " words"}`}
+        />
+      )}
 
       {/* Sign-in prompt for guests */}
       {!session?.user && (
