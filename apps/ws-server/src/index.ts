@@ -10,6 +10,7 @@ import { Matchmaker } from "./matchmaker.js";
 import { PartyManager } from "./party-manager.js";
 import { SocialManager } from "./social-manager.js";
 import { ChatManager } from "./chat-manager.js";
+import { NotificationManager } from "./notification-manager.js";
 
 const PORT = parseInt(process.env.PORT ?? "3001", 10);
 const CORS_ORIGIN = process.env.CORS_ORIGIN ?? "http://localhost:3000";
@@ -32,7 +33,8 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
 });
 
 const socialManager = new SocialManager(io);
-const matchmaker = new Matchmaker(io, socialManager);
+const notificationManager = new NotificationManager(io, socialManager);
+const matchmaker = new Matchmaker(io, socialManager, notificationManager);
 const partyManager = new PartyManager(io, socialManager);
 const chatManager = new ChatManager(io, socialManager);
 
@@ -284,6 +286,78 @@ io.on("connection", (socket) => {
     if (userId) {
       followers.get(userId)?.delete(socket.id);
       followingMap.delete(socket.id);
+    }
+  });
+
+  // ─── Clan Events ──────────────────────────────────────────────────
+
+  socket.on("respondToClanInvite", async (data) => {
+    try {
+      const player = await authenticateSocket(data, socket.id);
+      socialManager.trackConnection(socket, player.id).catch(() => {});
+
+      const { createDb: makeDb, clanInvites, clans, clanMembers, users: usersTable } = await import("@typeoff/db");
+      const { eq, and } = await import("drizzle-orm");
+      const { calculateClanElo: calcClanElo } = await import("@typeoff/shared");
+      const db = makeDb(process.env.DATABASE_URL!);
+
+      const [invite] = await db
+        .select()
+        .from(clanInvites)
+        .where(and(eq(clanInvites.id, data.inviteId), eq(clanInvites.userId, player.id)))
+        .limit(1);
+
+      if (!invite || invite.status !== "pending") {
+        socket.emit("error", { message: "Invite not found or already responded" });
+        return;
+      }
+      if (new Date() > invite.expiresAt) {
+        socket.emit("error", { message: "Invite has expired" });
+        return;
+      }
+
+      if (data.accept) {
+        // Accept: create member, update user, increment count
+        await db.update(clanInvites).set({ status: "accepted" }).where(eq(clanInvites.id, data.inviteId));
+        await db.insert(clanMembers).values({ clanId: invite.clanId, userId: player.id, role: "member" });
+        await db.update(usersTable).set({ clanId: invite.clanId }).where(eq(usersTable.id, player.id));
+        await db.update(clans).set({
+          memberCount: (await import("drizzle-orm")).sql`${clans.memberCount} + 1`,
+        }).where(eq(clans.id, invite.clanId));
+
+        // Recalculate clan ELO
+        const members = await db
+          .select({ eloRating: usersTable.eloRating })
+          .from(clanMembers)
+          .innerJoin(usersTable, eq(clanMembers.userId, usersTable.id))
+          .where(eq(clanMembers.clanId, invite.clanId));
+        const newClanElo = calcClanElo(members.map((m) => m.eloRating));
+        await db.update(clans).set({ eloRating: newClanElo }).where(eq(clans.id, invite.clanId));
+
+        // Notify clan leader
+        const [clan] = await db.select({ leaderId: clans.leaderId, name: clans.name }).from(clans).where(eq(clans.id, invite.clanId)).limit(1);
+        if (clan) {
+          notificationManager.notify(clan.leaderId, {
+            type: "clan_invite",
+            title: "Clan invite accepted",
+            body: `${player.name} joined ${clan.name}`,
+            actionUrl: `/clans/${invite.clanId}`,
+          });
+        }
+      } else {
+        await db.update(clanInvites).set({ status: "declined" }).where(eq(clanInvites.id, data.inviteId));
+
+        // Notify inviter
+        notificationManager.notify(invite.invitedBy, {
+          type: "clan_invite",
+          title: "Clan invite declined",
+          body: `${player.name} declined the clan invite`,
+        });
+      }
+    } catch (err) {
+      socket.emit("error", {
+        message: err instanceof Error ? err.message : "Auth failed",
+      });
     }
   });
 

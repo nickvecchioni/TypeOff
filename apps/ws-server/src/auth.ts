@@ -21,6 +21,7 @@ export async function authenticateSocket(
       activeBadge: (payload.activeBadge as string) ?? null,
       activeNameColor: (payload.activeNameColor as string) ?? null,
       activeNameEffect: (payload.activeNameEffect as string) ?? null,
+      clanTag: (payload.clanTag as string) ?? null,
     };
   } catch {
     throw new Error("Invalid or expired token");

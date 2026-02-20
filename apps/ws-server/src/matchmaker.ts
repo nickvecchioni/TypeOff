@@ -8,6 +8,7 @@ import type {
 import { RaceManager } from "./race-manager.js";
 import type { RaceOwner } from "./race-manager.js";
 import type { SocialManager } from "./social-manager.js";
+import type { NotificationManager } from "./notification-manager.js";
 import { createDb, users, userStats } from "@typeoff/db";
 import { eq } from "drizzle-orm";
 
@@ -42,7 +43,7 @@ export class Matchmaker implements RaceOwner {
   private queueTimer: ReturnType<typeof setInterval> | null = null;
   private onRaceStarted?: (raceId: string, playerUserIds: string[]) => void;
 
-  constructor(private io: TypedServer, private socialManager?: SocialManager) {
+  constructor(private io: TypedServer, private socialManager?: SocialManager, private notificationManager?: NotificationManager) {
     this.queueTimer = setInterval(() => this.checkQueue(), 1000);
   }
 
@@ -322,7 +323,7 @@ export class Matchmaker implements RaceOwner {
 
   private startRace(entries: QueueEntry[]) {
     const race = new RaceManager(
-      this.io, entries, this,
+      this.io, entries, this, [], undefined, undefined, this.notificationManager,
     );
 
     this.races.set(race.raceId, race);
@@ -350,6 +351,7 @@ export class Matchmaker implements RaceOwner {
       this.io, [entry], this, [],
       undefined,
       raceNumber,
+      this.notificationManager,
     );
     this.races.set(race.raceId, race);
     this.socketToRace.set(socket.id, race.raceId);
@@ -410,6 +412,8 @@ export class Matchmaker implements RaceOwner {
     const race = new RaceManager(
       this.io, entries, this, bots,
       { botWpmMin, botWpmMax, perBotWpm },
+      undefined,
+      this.notificationManager,
     );
     this.races.set(race.raceId, race);
     const userIds: string[] = [];
@@ -465,7 +469,7 @@ export class Matchmaker implements RaceOwner {
 
     // Start race directly — no bots, no queue
     const race = new RaceManager(
-      this.io, entries, this,
+      this.io, entries, this, [], undefined, undefined, this.notificationManager,
     );
 
     this.races.set(race.raceId, race);

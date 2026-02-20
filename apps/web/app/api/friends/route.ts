@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 import { getDb } from "@/lib/db";
-import { friendships, users } from "@typeoff/db";
+import { friendships, users, notifications } from "@typeoff/db";
 import { eq, or, and } from "drizzle-orm";
 
 // GET — list accepted friends
@@ -141,6 +141,16 @@ export async function POST(request: Request) {
     addresseeId,
     status: "pending",
   });
+
+  // Create notification for the addressee
+  const senderName = session.user.username ?? session.user.name ?? "Someone";
+  await db.insert(notifications).values({
+    userId: addresseeId,
+    type: "friend_request",
+    title: "Friend Request",
+    body: `${senderName} sent you a friend request`,
+    actionUrl: `/profile/${session.user.username ?? ""}`,
+  }).catch(() => {}); // fire-and-forget
 
   return NextResponse.json({ success: true });
 }

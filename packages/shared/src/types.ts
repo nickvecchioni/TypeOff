@@ -55,6 +55,12 @@ export interface TestStats {
   wpmHistory: WpmSample[];
 }
 
+export interface ReplaySnapshot {
+  t: number; // elapsed ms since race start
+  w: number; // wordIndex
+  c: number; // charIndex
+}
+
 export interface EngineAPI {
   words: WordState[];
   currentWordIndex: number;

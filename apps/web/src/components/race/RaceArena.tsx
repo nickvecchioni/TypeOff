@@ -267,6 +267,7 @@ export function RaceArena() {
             myWpmHistory={wpmHistoryRef.current}
             party={partyHook.party}
             onMarkReady={partyHook.markReady}
+            raceId={race.raceId}
           />
         </div>
       )}

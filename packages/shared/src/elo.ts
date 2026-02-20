@@ -115,6 +115,14 @@ export function calculateEloChange(
   return Math.round(K * (scoreA - expectedA));
 }
 
+/** Calculate clan ELO as the average of the top min(5, length) member ELOs */
+export function calculateClanElo(memberElos: number[]): number {
+  if (memberElos.length === 0) return 1000;
+  const sorted = [...memberElos].sort((a, b) => b - a);
+  const top = sorted.slice(0, Math.min(5, sorted.length));
+  return Math.round(top.reduce((a, b) => a + b, 0) / top.length);
+}
+
 /** Weight applied to ELO changes from bot pairings */
 const BOT_WEIGHT = 0.6;
 

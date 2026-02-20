@@ -8,9 +8,10 @@ import type {
   RaceStatus,
   WpmSample,
 } from "@typeoff/shared";
-import { calculateRaceElo, getRankTier, generateWordsForMode, quotes } from "@typeoff/shared";
-import type { RankTier, RaceMode } from "@typeoff/shared";
-import { createDb, races, raceParticipants, userStats, users, userActiveCosmetics } from "@typeoff/db";
+import { calculateRaceElo, getRankTier, generateWordsForMode, quotes, calculateClanElo } from "@typeoff/shared";
+import type { RankTier, RaceMode, ReplaySnapshot } from "@typeoff/shared";
+import type { NotificationManager } from "./notification-manager.js";
+import { createDb, races, raceParticipants, userStats, users, userActiveCosmetics, clans, clanMembers } from "@typeoff/db";
 import { eq, inArray, and, sql } from "drizzle-orm";
 import { checkAchievements } from "./achievement-checker.js";
 import { checkChallenges, type ChallengeCheckResult } from "./challenge-checker.js";
@@ -36,6 +37,7 @@ interface PlayerEntry {
   botTickCounter: number;
   botTypingTicks: number;
   wpmHistory?: WpmSample[];
+  replaySnapshots: ReplaySnapshot[];
   misstypedChars?: number;
   lastProgressTime: number;
   progressEventsInWindow: number;
@@ -88,6 +90,7 @@ export class RaceManager {
     bots: RacePlayer[] = [],
     botWpmConfig?: BotWpmConfig,
     placementRace?: number,
+    private notificationManager?: NotificationManager,
   ) {
     this.placementRace = placementRace;
     this.raceId = crypto.randomUUID();
@@ -130,6 +133,7 @@ export class RaceManager {
         botNextRhythmTick: 0,
         botTickCounter: 0,
         botTypingTicks: 0,
+        replaySnapshots: [],
         lastProgressTime: now,
         progressEventsInWindow: 0,
         progressWindowStart: now,
@@ -167,6 +171,7 @@ export class RaceManager {
         botNextRhythmTick: Math.floor(5 + Math.random() * 10),
         botTickCounter: 0,
         botTypingTicks: 0,
+        replaySnapshots: [],
         lastProgressTime: now,
         progressEventsInWindow: 0,
         progressWindowStart: now,
@@ -223,6 +228,15 @@ export class RaceManager {
     entry.progress.charIndex = validated.charIndex;
     entry.progress.wpm = validated.wpm;
     entry.progress.progress = validated.progress;
+
+    // Capture replay snapshot
+    if (this.startedAt) {
+      entry.replaySnapshots.push({
+        t: Date.now() - this.startedAt.getTime(),
+        w: validated.wordIndex,
+        c: validated.charIndex,
+      });
+    }
   }
 
   handleFinish(
@@ -664,6 +678,8 @@ export class RaceManager {
           finishedAt: new Date(),
           flagged: flags != null && flags.length > 0,
           flagReason: flags?.join("; ") ?? null,
+          wpmHistory: entry.wpmHistory ? JSON.stringify(entry.wpmHistory) : null,
+          replayData: entry.replaySnapshots.length > 0 ? JSON.stringify(entry.replaySnapshots) : null,
         });
 
         // Update user stats for authenticated players
@@ -818,6 +834,52 @@ export class RaceManager {
           eloAfterMap.set(userId, newElo);
         }
 
+        // Notify rank changes
+        if (this.notificationManager) {
+          for (const entry of authPlayers) {
+            const user = userMap.get(entry.player.id);
+            const oldElo = user?.eloRating ?? 1000;
+            const newElo = eloAfterMap.get(entry.player.id) ?? oldElo;
+            const oldTier = getRankTier(oldElo);
+            const newTier = getRankTier(newElo);
+            if (oldTier !== newTier) {
+              const direction = newElo > oldElo ? "up" : "down";
+              this.notificationManager.notify(entry.player.id, {
+                type: direction === "up" ? "rank_up" : "rank_down",
+                title: direction === "up" ? "Rank Up!" : "Rank Down",
+                body: `You ${direction === "up" ? "promoted" : "demoted"} to ${newTier.charAt(0).toUpperCase() + newTier.slice(1)}`,
+                actionUrl: `/profile/${usernameMap.get(entry.player.id) ?? entry.player.name}`,
+              });
+            }
+          }
+        }
+
+        // Update clan ELO for players whose ELO changed
+        try {
+          const updatedClanIds = new Set<string>();
+          for (const entry of authPlayers) {
+            if (entry.player.isGuest || !eloChanges.has(entry.player.id)) continue;
+            // Check if player has a clan
+            const [userRow] = await db
+              .select({ clanId: users.clanId })
+              .from(users)
+              .where(eq(users.id, entry.player.id))
+              .limit(1);
+            if (userRow?.clanId && !updatedClanIds.has(userRow.clanId)) {
+              updatedClanIds.add(userRow.clanId);
+              const memberRows = await db
+                .select({ eloRating: users.eloRating })
+                .from(clanMembers)
+                .innerJoin(users, eq(clanMembers.userId, users.id))
+                .where(eq(clanMembers.clanId, userRow.clanId));
+              const newClanElo = calculateClanElo(memberRows.map((m) => m.eloRating));
+              await db.update(clans).set({ eloRating: newClanElo }).where(eq(clans.id, userRow.clanId));
+            }
+          }
+        } catch (clanErr) {
+          console.error("[race-manager] clan ELO update error:", clanErr);
+        }
+
         // Update participant records with elo data
         for (const entry of authPlayers) {
           const user = userMap.get(entry.player.id);
@@ -917,6 +979,17 @@ export class RaceManager {
         );
         if (newAchievements.length > 0) {
           achievementMap.set(entry.player.id, newAchievements);
+          // Notify for each new achievement
+          if (this.notificationManager) {
+            for (const achId of newAchievements) {
+              this.notificationManager.notify(entry.player.id, {
+                type: "achievement",
+                title: "Achievement Unlocked!",
+                body: achId,
+                actionUrl: `/profile/${usernameMap.get(entry.player.id) ?? entry.player.name}`,
+              });
+            }
+          }
         }
       }
     } catch (achievementErr) {
@@ -945,6 +1018,18 @@ export class RaceManager {
           );
           if (result.results.length > 0) {
             challengeMap.set(entry.player.id, result);
+            // Notify for completed challenges
+            if (this.notificationManager) {
+              for (const ch of result.results) {
+                if (ch.justCompleted) {
+                  this.notificationManager.notify(entry.player.id, {
+                    type: "challenge_complete",
+                    title: "Challenge Complete!",
+                    body: `${ch.challengeId} — earned ${ch.xpAwarded} XP`,
+                  });
+                }
+              }
+            }
           }
         }
       } catch (challengeErr) {

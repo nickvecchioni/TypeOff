@@ -249,6 +249,7 @@ export function useRace() {
     maxWaitSeconds,
     countdown,
     raceState,
+    raceId: raceState?.raceId ?? null,
     progress,
     results,
     placementRace,
