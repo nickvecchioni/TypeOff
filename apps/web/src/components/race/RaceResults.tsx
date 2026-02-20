@@ -369,17 +369,17 @@ export function RaceResults({
                 </span>
 
                 <span className="flex items-center gap-2 min-w-0 pr-3">
-                  {!isMe && !isBot && <CosmeticBadge badge={result.activeBadge} />}
+                  {!isBot && <CosmeticBadge badge={result.activeBadge} />}
                   {result.username && !isGuest ? (
                     <Link
                       href={`/profile/${result.username}`}
                       className="hover:text-accent transition-colors truncate"
                     >
                       {isMe ? (
-                        <>
+                        <CosmeticName nameColor={null} nameEffect={result.activeNameEffect}>
                           {displayName}
                           <span className="text-muted text-xs ml-1">(you)</span>
-                        </>
+                        </CosmeticName>
                       ) : (
                         <CosmeticName nameColor={result.activeNameColor} nameEffect={result.activeNameEffect}>
                           {displayName}

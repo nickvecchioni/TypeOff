@@ -37,10 +37,14 @@ export function RaceTrack({ players, progress, myPlayerId, isPlacement }: RaceTr
             <div className="flex justify-between text-sm">
               <span className={`flex items-center gap-2 min-w-0 ${isMe ? "text-accent font-bold" : "text-text"}`}>
                 {!isPlacement && !isBot && <RankBadge tier={getRankTier(player.elo)} />}
-                <CosmeticBadge badge={!isMe && !isBot ? player.activeBadge : undefined} />
+                {!isBot && <CosmeticBadge badge={player.activeBadge} />}
                 <span className="truncate">
-                  {isMe || isBot ? (
+                  {isBot ? (
                     player.name
+                  ) : isMe ? (
+                    <CosmeticName nameColor={null} nameEffect={player.activeNameEffect}>
+                      {player.name}
+                    </CosmeticName>
                   ) : (
                     <CosmeticName nameColor={player.activeNameColor} nameEffect={player.activeNameEffect}>
                       {player.name}
@@ -51,7 +55,13 @@ export function RaceTrack({ players, progress, myPlayerId, isPlacement }: RaceTr
                 {isMe && " (you)"}
                 {finished && p?.placement && ` #${p.placement}`}
               </span>
-              {finished && <span className="text-muted tabular-nums">{wpm} wpm</span>}
+              {finished && (
+                <span className="text-muted tabular-nums">
+                  {Math.floor(wpm)}
+                  <span className="text-[0.75em] opacity-70">.{wpm.toFixed(2).split(".")[1]}</span>
+                  {" "}wpm
+                </span>
+              )}
             </div>
             <div className="h-3 rounded-full bg-surface-bright/50 overflow-hidden">
               <div

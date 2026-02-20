@@ -223,11 +223,13 @@ async function RankedLeaderboard({ userId, db }: { userId?: string; db: ReturnTy
                       const cosmetic = cosmeticMap.get(row.id);
                       return (
                         <div className="flex items-center gap-1.5 min-w-0">
-                          {!isMe && <CosmeticBadge badge={cosmetic?.activeBadge} />}
+                          <CosmeticBadge badge={cosmetic?.activeBadge} />
                           <div className="flex flex-col min-w-0">
                             <span className={`truncate text-sm leading-tight ${isMe ? "font-bold" : ""}`}>
                               {isMe ? (
-                                <span className="text-accent">{row.username}</span>
+                                <CosmeticName nameColor={null} nameEffect={cosmetic?.activeNameEffect}>
+                                  <span className="text-accent">{row.username}</span>
+                                </CosmeticName>
                               ) : (
                                 <CosmeticName nameColor={cosmetic?.activeNameColor} nameEffect={cosmetic?.activeNameEffect}>
                                   {row.username}
@@ -515,11 +517,15 @@ async function SoloLeaderboard({
                     {rank}
                   </span>
                   <div className="flex items-center gap-2.5 min-w-0">
-                    {!isMe && <CosmeticBadge badge={soloCosmetic?.activeBadge} />}
+                    <CosmeticBadge badge={soloCosmetic?.activeBadge} />
                     <span
-                      className={`truncate text-sm leading-tight ${isMe ? "text-accent font-bold" : ""}`}
+                      className={`truncate text-sm leading-tight ${isMe ? "font-bold" : ""}`}
                     >
-                      {isMe ? row.username : (
+                      {isMe ? (
+                        <CosmeticName nameColor={null} nameEffect={soloCosmetic?.activeNameEffect}>
+                          <span className="text-accent">{row.username}</span>
+                        </CosmeticName>
+                      ) : (
                         <CosmeticName nameColor={soloCosmetic?.activeNameColor} nameEffect={soloCosmetic?.activeNameEffect}>
                           {row.username}
                         </CosmeticName>
