@@ -13,6 +13,7 @@ import { SocketProvider } from "@/hooks/useSocket";
 import { SocialProvider } from "@/hooks/useSocial";
 import { ChatProvider } from "@/hooks/useChat";
 import { NotificationProvider } from "@/hooks/useNotifications";
+import { PartyProvider } from "@/hooks/useParty";
 import { CosmeticProvider } from "@/contexts/CosmeticContext";
 import "./globals.css";
 
@@ -39,6 +40,7 @@ export default function RootLayout({
           <SocketProvider>
           <SocialProvider>
           <ChatProvider>
+          <PartyProvider>
           <NotificationProvider>
           <UsernameGuard>
             <nav className="relative z-30 flex items-center justify-between px-4 sm:px-6 py-3">
@@ -70,6 +72,7 @@ export default function RootLayout({
             <NotificationToast />
           </UsernameGuard>
           </NotificationProvider>
+          </PartyProvider>
           </ChatProvider>
           </SocialProvider>
           </SocketProvider>

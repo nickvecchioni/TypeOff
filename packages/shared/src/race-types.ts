@@ -89,6 +89,7 @@ export interface ClientToServerEvents {
   // Party race events
   partySetPrivateRace: (data: { privateRace: boolean }) => void;
   partyMarkReady: () => void;
+  partyChatSend: (data: { message: string }) => void;
   // Spectator events
   listActiveRaces: () => void;
   spectateRace: (data: { raceId: string; token?: string }) => void;
@@ -161,6 +162,7 @@ export interface ServerToClientEvents {
   partyDisbanded: () => void;
   partyReadyReset: () => void;
   partyError: (data: { message: string }) => void;
+  partyChatMessage: (data: { senderId: string; senderName: string; message: string; timestamp: number }) => void;
   // Spectator events
   activeRaces: (data: { races: Array<{ raceId: string; players: RacePlayer[]; status: RaceStatus; spectatorCount: number }> }) => void;
   spectateStarted: (data: RaceState) => void;

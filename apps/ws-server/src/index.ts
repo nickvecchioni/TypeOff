@@ -178,6 +178,10 @@ io.on("connection", (socket) => {
     partyManager.markReady(socket);
   });
 
+  socket.on("partyChatSend", (data) => {
+    partyManager.handleChatMessage(socket, data.message);
+  });
+
   // ─── Social Events ───────────────────────────────────────────────
 
   socket.on("requestFriendStatuses", async (data) => {

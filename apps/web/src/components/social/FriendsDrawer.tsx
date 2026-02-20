@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useSocial } from "@/hooks/useSocial";
 import { useChat } from "@/hooks/useChat";
+import { useParty } from "@/hooks/useParty";
 import { ChatPanel } from "./ChatPanel";
 
 function formatLastSeen(iso: string): string {
@@ -40,6 +41,7 @@ export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
     searchUsers,
   } = useSocial();
   const { activeChat, openChat, closeChat, unreadCounts } = useChat();
+  const { party, inviteToParty } = useParty();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<
@@ -111,6 +113,11 @@ export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
   const onlineFriends = friends.filter((f) => f.online);
   const offlineFriends = friends.filter((f) => !f.online);
 
+  const myUserId = session?.user?.id;
+  const isPartyLeader = party != null && party.leaderId === myUserId;
+  const partyMemberIds = new Set(party?.members.map((m) => m.userId) ?? []);
+  const canInvite = isPartyLeader && (party?.members.length ?? 0) < 4;
+
   // Find active chat friend info
   const activeFriend = activeChat
     ? friends.find((f) => f.userId === activeChat)
@@ -151,6 +158,24 @@ export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
 
         {/* Right side: unread badge OR hover actions */}
         <div className="flex items-center gap-1 shrink-0">
+          {canInvite && isOnline && !partyMemberIds.has(friend.userId) && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                inviteToParty(friend.userId);
+              }}
+              className="flex items-center gap-1 text-[10px] font-bold text-accent/70 hover:text-accent px-1.5 py-0.5 rounded border border-accent/20 hover:border-accent/40 hover:bg-accent/10 transition-all"
+              title="Invite to party"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <line x1="19" y1="8" x2="19" y2="14" />
+                <line x1="22" y1="11" x2="16" y2="11" />
+              </svg>
+              Invite
+            </button>
+          )}
           {friend.raceId && (
             <Link
               href={`/spectate?raceId=${friend.raceId}`}

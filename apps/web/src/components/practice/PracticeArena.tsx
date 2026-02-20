@@ -210,8 +210,8 @@ export function PracticeArena() {
       {!isFinished && (
         <div
           key={`config-${cascadeKey}`}
-          className="flex flex-col items-center gap-2 opacity-0 animate-fade-in"
-          style={{ animationDelay: "0ms", animationFillMode: "both" }}
+          className="flex flex-col items-center gap-2 animate-fade-in"
+          style={{ animationFillMode: "both" }}
         >
           {session?.user?.id && (
             <div className="focus-fade text-sm text-muted/50 tabular-nums">
@@ -257,8 +257,8 @@ export function PracticeArena() {
           ref={containerRef}
           tabIndex={0}
           onKeyDown={engine.handleKeyDown}
-          className="w-full outline-none cursor-default select-none overflow-hidden opacity-0 animate-fade-in"
-          style={{ height: containerHeight, animationDelay: "80ms", animationFillMode: "both" }}
+          className="w-full outline-none cursor-default select-none overflow-hidden animate-fade-in"
+          style={{ height: containerHeight, animationDelay: "50ms", animationFillMode: "both" }}
           role="textbox"
           aria-label="Solo typing area"
         >
@@ -306,7 +306,7 @@ export function PracticeArena() {
               ? "opacity-0 animate-fade-in"
               : "invisible"
           }`}
-          style={engine.status === "idle" ? { animationDelay: "160ms", animationFillMode: "both" } : undefined}
+          style={engine.status === "idle" ? { animationDelay: "100ms", animationFillMode: "both" } : undefined}
         >
           press{" "}
           <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/50 text-[10px]">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, createContext, useContext } from "react";
 import type { PartyState } from "@typeoff/shared";
 import { useSocket } from "./useSocket";
 
@@ -10,11 +10,23 @@ export interface PartyInvite {
   fromName: string;
 }
 
-export function useParty() {
+export interface PartyChatMessage {
+  senderId: string;
+  senderName: string;
+  message: string;
+  timestamp: number;
+}
+
+type PartyHook = ReturnType<typeof usePartyInternal>;
+
+const PartyContext = createContext<PartyHook | null>(null);
+
+function usePartyInternal() {
   const { emit, on } = useSocket();
   const [party, setParty] = useState<PartyState | null>(null);
   const [pendingInvite, setPendingInvite] = useState<PartyInvite | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [chatMessages, setChatMessages] = useState<PartyChatMessage[]>([]);
 
   const inviteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -34,12 +46,16 @@ export function useParty() {
       }),
       on("partyDisbanded", () => {
         setParty(null);
+        setChatMessages([]);
       }),
       on("partyError", (data) => {
         setError(data.message);
       }),
       on("partyReadyReset", () => {
         setParty((prev) => prev ? { ...prev, readyState: {} } : prev);
+      }),
+      on("partyChatMessage", (data) => {
+        setChatMessages((prev) => [...prev, data]);
       }),
     ];
 
@@ -104,6 +120,7 @@ export function useParty() {
   const leaveParty = useCallback(() => {
     emit("leaveParty");
     setParty(null);
+    setChatMessages([]);
     setError(null);
   }, [emit]);
 
@@ -125,10 +142,18 @@ export function useParty() {
     emit("partyMarkReady");
   }, [emit]);
 
+  const sendChatMessage = useCallback(
+    (message: string) => {
+      emit("partyChatSend", { message });
+    },
+    [emit],
+  );
+
   return {
     party,
     pendingInvite,
     error,
+    chatMessages,
     createParty,
     inviteToParty,
     respondToInvite,
@@ -136,5 +161,17 @@ export function useParty() {
     kickMember,
     setPrivateRace,
     markReady,
+    sendChatMessage,
   };
+}
+
+export function PartyProvider({ children }: { children: React.ReactNode }) {
+  const party = usePartyInternal();
+  return <PartyContext.Provider value={party}>{children}</PartyContext.Provider>;
+}
+
+export function useParty() {
+  const ctx = useContext(PartyContext);
+  if (!ctx) throw new Error("useParty must be used within PartyProvider");
+  return ctx;
 }

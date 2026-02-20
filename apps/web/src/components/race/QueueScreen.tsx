@@ -171,8 +171,8 @@ export function QueueScreen({
           {/* Player identity */}
           {session.user.placementsCompleted && (
             <div
-              className="flex flex-col items-center gap-1.5 mb-6 opacity-0 animate-fade-in"
-              style={{ animationDelay: "0ms", animationFillMode: "both" }}
+              className="flex flex-col items-center gap-1.5 mb-6 animate-fade-in"
+              style={{ animationFillMode: "both" }}
             >
               <RankBadge
                 tier={session.user.rankTier}
@@ -199,8 +199,8 @@ export function QueueScreen({
           {/* Action area */}
           {inPartyNotLeader ? (
             <div
-              className="flex flex-col items-center gap-3 w-full max-w-lg opacity-0 animate-fade-in"
-              style={{ animationDelay: "80ms", animationFillMode: "both" }}
+              className="flex flex-col items-center gap-3 w-full max-w-lg animate-fade-in"
+              style={{ animationDelay: "50ms", animationFillMode: "both" }}
             >
               <button
                 onClick={() => !amReady && onMarkReady?.()}
@@ -234,8 +234,8 @@ export function QueueScreen({
             </div>
           ) : (
             <div
-              className="relative flex flex-col items-center w-full max-w-lg opacity-0 animate-fade-in"
-              style={{ animationDelay: "80ms", animationFillMode: "both" }}
+              className="relative flex flex-col items-center w-full max-w-lg animate-fade-in"
+              style={{ animationDelay: "50ms", animationFillMode: "both" }}
             >
               {/* Ambient glow */}
               <div
@@ -324,8 +324,8 @@ export function QueueScreen({
           {/* Party panel */}
           {session.user.placementsCompleted && party && (
             <div
-              className="w-full max-w-lg mt-5 opacity-0 animate-fade-in"
-              style={{ animationDelay: "160ms", animationFillMode: "both" }}
+              className="w-full max-w-lg mt-5 animate-fade-in"
+              style={{ animationDelay: "100ms", animationFillMode: "both" }}
             >
               <PartyPanel
                 party={party}
@@ -341,8 +341,8 @@ export function QueueScreen({
           {/* Dashboard */}
           {session.user.placementsCompleted && (
             <div
-              className="w-full mt-10 grid grid-cols-1 sm:grid-cols-2 gap-3 opacity-0 animate-fade-in"
-              style={{ animationDelay: "220ms", animationFillMode: "both" }}
+              className="w-full mt-10 grid grid-cols-1 sm:grid-cols-2 gap-3 animate-fade-in"
+              style={{ animationDelay: "120ms", animationFillMode: "both" }}
             >
               <ChallengesWidget />
               <div className="grid grid-rows-2 gap-3">

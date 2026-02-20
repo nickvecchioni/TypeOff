@@ -11,7 +11,7 @@ export function FriendsButton() {
   const [open, setOpen] = useState(false);
   const [hasRequests, setHasRequests] = useState(false);
 
-  // Poll for pending requests to show notification dot
+  // Poll for pending requests to show notification dot (deferred to avoid mount stutter)
   useEffect(() => {
     if (!session?.user) return;
     let cancelled = false;
@@ -26,10 +26,12 @@ export function FriendsButton() {
         // ignore
       }
     };
-    check();
+    // Defer initial check to avoid blocking page load
+    const initialDelay = setTimeout(check, 2000);
     const interval = setInterval(check, 30_000);
     return () => {
       cancelled = true;
+      clearTimeout(initialDelay);
       clearInterval(interval);
     };
   }, [session?.user]);

@@ -149,11 +149,25 @@ export class RaceManager {
     const wpmMin = botWpmConfig?.botWpmMin ?? DEFAULT_BOT_WPM_MIN;
     const wpmMax = botWpmConfig?.botWpmMax ?? DEFAULT_BOT_WPM_MAX;
     const perBotWpm = botWpmConfig?.perBotWpm;
+
+    // Harder modes slow bots down so they aren't unreasonably fast
+    const modeDifficultyMultiplier: Record<RaceMode, number> = {
+      standard: 1.0,
+      quotes: 0.95,
+      marathon: 0.92,
+      sprint: 1.0,
+      punctuation: 0.78,
+      numbers: 0.82,
+      difficult: 0.75,
+    };
+    const modeMultiplier = modeDifficultyMultiplier[this.mode];
+
     for (let botIdx = 0; botIdx < bots.length; botIdx++) {
       const bot = bots[botIdx];
-      const targetWpm = perBotWpm?.[botIdx] != null
+      const baseWpm = perBotWpm?.[botIdx] != null
         ? perBotWpm[botIdx] + (Math.random() - 0.5) * 2 * BOT_WPM_VARIANCE
         : wpmMin + Math.random() * (wpmMax - wpmMin);
+      const targetWpm = baseWpm * modeMultiplier;
       const reactionMs = BOT_REACTION_MIN_MS + Math.random() * (BOT_REACTION_MAX_MS - BOT_REACTION_MIN_MS);
       this.players.set(bot.id, {
         socket: null,

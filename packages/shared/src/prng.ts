@@ -57,7 +57,7 @@ export const LINE_WIDTH_CH = 62;
 export const TARGET_LINES = 3;
 
 /** Line counts for marathon and sprint modes */
-export const MARATHON_LINES = 6;
+export const MARATHON_LINES = 4;
 export const SPRINT_LINES = 1;
 
 /**
