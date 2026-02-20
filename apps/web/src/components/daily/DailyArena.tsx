@@ -80,23 +80,32 @@ export function DailyArena({ challenge, leaderboard: initialLeaderboard, myResul
     if (engine.status === "idle") {
       suppressTransitionRef.current = true;
       setScrollOffset(0);
-      requestAnimationFrame(() => { suppressTransitionRef.current = false; });
       return;
     }
 
     const inner = wordsInnerRef.current;
     if (!inner) return;
-    const spans = inner.querySelectorAll(".no-ligatures > *");
-    const activeSpan = spans[engine.currentWordIndex];
+
+    const wordSpans = inner.querySelectorAll(".no-ligatures > span");
+    const activeSpan = wordSpans[engine.currentWordIndex] as HTMLElement;
     if (!activeSpan) return;
 
-    const parentTop = inner.getBoundingClientRect().top;
-    const spanTop = activeSpan.getBoundingClientRect().top;
-    const relativeTop = spanTop - parentTop + scrollOffset;
-    const targetLine = 1;
-    const target = Math.max(0, relativeTop - targetLine * lineHeight);
-    setScrollOffset(target);
-  }, [engine.currentWordIndex, lineHeight, engine.status, scrollOffset]);
+    const wordTop = activeSpan.offsetTop;
+    // Scroll when active word reaches the 2nd visible line (0-indexed)
+    const threshold = scrollOffset + lineHeight;
+    if (wordTop > threshold) {
+      setScrollOffset(wordTop - lineHeight);
+    }
+  }, [engine.currentWordIndex, engine.status, lineHeight, scrollOffset]);
+
+  // Clear suppress flag after the instant reset renders
+  useEffect(() => {
+    if (suppressTransitionRef.current) {
+      requestAnimationFrame(() => {
+        suppressTransitionRef.current = false;
+      });
+    }
+  }, [scrollOffset]);
 
   // Auto-focus
   useEffect(() => {

@@ -272,8 +272,8 @@ function AnimatedXpPanel({
           Level
         </h3>
         <span
-          className={`text-xs font-bold tabular-nums transition-opacity duration-300 ${
-            animStarted ? "opacity-100 text-accent" : "opacity-0 text-accent"
+          className={`text-sm font-black tabular-nums transition-all duration-500 ${
+            animStarted ? "opacity-100 text-accent scale-100" : "opacity-0 text-accent scale-75"
           }`}
         >
           +{displayXp} XP

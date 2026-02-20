@@ -180,6 +180,58 @@ export function RaceArena() {
     [race.sendFinish],
   );
 
+  // Prevent rage-quitting during active races
+  React.useEffect(() => {
+    const isActive = race.phase === "racing" || race.phase === "countdown";
+    if (!isActive) return;
+
+    // Warn on page refresh / close
+    function handleBeforeUnload(e: BeforeUnloadEvent) {
+      e.preventDefault();
+    }
+
+    // Block client-side navigation (Next.js Link clicks)
+    const origPushState = history.pushState.bind(history);
+    const origReplaceState = history.replaceState.bind(history);
+
+    history.pushState = function (...args: Parameters<typeof origPushState>) {
+      // Allow same-page state updates (used by modals, search params)
+      if (typeof args[2] === "string" && args[2] !== window.location.href && args[2] !== window.location.pathname) {
+        return; // block navigation to different pages
+      }
+      return origPushState(...args);
+    };
+    history.replaceState = function (...args: Parameters<typeof origReplaceState>) {
+      if (typeof args[2] === "string" && args[2] !== window.location.href && args[2] !== window.location.pathname) {
+        return;
+      }
+      return origReplaceState(...args);
+    };
+
+    // Block browser back/forward
+    function handlePopState() {
+      history.pushState(null, "", window.location.href);
+    }
+    history.pushState = origPushState; // temporarily restore for the push
+    history.pushState(null, "", window.location.href);
+    history.pushState = function (...args: Parameters<typeof origPushState>) {
+      if (typeof args[2] === "string" && args[2] !== window.location.href && args[2] !== window.location.pathname) {
+        return;
+      }
+      return origPushState(...args);
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("popstate", handlePopState);
+      history.pushState = origPushState;
+      history.replaceState = origReplaceState;
+    };
+  }, [race.phase]);
+
   // Escape during countdown = leave race without penalty
   React.useEffect(() => {
     if (race.phase !== "countdown") return;

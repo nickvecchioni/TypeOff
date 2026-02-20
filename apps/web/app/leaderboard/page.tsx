@@ -6,7 +6,7 @@ import { getDb } from "@/lib/db";
 import { users, userStats, userActiveCosmetics, soloResults, raceParticipants, races } from "@typeoff/db";
 import { and, desc, eq, gt, isNotNull, sql, inArray } from "drizzle-orm";
 import type { RankTier } from "@typeoff/shared";
-import { getRankInfo } from "@typeoff/shared";
+import { getRankInfo, getXpLevel } from "@typeoff/shared";
 import { LeaderboardTabs } from "@/components/leaderboard/LeaderboardTabs";
 import { SoloModeSelector } from "@/components/leaderboard/SoloModeSelector";
 import { PPLeaderboard } from "@/components/leaderboard/PPLeaderboard";
@@ -92,6 +92,7 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
       avgWpm: userStats.avgWpm,
       maxWpm: userStats.maxWpm,
       avgAccuracy: userStats.avgAccuracy,
+      totalXp: userStats.totalXp,
     })
     .from(users)
     .leftJoin(userStats, eq(users.id, userStats.userId))
@@ -115,6 +116,7 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
         avgWpm: userStats.avgWpm,
         maxWpm: userStats.maxWpm,
         avgAccuracy: userStats.avgAccuracy,
+        totalXp: userStats.totalXp,
       })
       .from(users)
       .leftJoin(userStats, eq(users.id, userStats.userId))
@@ -146,6 +148,7 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
           activeBadge: userActiveCosmetics.activeBadge,
           activeNameColor: userActiveCosmetics.activeNameColor,
           activeNameEffect: userActiveCosmetics.activeNameEffect,
+          activeTitle: userActiveCosmetics.activeTitle,
         })
         .from(userActiveCosmetics)
         .where(inArray(userActiveCosmetics.userId, allPlayerIds))
@@ -249,6 +252,7 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
                     <LiveBadge userId={row.id} />
                     {(() => {
                       const cosmetic = cosmeticMap.get(row.id);
+                      const lvl = getXpLevel(row.totalXp ?? 0).level;
                       return (
                         <div className="flex items-center gap-1.5 min-w-0">
                           <CosmeticBadge badge={cosmetic?.activeBadge} />
@@ -263,9 +267,15 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
                                   {row.username}
                                 </CosmeticName>
                               )}
+                              <span className="text-[10px] text-muted/40 ml-1.5 tabular-nums">Lv.{lvl}</span>
                             </span>
-                            <span className={`text-xs leading-tight ${tierColor}`}>
-                              {info.label}
+                            <span className="flex items-center gap-1.5">
+                              <span className={`text-xs leading-tight ${tierColor}`}>
+                                {info.label}
+                              </span>
+                              {cosmetic?.activeTitle && (
+                                <span className="text-[10px] text-muted/40 leading-tight">{cosmetic.activeTitle}</span>
+                              )}
                             </span>
                           </div>
                         </div>
@@ -303,6 +313,7 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
             const racesPlayed = row.racesPlayed ?? 0;
             const racesWon = row.racesWon ?? 0;
             const myCosmetic = cosmeticMap.get(row.id);
+            const myLvl = getXpLevel(row.totalXp ?? 0).level;
 
             return (
               <div
@@ -325,9 +336,15 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
                     <div className="flex flex-col min-w-0">
                       <span className="truncate text-sm leading-tight text-accent font-bold">
                         {row.username}
+                        <span className="text-[10px] text-muted/40 ml-1.5 tabular-nums font-normal">Lv.{myLvl}</span>
                       </span>
-                      <span className={`text-xs leading-tight ${tierColor}`}>
-                        {info.label}
+                      <span className="flex items-center gap-1.5">
+                        <span className={`text-xs leading-tight ${tierColor}`}>
+                          {info.label}
+                        </span>
+                        {myCosmetic?.activeTitle && (
+                          <span className="text-[10px] text-muted/40 leading-tight">{myCosmetic.activeTitle}</span>
+                        )}
                       </span>
                     </div>
                   </div>
@@ -380,9 +397,11 @@ async function SoloLeaderboard({
       bestWpm: sql<number>`max(${soloResults.wpm})`.as("best_wpm"),
       bestAccuracy: sql<number>`max(${soloResults.accuracy})`.as("best_accuracy"),
       testCount: sql<number>`count(*)`.as("test_count"),
+      totalXp: userStats.totalXp,
     })
     .from(soloResults)
     .innerJoin(users, eq(soloResults.userId, users.id))
+    .leftJoin(userStats, eq(soloResults.userId, userStats.userId))
     .where(
       and(
         eq(soloResults.mode, mode),
@@ -390,7 +409,7 @@ async function SoloLeaderboard({
         isNotNull(users.username),
       ),
     )
-    .groupBy(soloResults.userId, users.username)
+    .groupBy(soloResults.userId, users.username, userStats.totalXp)
     .orderBy(sql`best_wpm desc`)
     .limit(100);
 
@@ -402,11 +421,13 @@ async function SoloLeaderboard({
         usrId: soloResults.userId,
         username: users.username,
         bestWpm: sql<number>`max(${soloResults.wpm})`.as("best_wpm"),
-          bestAccuracy: sql<number>`max(${soloResults.accuracy})`.as("best_accuracy"),
+        bestAccuracy: sql<number>`max(${soloResults.accuracy})`.as("best_accuracy"),
         testCount: sql<number>`count(*)`.as("test_count"),
+        totalXp: userStats.totalXp,
       })
       .from(soloResults)
       .innerJoin(users, eq(soloResults.userId, users.id))
+      .leftJoin(userStats, eq(soloResults.userId, userStats.userId))
       .where(
         and(
           eq(soloResults.userId, userId),
@@ -414,7 +435,7 @@ async function SoloLeaderboard({
           eq(soloResults.duration, duration),
         ),
       )
-      .groupBy(soloResults.userId, users.username)
+      .groupBy(soloResults.userId, users.username, userStats.totalXp)
       .limit(1);
 
     if (myRow) {
@@ -451,6 +472,7 @@ async function SoloLeaderboard({
           activeBadge: userActiveCosmetics.activeBadge,
           activeNameColor: userActiveCosmetics.activeNameColor,
           activeNameEffect: userActiveCosmetics.activeNameEffect,
+          activeTitle: userActiveCosmetics.activeTitle,
         })
         .from(userActiveCosmetics)
         .where(inArray(userActiveCosmetics.userId, soloPlayerIds))
@@ -546,19 +568,25 @@ async function SoloLeaderboard({
                   </span>
                   <div className="flex items-center gap-2.5 min-w-0">
                     <CosmeticBadge badge={soloCosmetic?.activeBadge} />
-                    <span
-                      className={`truncate text-sm leading-tight ${isMe ? "font-bold" : ""}`}
-                    >
-                      {isMe ? (
-                        <CosmeticName nameColor={null} nameEffect={soloCosmetic?.activeNameEffect}>
-                          <span className="text-accent">{row.username}</span>
-                        </CosmeticName>
-                      ) : (
-                        <CosmeticName nameColor={soloCosmetic?.activeNameColor} nameEffect={soloCosmetic?.activeNameEffect}>
-                          {row.username}
-                        </CosmeticName>
+                    <div className="flex flex-col min-w-0">
+                      <span
+                        className={`truncate text-sm leading-tight ${isMe ? "font-bold" : ""}`}
+                      >
+                        {isMe ? (
+                          <CosmeticName nameColor={null} nameEffect={soloCosmetic?.activeNameEffect}>
+                            <span className="text-accent">{row.username}</span>
+                          </CosmeticName>
+                        ) : (
+                          <CosmeticName nameColor={soloCosmetic?.activeNameColor} nameEffect={soloCosmetic?.activeNameEffect}>
+                            {row.username}
+                          </CosmeticName>
+                        )}
+                        <span className="text-[10px] text-muted/40 ml-1.5 tabular-nums">Lv.{getXpLevel(row.totalXp ?? 0).level}</span>
+                      </span>
+                      {soloCosmetic?.activeTitle && (
+                        <span className="text-[10px] text-muted/40 leading-tight">{soloCosmetic.activeTitle}</span>
                       )}
-                    </span>
+                    </div>
                   </div>
                   <span className="text-sm tabular-nums text-right font-semibold text-text">
                     {fmtWpm(row.bestWpm)}
@@ -596,9 +624,15 @@ async function SoloLeaderboard({
                   </span>
                   <div className="flex items-center gap-2.5 min-w-0">
                     <CosmeticBadge badge={mySoloCosmetic?.activeBadge} />
-                    <span className="truncate text-sm leading-tight text-accent font-bold">
-                      {row.username}
-                    </span>
+                    <div className="flex flex-col min-w-0">
+                      <span className="truncate text-sm leading-tight text-accent font-bold">
+                        {row.username}
+                        <span className="text-[10px] text-muted/40 ml-1.5 tabular-nums font-normal">Lv.{getXpLevel(row.totalXp ?? 0).level}</span>
+                      </span>
+                      {mySoloCosmetic?.activeTitle && (
+                        <span className="text-[10px] text-muted/40 leading-tight">{mySoloCosmetic.activeTitle}</span>
+                      )}
+                    </div>
                   </div>
                   <span className="text-sm tabular-nums text-right font-semibold text-text">
                     {fmtWpm(row.bestWpm)}
@@ -666,10 +700,12 @@ async function UniverseLeaderboard({
       bestWpm: sql<number>`max(${raceParticipants.wpm})`.as("best_wpm"),
       bestAccuracy: sql<number>`max(${raceParticipants.accuracy})`.as("best_accuracy"),
       raceCount: sql<number>`count(*)`.as("race_count"),
+      totalXp: userStats.totalXp,
     })
     .from(raceParticipants)
     .innerJoin(races, eq(raceParticipants.raceId, races.id))
     .innerJoin(users, eq(raceParticipants.userId, users.id))
+    .leftJoin(userStats, eq(raceParticipants.userId, userStats.userId))
     .where(
       and(
         eq(races.wordPool, universe),
@@ -678,7 +714,7 @@ async function UniverseLeaderboard({
         eq(raceParticipants.flagged, false),
       ),
     )
-    .groupBy(raceParticipants.userId, users.username)
+    .groupBy(raceParticipants.userId, users.username, userStats.totalXp)
     .orderBy(sql`best_wpm desc`)
     .limit(100);
 
@@ -691,6 +727,7 @@ async function UniverseLeaderboard({
           activeBadge: userActiveCosmetics.activeBadge,
           activeNameColor: userActiveCosmetics.activeNameColor,
           activeNameEffect: userActiveCosmetics.activeNameEffect,
+          activeTitle: userActiveCosmetics.activeTitle,
         })
         .from(userActiveCosmetics)
         .where(inArray(userActiveCosmetics.userId, playerIds))
@@ -781,17 +818,23 @@ async function UniverseLeaderboard({
                   </span>
                   <div className="flex items-center gap-2.5 min-w-0">
                     <CosmeticBadge badge={cosmetic?.activeBadge} />
-                    <span className={`truncate text-sm leading-tight ${isMe ? "font-bold" : ""}`}>
-                      {isMe ? (
-                        <CosmeticName nameColor={null} nameEffect={cosmetic?.activeNameEffect}>
-                          <span className="text-accent">{row.username}</span>
-                        </CosmeticName>
-                      ) : (
-                        <CosmeticName nameColor={cosmetic?.activeNameColor} nameEffect={cosmetic?.activeNameEffect}>
-                          {row.username}
-                        </CosmeticName>
+                    <div className="flex flex-col min-w-0">
+                      <span className={`truncate text-sm leading-tight ${isMe ? "font-bold" : ""}`}>
+                        {isMe ? (
+                          <CosmeticName nameColor={null} nameEffect={cosmetic?.activeNameEffect}>
+                            <span className="text-accent">{row.username}</span>
+                          </CosmeticName>
+                        ) : (
+                          <CosmeticName nameColor={cosmetic?.activeNameColor} nameEffect={cosmetic?.activeNameEffect}>
+                            {row.username}
+                          </CosmeticName>
+                        )}
+                        <span className="text-[10px] text-muted/40 ml-1.5 tabular-nums">Lv.{getXpLevel(row.totalXp ?? 0).level}</span>
+                      </span>
+                      {cosmetic?.activeTitle && (
+                        <span className="text-[10px] text-muted/40 leading-tight">{cosmetic.activeTitle}</span>
                       )}
-                    </span>
+                    </div>
                   </div>
                   <span className="text-sm tabular-nums text-right font-semibold text-text">
                     {fmtWpm(row.bestWpm)}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ScrollDownHint } from "./ScrollDownHint";
 
 const RANK_TIERS = [
   {
@@ -96,6 +97,9 @@ export default function RanksPage() {
             </div>
           ))}
         </div>
+
+        {/* Scroll hint */}
+        <ScrollDownHint />
 
         {/* Info Grid */}
         <div

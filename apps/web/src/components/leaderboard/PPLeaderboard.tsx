@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { getXpLevel } from "@typeoff/shared";
 import { CosmeticName } from "@/components/CosmeticName";
 import { CosmeticBadge } from "@/components/CosmeticBadge";
 
@@ -12,9 +13,11 @@ interface PPEntry {
   avgWpm: number | null;
   maxWpm: number | null;
   racesPlayed: number | null;
+  totalXp: number | null;
   activeBadge: string | null;
   activeNameColor: string | null;
   activeNameEffect: string | null;
+  activeTitle: string | null;
 }
 
 interface PPLeaderboardProps {
@@ -95,17 +98,23 @@ export function PPLeaderboard({ userId }: PPLeaderboardProps) {
               </span>
               <div className="flex items-center gap-2.5 min-w-0">
                 <CosmeticBadge badge={entry.activeBadge} />
-                <span className={`truncate text-sm leading-tight ${isMe ? "font-bold" : ""}`}>
-                  {isMe ? (
-                    <CosmeticName nameColor={null} nameEffect={entry.activeNameEffect}>
-                      <span className="text-accent">{entry.username}</span>
-                    </CosmeticName>
-                  ) : (
-                    <CosmeticName nameColor={entry.activeNameColor} nameEffect={entry.activeNameEffect}>
-                      {entry.username}
-                    </CosmeticName>
+                <div className="flex flex-col min-w-0">
+                  <span className={`truncate text-sm leading-tight ${isMe ? "font-bold" : ""}`}>
+                    {isMe ? (
+                      <CosmeticName nameColor={null} nameEffect={entry.activeNameEffect}>
+                        <span className="text-accent">{entry.username}</span>
+                      </CosmeticName>
+                    ) : (
+                      <CosmeticName nameColor={entry.activeNameColor} nameEffect={entry.activeNameEffect}>
+                        {entry.username}
+                      </CosmeticName>
+                    )}
+                    <span className="text-[10px] text-muted/40 ml-1.5 tabular-nums">Lv.{getXpLevel(entry.totalXp ?? 0).level}</span>
+                  </span>
+                  {entry.activeTitle && (
+                    <span className="text-[10px] text-muted/40 leading-tight">{entry.activeTitle}</span>
                   )}
-                </span>
+                </div>
               </div>
               <span className="text-sm tabular-nums text-right font-semibold text-purple-400">
                 {Math.floor(entry.totalPp)}

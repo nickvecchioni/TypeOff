@@ -119,8 +119,9 @@ export function PracticeArena() {
     };
   }, [engine.status]);
 
-  // Refocus after config change
+  // Refocus after config change + bump cascade to replay animations
   const handleAfterConfigChange = useCallback(() => {
+    setCascadeKey((k) => k + 1);
     requestAnimationFrame(() => containerRef.current?.focus());
   }, []);
 
@@ -175,11 +176,9 @@ export function PracticeArena() {
     if (engine.status === "idle") {
       hasSavedRef.current = false;
       setIsPb(null);
-      // Skip cascade bump when coming from results — the typing area is
-      // already freshly mounting; a key change would double-mount it (flash).
-      if (prev !== "finished") {
-        setCascadeKey((k) => k + 1);
-      }
+      // Only bump cascade key on config-driven restarts (idle → idle handled
+      // by setConfig). Tab+Enter (typing → idle) and results restart
+      // (finished → idle) skip the bump to prevent a double-mount flash.
     }
   }, [engine.status]);
 

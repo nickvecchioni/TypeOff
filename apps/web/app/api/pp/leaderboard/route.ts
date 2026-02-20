@@ -17,6 +17,7 @@ export async function GET() {
       avgWpm: userStats.avgWpm,
       maxWpm: userStats.maxWpm,
       racesPlayed: userStats.racesPlayed,
+      totalXp: userStats.totalXp,
     })
     .from(userStats)
     .innerJoin(users, eq(userStats.userId, users.id))
@@ -33,6 +34,7 @@ export async function GET() {
           activeBadge: userActiveCosmetics.activeBadge,
           activeNameColor: userActiveCosmetics.activeNameColor,
           activeNameEffect: userActiveCosmetics.activeNameEffect,
+          activeTitle: userActiveCosmetics.activeTitle,
         })
         .from(userActiveCosmetics)
         .where(inArray(userActiveCosmetics.userId, playerIds))
@@ -47,6 +49,7 @@ export async function GET() {
       activeBadge: cosmetic?.activeBadge ?? null,
       activeNameColor: cosmetic?.activeNameColor ?? null,
       activeNameEffect: cosmetic?.activeNameEffect ?? null,
+      activeTitle: cosmetic?.activeTitle ?? null,
     };
   });
 

@@ -150,6 +150,19 @@ button, [role="button"], a {
 .focus-active .focus-fade {
   opacity: 0.06;
 }
+.focus-active {
+  cursor: none;
+}
+.focus-active * {
+  cursor: none;
+}
+
+/* ── Scroll indicator bounce ─────────────────────────────── */
+
+@keyframes bounce-down {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
 
 /* ── Scrollbar ───────────────────────────────────────────── */
 
