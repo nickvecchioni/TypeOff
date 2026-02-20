@@ -3,8 +3,8 @@ export const dynamic = "force-dynamic";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getDb } from "@/lib/db";
-import { users, userStats, raceParticipants, races, userAchievements, userActiveCosmetics, soloResults, clans, userSubscription } from "@typeoff/db";
-import { eq, desc, sql } from "drizzle-orm";
+import { users, userStats, raceParticipants, races, userAchievements, userActiveCosmetics, soloResults, clans, clanMembers, clanInvites, userSubscription } from "@typeoff/db";
+import { eq, desc, sql, and } from "drizzle-orm";
 import { getRankInfo, getRankProgress, getNextDivisionElo, ACHIEVEMENTS, getXpLevel, PROFILE_BORDERS } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
 import { AchievementsGrid } from "./achievements-grid";
@@ -19,6 +19,8 @@ import { CosmeticTitle } from "@/components/CosmeticTitle";
 import { CosmeticName } from "@/components/CosmeticName";
 import { LocalDateTime } from "./local-date-time";
 import { PerformanceCharts } from "@/components/profile/PerformanceCharts";
+import { ClanSection } from "./clan-section";
+import { CosmeticsSection } from "./cosmetics-section";
 
 
 export default async function ProfilePage({
@@ -114,15 +116,30 @@ export default async function ProfilePage({
     .where(eq(userActiveCosmetics.userId, user.id))
     .limit(1);
 
-  // Load clan info
-  let userClan: { id: string; name: string; tag: string } | null = null;
+  // Load clan info + members
+  let userClan: { id: string; name: string; tag: string; description: string | null; eloRating: number; memberCount: number; createdAt: Date } | null = null;
+  let clanMembersList: { userId: string; role: string; joinedAt: Date; username: string | null; eloRating: number; rankTier: string }[] = [];
   if (user.clanId) {
     const [clanRow] = await db
-      .select({ id: clans.id, name: clans.name, tag: clans.tag })
+      .select()
       .from(clans)
       .where(eq(clans.id, user.clanId))
       .limit(1);
-    userClan = clanRow ?? null;
+    if (clanRow) {
+      userClan = clanRow;
+      clanMembersList = await db
+        .select({
+          userId: clanMembers.userId,
+          role: clanMembers.role,
+          joinedAt: clanMembers.joinedAt,
+          username: users.username,
+          eloRating: users.eloRating,
+          rankTier: users.rankTier,
+        })
+        .from(clanMembers)
+        .innerJoin(users, eq(clanMembers.userId, users.id))
+        .where(eq(clanMembers.clanId, user.clanId));
+    }
   }
 
   // Check Pro status
@@ -165,6 +182,24 @@ export default async function ProfilePage({
   const { auth } = await import("@/lib/auth");
   const session = await auth();
   const isOwn = session?.user?.id === user.id;
+  const viewerId = session?.user?.id ?? null;
+
+  // Clan viewer context
+  const viewerMember = clanMembersList.find((m) => m.userId === viewerId) ?? null;
+  const isLeaderOrOfficer = viewerMember?.role === "leader" || viewerMember?.role === "officer";
+  let pendingInviteId: string | null = null;
+  if (viewerId && userClan && !viewerMember) {
+    const [invite] = await db
+      .select({ id: clanInvites.id })
+      .from(clanInvites)
+      .where(and(
+        eq(clanInvites.clanId, userClan.id),
+        eq(clanInvites.userId, viewerId),
+        eq(clanInvites.status, "pending"),
+      ))
+      .limit(1);
+    pendingInviteId = invite?.id ?? null;
+  }
 
   // Build chart data from races with complete info
   const chartData = recentRaces
@@ -224,11 +259,6 @@ export default async function ProfilePage({
                       )}
                     </div>
                     <CosmeticTitle title={activeCosmetics?.activeTitle} />
-                    {userClan && (
-                      <Link href={`/clans/${userClan.id}`} className="text-xs text-accent/50 hover:text-accent transition-colors">
-                        [{userClan.tag}] {userClan.name}
-                      </Link>
-                    )}
                   </div>
                 </div>
                 {isOnline && (
@@ -335,6 +365,23 @@ export default async function ProfilePage({
             <StatCard label="Best Day" value={stats?.maxRankedDayStreak ?? 0} />
           </div>
         </div>
+
+        {/* ── Clan ─────────────────────────────────────────── */}
+        {userClan && (
+          <ClanSection
+            clan={userClan}
+            members={clanMembersList}
+            viewerMember={viewerMember}
+            isLeaderOrOfficer={isLeaderOrOfficer}
+            viewerHasClan={!!session?.user?.clanId}
+            pendingInviteId={pendingInviteId}
+          />
+        )}
+
+        {/* ── Cosmetics ────────────────────────────────────── */}
+        {isOwn && (
+          <CosmeticsSection totalXp={stats?.totalXp ?? 0} />
+        )}
 
         {/* ── Solo Personal Bests ──────────────────────────── */}
         {soloPbs.length > 0 && (
