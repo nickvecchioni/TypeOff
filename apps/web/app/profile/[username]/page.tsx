@@ -12,6 +12,7 @@ import { UsernameEditor } from "./username-editor";
 import { SignOutButton } from "./sign-out-button";
 import { AddFriendButton } from "@/components/social/AddFriendButton";
 import { ReportBlockButton } from "@/components/social/ReportBlockButton";
+import { WatchLiveButton } from "@/components/WatchLiveButton";
 import { ActivityCalendar } from "@/components/profile/ActivityCalendar";
 import { CosmeticBadge } from "@/components/CosmeticBadge";
 import { CosmeticTitle } from "@/components/CosmeticTitle";
@@ -236,6 +237,7 @@ export default async function ProfilePage({
                     Online
                   </span>
                 )}
+                {!isOwn && <WatchLiveButton userId={user.id} />}
               </div>
               {!isOwn && session?.user?.id && (
                 <div className="flex items-center gap-2">

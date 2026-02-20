@@ -8,7 +8,6 @@ const NAV_LINKS = [
   { href: "/leaderboard", label: "Leaderboard" },
   { href: "/ranks", label: "Ranks" },
   { href: "/solo", label: "Solo" },
-  { href: "/spectate", label: "Spectate" },
   { href: "/clans", label: "Clans" },
   { href: "/pro", label: "Pro", className: "text-amber-400/70" },
 ];

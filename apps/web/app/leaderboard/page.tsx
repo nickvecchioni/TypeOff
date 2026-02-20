@@ -11,6 +11,7 @@ import { LeaderboardTabs } from "@/components/leaderboard/LeaderboardTabs";
 import { SoloModeSelector } from "@/components/leaderboard/SoloModeSelector";
 import { CosmeticName } from "@/components/CosmeticName";
 import { CosmeticBadge } from "@/components/CosmeticBadge";
+import { LiveBadge } from "@/components/WatchLiveButton";
 
 const TIER_TEXT: Record<RankTier, string> = {
   bronze: "text-rank-bronze",
@@ -219,6 +220,7 @@ async function RankedLeaderboard({ userId, db }: { userId?: string; db: ReturnTy
                   </span>
                   <div className="flex items-center gap-2.5 min-w-0">
                     <span className={`w-2 h-2 rounded-full shrink-0 ${isOnline ? "bg-emerald-400" : "bg-white/10"}`} />
+                    <LiveBadge userId={row.id} />
                     {(() => {
                       const cosmetic = cosmeticMap.get(row.id);
                       return (

@@ -7,6 +7,7 @@ import { clans, clanMembers, users, clanInvites } from "@typeoff/db";
 import { eq, and } from "drizzle-orm";
 import { getRankInfo } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
+import { LiveBadge } from "@/components/WatchLiveButton";
 import { ClanActions } from "./clan-actions";
 
 export default async function ClanProfilePage({
@@ -130,12 +131,15 @@ export default async function ClanProfilePage({
                   key={m.userId}
                   className="grid grid-cols-[1fr_5rem_4rem_5rem] items-center px-4 py-2 border-b border-white/[0.03] last:border-0 hover:bg-white/[0.015] transition-colors"
                 >
-                  <Link
-                    href={`/profile/${m.username}`}
-                    className="text-sm text-text hover:text-accent transition-colors truncate"
-                  >
-                    {m.username}
-                  </Link>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Link
+                      href={`/profile/${m.username}`}
+                      className="text-sm text-text hover:text-accent transition-colors truncate"
+                    >
+                      {m.username}
+                    </Link>
+                    <LiveBadge userId={m.userId} />
+                  </div>
                   <span className="text-right text-sm tabular-nums text-text">
                     {m.eloRating}
                   </span>
