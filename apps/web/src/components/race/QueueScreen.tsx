@@ -6,9 +6,8 @@ import { useSession } from "next-auth/react";
 import { PartyPanel } from "@/components/social/PartyPanel";
 import { RankBadge } from "@/components/RankBadge";
 import { ChallengesWidget } from "@/components/race/ChallengesWidget";
-import { XpProgressWidget } from "@/components/race/TypePassWidget";
 import { GuestPlacement } from "@/components/race/GuestPlacement";
-import { getXpLevel } from "@typeoff/shared";
+import { getXpLevel, COSMETIC_REWARDS } from "@typeoff/shared";
 import type { PartyState, RankTier } from "@typeoff/shared";
 
 const RANK_GLOW: Record<RankTier, string> = {
@@ -345,33 +344,55 @@ export function QueueScreen({
               style={{ animationDelay: "120ms", animationFillMode: "both" }}
             >
               <ChallengesWidget />
-              <div className="grid grid-rows-2 gap-3">
-                {/* User XP */}
-                <Link
-                  href={session.user.username ? `/profile/${session.user.username}` : "#"}
-                  className="rounded-xl bg-surface/50 ring-1 ring-white/[0.04] overflow-hidden flex flex-col hover:ring-accent/20 transition-all group"
-                >
-                  <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
-                  <div className="p-4 flex-1 flex flex-col justify-center">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-bold text-accent uppercase tracking-wider">
-                        Level {xpInfo!.level}
-                      </span>
-                      <span className="text-xs text-muted tabular-nums group-hover:text-muted/80 transition-colors">
-                        {xpInfo!.currentXp} / {xpInfo!.nextLevelXp} XP
-                      </span>
-                    </div>
-                    <div className="h-1.5 rounded-full bg-surface overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-accent transition-all"
-                        style={{ width: `${Math.round((xpInfo!.currentXp / xpInfo!.nextLevelXp) * 100)}%` }}
-                      />
-                    </div>
+              {/* Unified Level */}
+              <Link
+                href="/cosmetics"
+                className="rounded-xl bg-surface/50 ring-1 ring-white/[0.04] overflow-hidden flex flex-col hover:ring-accent/20 transition-all group"
+              >
+                <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
+                <div className="p-4 flex-1 flex flex-col justify-center">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold text-accent uppercase tracking-wider">
+                      Level {xpInfo!.level}
+                    </span>
+                    <span className="text-xs text-muted tabular-nums group-hover:text-muted/80 transition-colors">
+                      {xpInfo!.currentXp} / {xpInfo!.nextLevelXp} XP
+                    </span>
                   </div>
-                </Link>
-                {/* Cosmetic Level */}
-                <XpProgressWidget />
-              </div>
+                  <div className="h-1.5 rounded-full bg-surface overflow-hidden mb-3">
+                    <div
+                      className="h-full rounded-full bg-accent transition-all"
+                      style={{ width: `${Math.round((xpInfo!.currentXp / xpInfo!.nextLevelXp) * 100)}%` }}
+                    />
+                  </div>
+                  {(() => {
+                    const nextReward = COSMETIC_REWARDS.find((r) => r.level === xpInfo!.level + 1);
+                    if (!nextReward) return null;
+                    const icon = nextReward.type === "badge"
+                      ? nextReward.value
+                      : nextReward.type === "nameColor"
+                      ? "\uD83C\uDFA8"
+                      : nextReward.type === "title"
+                      ? "\uD83C\uDFF7\uFE0F"
+                      : nextReward.type === "cursorStyle"
+                      ? "\uD83D\uDD32"
+                      : nextReward.type === "profileBorder"
+                      ? "\uD83D\uDDBC\uFE0F"
+                      : nextReward.type === "typingTheme"
+                      ? "\uD83C\uDFA8"
+                      : "\u2728";
+                    return (
+                      <div className="flex items-center gap-2 text-[11px] text-muted/50 group-hover:text-muted/70 transition-colors">
+                        <span className="text-sm">{icon}</span>
+                        <span>
+                          <span className="text-text/70 font-medium">{nextReward.name}</span>
+                          {" "}at Level {nextReward.level}
+                        </span>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </Link>
             </div>
           )}
         </>

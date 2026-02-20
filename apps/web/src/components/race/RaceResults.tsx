@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import type { RaceResult } from "@/hooks/useRace";
 import type { RankTier, WpmSample } from "@typeoff/shared";
-import { getRankInfo, ACHIEVEMENT_MAP, CHALLENGE_MAP, XP_PER_COSMETIC_LEVEL, MAX_COSMETIC_LEVEL } from "@typeoff/shared";
+import { getRankInfo, ACHIEVEMENT_MAP, CHALLENGE_MAP, getXpLevel } from "@typeoff/shared";
 import { WpmChart } from "@/components/typing/WpmChart";
 import type { AchievementRarity, PartyState } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
@@ -172,7 +172,7 @@ function AnimatedXpPanel({
   xp: {
     xpEarned: number;
     totalXp: number;
-    cosmeticLevel: number;
+    level: number;
     levelUp: boolean;
     newRewards: Array<{
       level: number;
@@ -193,21 +193,10 @@ function AnimatedXpPanel({
   const phaseRef = useRef(0);
 
   const prevTotalXp = xp.totalXp - xp.xpEarned;
-  const prevXpInLevel = prevTotalXp % XP_PER_COSMETIC_LEVEL;
-  const prevLevel = Math.min(
-    Math.floor(prevTotalXp / XP_PER_COSMETIC_LEVEL),
-    MAX_COSMETIC_LEVEL
-  );
-  const prevPct =
-    prevLevel >= MAX_COSMETIC_LEVEL
-      ? 100
-      : (prevXpInLevel / XP_PER_COSMETIC_LEVEL) * 100;
-
-  const xpInLevel = xp.totalXp % XP_PER_COSMETIC_LEVEL;
-  const finalPct =
-    xp.cosmeticLevel >= MAX_COSMETIC_LEVEL
-      ? 100
-      : (xpInLevel / XP_PER_COSMETIC_LEVEL) * 100;
+  const prevInfo = getXpLevel(prevTotalXp);
+  const curInfo = getXpLevel(xp.totalXp);
+  const prevPct = (prevInfo.currentXp / prevInfo.nextLevelXp) * 100;
+  const finalPct = (curInfo.currentXp / curInfo.nextLevelXp) * 100;
 
   useEffect(() => {
     setBarPct(prevPct);
@@ -271,7 +260,7 @@ function AnimatedXpPanel({
   }, [levelUpGlow]);
 
   const displayLevel =
-    xp.levelUp && !levelUpVisible ? xp.cosmeticLevel - 1 : xp.cosmeticLevel;
+    xp.levelUp && !levelUpVisible ? xp.level - 1 : xp.level;
 
   return (
     <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden px-3 py-2 sm:px-4 sm:py-2.5">
@@ -305,9 +294,7 @@ function AnimatedXpPanel({
             )}
           </span>
           <span className="text-[11px] text-muted tabular-nums">
-            {xp.cosmeticLevel >= MAX_COSMETIC_LEVEL
-              ? "Max level"
-              : `${xpInLevel} / ${XP_PER_COSMETIC_LEVEL}`}
+            {curInfo.currentXp} / {curInfo.nextLevelXp}
           </span>
         </div>
         <div

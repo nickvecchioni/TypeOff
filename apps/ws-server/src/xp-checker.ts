@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 import {
   calculateRaceXp,
-  getCosmeticLevel,
+  getXpLevel,
   getNewCosmeticRewards,
   type CosmeticReward,
 } from "@typeoff/shared";
@@ -19,7 +19,7 @@ export interface XpContext {
 export interface XpProgress {
   xpEarned: number;
   totalXp: number;
-  cosmeticLevel: number;
+  level: number;
   levelUp: boolean;
   newRewards: CosmeticReward[];
 }
@@ -53,8 +53,8 @@ export async function checkXpRewards(
     })
     .where(eq(userStats.userId, ctx.userId));
 
-  const prevLevel = getCosmeticLevel(prevXp);
-  const newLevel = getCosmeticLevel(newXp);
+  const prevLevel = getXpLevel(prevXp).level;
+  const newLevel = getXpLevel(newXp).level;
   const levelUp = newLevel > prevLevel;
 
   // If level increased, unlock new cosmetic rewards
@@ -75,7 +75,7 @@ export async function checkXpRewards(
   return {
     xpEarned,
     totalXp: newXp,
-    cosmeticLevel: newLevel,
+    level: newLevel,
     levelUp,
     newRewards,
   };

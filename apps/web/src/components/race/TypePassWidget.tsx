@@ -4,9 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import {
-  getCosmeticLevel,
-  XP_PER_COSMETIC_LEVEL,
-  MAX_COSMETIC_LEVEL,
+  getXpLevel,
   COSMETIC_REWARDS,
 } from "@typeoff/shared";
 
@@ -34,12 +32,12 @@ export function XpProgressWidget() {
   }
 
   const totalXp = session.user.totalXp ?? 0;
-  const level = getCosmeticLevel(totalXp);
-  const xpInLevel = totalXp % XP_PER_COSMETIC_LEVEL;
-  const xpPct = level >= MAX_COSMETIC_LEVEL ? 100 : (xpInLevel / XP_PER_COSMETIC_LEVEL) * 100;
+  const { level, currentXp, nextLevelXp } = getXpLevel(totalXp);
+  const xpPct = (currentXp / nextLevelXp) * 100;
 
   // Next reward
   const nextReward = COSMETIC_REWARDS.find((r) => r.level === level + 1);
+  const xpToNext = nextLevelXp - currentXp;
 
   return (
     <Link
@@ -59,12 +57,9 @@ export function XpProgressWidget() {
 
         {/* Level + progress */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5">
-            <span className="text-lg font-black text-text tabular-nums">
-              {level}
-            </span>
-            <span className="text-xs text-muted/60">/ {MAX_COSMETIC_LEVEL}</span>
-          </div>
+          <span className="text-lg font-black text-text tabular-nums">
+            {level}
+          </span>
 
           <div className="flex-1">
             <div className="h-1.5 rounded-full bg-surface overflow-hidden">
@@ -95,9 +90,7 @@ export function XpProgressWidget() {
         </div>
 
         <p className="text-[11px] text-muted/50 mt-1.5 group-hover:text-muted/70 transition-colors">
-          {level >= MAX_COSMETIC_LEVEL
-            ? "Max level reached!"
-            : `${XP_PER_COSMETIC_LEVEL - xpInLevel} XP to next level`}
+          {xpToNext} XP to next level
         </p>
       </div>
     </Link>

@@ -4,7 +4,7 @@ import Credentials from "next-auth/providers/credentials";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { getDb } from "./db";
 import { users, accounts, sessions, verificationTokens, userStats, userActiveCosmetics, userSubscription, clans } from "@typeoff/db";
-import { getCosmeticLevel } from "@typeoff/shared";
+import { getXpLevel } from "@typeoff/shared";
 import { eq } from "drizzle-orm";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -91,8 +91,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return {} as typeof token;
         }
 
-        // Compute cosmetic level from totalXp
-        token.cosmeticLevel = getCosmeticLevel(token.totalXp as number ?? 0);
+        // Compute level from totalXp (used for cosmetic unlocks)
+        token.cosmeticLevel = getXpLevel(token.totalXp as number ?? 0).level;
 
         // Fetch Pro subscription status
         const [sub] = await db

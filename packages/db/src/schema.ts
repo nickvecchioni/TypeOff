@@ -268,24 +268,6 @@ export const userChallengeProgress = pgTable(
   (t) => [primaryKey({ columns: [t.userId, t.challengeId, t.periodKey] })],
 );
 
-// ─── TypePass ──────────────────────────────────────────────────────────
-
-export const userTypePass = pgTable(
-  "user_key_pass",
-  {
-    userId: text("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    seasonId: text("season_id").notNull(),
-    seasonalXp: integer("seasonal_xp").notNull().default(0),
-    currentTier: integer("current_tier").notNull().default(0),
-    isPremium: boolean("is_premium").notNull().default(false),
-    stripePaymentId: text("stripe_payment_id"),
-    purchasedAt: timestamp("purchased_at", { mode: "date" }),
-  },
-  (t) => [primaryKey({ columns: [t.userId, t.seasonId] })],
-);
-
 export const userCosmetics = pgTable(
   "user_cosmetics",
   {

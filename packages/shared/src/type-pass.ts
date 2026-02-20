@@ -1,13 +1,10 @@
+import { getXpLevel } from "./challenges";
+
 // ─── Pro Subscription Constants ────────────────────────────────────────
 
 export const PRO_MONTHLY_PRICE = 4.99;
 export const PRO_YEARLY_PRICE = 39.99;
 export const PRO_BADGE_ID = "pro_badge";
-
-// ─── Cosmetic XP Leveling Constants ────────────────────────────────────
-
-export const XP_PER_COSMETIC_LEVEL = 1000;
-export const MAX_COSMETIC_LEVEL = 30;
 
 // ─── Types ────────────────────────────────────────────────────────────
 
@@ -207,21 +204,10 @@ export const COSMETIC_REWARDS: CosmeticReward[] = [
 
 // ─── Helpers ──────────────────────────────────────────────────────────
 
-/** Get cosmetic level from total lifetime XP */
-export function getCosmeticLevel(totalXp: number): number {
-  return Math.min(Math.floor(totalXp / XP_PER_COSMETIC_LEVEL), MAX_COSMETIC_LEVEL);
-}
-
-/** Get all cosmetic rewards unlocked at the given total XP */
-export function getUnlockedCosmeticRewards(totalXp: number): CosmeticReward[] {
-  const level = getCosmeticLevel(totalXp);
-  return COSMETIC_REWARDS.filter((r) => r.level <= level);
-}
-
 /** Get cosmetic rewards newly unlocked between two XP values */
 export function getNewCosmeticRewards(prevXp: number, newXp: number): CosmeticReward[] {
-  const prevLevel = getCosmeticLevel(prevXp);
-  const newLevel = getCosmeticLevel(newXp);
+  const prevLevel = getXpLevel(prevXp).level;
+  const newLevel = getXpLevel(newXp).level;
   if (newLevel <= prevLevel) return [];
   return COSMETIC_REWARDS.filter((r) => r.level > prevLevel && r.level <= newLevel);
 }

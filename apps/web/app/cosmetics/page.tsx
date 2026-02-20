@@ -12,9 +12,7 @@ import {
   CURSOR_STYLES,
   PROFILE_BORDERS,
   TYPING_THEMES,
-  getCosmeticLevel,
-  XP_PER_COSMETIC_LEVEL,
-  MAX_COSMETIC_LEVEL,
+  getXpLevel,
   type CosmeticReward,
 } from "@typeoff/shared";
 
@@ -133,9 +131,8 @@ export default function CosmeticsPage() {
   }
 
   const totalXp = session?.user?.totalXp ?? 0;
-  const cosmeticLevel = getCosmeticLevel(totalXp);
-  const xpInLevel = totalXp % XP_PER_COSMETIC_LEVEL;
-  const levelPct = cosmeticLevel >= MAX_COSMETIC_LEVEL ? 100 : (xpInLevel / XP_PER_COSMETIC_LEVEL) * 100;
+  const { level: cosmeticLevel, currentXp: xpInLevel, nextLevelXp } = getXpLevel(totalXp);
+  const levelPct = (xpInLevel / nextLevelXp) * 100;
 
   const ownedIds = new Set(cosmeticsData.unlocked.map((u) => u.cosmeticId));
   const categoryInfo = CATEGORIES.find((c) => c.key === selectedCategory)!;
@@ -167,12 +164,9 @@ export default function CosmeticsPage() {
             <div className="flex items-baseline justify-between mb-2">
               <span className="text-xs font-bold text-accent tabular-nums">
                 Level {cosmeticLevel}
-                <span className="text-muted/40 font-normal"> / {MAX_COSMETIC_LEVEL}</span>
               </span>
               <span className="text-[11px] text-muted/50 tabular-nums">
-                {cosmeticLevel >= MAX_COSMETIC_LEVEL
-                  ? "Max level"
-                  : `${xpInLevel} / ${XP_PER_COSMETIC_LEVEL} XP`}
+                {xpInLevel} / {nextLevelXp} XP
               </span>
             </div>
             <div className="h-1.5 rounded-full bg-surface overflow-hidden">

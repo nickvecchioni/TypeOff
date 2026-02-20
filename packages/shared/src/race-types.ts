@@ -139,7 +139,7 @@ export interface ServerToClientEvents {
       xpProgress?: {
         xpEarned: number;
         totalXp: number;
-        cosmeticLevel: number;
+        level: number;
         levelUp: boolean;
         newRewards: Array<{
           level: number;
