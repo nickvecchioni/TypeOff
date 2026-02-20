@@ -69,8 +69,8 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
-      <div className="max-w-lg mx-auto">
+    <main className="flex-1 flex flex-col items-center overflow-y-auto px-4 sm:px-6 py-8">
+      <div className="w-full max-w-[480px]">
         <div className="mb-6">
           <a
             href="/type-pass"
@@ -81,15 +81,16 @@ export default function CheckoutPage() {
         </div>
         <div id="checkout" className="rounded-xl overflow-hidden">
           {loading && (
-            <div className="animate-pulse space-y-4 p-6">
-              <div className="h-6 bg-muted/10 rounded w-1/3" />
+            <div className="animate-pulse space-y-4 p-6 bg-surface rounded-xl">
+              <div className="h-5 bg-muted/10 rounded w-1/4" />
+              <div className="h-8 bg-muted/10 rounded w-1/3" />
+              <div className="h-px bg-muted/10" />
               <div className="h-10 bg-muted/10 rounded" />
               <div className="h-10 bg-muted/10 rounded" />
               <div className="flex gap-3">
                 <div className="h-10 bg-muted/10 rounded flex-1" />
                 <div className="h-10 bg-muted/10 rounded flex-1" />
               </div>
-              <div className="h-10 bg-muted/10 rounded" />
               <div className="h-12 bg-accent/20 rounded" />
             </div>
           )}

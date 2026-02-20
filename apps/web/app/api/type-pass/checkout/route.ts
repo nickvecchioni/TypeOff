@@ -66,6 +66,13 @@ export async function POST() {
         userId: session.user.id,
         seasonId: season.id,
       },
+      branding_settings: {
+        background_color: "#16161e",
+        button_color: "#4d9eff",
+        font_family: "inconsolata",
+        border_style: "rounded",
+        display_name: "TypeOff",
+      },
     });
 
     return NextResponse.json({ clientSecret: checkoutSession.client_secret });
