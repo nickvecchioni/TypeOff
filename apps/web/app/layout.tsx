@@ -13,8 +13,6 @@ import { SocialProvider } from "@/hooks/useSocial";
 import { ChatProvider } from "@/hooks/useChat";
 import { NotificationProvider } from "@/hooks/useNotifications";
 import { CosmeticProvider } from "@/contexts/CosmeticContext";
-import { GlobalChatProvider } from "@/hooks/useGlobalChat";
-import { GlobalChat } from "@/components/social/GlobalChat";
 import "./globals.css";
 
 const jetbrainsMono = JetBrains_Mono({
@@ -41,7 +39,6 @@ export default function RootLayout({
           <SocialProvider>
           <ChatProvider>
           <NotificationProvider>
-          <GlobalChatProvider>
           <UsernameGuard>
             <nav className="relative z-30 flex items-center justify-between px-4 sm:px-6 py-3">
               <div className="flex items-center gap-4 sm:gap-8">
@@ -98,9 +95,7 @@ export default function RootLayout({
               {children}
             </div>
             <NotificationToast />
-            <GlobalChat />
           </UsernameGuard>
-          </GlobalChatProvider>
           </NotificationProvider>
           </ChatProvider>
           </SocialProvider>

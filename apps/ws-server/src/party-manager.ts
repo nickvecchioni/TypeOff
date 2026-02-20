@@ -97,10 +97,6 @@ export class PartyManager {
       return;
     }
 
-    if (this.userToParty.has(targetUserId)) {
-      socket.emit("partyError", { message: "Player is already in a party" });
-      return;
-    }
 
     if (party.pendingInvites.has(targetUserId)) {
       socket.emit("partyError", { message: "Invite already sent" });
