@@ -52,7 +52,7 @@ export function UserMenu() {
 
       {/* Badge + Username + meta row */}
       <CosmeticBadge badge={cosmetics.activeBadge} />
-      <div className="flex items-center gap-2">
+      <div className="hidden sm:flex items-center gap-2">
         <span className="text-sm font-bold text-text group-hover:text-accent transition-colors">
           <CosmeticName nameColor={cosmetics.activeNameColor} nameEffect={cosmetics.activeNameEffect}>
             {session.user.username ?? "set username"}
