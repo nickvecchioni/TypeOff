@@ -185,6 +185,7 @@ export function RaceArena() {
           onInviteToParty={partyHook.inviteToParty}
           onKickFromParty={partyHook.kickMember}
           onLeaveParty={partyHook.leaveParty}
+          onMarkReady={partyHook.markReady}
           privateRace={partyHook.party?.privateRace}
           onSetPrivateRace={partyHook.setPrivateRace}
         />

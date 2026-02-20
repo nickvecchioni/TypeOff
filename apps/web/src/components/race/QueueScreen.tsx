@@ -35,6 +35,7 @@ interface QueueScreenProps {
   onInviteToParty: (userId: string) => void;
   onKickFromParty: (userId: string) => void;
   onLeaveParty: () => void;
+  onMarkReady?: () => void;
   privateRace?: boolean;
   onSetPrivateRace?: (v: boolean) => void;
 }
@@ -53,6 +54,7 @@ export function QueueScreen({
   onInviteToParty,
   onKickFromParty,
   onLeaveParty,
+  onMarkReady,
   privateRace,
   onSetPrivateRace,
 }: QueueScreenProps) {
@@ -61,24 +63,35 @@ export function QueueScreen({
   const myUserId = session?.user?.id;
   const isPartyLeader = party?.leaderId === myUserId;
   const inPartyNotLeader = party != null && !isPartyLeader;
+  const inParty = party != null && party.members.length >= 2;
+  const amReady = myUserId ? party?.readyState[myUserId] ?? false : false;
+  const allMembersReady = inParty && isPartyLeader
+    ? party!.members
+        .filter((m) => m.userId !== myUserId)
+        .every((m) => party!.readyState[m.userId])
+    : true;
   const xpInfo = session?.user ? getXpLevel(session.user.totalXp) : null;
 
-  // Enter key shortcut to join queue
+  // Enter key shortcut to join queue (or mark ready for non-leaders)
   React.useEffect(() => {
-    if (isQueuing || !session?.user || !connected || inPartyNotLeader) return;
+    if (isQueuing || !session?.user || !connected) return;
 
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Enter" && !e.metaKey && !e.ctrlKey && !e.altKey) {
         const tag = (e.target as HTMLElement)?.tagName;
         if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || tag === "BUTTON" || tag === "A") return;
         e.preventDefault();
-        onJoin({ privateRace });
+        if (inPartyNotLeader) {
+          if (!amReady) onMarkReady?.();
+        } else if (allMembersReady) {
+          onJoin({ privateRace });
+        }
       }
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isQueuing, session?.user, connected, inPartyNotLeader, onJoin, privateRace]);
+  }, [isQueuing, session?.user, connected, inPartyNotLeader, amReady, allMembersReady, onJoin, onMarkReady, privateRace]);
 
   /* ── Loading skeleton ─────────────────────────────────────── */
   if (status === "loading") {
@@ -186,11 +199,32 @@ export function QueueScreen({
           {/* Action area */}
           {inPartyNotLeader ? (
             <div
-              className="flex flex-col items-center gap-2 py-3 opacity-0 animate-fade-in"
+              className="flex flex-col items-center gap-3 w-full max-w-lg opacity-0 animate-fade-in"
               style={{ animationDelay: "80ms", animationFillMode: "both" }}
             >
-              <span className="text-sm text-muted">
-                Waiting for party leader to start...
+              <button
+                onClick={() => !amReady && onMarkReady?.()}
+                disabled={amReady}
+                className={`w-full rounded-xl py-5 text-base font-bold tracking-wide transition-all ${
+                  amReady
+                    ? "bg-correct/[0.08] ring-1 ring-correct/25 text-correct cursor-default"
+                    : "bg-accent/[0.08] ring-1 ring-accent/25 text-accent hover:bg-accent hover:text-bg hover:ring-accent"
+                }`}
+              >
+                {amReady ? "Ready!" : "Ready"}
+                {!amReady && (
+                  <span className="inline-block w-[2px] h-[1.1em] bg-current animate-blink ml-0.5 translate-y-[2px]" />
+                )}
+              </button>
+              <span className="text-[11px] text-muted/40">
+                {amReady
+                  ? "Waiting for party leader to start..."
+                  : <>press{" "}
+                    <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/60 text-[10px] font-medium">
+                      Enter ↵
+                    </kbd>
+                  </>
+                }
               </span>
               {privateRace && (
                 <span className="text-[10px] font-semibold uppercase tracking-wider text-accent/70 bg-accent/[0.08] ring-1 ring-accent/20 rounded px-2 py-0.5">
@@ -213,8 +247,8 @@ export function QueueScreen({
               />
               <button
                 onClick={() => onJoin({ privateRace })}
-                disabled={!connected}
-                className="relative w-full rounded-xl bg-accent/[0.08] ring-1 ring-accent/25 text-accent py-5 text-base font-bold tracking-wide glow-accent hover:bg-accent hover:text-bg hover:ring-accent hover:glow-accent-strong transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                disabled={!connected || (inParty && !allMembersReady)}
+                className="relative w-full rounded-xl bg-accent/[0.08] ring-1 ring-accent/25 text-accent py-5 text-base font-bold tracking-wide glow-accent hover:bg-accent hover:text-bg hover:ring-accent hover:glow-accent-strong transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent/[0.08] disabled:hover:text-accent disabled:hover:ring-accent/25"
               >
                 {session.user.placementsCompleted
                   ? privateRace ? "Start Private Race" : "Find Race"
@@ -223,10 +257,14 @@ export function QueueScreen({
               </button>
               <div className="relative flex items-center gap-3 mt-3">
                 <span className="text-[11px] text-muted/40">
-                  press{" "}
-                  <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/60 text-[10px] font-medium">
-                    Enter ↵
-                  </kbd>
+                  {inParty && !allMembersReady
+                    ? "waiting for party to ready up..."
+                    : <>press{" "}
+                      <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/60 text-[10px] font-medium">
+                        Enter ↵
+                      </kbd>
+                    </>
+                  }
                 </span>
               </div>
               {session.user.placementsCompleted && !party && (

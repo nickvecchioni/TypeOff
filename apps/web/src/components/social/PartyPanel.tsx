@@ -59,12 +59,17 @@ export function PartyPanel({
 
       {/* Member row */}
       <div className="flex items-center justify-center gap-2 flex-wrap">
-        {party.members.map((member) => (
+        {party.members.map((member) => {
+          const isReady = party.readyState[member.userId] ?? false;
+          const isMemberLeader = member.userId === party.leaderId;
+          return (
           <div
             key={member.userId}
             className="group relative flex items-center gap-1.5 bg-surface/80 ring-1 ring-white/[0.06] rounded-lg px-3 py-1.5"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-correct" />
+            <span className={`w-1.5 h-1.5 rounded-full transition-colors ${
+              isMemberLeader ? "bg-correct" : isReady ? "bg-correct" : "bg-white/[0.12]"
+            }`} />
             <span className="text-sm text-text">
               {member.name}
             </span>
@@ -83,7 +88,8 @@ export function PartyPanel({
               </button>
             )}
           </div>
-        ))}
+          );
+        })}
 
         {/* Empty slots */}
         {Array.from({ length: emptySlots }, (_, i) => (

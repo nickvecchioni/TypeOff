@@ -74,6 +74,16 @@ io.on("connection", (socket) => {
       if (party && party.leaderId === player.id) {
         const members = partyManager.getPartyMembers(player.id);
         if (members && members.length > 0) {
+          // Enforce ready gate: all non-leader members must be ready
+          const nonLeaderMembers = members.filter((m) => m.player.id !== player.id);
+          if (nonLeaderMembers.length > 0) {
+            const allReady = nonLeaderMembers.every((m) => party.readyState.get(m.player.id) === true);
+            if (!allReady) {
+              socket.emit("error", { message: "All party members must be ready before starting" });
+              return;
+            }
+          }
+
           const partyEntries = members.map((m) => {
             const s = io.sockets.sockets.get(m.socketId);
             return s ? { socket: s, player: m.player } : null;

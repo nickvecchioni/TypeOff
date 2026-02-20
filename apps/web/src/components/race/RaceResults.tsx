@@ -184,6 +184,11 @@ export function RaceResults({
   const inParty = party != null && party.members.length >= 2;
   const isLeader = party?.leaderId === myPlayerId;
   const amReady = myPlayerId ? party?.readyState[myPlayerId] ?? false : false;
+  const allMembersReady = inParty && isLeader
+    ? party!.members
+        .filter((m) => m.userId !== myPlayerId)
+        .every((m) => party!.readyState[m.userId])
+    : true;
 
   // Enter key shortcut to race again (or mark ready for non-leaders)
   useEffect(() => {
@@ -194,14 +199,14 @@ export function RaceResults({
         e.preventDefault();
         if (inParty && !isLeader) {
           if (!amReady) onMarkReady?.();
-        } else {
+        } else if (allMembersReady) {
           onRaceAgain();
         }
       }
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onRaceAgain, inParty, isLeader, amReady, onMarkReady]);
+  }, [onRaceAgain, inParty, isLeader, amReady, allMembersReady, onMarkReady]);
 
   const mobileCols = isPlacement
     ? "grid-cols-[2.5rem_1fr_5rem]"
@@ -737,21 +742,17 @@ export function RaceResults({
           <>
             <button
               onClick={() => onRaceAgain()}
-              className="w-full rounded-lg bg-accent/[0.06] ring-1 ring-accent/20 text-accent py-2 text-sm font-medium hover:bg-accent hover:text-bg hover:ring-accent transition-all"
+              disabled={inParty && !allMembersReady}
+              className="w-full rounded-lg bg-accent/[0.06] ring-1 ring-accent/20 text-accent py-2 text-sm font-medium hover:bg-accent hover:text-bg hover:ring-accent transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent/[0.06] disabled:hover:text-accent disabled:hover:ring-accent/20"
             >
               {isPlacement ? "Next Placement" : "Race Again"}
               <span className="inline-block w-[2px] h-[1em] bg-current animate-blink ml-0.5 translate-y-px" />
             </button>
-            {inParty && (() => {
-              const allReady = party!.members
-                .filter((m) => m.userId !== myPlayerId)
-                .every((m) => party!.readyState[m.userId]);
-              return !allReady ? (
-                <span className="text-[10px] text-muted/40">
-                  waiting for party...
-                </span>
-              ) : null;
-            })()}
+            {inParty && !allMembersReady && (
+              <span className="text-[10px] text-muted/40">
+                waiting for party to ready up...
+              </span>
+            )}
           </>
         )}
         <button
