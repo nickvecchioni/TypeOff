@@ -13,6 +13,7 @@ export interface RacePlayer {
   activeBadge?: string | null;
   activeNameColor?: string | null;
   activeNameEffect?: string | null;
+  clanTag?: string | null;
 }
 
 /** Real-time progress of a player */
@@ -94,6 +95,8 @@ export interface ClientToServerEvents {
   // Follow events (persistent spectating)
   followPlayer: (data: { userId: string }) => void;
   stopFollowing: () => void;
+  // Clan events
+  respondToClanInvite: (data: { inviteId: string; accept: boolean; token?: string }) => void;
 }
 
 /** Server → Client events */
@@ -176,4 +179,8 @@ export interface ServerToClientEvents {
   messagesMarkedRead: (data: { byUserId: string; friendId: string }) => void;
   // Follow events (persistent spectating)
   followedPlayerRacing: (data: { raceId: string; userId: string }) => void;
+  // Notification events
+  notification: (data: { id: string; type: string; title: string; body: string; metadata?: string; actionUrl?: string; createdAt: string }) => void;
+  // Clan events
+  clanInvite: (data: { inviteId: string; clanId: string; clanName: string; clanTag: string; fromName: string }) => void;
 }
