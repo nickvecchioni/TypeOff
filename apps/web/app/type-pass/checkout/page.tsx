@@ -1,18 +1,38 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   EmbeddedCheckoutProvider,
   EmbeddedCheckout,
 } from "@stripe/react-stripe-js";
 
-const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
-);
+const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+const stripePromise = publishableKey ? loadStripe(publishableKey) : null;
 
 export default function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Detect Stripe load failures (missing key, network error, invalid key)
+  useEffect(() => {
+    if (!stripePromise) {
+      setError("Payment system is not configured");
+      setLoading(false);
+      return;
+    }
+    stripePromise
+      .then((stripe) => {
+        if (!stripe) {
+          setError("Failed to initialize payment system");
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        setError("Failed to load payment system — please try again");
+        setLoading(false);
+      });
+  }, []);
 
   const fetchClientSecret = useCallback(async () => {
     const res = await fetch("/api/type-pass/checkout", { method: "POST" });
@@ -20,10 +40,17 @@ export default function CheckoutPage() {
     if (!res.ok || !body.clientSecret) {
       const msg = body.error ?? "Failed to start checkout";
       setError(msg);
+      setLoading(false);
       throw new Error(msg);
     }
+    setLoading(false);
     return body.clientSecret as string;
   }, []);
+
+  const options = useMemo(
+    () => ({ fetchClientSecret }),
+    [fetchClientSecret],
+  );
 
   if (error) {
     return (
@@ -53,12 +80,27 @@ export default function CheckoutPage() {
           </a>
         </div>
         <div id="checkout" className="rounded-xl overflow-hidden">
-          <EmbeddedCheckoutProvider
-            stripe={stripePromise}
-            options={{ fetchClientSecret }}
-          >
-            <EmbeddedCheckout />
-          </EmbeddedCheckoutProvider>
+          {loading && (
+            <div className="animate-pulse space-y-4 p-6">
+              <div className="h-6 bg-muted/10 rounded w-1/3" />
+              <div className="h-10 bg-muted/10 rounded" />
+              <div className="h-10 bg-muted/10 rounded" />
+              <div className="flex gap-3">
+                <div className="h-10 bg-muted/10 rounded flex-1" />
+                <div className="h-10 bg-muted/10 rounded flex-1" />
+              </div>
+              <div className="h-10 bg-muted/10 rounded" />
+              <div className="h-12 bg-accent/20 rounded" />
+            </div>
+          )}
+          {stripePromise && (
+            <EmbeddedCheckoutProvider
+              stripe={stripePromise}
+              options={options}
+            >
+              <EmbeddedCheckout />
+            </EmbeddedCheckoutProvider>
+          )}
         </div>
       </div>
     </main>

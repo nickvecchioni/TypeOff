@@ -61,6 +61,12 @@ export default function RootLayout({
                   Solo
                 </Link>
                 <Link
+                  href="/spectate"
+                  className="text-sm text-muted hover:text-text transition-colors"
+                >
+                  Spectate
+                </Link>
+                <Link
                   href="/type-pass"
                   className="text-sm text-amber-400/70 hover:text-amber-400 transition-colors"
                 >

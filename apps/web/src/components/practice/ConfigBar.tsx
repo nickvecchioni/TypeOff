@@ -15,7 +15,7 @@ const TIME_OPTIONS = [15, 30, 60, 120];
 const WORD_OPTIONS = [10, 25, 50, 100];
 
 /** Content types that use a fixed word set (no time/words toggle or duration picker) */
-const FIXED_CONTENT_TYPES: ContentType[] = ["quotes", "marathon", "sprint"];
+const FIXED_CONTENT_TYPES: ContentType[] = ["quotes"];
 
 export function ConfigBar({ config, status, onConfigChange, onAfterChange }: ConfigBarProps) {
   const isTyping = status === "typing";
@@ -77,12 +77,6 @@ export function ConfigBar({ config, status, onConfigChange, onAfterChange }: Con
         </Chip>
         <Chip active={ct === "quotes"} onClick={() => setContentType("quotes")}>
           quotes
-        </Chip>
-        <Chip active={ct === "marathon"} onClick={() => setContentType("marathon")}>
-          marathon
-        </Chip>
-        <Chip active={ct === "sprint"} onClick={() => setContentType("sprint")}>
-          sprint
         </Chip>
       </div>
 

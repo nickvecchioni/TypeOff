@@ -14,6 +14,8 @@ export class SocialManager {
   private onlineUsers = new Map<string, Set<string>>();
   // socketId → userId
   private socketToUser = new Map<string, string>();
+  // userId → raceId (in-memory only, tracks active race participation)
+  private userRace = new Map<string, string>();
 
   constructor(private io: TypedServer) {
     this.startHeartbeat();
@@ -68,6 +70,20 @@ export class SocialManager {
     return this.socketToUser.get(socketId) ?? null;
   }
 
+  setUserRace(userId: string, raceId: string | null) {
+    if (raceId === null) {
+      this.userRace.delete(userId);
+    } else {
+      this.userRace.set(userId, raceId);
+    }
+    // Notify friends of the updated status
+    this.notifyFriends(userId, this.isOnline(userId)).catch(() => {});
+  }
+
+  getUserRace(userId: string): string | null {
+    return this.userRace.get(userId) ?? null;
+  }
+
   async getFriendsStatus(userId: string): Promise<Array<{ userId: string; online: boolean; lastSeen?: string | null }>> {
     try {
       const db = createDb(process.env.DATABASE_URL!);
@@ -107,6 +123,7 @@ export class SocialManager {
           userId: friendId,
           online,
           lastSeen: online ? null : (lastSeen?.toISOString() ?? null),
+          raceId: online ? (this.userRace.get(friendId) ?? null) : null,
         };
       });
     } catch (err) {
@@ -158,8 +175,9 @@ export class SocialManager {
         const friendSockets = this.onlineUsers.get(friendId);
         if (friendSockets) {
           const lastSeen = online ? null : new Date().toISOString();
+          const raceId = online ? (this.userRace.get(userId) ?? null) : null;
           for (const socketId of friendSockets) {
-            this.io.to(socketId).emit("friendStatus", { userId, online, lastSeen });
+            this.io.to(socketId).emit("friendStatus", { userId, online, lastSeen, raceId });
           }
         }
       }

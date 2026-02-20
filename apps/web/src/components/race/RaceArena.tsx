@@ -11,6 +11,8 @@ import { RaceTypingArea } from "./RaceTypingArea";
 import { RaceResults } from "./RaceResults";
 import { PlacementReveal } from "./PlacementReveal";
 import { PartyInviteToast } from "@/components/social/PartyInviteToast";
+import { SpectatorIndicator } from "./SpectatorIndicator";
+import { useSocket } from "@/hooks/useSocket";
 import { getRankInfo } from "@typeoff/shared";
 import type { RankTier, WpmSample } from "@typeoff/shared";
 
@@ -26,8 +28,31 @@ export function RaceArena() {
   const { data: session, update: updateSession } = useSession();
   const race = useRace();
   const partyHook = useParty();
+  const { on } = useSocket();
 
   const myPlayerId = session?.user?.id ?? null;
+
+  // Spectator awareness
+  const [spectators, setSpectators] = React.useState<Array<{ userId: string; name: string }>>([]);
+  const [spectatorCount, setSpectatorCount] = React.useState(0);
+
+  React.useEffect(() => {
+    const unsub = on("spectatorUpdate", (data) => {
+      if (data.raceId === race.raceState?.raceId) {
+        setSpectators(data.spectators);
+        setSpectatorCount(data.count);
+      }
+    });
+    return unsub;
+  }, [on, race.raceState?.raceId]);
+
+  // Reset spectator state when leaving a race
+  React.useEffect(() => {
+    if (race.phase === "idle") {
+      setSpectators([]);
+      setSpectatorCount(0);
+    }
+  }, [race.phase]);
 
   // Auto-claim guest placement on sign-in
   React.useEffect(() => {
@@ -170,6 +195,12 @@ export function RaceArena() {
           className="flex flex-col items-center gap-8 w-full pt-[12vh]"
           style={{ animation: "fade-in-up 0.4s ease-out both" }}
         >
+          {/* Spectator indicator */}
+          {spectatorCount > 0 && (
+            <div className="w-full flex justify-end -mb-4">
+              <SpectatorIndicator count={spectatorCount} spectators={spectators} />
+            </div>
+          )}
           <RaceTrack
             players={race.raceState.players}
             progress={race.progress}

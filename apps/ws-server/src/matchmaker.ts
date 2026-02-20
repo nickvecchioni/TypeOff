@@ -7,6 +7,7 @@ import type {
 } from "@typeoff/shared";
 import { RaceManager } from "./race-manager.js";
 import type { RaceOwner } from "./race-manager.js";
+import type { SocialManager } from "./social-manager.js";
 import { createDb, users, userStats } from "@typeoff/db";
 import { eq } from "drizzle-orm";
 
@@ -37,9 +38,10 @@ export class Matchmaker implements RaceOwner {
   private queue: QueueEntry[] = [];
   private races = new Map<string, RaceManager>();
   private socketToRace = new Map<string, string>();
+  private socketToUserId = new Map<string, string>();
   private queueTimer: ReturnType<typeof setInterval> | null = null;
 
-  constructor(private io: TypedServer) {
+  constructor(private io: TypedServer, private socialManager?: SocialManager) {
     this.queueTimer = setInterval(() => this.checkQueue(), 1000);
   }
 
@@ -186,6 +188,11 @@ export class Matchmaker implements RaceOwner {
     this.races.delete(raceId);
     for (const id of socketIds) {
       this.socketToRace.delete(id);
+      const userId = this.socketToUserId.get(id);
+      if (userId) {
+        this.socialManager?.setUserRace(userId, null);
+        this.socketToUserId.delete(id);
+      }
     }
   }
 
@@ -309,6 +316,10 @@ export class Matchmaker implements RaceOwner {
     this.races.set(race.raceId, race);
     for (const entry of entries) {
       this.socketToRace.set(entry.socket.id, race.raceId);
+      if (!entry.player.isGuest) {
+        this.socketToUserId.set(entry.socket.id, entry.player.id);
+        this.socialManager?.setUserRace(entry.player.id, race.raceId);
+      }
     }
 
     race.start();
@@ -327,6 +338,10 @@ export class Matchmaker implements RaceOwner {
     );
     this.races.set(race.raceId, race);
     this.socketToRace.set(socket.id, race.raceId);
+    if (!player.isGuest) {
+      this.socketToUserId.set(socket.id, player.id);
+      this.socialManager?.setUserRace(player.id, race.raceId);
+    }
     console.log(`[matchmaker] placement race ${race.raceId} created, calling start() for socket ${socket.id} (connected=${socket.connected})`);
     race.start();
     console.log(`[matchmaker] placement race ${race.raceId} start() completed`);
@@ -381,6 +396,10 @@ export class Matchmaker implements RaceOwner {
     this.races.set(race.raceId, race);
     for (const entry of entries) {
       this.socketToRace.set(entry.socket.id, race.raceId);
+      if (!entry.player.isGuest) {
+        this.socketToUserId.set(entry.socket.id, entry.player.id);
+        this.socialManager?.setUserRace(entry.player.id, race.raceId);
+      }
     }
     race.start();
   }
@@ -431,6 +450,10 @@ export class Matchmaker implements RaceOwner {
     this.races.set(race.raceId, race);
     for (const entry of entries) {
       this.socketToRace.set(entry.socket.id, race.raceId);
+      if (!entry.player.isGuest) {
+        this.socketToUserId.set(entry.socket.id, entry.player.id);
+        this.socialManager?.setUserRace(entry.player.id, race.raceId);
+      }
     }
 
     race.start();
@@ -438,7 +461,7 @@ export class Matchmaker implements RaceOwner {
   }
 
   getActiveRaces() {
-    const active: Array<{ raceId: string; players: import("@typeoff/shared").RacePlayer[]; status: import("@typeoff/shared").RaceStatus }> = [];
+    const active: Array<{ raceId: string; players: import("@typeoff/shared").RacePlayer[]; status: import("@typeoff/shared").RaceStatus; spectatorCount: number }> = [];
     for (const race of this.races.values()) {
       const status = race.getRaceStatus();
       if (status === "racing" || status === "countdown") {
@@ -446,6 +469,7 @@ export class Matchmaker implements RaceOwner {
           raceId: race.getRaceId(),
           players: race.getPlayerList(),
           status,
+          spectatorCount: race.getSpectatorCount(),
         });
       }
     }

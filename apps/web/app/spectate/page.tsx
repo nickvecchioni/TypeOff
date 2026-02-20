@@ -1,0 +1,17 @@
+import { Suspense } from "react";
+import { SpectatePageClient } from "@/components/spectate/SpectatePageClient";
+
+export const metadata = {
+  title: "Spectate — TypeOff",
+  description: "Watch live typing races in real-time",
+};
+
+export default function SpectatePage() {
+  return (
+    <main className="flex-1 flex flex-col px-4 py-8 max-w-4xl mx-auto w-full">
+      <Suspense>
+        <SpectatePageClient />
+      </Suspense>
+    </main>
+  );
+}

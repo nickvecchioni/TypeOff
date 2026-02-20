@@ -16,6 +16,7 @@ interface Friend {
   name: string | null;
   online?: boolean;
   lastSeen?: string | null;
+  raceId?: string | null;
 }
 
 interface FriendRequest {
@@ -57,6 +58,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
                 ...f,
                 online: data.online,
                 lastSeen: data.online ? null : (data.lastSeen ?? new Date().toISOString()),
+                raceId: data.raceId ?? null,
               }
             : f,
         ),
@@ -68,7 +70,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   // Listen for bulk friend statuses (initial sync)
   useEffect(() => {
     const unsub = on("friendStatuses", (data) => {
-      const statusMap = new Map(data.map((s) => [s.userId, { online: s.online, lastSeen: s.lastSeen }]));
+      const statusMap = new Map(data.map((s) => [s.userId, { online: s.online, lastSeen: s.lastSeen, raceId: s.raceId }]));
       setFriends((prev) =>
         prev.map((f) => {
           const status = statusMap.get(f.userId);
@@ -76,6 +78,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
             ...f,
             online: status?.online ?? f.online ?? false,
             lastSeen: status ? (status.online ? null : (status.lastSeen ?? f.lastSeen)) : f.lastSeen,
+            raceId: status?.raceId ?? f.raceId ?? null,
           };
         }),
       );

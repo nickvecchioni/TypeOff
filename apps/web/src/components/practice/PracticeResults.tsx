@@ -74,7 +74,7 @@ export function PracticeResults({ stats, config, isPb, onRestart }: PracticeResu
 
           {/* Mode */}
           <div className="bg-surface/40 p-4 sm:p-5 flex flex-col items-center text-center">
-            {(config.contentType === "quotes" || config.contentType === "marathon" || config.contentType === "sprint") ? (
+            {config.contentType === "quotes" ? (
               <>
                 <div className="text-3xl font-black text-text tabular-nums">
                   {stats.time}

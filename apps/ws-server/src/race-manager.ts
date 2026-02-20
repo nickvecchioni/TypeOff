@@ -77,6 +77,7 @@ export class RaceManager {
   private expectedWords: string[] = [];
   private playerFlags = new Map<string, string[]>();
   private mode: RaceMode;
+  private spectatorInfo = new Map<string, { userId: string; name: string }>();
 
   private static readonly MODES: RaceMode[] = ["standard", "quotes", "marathon", "sprint"];
 
@@ -576,10 +577,8 @@ export class RaceManager {
         : {}),
     };
 
-    // Emit directly to each socket (avoids room-broadcast timing issues with cleanup)
-    for (const entry of this.players.values()) {
-      entry.socket?.emit("raceFinished", payload);
-    }
+    // Broadcast to entire room (players + spectators)
+    this.io.to(this.raceId).emit("raceFinished", payload);
     this.cleanup();
   }
 
@@ -1042,6 +1041,13 @@ export class RaceManager {
     if (this.progressTimer) clearInterval(this.progressTimer);
     if (this.finishTimeoutTimer) clearTimeout(this.finishTimeoutTimer);
 
+    // Evict spectators from the room
+    for (const socketId of this.spectatorInfo.keys()) {
+      const sock = this.io.sockets.sockets.get(socketId);
+      sock?.leave(this.raceId);
+    }
+    this.spectatorInfo.clear();
+
     const socketIds: string[] = [];
     for (const [key, entry] of this.players.entries()) {
       if (entry.socket) {
@@ -1068,12 +1074,29 @@ export class RaceManager {
     return this.raceId;
   }
 
-  addSpectator(socket: TypedSocket) {
+  addSpectator(socket: TypedSocket, userId: string, name: string) {
     socket.join(this.raceId);
+    this.spectatorInfo.set(socket.id, { userId, name });
+    this.broadcastSpectatorUpdate();
   }
 
   removeSpectator(socket: TypedSocket) {
     socket.leave(this.raceId);
+    this.spectatorInfo.delete(socket.id);
+    this.broadcastSpectatorUpdate();
+  }
+
+  getSpectatorCount(): number {
+    return this.spectatorInfo.size;
+  }
+
+  private broadcastSpectatorUpdate() {
+    const spectators = [...this.spectatorInfo.values()];
+    this.io.to(this.raceId).emit("spectatorUpdate", {
+      raceId: this.raceId,
+      count: spectators.length,
+      spectators,
+    });
   }
 
   private getState(): RaceState {

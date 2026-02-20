@@ -31,8 +31,8 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
   },
 });
 
-const matchmaker = new Matchmaker(io);
 const socialManager = new SocialManager(io);
+const matchmaker = new Matchmaker(io, socialManager);
 const partyManager = new PartyManager(io, socialManager);
 const chatManager = new ChatManager(io, socialManager);
 
@@ -196,7 +196,7 @@ io.on("connection", (socket) => {
     socket.emit("activeRaces", { races });
   });
 
-  socket.on("spectateRace", (data) => {
+  socket.on("spectateRace", async (data) => {
     // Stop any current spectating
     const currentRaceId = spectators.get(socket.id);
     if (currentRaceId) {
@@ -211,7 +211,18 @@ io.on("connection", (socket) => {
       return;
     }
 
-    race.addSpectator(socket);
+    // Resolve display name from token (graceful fallback)
+    let userId = `anon_${socket.id}`;
+    let displayName = "Spectator";
+    if (data.token) {
+      try {
+        const player = await authenticateSocket(data, socket.id);
+        userId = player.id;
+        displayName = player.name;
+      } catch { /* anonymous spectator */ }
+    }
+
+    race.addSpectator(socket, userId, displayName);
     spectators.set(socket.id, data.raceId);
     socket.emit("spectateStarted", race.getSpectatorState());
   });

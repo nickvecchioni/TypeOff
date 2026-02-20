@@ -86,7 +86,7 @@ export interface ClientToServerEvents {
   partyMarkReady: () => void;
   // Spectator events
   listActiveRaces: () => void;
-  spectateRace: (data: { raceId: string }) => void;
+  spectateRace: (data: { raceId: string; token?: string }) => void;
   stopSpectating: () => void;
   // Chat events
   sendDirectMessage: (data: { token?: string; recipientId: string; content: string }) => void;
@@ -154,12 +154,13 @@ export interface ServerToClientEvents {
   partyReadyReset: () => void;
   partyError: (data: { message: string }) => void;
   // Spectator events
-  activeRaces: (data: { races: Array<{ raceId: string; players: RacePlayer[]; status: RaceStatus }> }) => void;
+  activeRaces: (data: { races: Array<{ raceId: string; players: RacePlayer[]; status: RaceStatus; spectatorCount: number }> }) => void;
   spectateStarted: (data: RaceState) => void;
+  spectatorUpdate: (data: { raceId: string; count: number; spectators: Array<{ userId: string; name: string }> }) => void;
   error: (data: { message: string }) => void;
   // Social events
-  friendStatus: (data: { userId: string; online: boolean; lastSeen?: string | null }) => void;
-  friendStatuses: (data: Array<{ userId: string; online: boolean; lastSeen?: string | null }>) => void;
+  friendStatus: (data: { userId: string; online: boolean; lastSeen?: string | null; raceId?: string | null }) => void;
+  friendStatuses: (data: Array<{ userId: string; online: boolean; lastSeen?: string | null; raceId?: string | null }>) => void;
   // Chat events
   directMessage: (data: {
     messageId: string;

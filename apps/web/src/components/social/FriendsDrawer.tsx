@@ -151,6 +151,23 @@ export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
 
         {/* Right side: unread badge OR hover actions */}
         <div className="flex items-center gap-1 shrink-0">
+          {friend.raceId && (
+            <Link
+              href={`/spectate?raceId=${friend.raceId}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              className="flex items-center gap-1 text-[10px] font-bold text-accent/70 hover:text-accent px-1.5 py-0.5 rounded border border-accent/20 hover:border-accent/40 hover:bg-accent/10 transition-all"
+              title="Watch this race"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              Watch
+            </Link>
+          )}
           {unread > 0 ? (
             <span className="min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-accent text-bg text-[10px] font-bold tabular-nums px-1">
               {unread}

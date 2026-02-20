@@ -8,18 +8,14 @@ import { WordDisplay } from "@/components/typing/WordDisplay";
 import { ConfigBar } from "./ConfigBar";
 import { PracticeResults } from "./PracticeResults";
 
-function getVisibleLines(contentType: string | undefined): number {
-  switch (contentType) {
-    case "marathon": return 6;
-    case "sprint": return 1;
-    default: return 3;
-  }
+function getVisibleLines(): number {
+  return 3;
 }
 
 export function PracticeArena() {
   const { data: session } = useSession();
   const engine = useTypingEngine();
-  const visibleLines = getVisibleLines(engine.config.contentType);
+  const visibleLines = getVisibleLines();
   const containerRef = useRef<HTMLDivElement>(null);
   const wordsInnerRef = useRef<HTMLDivElement>(null);
   const hasSavedRef = useRef(false);
@@ -166,7 +162,7 @@ export function PracticeArena() {
 
   // Whether to show a stopwatch (elapsed time) instead of countdown
   const ct = engine.config.contentType ?? "words";
-  const showStopwatch = ct === "quotes" || ct === "marathon" || ct === "sprint" ||
+  const showStopwatch = ct === "quotes" ||
     (ct === "words" && engine.config.mode === "wordcount");
 
   return (
