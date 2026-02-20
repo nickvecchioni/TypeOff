@@ -40,9 +40,14 @@ export class Matchmaker implements RaceOwner {
   private socketToRace = new Map<string, string>();
   private socketToUserId = new Map<string, string>();
   private queueTimer: ReturnType<typeof setInterval> | null = null;
+  private onRaceStarted?: (raceId: string, playerUserIds: string[]) => void;
 
   constructor(private io: TypedServer, private socialManager?: SocialManager) {
     this.queueTimer = setInterval(() => this.checkQueue(), 1000);
+  }
+
+  setOnRaceStarted(cb: (raceId: string, playerUserIds: string[]) => void) {
+    this.onRaceStarted = cb;
   }
 
   async addToQueue(socket: TypedSocket, player: RacePlayer) {
@@ -181,6 +186,13 @@ export class Matchmaker implements RaceOwner {
       const race = this.races.get(raceId);
       race?.handleDisconnect(socketId);
       this.socketToRace.delete(socketId);
+
+      // Clear social race status so friends don't see a stale "in race" indicator
+      const userId = this.socketToUserId.get(socketId);
+      if (userId) {
+        this.socialManager?.setUserRace(userId, null);
+        this.socketToUserId.delete(socketId);
+      }
     }
   }
 
@@ -314,15 +326,18 @@ export class Matchmaker implements RaceOwner {
     );
 
     this.races.set(race.raceId, race);
+    const userIds: string[] = [];
     for (const entry of entries) {
       this.socketToRace.set(entry.socket.id, race.raceId);
       if (!entry.player.isGuest) {
         this.socketToUserId.set(entry.socket.id, entry.player.id);
         this.socialManager?.setUserRace(entry.player.id, race.raceId);
+        userIds.push(entry.player.id);
       }
     }
 
     race.start();
+    this.onRaceStarted?.(race.raceId, userIds);
   }
 
   private startPlacementRace(
@@ -344,6 +359,9 @@ export class Matchmaker implements RaceOwner {
     }
     console.log(`[matchmaker] placement race ${race.raceId} created, calling start() for socket ${socket.id} (connected=${socket.connected})`);
     race.start();
+    if (!player.isGuest) {
+      this.onRaceStarted?.(race.raceId, [player.id]);
+    }
     console.log(`[matchmaker] placement race ${race.raceId} start() completed`);
   }
 
@@ -394,14 +412,17 @@ export class Matchmaker implements RaceOwner {
       { botWpmMin, botWpmMax, perBotWpm },
     );
     this.races.set(race.raceId, race);
+    const userIds: string[] = [];
     for (const entry of entries) {
       this.socketToRace.set(entry.socket.id, race.raceId);
       if (!entry.player.isGuest) {
         this.socketToUserId.set(entry.socket.id, entry.player.id);
         this.socialManager?.setUserRace(entry.player.id, race.raceId);
+        userIds.push(entry.player.id);
       }
     }
     race.start();
+    this.onRaceStarted?.(race.raceId, userIds);
   }
 
   async startPrivatePartyRace(
@@ -457,6 +478,10 @@ export class Matchmaker implements RaceOwner {
     }
 
     race.start();
+    const userIds = entries
+      .filter((e) => !e.player.isGuest)
+      .map((e) => e.player.id);
+    this.onRaceStarted?.(race.raceId, userIds);
     console.log(`[matchmaker] private party race ${race.raceId} started with ${entries.length} members`);
   }
 

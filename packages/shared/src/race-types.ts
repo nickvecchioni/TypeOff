@@ -91,6 +91,9 @@ export interface ClientToServerEvents {
   // Chat events
   sendDirectMessage: (data: { token?: string; recipientId: string; content: string }) => void;
   markMessagesRead: (data: { token?: string; friendId: string }) => void;
+  // Follow events (persistent spectating)
+  followPlayer: (data: { userId: string }) => void;
+  stopFollowing: () => void;
 }
 
 /** Server → Client events */
@@ -171,4 +174,6 @@ export interface ServerToClientEvents {
     createdAt: string;
   }) => void;
   messagesMarkedRead: (data: { byUserId: string; friendId: string }) => void;
+  // Follow events (persistent spectating)
+  followedPlayerRacing: (data: { raceId: string; userId: string }) => void;
 }

@@ -62,6 +62,7 @@ export function SpectatePageClient() {
           spectators={spectate.spectators}
           spectatorCount={spectate.spectatorCount}
           watchedPlayerId={spectate.watchedPlayerId}
+          followedUserId={spectate.followedUserId}
           onSetWatchedPlayer={spectate.setWatchedPlayer}
           onStop={spectate.stopWatching}
           finished={spectate.phase === "finished"}

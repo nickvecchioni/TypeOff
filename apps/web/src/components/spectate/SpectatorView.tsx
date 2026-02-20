@@ -27,6 +27,7 @@ interface SpectatorViewProps {
   spectators: Array<{ userId: string; name: string }>;
   spectatorCount: number;
   watchedPlayerId: string | null;
+  followedUserId: string | null;
   onSetWatchedPlayer: (id: string) => void;
   onStop: () => void;
   finished: boolean;
@@ -78,6 +79,7 @@ export function SpectatorView({
   spectators,
   spectatorCount,
   watchedPlayerId,
+  followedUserId,
   onSetWatchedPlayer,
   onStop,
   finished,
@@ -252,19 +254,38 @@ export function SpectatorView({
         </>
       )}
 
-      {/* Back button when finished */}
+      {/* Bottom actions when finished */}
       {finished && (
-        <div className="flex justify-center">
-          <button
-            onClick={onStop}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-accent/70 bg-accent/[0.06] ring-1 ring-accent/15 hover:bg-accent/[0.12] hover:ring-accent/30 hover:text-accent transition-all"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="19" y1="12" x2="5" y2="12" />
-              <polyline points="12 19 5 12 12 5" />
-            </svg>
-            Back to Races
-          </button>
+        <div className="flex justify-center gap-3">
+          {followedUserId ? (
+            <>
+              {/* Following indicator */}
+              <div className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-accent/70 bg-accent/[0.06] ring-1 ring-accent/15">
+                <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                Following {(() => {
+                  const r = results.find((r) => r.playerId === followedUserId);
+                  return r?.name ?? "player";
+                })()}...
+              </div>
+              <button
+                onClick={onStop}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-muted/50 bg-white/[0.03] ring-1 ring-white/[0.06] hover:ring-white/[0.12] hover:text-text transition-all"
+              >
+                Stop Following
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={onStop}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-accent/70 bg-accent/[0.06] ring-1 ring-accent/15 hover:bg-accent/[0.12] hover:ring-accent/30 hover:text-accent transition-all"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12" />
+                <polyline points="12 19 5 12 12 5" />
+              </svg>
+              Back to Races
+            </button>
+          )}
         </div>
       )}
     </div>

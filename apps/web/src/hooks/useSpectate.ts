@@ -32,6 +32,8 @@ export function useSpectate() {
   const [spectators, setSpectators] = useState<SpectatorInfo[]>([]);
   const [spectatorCount, setSpectatorCount] = useState(0);
   const [watchedPlayerId, setWatchedPlayerId] = useState<string | null>(null);
+  const [followedUserId, setFollowedUserId] = useState<string | null>(null);
+  const followedUserIdRef = useRef<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<Array<{
     playerId: string;
@@ -90,6 +92,39 @@ export function useSpectate() {
             activeNameEffect: r.activeNameEffect,
           })));
           setPhase("finished");
+
+          // Auto-follow the watched player if they're a real (non-bot) player
+          setWatchedPlayerId((currentWatched) => {
+            if (currentWatched && !currentWatched.startsWith("bot_")) {
+              // Find matching result to get userId (playerId is the userId for real players)
+              const matchedResult = data.results.find((r) => r.playerId === currentWatched);
+              if (matchedResult) {
+                setFollowedUserId(currentWatched);
+                followedUserIdRef.current = currentWatched;
+                emit("followPlayer", { userId: currentWatched });
+              }
+            }
+            return currentWatched;
+          });
+        }
+      }),
+      on("followedPlayerRacing", (data) => {
+        if (followedUserIdRef.current === data.userId) {
+          // Stop spectating the old race
+          emit("stopSpectating");
+
+          // Auto-spectate the new race
+          watchingRaceIdRef.current = null;
+          setWatchedPlayerId(data.userId);
+
+          let token: string | undefined;
+          fetch("/api/ws-token")
+            .then((res) => (res.ok ? res.json() : null))
+            .then((d) => { token = d?.token; })
+            .catch(() => {})
+            .finally(() => {
+              emit("spectateRace", { raceId: data.raceId, token });
+            });
         }
       }),
       on("spectatorUpdate", (data) => {
@@ -161,6 +196,11 @@ export function useSpectate() {
 
   const stopWatching = useCallback(() => {
     emit("stopSpectating");
+    if (followedUserIdRef.current) {
+      emit("stopFollowing");
+      setFollowedUserId(null);
+      followedUserIdRef.current = null;
+    }
     watchingRaceIdRef.current = null;
     if (connectingTimerRef.current) {
       clearTimeout(connectingTimerRef.current);
@@ -184,6 +224,7 @@ export function useSpectate() {
     spectators,
     spectatorCount,
     watchedPlayerId,
+    followedUserId,
     error,
     results,
     refreshRaces,

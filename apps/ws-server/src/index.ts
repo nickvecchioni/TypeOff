@@ -39,6 +39,23 @@ const chatManager = new ChatManager(io, socialManager);
 // Track spectators: socketId → raceId
 const spectators = new Map<string, string>();
 
+// Track followers: userId being followed → Set of follower socketIds
+const followers = new Map<string, Set<string>>();
+// Reverse map: follower socketId → userId they're following
+const followingMap = new Map<string, string>();
+
+// Notify followers when a player enters a new race
+matchmaker.setOnRaceStarted((raceId, playerUserIds) => {
+  for (const userId of playerUserIds) {
+    const followerSet = followers.get(userId);
+    if (!followerSet || followerSet.size === 0) continue;
+    for (const followerSocketId of followerSet) {
+      const sock = io.sockets.sockets.get(followerSocketId);
+      sock?.emit("followedPlayerRacing", { raceId, userId });
+    }
+  }
+});
+
 io.on("connection", (socket) => {
   console.log(`[connect] ${socket.id}`);
 
@@ -236,6 +253,30 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("followPlayer", (data) => {
+    // Remove from any previous follow
+    const prevUserId = followingMap.get(socket.id);
+    if (prevUserId) {
+      followers.get(prevUserId)?.delete(socket.id);
+    }
+    // Add to new follow
+    let set = followers.get(data.userId);
+    if (!set) {
+      set = new Set();
+      followers.set(data.userId, set);
+    }
+    set.add(socket.id);
+    followingMap.set(socket.id, data.userId);
+  });
+
+  socket.on("stopFollowing", () => {
+    const userId = followingMap.get(socket.id);
+    if (userId) {
+      followers.get(userId)?.delete(socket.id);
+      followingMap.delete(socket.id);
+    }
+  });
+
   // ─── Disconnect ───────────────────────────────────────────────────
 
   socket.on("disconnect", () => {
@@ -243,6 +284,13 @@ io.on("connection", (socket) => {
     matchmaker.handleDisconnect(socket.id);
     partyManager.handleDisconnect(socket.id);
     socialManager.trackDisconnection(socket.id);
+
+    // Clean up following
+    const followedUserId = followingMap.get(socket.id);
+    if (followedUserId) {
+      followers.get(followedUserId)?.delete(socket.id);
+      followingMap.delete(socket.id);
+    }
 
     // Clean up spectating
     const raceId = spectators.get(socket.id);

@@ -288,18 +288,23 @@ export class RaceManager {
       return;
     }
 
-    // Mark as finished with last placement
+    // Mark as finished with last placement (0 WPM = guaranteed loss)
     if (!entry.progress.finished && this.status === "racing") {
       entry.progress.finished = true;
       entry.progress.placement = this.nextPlacement++;
       entry.progress.finalStats = { wpm: 0, rawWpm: 0, accuracy: 0 };
     }
 
-    this.players.delete(socketId);
+    // Keep player in the map so persistResults() records their participation
+    // and calculates ELO loss. Just null out the socket and leave the room.
+    entry.socket?.leave(this.raceId);
+    entry.socket = null;
 
-    // End race if no real players remain
-    const hasRealPlayers = [...this.players.values()].some((p) => !p.isBot);
-    if (!hasRealPlayers) {
+    // End race if no real players with active sockets remain
+    const hasConnectedRealPlayers = [...this.players.values()].some(
+      (p) => !p.isBot && p.socket != null,
+    );
+    if (!hasConnectedRealPlayers) {
       this.endRace();
     }
   }
