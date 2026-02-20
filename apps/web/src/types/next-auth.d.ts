@@ -18,6 +18,10 @@ declare module "next-auth" {
       activeBadge: string | null;
       activeTitle: string | null;
       activeNameColor: string | null;
+      activeNameEffect: string | null;
+      activeCursorStyle: string | null;
+      activeProfileBorder: string | null;
+      activeTypingTheme: string | null;
       clanId: string | null;
       clanTag: string | null;
     };
@@ -38,6 +42,10 @@ declare module "next-auth/jwt" {
     activeBadge?: string | null;
     activeTitle?: string | null;
     activeNameColor?: string | null;
+    activeNameEffect?: string | null;
+    activeCursorStyle?: string | null;
+    activeProfileBorder?: string | null;
+    activeTypingTheme?: string | null;
     clanId?: string | null;
     clanTag?: string | null;
   }

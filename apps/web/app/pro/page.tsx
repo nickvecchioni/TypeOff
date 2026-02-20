@@ -10,6 +10,7 @@ const COMPARISON_ROWS = [
   { feature: "Ranked Racing", free: true, pro: true },
   { feature: "Leaderboard", free: true, pro: true },
   { feature: "Cosmetic Rewards", free: true, pro: true },
+  { feature: "XP Multiplier", free: "1x", pro: "1.5x" },
   { feature: "Race History", free: "Recent", pro: "Full Archive" },
   { feature: "Performance Analytics", free: false, pro: true },
   { feature: "Race Replays", free: false, pro: true },
@@ -75,21 +76,31 @@ export default function ProPage() {
 
             {/* Subscription status card */}
             <div className="rounded-xl bg-surface/50 ring-1 ring-amber-400/10 px-5 py-4 animate-slide-up">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-1">
-                    Pro Subscription
+              <div className="flex items-center justify-between gap-4">
+                <div className="space-y-2">
+                  <div className="text-xs font-bold text-amber-400 uppercase tracking-wider">
+                    Pro Subscription Active
                   </div>
-                  <p className="text-sm text-text">
-                    You have full access to race history, analytics, and replays.
-                  </p>
+                  <ul className="space-y-1">
+                    {[
+                      "1.5x XP on every race",
+                      "Full race history & advanced analytics",
+                      "Unlimited replays",
+                      "Pro badge in every race",
+                    ].map((perk) => (
+                      <li key={perk} className="flex items-center gap-2 text-[11px] text-muted/60">
+                        <span className="text-amber-400/60">&#10003;</span>
+                        {perk}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
                 <button
                   onClick={handleManageSubscription}
                   disabled={portalLoading}
-                  className="text-xs text-muted hover:text-text transition-colors px-3 py-1.5 rounded-lg ring-1 ring-white/[0.08] hover:ring-white/[0.15] disabled:opacity-50"
+                  className="shrink-0 text-xs text-muted hover:text-text transition-colors px-3 py-1.5 rounded-lg ring-1 ring-white/[0.08] hover:ring-white/[0.15] disabled:opacity-50"
                 >
-                  {portalLoading ? "Loading..." : "Manage Subscription"}
+                  {portalLoading ? "Loading..." : "Manage"}
                 </button>
               </div>
             </div>
@@ -291,24 +302,15 @@ export default function ProPage() {
                   plan="Yearly"
                   price={PRO_YEARLY_PRICE}
                   period="/yr"
+                  perMonth={+(PRO_YEARLY_PRICE / 12).toFixed(2)}
                   badge="Save 33%"
                   highlighted
                   onSubscribe={() => router.push("/pro/checkout?plan=yearly")}
                 />
               </div>
               <p className="text-center text-[10px] text-muted/25 mt-4">
-                Cancel anytime. Pro badge appears next to your name in races and on the leaderboard.
+                Cancel anytime. Your Pro badge appears next to your name in every race.
               </p>
-            </div>
-
-            {/* Cosmetics link */}
-            <div className="text-center">
-              <Link
-                href="/cosmetics"
-                className="text-xs text-muted/40 hover:text-accent transition-colors"
-              >
-                Browse free cosmetics &rarr;
-              </Link>
             </div>
           </div>
         )}
@@ -323,6 +325,7 @@ function PricingCard({
   plan,
   price,
   period,
+  perMonth,
   badge,
   highlighted,
   onSubscribe,
@@ -330,6 +333,7 @@ function PricingCard({
   plan: string;
   price: number;
   period: string;
+  perMonth?: number;
   badge?: string;
   highlighted?: boolean;
   onSubscribe: () => void;
@@ -354,6 +358,11 @@ function PricingCard({
         ${price.toFixed(2)}
         <span className="text-sm font-normal text-muted/50">{period}</span>
       </div>
+      {perMonth && (
+        <div className="text-[11px] text-muted/40 mt-0.5">
+          ${perMonth.toFixed(2)}/mo billed annually
+        </div>
+      )}
       <button
         onClick={onSubscribe}
         className={`w-full mt-4 rounded-lg py-2.5 text-sm font-bold transition-all ${

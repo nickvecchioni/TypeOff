@@ -107,6 +107,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             activeBadge: userActiveCosmetics.activeBadge,
             activeTitle: userActiveCosmetics.activeTitle,
             activeNameColor: userActiveCosmetics.activeNameColor,
+            activeNameEffect: userActiveCosmetics.activeNameEffect,
+            activeCursorStyle: userActiveCosmetics.activeCursorStyle,
+            activeProfileBorder: userActiveCosmetics.activeProfileBorder,
+            activeTypingTheme: userActiveCosmetics.activeTypingTheme,
           })
           .from(userActiveCosmetics)
           .where(eq(userActiveCosmetics.userId, token.id as string))
@@ -114,6 +118,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.activeBadge = cosmetics?.activeBadge ?? null;
         token.activeTitle = cosmetics?.activeTitle ?? null;
         token.activeNameColor = cosmetics?.activeNameColor ?? null;
+        token.activeNameEffect = cosmetics?.activeNameEffect ?? null;
+        token.activeCursorStyle = cosmetics?.activeCursorStyle ?? null;
+        token.activeProfileBorder = cosmetics?.activeProfileBorder ?? null;
+        token.activeTypingTheme = cosmetics?.activeTypingTheme ?? null;
 
         // Fetch clan info
         if (row[0].clanId) {
@@ -147,6 +155,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.activeBadge = (token.activeBadge as string) ?? null;
         session.user.activeTitle = (token.activeTitle as string) ?? null;
         session.user.activeNameColor = (token.activeNameColor as string) ?? null;
+        session.user.activeNameEffect = (token.activeNameEffect as string) ?? null;
+        session.user.activeCursorStyle = (token.activeCursorStyle as string) ?? null;
+        session.user.activeProfileBorder = (token.activeProfileBorder as string) ?? null;
+        session.user.activeTypingTheme = (token.activeTypingTheme as string) ?? null;
         session.user.clanId = (token.clanId as string) ?? null;
         session.user.clanTag = (token.clanTag as string) ?? null;
       }

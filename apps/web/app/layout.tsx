@@ -1,4 +1,4 @@
-import type { Metadata } from "next"; // trigger deploy
+import type { Metadata, Viewport } from "next"; // trigger deploy
 import { JetBrains_Mono } from "next/font/google";
 import Link from "next/link";
 import { SessionProvider } from "@/components/auth/SessionProvider";
@@ -25,6 +25,11 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "TypeOff — Ranked Competitive Typing",
   description: "Race real players in ELO-matched typing battles. Climb from Bronze to Grandmaster.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
