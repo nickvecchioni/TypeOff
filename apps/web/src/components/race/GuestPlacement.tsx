@@ -97,6 +97,25 @@ export function GuestPlacement() {
     }
   }, [phase, seed]);
 
+  // Refocus container when returning to the tab/window
+  useEffect(() => {
+    if (phase !== "idle" && phase !== "racing") return;
+    function handleVisibility() {
+      if (document.visibilityState === "visible") {
+        requestAnimationFrame(() => containerRef.current?.focus());
+      }
+    }
+    function handleWindowFocus() {
+      requestAnimationFrame(() => containerRef.current?.focus());
+    }
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("focus", handleWindowFocus);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("focus", handleWindowFocus);
+    };
+  }, [phase]);
+
   // Restart helper
   const restart = useCallback(() => {
     setSeed(Date.now());
@@ -201,6 +220,7 @@ export function GuestPlacement() {
         isTyping ? "focus-active" : ""
       }`}
       key={seed}
+      onClick={() => containerRef.current?.focus()}
     >
       {/* Header */}
       {phase === "idle" && (
@@ -211,7 +231,7 @@ export function GuestPlacement() {
           <span className="text-accent text-xs uppercase tracking-[0.25em] font-bold">
             Placement Test
           </span>
-          <p className="text-muted/60 text-xs text-center max-w-sm">
+          <p className="text-muted/60 text-xs text-center">
             Just type naturally to set your starting rank.
             <br />
             Your first few races carry extra weight, so don&apos;t worry.
