@@ -47,8 +47,8 @@ export class SocialManager {
       sockets.delete(socketId);
       if (sockets.size === 0) {
         this.onlineUsers.delete(userId);
-        // Clear lastSeen in DB
-        this.clearLastSeen(userId).catch(() => {});
+        // Update lastSeen to now (preserve timestamp for "last seen X ago")
+        this.updateLastSeen(userId).catch(() => {});
         // User went offline, notify friends
         await this.notifyFriends(userId, false);
       }
@@ -68,7 +68,7 @@ export class SocialManager {
     return this.socketToUser.get(socketId) ?? null;
   }
 
-  async getFriendsStatus(userId: string): Promise<Array<{ userId: string; online: boolean }>> {
+  async getFriendsStatus(userId: string): Promise<Array<{ userId: string; online: boolean; lastSeen?: string | null }>> {
     try {
       const db = createDb(process.env.DATABASE_URL!);
       const rows = await db
@@ -84,9 +84,30 @@ export class SocialManager {
           ),
         );
 
-      return rows.map((row) => {
-        const friendId = row.requesterId === userId ? row.addresseeId : row.requesterId;
-        return { userId: friendId, online: this.isOnline(friendId) };
+      const friendIds = rows.map((row) =>
+        row.requesterId === userId ? row.addresseeId : row.requesterId,
+      );
+
+      if (friendIds.length === 0) return [];
+
+      // Query lastSeen for all friends
+      const friendUsers = await db
+        .select({ id: users.id, lastSeen: users.lastSeen })
+        .from(users)
+        .where(or(...friendIds.map((id) => eq(users.id, id))));
+
+      const lastSeenMap = new Map(
+        friendUsers.map((u) => [u.id, u.lastSeen]),
+      );
+
+      return friendIds.map((friendId) => {
+        const online = this.isOnline(friendId);
+        const lastSeen = lastSeenMap.get(friendId);
+        return {
+          userId: friendId,
+          online,
+          lastSeen: online ? null : (lastSeen?.toISOString() ?? null),
+        };
       });
     } catch (err) {
       console.error("[social-manager] getFriendsStatus error:", err);
@@ -100,15 +121,6 @@ export class SocialManager {
       await db.update(users).set({ lastSeen: new Date() }).where(eq(users.id, userId));
     } catch (err) {
       console.error("[social-manager] updateLastSeen error:", err);
-    }
-  }
-
-  private async clearLastSeen(userId: string) {
-    try {
-      const db = createDb(process.env.DATABASE_URL!);
-      await db.update(users).set({ lastSeen: null }).where(eq(users.id, userId));
-    } catch (err) {
-      console.error("[social-manager] clearLastSeen error:", err);
     }
   }
 
@@ -145,8 +157,9 @@ export class SocialManager {
         const friendId = row.requesterId === userId ? row.addresseeId : row.requesterId;
         const friendSockets = this.onlineUsers.get(friendId);
         if (friendSockets) {
+          const lastSeen = online ? null : new Date().toISOString();
           for (const socketId of friendSockets) {
-            this.io.to(socketId).emit("friendStatus", { userId, online });
+            this.io.to(socketId).emit("friendStatus", { userId, online, lastSeen });
           }
         }
       }

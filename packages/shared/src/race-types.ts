@@ -158,8 +158,8 @@ export interface ServerToClientEvents {
   spectateStarted: (data: RaceState) => void;
   error: (data: { message: string }) => void;
   // Social events
-  friendStatus: (data: { userId: string; online: boolean }) => void;
-  friendStatuses: (data: Array<{ userId: string; online: boolean }>) => void;
+  friendStatus: (data: { userId: string; online: boolean; lastSeen?: string | null }) => void;
+  friendStatuses: (data: Array<{ userId: string; online: boolean; lastSeen?: string | null }>) => void;
   // Chat events
   directMessage: (data: {
     messageId: string;

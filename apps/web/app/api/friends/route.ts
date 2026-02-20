@@ -38,7 +38,7 @@ export async function GET() {
   }
 
   const friendUsers = await db
-    .select({ id: users.id, username: users.username, name: users.name })
+    .select({ id: users.id, username: users.username, name: users.name, lastSeen: users.lastSeen })
     .from(users)
     .where(or(...friendIds.map((id) => eq(users.id, id))));
 
@@ -46,6 +46,7 @@ export async function GET() {
     userId: u.id,
     username: u.username,
     name: u.name,
+    lastSeen: u.lastSeen?.toISOString() ?? null,
   }));
 
   return NextResponse.json({ friends });

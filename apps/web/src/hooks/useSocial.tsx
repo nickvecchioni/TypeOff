@@ -15,6 +15,7 @@ interface Friend {
   username: string | null;
   name: string | null;
   online?: boolean;
+  lastSeen?: string | null;
 }
 
 interface FriendRequest {
@@ -51,7 +52,13 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     const unsub = on("friendStatus", (data) => {
       setFriends((prev) =>
         prev.map((f) =>
-          f.userId === data.userId ? { ...f, online: data.online } : f,
+          f.userId === data.userId
+            ? {
+                ...f,
+                online: data.online,
+                lastSeen: data.online ? null : (data.lastSeen ?? new Date().toISOString()),
+              }
+            : f,
         ),
       );
     });
@@ -61,12 +68,16 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   // Listen for bulk friend statuses (initial sync)
   useEffect(() => {
     const unsub = on("friendStatuses", (data) => {
-      const statusMap = new Map(data.map((s) => [s.userId, s.online]));
+      const statusMap = new Map(data.map((s) => [s.userId, { online: s.online, lastSeen: s.lastSeen }]));
       setFriends((prev) =>
-        prev.map((f) => ({
-          ...f,
-          online: statusMap.get(f.userId) ?? f.online ?? false,
-        })),
+        prev.map((f) => {
+          const status = statusMap.get(f.userId);
+          return {
+            ...f,
+            online: status?.online ?? f.online ?? false,
+            lastSeen: status ? (status.online ? null : (status.lastSeen ?? f.lastSeen)) : f.lastSeen,
+          };
+        }),
       );
     });
     return unsub;
@@ -101,11 +112,15 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         const data = await res.json();
         // Merge API response with existing online statuses from socket
         setFriends((prev) => {
-          const onlineMap = new Map(prev.map((f) => [f.userId, f.online]));
-          return data.friends.map((f: Friend) => ({
-            ...f,
-            online: onlineMap.get(f.userId) ?? f.online ?? false,
-          }));
+          const prevMap = new Map(prev.map((f) => [f.userId, f]));
+          return data.friends.map((f: Friend) => {
+            const existing = prevMap.get(f.userId);
+            return {
+              ...f,
+              online: existing?.online ?? f.online ?? false,
+              lastSeen: existing?.lastSeen ?? f.lastSeen ?? null,
+            };
+          });
         });
         // Re-request friend statuses so socket data arrives after friends are populated
         if (connected) {
