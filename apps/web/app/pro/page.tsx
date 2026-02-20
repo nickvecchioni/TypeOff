@@ -37,6 +37,46 @@ const TEASER_IDS = [
 ];
 const TEASER_REWARDS = COSMETIC_REWARDS.filter((r) => TEASER_IDS.includes(r.id));
 
+const FEATURES = [
+  {
+    title: "Race History",
+    description: "Every race preserved forever. Filter by mode, date, opponent, and performance.",
+    icon: (
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
+      </svg>
+    ),
+  },
+  {
+    title: "Analytics",
+    description: "See exactly where you lose speed. Per-key accuracy, WPM trends, bigram heatmaps.",
+    icon: (
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+      </svg>
+    ),
+  },
+  {
+    title: "Race Replays",
+    description: "Watch any race back keystroke by keystroke. Study and share your best runs.",
+    icon: (
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polygon points="5 3 19 12 5 21 5 3" />
+      </svg>
+    ),
+  },
+  {
+    title: "Pro Cosmetics",
+    description: "22 exclusive rewards in the level track. Yours to keep even if you cancel.",
+    icon: (
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+      </svg>
+    ),
+    amber: true,
+  },
+] as const;
+
 /* ── Main Page ─────────────────────────────────────────── */
 
 export default function ProPage() {
@@ -87,187 +127,117 @@ export default function ProPage() {
           />
         ) : (
           /* ── Non-subscriber view ─────────────────────────── */
-          <div className="space-y-10">
+          <div className="space-y-8">
             {/* Hero */}
-            <div className="text-center animate-fade-in">
-              <div className="inline-block text-[10px] font-bold text-amber-400/70 bg-amber-400/[0.08] px-3 py-1 rounded-full uppercase tracking-widest mb-4">
+            <div className="text-center pt-2 animate-fade-in">
+              <div className="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-400/60 ring-1 ring-amber-400/20 px-3 py-1 rounded-full uppercase tracking-widest mb-5">
+                <span className="w-1 h-1 rounded-full bg-amber-400/60" />
                 TypeOff Pro
               </div>
-              <h1 className="text-2xl sm:text-3xl font-black text-text tracking-tight">
-                Level up faster. Look better doing it.
+              <h1 className="text-2xl sm:text-3xl font-black text-text tracking-tight leading-tight">
+                Level up faster.<br className="sm:hidden" /> Look better doing it.
               </h1>
-              <p className="text-sm text-muted/50 mt-2 max-w-md mx-auto leading-relaxed">
-                1.5× XP on every race, exclusive cosmetics free players never unlock, and the tools top typists use to break through plateaus.
+              <p className="text-sm text-muted/40 mt-3 max-w-sm mx-auto leading-relaxed">
+                1.5× XP on every race, exclusive cosmetics free players never unlock, and the analytics to climb faster.
               </p>
             </div>
 
-            {/* Feature cards — 4 columns */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 animate-slide-up">
-              {/* Race History */}
-              <div className="rounded-xl bg-surface/50 ring-1 ring-white/[0.06] p-5 hover:ring-amber-400/15 transition-all">
-                <div className="flex items-center gap-2.5 mb-3">
-                  <div className="w-8 h-8 rounded-lg bg-amber-400/[0.08] flex items-center justify-center text-amber-400/70 shrink-0">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10" />
-                      <path d="M12 6v6l4 2" />
-                    </svg>
+            {/* Feature strip — unified panel with hairline dividers */}
+            <div
+              className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-white/[0.04] rounded-xl overflow-hidden ring-1 ring-white/[0.04] animate-slide-up"
+            >
+              {FEATURES.map((f) => (
+                <div
+                  key={f.title}
+                  className={`p-5 transition-colors group ${
+                    "amber" in f && f.amber
+                      ? "bg-amber-400/[0.03] hover:bg-amber-400/[0.05]"
+                      : "bg-[#0c0c12] hover:bg-white/[0.015]"
+                  }`}
+                >
+                  <div className={`mb-3 transition-colors ${
+                    "amber" in f && f.amber
+                      ? "text-amber-400/50 group-hover:text-amber-400/70"
+                      : "text-muted/30 group-hover:text-muted/50"
+                  }`}>
+                    {f.icon}
                   </div>
-                  <h3 className="text-sm font-bold text-text">Race History</h3>
+                  <p className="text-xs font-bold text-text mb-1.5">{f.title}</p>
+                  <p className="text-[11px] text-muted/40 leading-relaxed">{f.description}</p>
                 </div>
-                <p className="text-xs text-muted/50 leading-relaxed mb-3">
-                  Every race, preserved forever. Filter by mode, date, opponents, and performance.
-                </p>
-                <ul className="space-y-1.5">
-                  {["Full paginated archive", "Sort by any stat", "Opponent match history"].map((b) => (
-                    <li key={b} className="flex items-center gap-2 text-[11px] text-muted/40">
-                      <span className="text-amber-400/60 text-[9px]">&#9679;</span>
-                      {b}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Analytics */}
-              <div className="rounded-xl bg-surface/50 ring-1 ring-white/[0.06] p-5 hover:ring-amber-400/15 transition-all">
-                <div className="flex items-center gap-2.5 mb-3">
-                  <div className="w-8 h-8 rounded-lg bg-amber-400/[0.08] flex items-center justify-center text-amber-400/70 shrink-0">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-                    </svg>
-                  </div>
-                  <h3 className="text-sm font-bold text-text">Analytics</h3>
-                </div>
-                <p className="text-xs text-muted/50 leading-relaxed mb-3">
-                  See exactly where you lose speed and what to improve. Data-driven practice.
-                </p>
-                <ul className="space-y-1.5">
-                  {["WPM trends over time", "Consistency analysis", "Personal records tracker"].map((b) => (
-                    <li key={b} className="flex items-center gap-2 text-[11px] text-muted/40">
-                      <span className="text-amber-400/60 text-[9px]">&#9679;</span>
-                      {b}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Replays */}
-              <div className="rounded-xl bg-surface/50 ring-1 ring-white/[0.06] p-5 hover:ring-amber-400/15 transition-all">
-                <div className="flex items-center gap-2.5 mb-3">
-                  <div className="w-8 h-8 rounded-lg bg-amber-400/[0.08] flex items-center justify-center text-amber-400/70 shrink-0">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="5 3 19 12 5 21 5 3" />
-                    </svg>
-                  </div>
-                  <h3 className="text-sm font-bold text-text">Race Replays</h3>
-                </div>
-                <p className="text-xs text-muted/50 leading-relaxed mb-3">
-                  Watch any race back keystroke by keystroke. Study your technique and learn from every match.
-                </p>
-                <ul className="space-y-1.5">
-                  {["Keystroke-level replay", "All race modes", "Shareable links"].map((b) => (
-                    <li key={b} className="flex items-center gap-2 text-[11px] text-muted/40">
-                      <span className="text-amber-400/60 text-[9px]">&#9679;</span>
-                      {b}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Pro Cosmetics */}
-              <div className="rounded-xl bg-surface/50 ring-1 ring-amber-400/10 p-5 hover:ring-amber-400/20 transition-all">
-                <div className="flex items-center gap-2.5 mb-3">
-                  <div className="w-8 h-8 rounded-lg bg-amber-400/[0.08] flex items-center justify-center text-amber-400/70 shrink-0">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                    </svg>
-                  </div>
-                  <h3 className="text-sm font-bold text-text">Pro Cosmetics</h3>
-                </div>
-                <p className="text-xs text-muted/50 leading-relaxed mb-3">
-                  22 exclusive rewards woven into the level track. Yours to keep even if you cancel.
-                </p>
-                <ul className="space-y-1.5">
-                  {["Exclusive cursors & themes", "Pro badges & titles", "Permanent on unlock"].map((b) => (
-                    <li key={b} className="flex items-center gap-2 text-[11px] text-muted/40">
-                      <span className="text-amber-400/60 text-[9px]">&#9679;</span>
-                      {b}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              ))}
             </div>
 
-            {/* Pro cosmetics teaser strip */}
-            <div className="animate-slide-up" style={{ animationDelay: "40ms" }}>
-              <p className="text-[11px] text-muted/30 uppercase tracking-widest text-center mb-3">
-                A taste of what&apos;s waiting
-              </p>
-              <div className="flex justify-center gap-2 flex-wrap">
+            {/* Pro cosmetics teaser — single unified callout */}
+            <div
+              className="rounded-xl ring-1 ring-amber-400/10 overflow-hidden animate-slide-up"
+              style={{ animationDelay: "40ms" }}
+            >
+              <div className="px-5 py-2.5 border-b border-amber-400/[0.07] flex items-center justify-between bg-amber-400/[0.02]">
+                <span className="text-[10px] font-bold text-amber-400/50 uppercase tracking-widest">
+                  22 Pro-exclusive cosmetics
+                </span>
+                <span className="text-[10px] text-muted/25">Yours to keep on cancel</span>
+              </div>
+              <div className="grid grid-cols-5 divide-x divide-white/[0.03] bg-[#0c0c12]">
                 {TEASER_REWARDS.map((item) => (
-                  <div
-                    key={item.id}
-                    className="relative rounded-lg px-3 py-2.5 ring-1 ring-amber-400/20 bg-amber-400/[0.04] min-w-[80px] text-center"
-                  >
-                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-[7px] font-black tracking-wider text-amber-400 bg-[#0c0c12] ring-1 ring-amber-400/30 px-1.5 py-px rounded">
-                      PRO
-                    </span>
-                    <div className="flex justify-center mb-1.5 opacity-60">
+                  <div key={item.id} className="flex flex-col items-center justify-center gap-2 py-4 px-2">
+                    <div className="opacity-60">
                       <TeaserVisual item={item} />
                     </div>
-                    <p className="text-[10px] text-amber-400/50 truncate">{item.name}</p>
+                    <span className="text-[9px] text-muted/30 text-center truncate w-full px-1">
+                      {item.name}
+                    </span>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Free vs Pro comparison */}
+            {/* Comparison + Pricing — side by side at md+ */}
             <div
-              className="max-w-md mx-auto animate-slide-up"
+              className="grid grid-cols-1 md:grid-cols-[1fr_220px] gap-4 items-start animate-slide-up"
               style={{ animationDelay: "60ms" }}
             >
-              <h3 className="text-xs font-bold text-muted/30 uppercase tracking-wider text-center mb-3">
-                Free vs Pro
-              </h3>
-              <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden">
-                <div className="grid grid-cols-[1fr_4rem_4rem] text-[10px] font-bold text-muted/40 uppercase tracking-wider px-4 py-2 border-b border-white/[0.06]">
-                  <span />
-                  <span className="text-center">Free</span>
-                  <span className="text-center text-amber-400/60">Pro</span>
-                </div>
-                {COMPARISON_ROWS.map((row, i) => (
-                  <div
-                    key={row.feature}
-                    className={`grid grid-cols-[1fr_4rem_4rem] px-4 py-1.5 text-xs ${
-                      i < COMPARISON_ROWS.length - 1 ? "border-b border-white/[0.03]" : ""
-                    }`}
-                  >
-                    <span className="text-text/70">{row.feature}</span>
-                    <span className="text-center text-muted/30">
-                      {row.free === true ? (
-                        <span className="text-muted/30">&#10003;</span>
-                      ) : row.free === false ? (
-                        "—"
-                      ) : (
-                        <span className="text-muted/40">{row.free}</span>
-                      )}
-                    </span>
-                    <span className="text-center text-amber-400/70">
-                      {row.pro === true ? (
-                        <span>&#10003;</span>
-                      ) : row.pro === false ? (
-                        "—"
-                      ) : (
-                        row.pro
-                      )}
-                    </span>
+              {/* Comparison table */}
+              <div>
+                <p className="text-[10px] font-bold text-muted/30 uppercase tracking-widest mb-2.5">
+                  Free vs Pro
+                </p>
+                <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden">
+                  <div className="grid grid-cols-[1fr_4rem_4rem] text-[10px] font-bold text-muted/40 uppercase tracking-wider px-4 py-2 border-b border-white/[0.06]">
+                    <span />
+                    <span className="text-center">Free</span>
+                    <span className="text-center text-amber-400/60">Pro</span>
                   </div>
-                ))}
+                  {COMPARISON_ROWS.map((row, i) => (
+                    <div
+                      key={row.feature}
+                      className={`grid grid-cols-[1fr_4rem_4rem] px-4 py-1.5 text-xs ${
+                        i < COMPARISON_ROWS.length - 1 ? "border-b border-white/[0.03]" : ""
+                      }`}
+                    >
+                      <span className="text-text/60">{row.feature}</span>
+                      <span className="text-center text-muted/30">
+                        {row.free === true ? (
+                          <span className="text-muted/30">&#10003;</span>
+                        ) : row.free === false ? (
+                          "—"
+                        ) : (
+                          <span className="text-muted/40 text-[11px]">{row.free}</span>
+                        )}
+                      </span>
+                      <span className="text-center text-amber-400/70">
+                        {row.pro === true ? "✓" : row.pro === false ? "—" : (
+                          <span className="text-[11px]">{row.pro}</span>
+                        )}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Pricing */}
-            <div className="animate-slide-up" style={{ animationDelay: "100ms" }}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg mx-auto">
+              {/* Pricing */}
+              <div className="space-y-2.5">
                 <PricingCard
                   plan="Monthly"
                   price={PRO_MONTHLY_PRICE}
@@ -283,10 +253,10 @@ export default function ProPage() {
                   highlighted
                   onSubscribe={() => router.push("/pro/checkout?plan=yearly")}
                 />
+                <p className="text-center text-[10px] text-muted/20 pt-1 leading-relaxed">
+                  Cancel anytime. Cosmetics earned<br />while subscribed are yours to keep.
+                </p>
               </div>
-              <p className="text-center text-[10px] text-muted/25 mt-4">
-                Cancel anytime. Cosmetics earned while subscribed are yours to keep.
-              </p>
             </div>
           </div>
         )}
