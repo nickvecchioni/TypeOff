@@ -83,11 +83,11 @@ export function ConfigBar({ config, status, onConfigChange, onAfterChange, onCus
         <Chip active={ct === "custom"} onClick={() => setContentType("custom")}>
           custom
         </Chip>
-        {practiceWeakKeys && practiceWeakKeys.length > 0 && (
+        <span className={!practiceWeakKeys?.length ? "invisible pointer-events-none" : ""}>
           <Chip active={ct === "practice"} onClick={() => setContentType("practice")}>
             practice
           </Chip>
-        )}
+        </span>
         <Chip active={ct === "code"} onClick={() => setContentType("code")}>
           code
         </Chip>
