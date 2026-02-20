@@ -135,7 +135,7 @@ export default function HistoryPage() {
                   <th className="px-3 sm:px-4 py-2.5 font-medium">Date</th>
                   <th className="px-3 sm:px-4 py-2.5 font-medium">Place</th>
                   <th className="px-3 sm:px-4 py-2.5 font-medium text-right">WPM</th>
-                  <th className="px-3 sm:px-4 py-2.5 font-medium text-right">Acc</th>
+                  <th className="hidden sm:table-cell px-3 sm:px-4 py-2.5 font-medium text-right">Acc</th>
                   <th className="px-3 sm:px-4 py-2.5 font-medium text-right">ELO</th>
                   <th className="px-3 sm:px-4 py-2.5 font-medium text-right w-8"></th>
                 </tr>
@@ -190,7 +190,7 @@ export default function HistoryPage() {
                           "-"
                         )}
                       </td>
-                      <td className="px-3 sm:px-4 py-2.5 text-right tabular-nums text-muted text-xs">
+                      <td className="hidden sm:table-cell px-3 sm:px-4 py-2.5 text-right tabular-nums text-muted text-xs">
                         {race.accuracy != null ? (
                           <>
                             {Math.floor(race.accuracy)}

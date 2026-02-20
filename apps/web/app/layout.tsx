@@ -6,6 +6,7 @@ import { UserMenu } from "@/components/auth/UserMenu";
 import { UsernameGuard } from "@/components/auth/UsernameGuard";
 import { FriendsButton } from "@/components/social/FriendsButton";
 import { NavNotifications } from "@/components/social/NavNotifications";
+import { MobileNav } from "@/components/MobileNav";
 import { NotificationToast } from "@/components/social/NotificationToast";
 import { SocketProvider } from "@/hooks/useSocket";
 import { SocialProvider } from "@/hooks/useSocial";
@@ -41,6 +42,7 @@ export default function RootLayout({
           <UsernameGuard>
             <nav className="relative z-30 flex items-center justify-between px-4 sm:px-6 py-3">
               <div className="flex items-center gap-4 sm:gap-8">
+                <MobileNav />
                 <Link href="/" className="nav-logo text-accent font-bold text-base">
                   <span className="nav-logo-text transition-[text-shadow] duration-300">
                     TypeOff
@@ -48,42 +50,42 @@ export default function RootLayout({
                 </Link>
                 <Link
                   href="/leaderboard"
-                  className="text-sm text-muted hover:text-text transition-colors"
+                  className="hidden md:inline text-sm text-muted hover:text-text transition-colors"
                 >
                   Leaderboard
                 </Link>
                 <Link
                   href="/ranks"
-                  className="text-sm text-muted hover:text-text transition-colors"
+                  className="hidden md:inline text-sm text-muted hover:text-text transition-colors"
                 >
                   Ranks
                 </Link>
                 <Link
                   href="/solo"
-                  className="text-sm text-muted hover:text-text transition-colors"
+                  className="hidden md:inline text-sm text-muted hover:text-text transition-colors"
                 >
                   Solo
                 </Link>
                 <Link
                   href="/spectate"
-                  className="text-sm text-muted hover:text-text transition-colors"
+                  className="hidden md:inline text-sm text-muted hover:text-text transition-colors"
                 >
                   Spectate
                 </Link>
                 <Link
                   href="/clans"
-                  className="text-sm text-muted hover:text-text transition-colors"
+                  className="hidden md:inline text-sm text-muted hover:text-text transition-colors"
                 >
                   Clans
                 </Link>
                 <Link
                   href="/pro"
-                  className="text-sm text-amber-400/70 hover:text-amber-400 transition-colors"
+                  className="hidden md:inline text-sm text-amber-400/70 hover:text-amber-400 transition-colors"
                 >
                   Pro
                 </Link>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <UserMenu />
                 <NavNotifications />
                 <FriendsButton />
