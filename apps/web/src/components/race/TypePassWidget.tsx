@@ -24,7 +24,25 @@ export function TypePassWidget() {
       .catch(() => {});
   }, []);
 
-  if (!data) return <div className="w-full min-h-[100px]" />;
+  if (!data) {
+    return (
+      <div className="flex flex-col w-full h-full rounded-xl bg-surface/50 ring-1 ring-white/[0.04] overflow-hidden">
+        <div className="h-px bg-gradient-to-r from-transparent via-amber-400/20 to-transparent" />
+        <div className="p-4 space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="w-16 h-3 rounded bg-surface-bright/20 animate-pulse" />
+            <div className="w-12 h-3 rounded bg-surface-bright/15 animate-pulse" />
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-6 rounded bg-surface-bright/15 animate-pulse" />
+            <div className="flex-1 h-1.5 rounded-full bg-surface-bright/10 animate-pulse" />
+            <div className="w-5 h-5 rounded bg-surface-bright/10 animate-pulse" />
+          </div>
+          <div className="w-32 h-3 rounded bg-surface-bright/10 animate-pulse" />
+        </div>
+      </div>
+    );
+  }
   if (!data.season) return null;
 
   const season = data.season;
@@ -49,7 +67,7 @@ export function TypePassWidget() {
   return (
     <Link
       href="/type-pass"
-      className="flex flex-col w-full h-full rounded-xl bg-surface/50 ring-1 ring-white/[0.04] overflow-hidden hover:ring-amber-400/20 transition-all animate-fade-in group"
+      className="flex flex-col w-full h-full rounded-xl bg-surface/50 ring-1 ring-white/[0.04] overflow-hidden hover:ring-amber-400/20 transition-all group"
     >
       <div className="h-px bg-gradient-to-r from-transparent via-amber-400/20 to-transparent" />
       <div className="p-4">

@@ -64,14 +64,52 @@ export function ChallengesWidget() {
   }, []);
 
   if (!data) {
-    return <div className="w-full min-h-[280px]" />;
+    return (
+      <div className="w-full rounded-xl bg-surface/50 ring-1 ring-white/[0.04] overflow-hidden">
+        <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
+        <div className="p-5 space-y-4">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="w-28 h-3 rounded bg-surface-bright/20 animate-pulse" />
+              <div className="w-12 h-3 rounded bg-surface-bright/15 animate-pulse" />
+            </div>
+            {[0, 1].map((i) => (
+              <div key={i} className="flex items-center gap-3">
+                <div className="w-6 h-6 rounded bg-surface-bright/15 animate-pulse shrink-0" />
+                <div className="flex-1 space-y-1.5">
+                  <div className="w-3/4 h-3 rounded bg-surface-bright/15 animate-pulse" />
+                  <div className="w-1/2 h-2 rounded bg-surface-bright/10 animate-pulse" />
+                  <div className="h-1 rounded-full bg-surface-bright/10 animate-pulse" />
+                </div>
+                <div className="w-10 h-5 rounded bg-surface-bright/10 animate-pulse shrink-0" />
+              </div>
+            ))}
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="w-28 h-3 rounded bg-surface-bright/20 animate-pulse" />
+              <div className="w-12 h-3 rounded bg-surface-bright/15 animate-pulse" />
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 rounded bg-surface-bright/15 animate-pulse shrink-0" />
+              <div className="flex-1 space-y-1.5">
+                <div className="w-3/4 h-3 rounded bg-surface-bright/15 animate-pulse" />
+                <div className="w-1/2 h-2 rounded bg-surface-bright/10 animate-pulse" />
+                <div className="h-1 rounded-full bg-surface-bright/10 animate-pulse" />
+              </div>
+              <div className="w-10 h-5 rounded bg-surface-bright/10 animate-pulse shrink-0" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const dailies = data.challenges.filter((c) => c.type === "daily");
   const weeklies = data.challenges.filter((c) => c.type === "weekly");
 
   return (
-    <div className="w-full rounded-xl bg-surface/50 ring-1 ring-white/[0.04] overflow-hidden animate-fade-in">
+    <div className="w-full rounded-xl bg-surface/50 ring-1 ring-white/[0.04] overflow-hidden transition-opacity duration-300">
       <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
       <div className="p-5 space-y-4">
       {/* Daily Challenges */}
