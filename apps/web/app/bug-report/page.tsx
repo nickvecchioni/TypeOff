@@ -84,8 +84,8 @@ export default function BugReportPage() {
   }
 
   return (
-    <main className="flex-1 flex flex-col items-center justify-center px-4 py-8">
-      <div className="animate-fade-in flex flex-col items-center w-full">
+    <main className="flex-1 flex flex-col items-center px-4 py-12">
+      <div className="animate-fade-in flex flex-col items-center w-full max-w-md">
         <h1 className="text-3xl font-bold text-accent mb-2">Report a Bug</h1>
         <p className="text-muted mb-8 text-center">
           Found something broken? Let us know and we&apos;ll fix it.
@@ -100,7 +100,7 @@ export default function BugReportPage() {
 
         <form
           onSubmit={handleSubmit}
-          className="flex flex-col gap-4 w-full max-w-md"
+          className="flex flex-col gap-4 w-full"
         >
           <div>
             <label className="text-xs text-muted mb-1 block">Title</label>
