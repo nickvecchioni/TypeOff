@@ -338,7 +338,7 @@ export default function TypePassPage() {
         </div>
 
         {/* ── Category Tabs ─────────────────────────────── */}
-        <div className="flex gap-1 mb-6 overflow-x-auto pb-1 -mx-1 px-1 animate-slide-up" style={{ animationDelay: "240ms" }}>
+        <div className="flex flex-wrap gap-1 mb-6 animate-slide-up" style={{ animationDelay: "240ms" }}>
           {CATEGORIES.map((cat) => {
             const count = SEASON_1.rewards.filter(
               (r) => r.type === cat.key && ownedIds.has(r.id),
@@ -350,7 +350,7 @@ export default function TypePassPage() {
               <button
                 key={cat.key}
                 onClick={() => setSelectedCategory(cat.key)}
-                className={`shrink-0 text-xs px-3 py-2 rounded-lg transition-all ${
+                className={`text-xs px-3 py-2 rounded-lg transition-all ${
                   selectedCategory === cat.key
                     ? "bg-accent/15 text-accent ring-1 ring-accent/20"
                     : "text-muted hover:text-text hover:bg-white/[0.04]"

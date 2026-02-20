@@ -56,7 +56,7 @@ export function QueueScreen({
   privateRace,
   onSetPrivateRace,
 }: QueueScreenProps) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
   const myUserId = session?.user?.id;
   const isPartyLeader = party?.leaderId === myUserId;
@@ -79,6 +79,38 @@ export function QueueScreen({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isQueuing, session?.user, connected, inPartyNotLeader, onJoin, privateRace]);
+
+  /* ── Loading skeleton ─────────────────────────────────────── */
+  if (status === "loading") {
+    return (
+      <div className="flex flex-col items-center w-full max-w-3xl">
+        {/* Rank badge skeleton */}
+        <div className="flex flex-col items-center gap-1.5 mb-6">
+          <div className="w-10 h-10 rounded-full bg-surface-bright/30 animate-pulse" />
+          <div className="w-16 h-8 rounded bg-surface-bright/20 animate-pulse" />
+        </div>
+        {/* Button skeleton */}
+        <div className="w-full max-w-lg">
+          <div className="w-full h-[60px] rounded-xl bg-surface-bright/15 animate-pulse" />
+          <div className="flex justify-center mt-3">
+            <div className="w-20 h-4 rounded bg-surface-bright/10 animate-pulse" />
+          </div>
+          <div className="flex justify-center gap-2 mt-4">
+            <div className="w-28 h-8 rounded-lg bg-surface-bright/10 animate-pulse" />
+            <div className="w-28 h-8 rounded-lg bg-surface-bright/10 animate-pulse" />
+          </div>
+        </div>
+        {/* Dashboard skeleton */}
+        <div className="w-full mt-10 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="w-full h-[280px] rounded-xl bg-surface-bright/10 animate-pulse" />
+          <div className="grid grid-rows-2 gap-3">
+            <div className="w-full h-[100px] rounded-xl bg-surface-bright/10 animate-pulse" />
+            <div className="w-full h-[100px] rounded-xl bg-surface-bright/10 animate-pulse" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   /* ── Queuing state ──────────────────────────────────────── */
   if (isQueuing) {
@@ -271,7 +303,7 @@ export function QueueScreen({
           {/* Dashboard */}
           {session.user.placementsCompleted && (
             <div
-              className="w-full mt-10 grid grid-cols-1 sm:grid-cols-2 gap-3 items-start opacity-0 animate-fade-in"
+              className="w-full mt-10 grid grid-cols-1 sm:grid-cols-2 gap-3 opacity-0 animate-fade-in"
               style={{ animationDelay: "220ms", animationFillMode: "both" }}
             >
               <ChallengesWidget />

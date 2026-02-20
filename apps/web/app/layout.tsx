@@ -72,7 +72,7 @@ export default function RootLayout({
                 <FriendsButton />
               </div>
             </nav>
-            <div className="relative z-10 flex-1 flex flex-col">
+            <div className="relative z-10 flex-1 flex flex-col min-h-0">
               {children}
             </div>
           </UsernameGuard>
