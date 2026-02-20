@@ -18,13 +18,12 @@ export function GuestPlacement() {
   const containerRef = useRef<HTMLDivElement>(null);
   const wordsInnerRef = useRef<HTMLDivElement>(null);
   const tabPressedRef = useRef(false);
-  const [seed, setSeed] = useState(() => Date.now());
+  const [cascadeKey, setCascadeKey] = useState(0);
   const [scrollOffset, setScrollOffset] = useState(0);
   const [lineHeight, setLineHeight] = useState(40);
   const suppressTransitionRef = useRef(false);
 
   const engine = useTypingEngine({
-    externalSeed: seed,
     externalWordCount: GUEST_WORD_COUNT,
     mode: "wordcount",
   });
@@ -95,7 +94,7 @@ export function GuestPlacement() {
     if (phase === "idle" || phase === "racing") {
       requestAnimationFrame(() => containerRef.current?.focus());
     }
-  }, [phase, seed]);
+  }, [phase, cascadeKey]);
 
   // Refocus container when returning to the tab/window
   useEffect(() => {
@@ -116,16 +115,18 @@ export function GuestPlacement() {
     };
   }, [phase]);
 
-  // Restart helper
+  // Restart helper — delegates to engine.restart() so the engine
+  // actually resets its status and generates fresh words
   const restart = useCallback(() => {
-    setSeed(Date.now());
+    engine.restart();
     setPhase("idle");
     setFinishedWpm(0);
     setFinishedAccuracy(0);
     setScrollOffset(0);
     suppressTransitionRef.current = true;
     tabPressedRef.current = false;
-  }, []);
+    setCascadeKey((k) => k + 1);
+  }, [engine.restart]);
 
   // Handle Tab+Enter restart on the typing container
   const handleKeyDown = useCallback(
@@ -219,7 +220,7 @@ export function GuestPlacement() {
       className={`flex flex-col items-center gap-6 w-full max-w-4xl mx-auto ${
         isTyping ? "focus-active" : ""
       }`}
-      key={seed}
+      key={cascadeKey}
       onClick={() => containerRef.current?.focus()}
     >
       {/* Header */}

@@ -85,6 +85,25 @@ export function PracticeArena() {
     }
   }, [engine.status, cascadeKey]);
 
+  // Refocus container when returning to the tab/window
+  useEffect(() => {
+    if (engine.status !== "idle" && engine.status !== "typing") return;
+    function handleVisibility() {
+      if (document.visibilityState === "visible") {
+        requestAnimationFrame(() => containerRef.current?.focus());
+      }
+    }
+    function handleWindowFocus() {
+      requestAnimationFrame(() => containerRef.current?.focus());
+    }
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("focus", handleWindowFocus);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("focus", handleWindowFocus);
+    };
+  }, [engine.status]);
+
   // Refocus after config change
   const handleAfterConfigChange = useCallback(() => {
     requestAnimationFrame(() => containerRef.current?.focus());
@@ -170,6 +189,7 @@ export function PracticeArena() {
       className={`flex flex-col items-center gap-6 w-full max-w-4xl mx-auto ${
         isTyping ? "focus-active" : ""
       }`}
+      onClick={() => containerRef.current?.focus()}
     >
       {/* PB + Config bar */}
       {!isFinished && (
