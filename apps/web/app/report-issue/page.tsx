@@ -13,7 +13,7 @@ const CATEGORIES = [
   "Other",
 ] as const;
 
-export default function BugReportPage() {
+export default function ReportIssuePage() {
   const { data: session } = useSession();
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<string>(CATEGORIES[0]);
@@ -67,7 +67,7 @@ export default function BugReportPage() {
         <div className="animate-fade-in flex flex-col items-center w-full max-w-md text-center">
           <div className="text-4xl mb-4">✓</div>
           <h1 className="text-2xl font-bold text-accent mb-2">
-            Report Submitted
+            Issue Submitted
           </h1>
           <p className="text-muted mb-8">
             Thanks for helping improve TypeOff! We&apos;ll look into it.
@@ -86,9 +86,9 @@ export default function BugReportPage() {
   return (
     <main className="flex-1 flex flex-col items-center justify-center px-4 py-6">
       <div className="animate-fade-in flex flex-col items-center w-full max-w-md">
-        <h1 className="text-3xl font-bold text-accent mb-2">Report a Bug</h1>
+        <h1 className="text-3xl font-bold text-accent mb-2">Report an Issue</h1>
         <p className="text-muted mb-4 text-center">
-          Found something broken? Let us know and we&apos;ll fix it.
+          Found something wrong? Let us know and we&apos;ll look into it.
         </p>
 
         {session?.user?.username && (

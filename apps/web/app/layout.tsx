@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next"; // trigger deploy
 import { JetBrains_Mono } from "next/font/google";
 import Link from "next/link";
 import { SessionProvider } from "@/components/auth/SessionProvider";
+import { ReportIssueButton } from "@/components/shared/ReportIssueButton";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { UsernameGuard } from "@/components/auth/UsernameGuard";
 import { FriendsButton } from "@/components/social/FriendsButton";
@@ -60,6 +61,7 @@ export default function RootLayout({
               </div>
               <div className="flex items-center gap-2 sm:gap-3">
                 <UserMenu />
+                <ReportIssueButton />
                 <NavNotifications />
                 <FriendsButton />
               </div>
@@ -69,10 +71,6 @@ export default function RootLayout({
             </div>
             <footer className="focus-fade relative z-10 flex items-center justify-center gap-3 py-3 text-[10px] text-muted/30">
               <span>TypeOff</span>
-              <span>·</span>
-              <Link href="/bug-report" className="hover:text-muted/60 transition-colors">
-                Report a Bug
-              </Link>
             </footer>
             <NotificationToast />
           </UsernameGuard>
