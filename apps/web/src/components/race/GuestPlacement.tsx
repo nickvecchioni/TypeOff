@@ -223,64 +223,72 @@ export function GuestPlacement() {
       key={cascadeKey}
       onClick={() => containerRef.current?.focus()}
     >
-      {/* Hero section — visible only before first keystroke */}
-      {phase === "idle" && (
-        <div className="focus-fade flex flex-col items-center w-full mb-8">
-          {/* Headline */}
-          <div
-            className="flex flex-col items-center gap-3 mb-6 opacity-0 animate-fade-in"
-            style={{ animationDelay: "0ms", animationFillMode: "both" }}
-          >
-            <h1 className="text-3xl sm:text-4xl font-black text-text tracking-tight text-center">
-              Competitive typing,{" "}
-              <span className="text-accent text-glow-accent">ranked.</span>
-            </h1>
-            <p className="text-muted/70 text-sm text-center max-w-md leading-relaxed">
-              Race real players in ELO-matched typing battles.
-              <br className="hidden sm:block" />{" "}
-              Climb from Bronze to Grandmaster.
-            </p>
-          </div>
+      {/* Hero section — smoothly collapses when typing starts */}
+      <div
+        className="grid w-full transition-[grid-template-rows,opacity] duration-500 ease-out overflow-hidden"
+        style={{
+          gridTemplateRows: phase === "idle" ? "1fr" : "0fr",
+          opacity: phase === "idle" ? 1 : 0,
+        }}
+      >
+        <div className="min-h-0 flex flex-col items-center">
+          <div className="flex flex-col items-center w-full mb-8">
+            {/* Headline */}
+            <div
+              className="flex flex-col items-center gap-3 mb-6 opacity-0 animate-fade-in"
+              style={{ animationDelay: "0ms", animationFillMode: "both" }}
+            >
+              <h1 className="text-3xl sm:text-4xl font-black text-text tracking-tight text-center">
+                Competitive typing,{" "}
+                <span className="text-accent text-glow-accent">ranked.</span>
+              </h1>
+              <p className="text-muted/70 text-sm text-center max-w-md leading-relaxed">
+                Race real players in ELO-matched typing battles.
+                <br className="hidden sm:block" />{" "}
+                Climb from Bronze to Grandmaster.
+              </p>
+            </div>
 
-          {/* Feature pills */}
-          <div
-            className="flex flex-wrap justify-center gap-2 mb-8 opacity-0 animate-fade-in"
-            style={{ animationDelay: "80ms", animationFillMode: "both" }}
-          >
-            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] ring-1 ring-white/[0.06] text-[11px] text-muted/60">
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="text-accent/70">
-                <path d="M8 1L10.5 6H14L11 9.5L12.5 15L8 11.5L3.5 15L5 9.5L2 6H5.5L8 1Z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
-              </svg>
-              ELO Matchmaking
-            </span>
-            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] ring-1 ring-white/[0.06] text-[11px] text-muted/60">
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="text-accent/70">
-                <path d="M1 12L4 4L8 9L11 5L15 12" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              Real-time Races
-            </span>
-            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] ring-1 ring-white/[0.06] text-[11px] text-muted/60">
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="text-accent/70">
-                <path d="M8 2V14M4 6L8 2L12 6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              7 Rank Tiers
-            </span>
-          </div>
+            {/* Feature pills */}
+            <div
+              className="flex flex-wrap justify-center gap-2 mb-8 opacity-0 animate-fade-in"
+              style={{ animationDelay: "80ms", animationFillMode: "both" }}
+            >
+              <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] ring-1 ring-white/[0.06] text-[11px] text-muted/60">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="text-accent/70">
+                  <path d="M8 1L10.5 6H14L11 9.5L12.5 15L8 11.5L3.5 15L5 9.5L2 6H5.5L8 1Z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
+                </svg>
+                ELO Matchmaking
+              </span>
+              <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] ring-1 ring-white/[0.06] text-[11px] text-muted/60">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="text-accent/70">
+                  <path d="M1 12L4 4L8 9L11 5L15 12" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Real-time Races
+              </span>
+              <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] ring-1 ring-white/[0.06] text-[11px] text-muted/60">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="text-accent/70">
+                  <path d="M8 2V14M4 6L8 2L12 6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                7 Rank Tiers
+              </span>
+            </div>
 
-          {/* Placement CTA */}
-          <div
-            className="flex flex-col items-center gap-1 opacity-0 animate-fade-in"
-            style={{ animationDelay: "160ms", animationFillMode: "both" }}
-          >
-            <span className="text-accent text-xs uppercase tracking-[0.25em] font-bold">
-              Placement Test
-            </span>
-            <p className="text-muted/40 text-xs">
-              Start typing to find your rank
-            </p>
+            {/* Placement CTA */}
+            <div
+              className="flex flex-col items-center gap-1 opacity-0 animate-fade-in"
+              style={{ animationDelay: "160ms", animationFillMode: "both" }}
+            >
+              <span className="text-accent text-xs uppercase tracking-[0.25em] font-bold">
+                Placement Test
+              </span>
+              <p className="text-muted/40 text-xs">
+                Start typing to find your rank
+              </p>
+            </div>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Typing area with scroll clipping */}
       <div
