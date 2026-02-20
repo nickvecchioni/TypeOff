@@ -8,7 +8,6 @@ const NAV_LINKS = [
   { href: "/daily", label: "Daily" },
   { href: "/ranks", label: "Ranks" },
   { href: "/solo", label: "Solo" },
-  { href: "/clans", label: "Clans" },
   { href: "/pro", label: "Pro", isPro: true },
 ];
 

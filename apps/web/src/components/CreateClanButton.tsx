@@ -31,7 +31,7 @@ export function CreateClanButton() {
         setError(data.error ?? "Failed to create clan");
         return;
       }
-      router.push(`/clans/${data.clan.id}`);
+      router.push(`/profile/${session.user.username}`);
       router.refresh();
     } catch {
       setError("Network error");

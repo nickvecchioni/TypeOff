@@ -10,6 +10,7 @@ interface ClanActionsProps {
   isLeader: boolean;
   viewerHasClan: boolean;
   pendingInviteId: string | null;
+  redirectTo?: string;
 }
 
 export function ClanActions({
@@ -19,6 +20,7 @@ export function ClanActions({
   isLeader,
   viewerHasClan,
   pendingInviteId,
+  redirectTo = "/leaderboard?tab=clans",
 }: ClanActionsProps) {
   const router = useRouter();
   const [inviteUsername, setInviteUsername] = useState("");
@@ -87,7 +89,7 @@ export function ClanActions({
         body: JSON.stringify({ userId: "self" }),
       });
       if (res.ok) {
-        router.push("/clans");
+        router.push(redirectTo);
         router.refresh();
       }
     } finally {
@@ -101,7 +103,7 @@ export function ClanActions({
     try {
       const res = await fetch(`/api/clans/${clanId}`, { method: "DELETE" });
       if (res.ok) {
-        router.push("/clans");
+        router.push(redirectTo);
         router.refresh();
       }
     } finally {

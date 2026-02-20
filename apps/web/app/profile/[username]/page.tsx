@@ -375,6 +375,7 @@ export default async function ProfilePage({
             isLeaderOrOfficer={isLeaderOrOfficer}
             viewerHasClan={!!session?.user?.clanId}
             pendingInviteId={pendingInviteId}
+            profileUsername={username}
           />
         )}
 

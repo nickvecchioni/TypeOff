@@ -96,7 +96,7 @@ export async function POST(
       type: "clan_invite",
       title: "Clan Invite",
       body: `${senderName} invited you to join [${clan?.tag}] ${clan?.name}`,
-      actionUrl: `/clans/${clanId}`,
+      actionUrl: `/leaderboard?tab=clans`,
       metadata: JSON.stringify({ inviteId: invite.id, clanId }),
     })
     .catch(() => {});

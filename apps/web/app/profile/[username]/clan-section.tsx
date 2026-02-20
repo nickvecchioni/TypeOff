@@ -33,6 +33,7 @@ interface ClanSectionProps {
   isLeaderOrOfficer: boolean;
   viewerHasClan: boolean;
   pendingInviteId: string | null;
+  profileUsername: string;
 }
 
 /* ── Clan Section ──────────────────────────────────────── */
@@ -50,6 +51,7 @@ export function ClanSection({
   isLeaderOrOfficer,
   viewerHasClan,
   pendingInviteId,
+  profileUsername,
 }: ClanSectionProps) {
   const clanRankInfo = getRankInfo(clan.eloRating);
 
@@ -70,12 +72,9 @@ export function ClanSection({
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-bold text-accent/70">[{clan.tag}]</span>
-                <Link
-                  href={`/clans/${clan.id}`}
-                  className="text-lg font-bold text-text hover:text-accent transition-colors"
-                >
+                <span className="text-lg font-bold text-text">
                   {clan.name}
-                </Link>
+                </span>
               </div>
               {clan.description && (
                 <p className="text-sm text-muted/60 mt-1">{clan.description}</p>
@@ -102,6 +101,7 @@ export function ClanSection({
           isLeader={viewerMember?.role === "leader"}
           viewerHasClan={viewerHasClan}
           pendingInviteId={pendingInviteId}
+          redirectTo={`/profile/${profileUsername}`}
         />
 
         {/* Members Table */}
