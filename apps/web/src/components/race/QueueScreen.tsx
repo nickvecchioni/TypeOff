@@ -141,17 +141,13 @@ export function QueueScreen({
               >
                 {session.user.eloRating}
               </div>
-              <div className="flex items-center gap-3 text-xs text-muted">
-                {session.user.currentStreak > 0 && (
-                  <>
-                    <span className="text-amber-400 font-semibold tabular-nums">
-                      {"\uD83D\uDD25"} {session.user.currentStreak}
-                    </span>
-                    <span className="text-white/[0.08]">&middot;</span>
-                  </>
-                )}
-                <span>Level {xpInfo!.level}</span>
-              </div>
+              {session.user.currentStreak > 0 && (
+                <div className="flex items-center gap-3 text-xs text-muted">
+                  <span className="text-amber-400 font-semibold tabular-nums">
+                    {"\uD83D\uDD25"} {session.user.currentStreak}
+                  </span>
+                </div>
+              )}
             </div>
           )}
 
@@ -194,9 +190,9 @@ export function QueueScreen({
                 <span className="inline-block w-[2px] h-[1.1em] bg-current animate-blink ml-0.5 translate-y-[2px]" />
               </button>
               <div className="relative flex items-center gap-3 mt-3">
-                <span className="text-[11px] text-muted/25">
+                <span className="text-[11px] text-muted/40">
                   press{" "}
-                  <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.03] ring-1 ring-white/[0.06] text-muted/40 text-[10px] font-medium">
+                  <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/60 text-[10px] font-medium">
                     Enter ↵
                   </kbd>
                 </span>
@@ -205,18 +201,18 @@ export function QueueScreen({
                 <div className="relative flex items-center gap-2 mt-4">
                   <Link
                     href="/solo"
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium text-muted/40 bg-white/[0.02] ring-1 ring-white/[0.04] hover:text-muted hover:bg-white/[0.04] hover:ring-white/[0.08] transition-all"
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium text-muted/70 bg-white/[0.04] ring-1 ring-white/[0.08] hover:text-text hover:bg-white/[0.06] hover:ring-white/[0.12] transition-all"
                   >
-                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="opacity-60">
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="opacity-70">
                       <path d="M8 1v14M1 8h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                     </svg>
                     Solo Practice
                   </Link>
                   <button
                     onClick={onCreateParty}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium text-muted/40 bg-white/[0.02] ring-1 ring-white/[0.04] hover:text-muted hover:bg-white/[0.04] hover:ring-white/[0.08] transition-all"
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium text-muted/70 bg-white/[0.04] ring-1 ring-white/[0.08] hover:text-text hover:bg-white/[0.06] hover:ring-white/[0.12] transition-all"
                   >
-                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="opacity-60">
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="opacity-70">
                       <circle cx="6" cy="6" r="3" stroke="currentColor" strokeWidth="1.5"/>
                       <circle cx="11" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.5"/>
                     </svg>
