@@ -6,6 +6,8 @@ import type { RankTier } from "@typeoff/shared";
 
 interface PlacementRevealProps {
   elo: number;
+  wpm?: number;
+  accuracy?: number;
   onContinue: () => void;
   subtitle?: string;
   ctaLabel?: string;
@@ -22,7 +24,7 @@ const TIER_GLOW: Record<RankTier, string> = {
   grandmaster: "drop-shadow(0 0 24px rgba(239, 68, 68, 0.4))",
 };
 
-export function PlacementReveal({ elo, onContinue, subtitle, ctaLabel, ctaContent }: PlacementRevealProps) {
+export function PlacementReveal({ elo, wpm, accuracy, onContinue, subtitle, ctaLabel, ctaContent }: PlacementRevealProps) {
   const [phase, setPhase] = useState<"intro" | "reveal">("intro");
   const tier = getRankTier(elo) as RankTier;
   const rankInfo = getRankInfo(elo);
@@ -60,6 +62,24 @@ export function PlacementReveal({ elo, onContinue, subtitle, ctaLabel, ctaConten
           {elo} <span className="text-muted text-base font-normal">ELO</span>
         </div>
       </div>
+
+      {/* Stats */}
+      {wpm != null && accuracy != null && (
+        <div className="flex gap-8">
+          <div className="text-center">
+            <div className="text-3xl font-black text-accent tabular-nums text-glow-accent">
+              {Math.round(wpm)}
+            </div>
+            <div className="text-xs text-muted mt-1">WPM</div>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl font-black text-text tabular-nums">
+              {accuracy.toFixed(1)}%
+            </div>
+            <div className="text-xs text-muted mt-1">Accuracy</div>
+          </div>
+        </div>
+      )}
 
       {/* Subtitle */}
       <p className="text-muted text-sm text-center whitespace-nowrap">

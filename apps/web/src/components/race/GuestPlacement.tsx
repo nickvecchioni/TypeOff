@@ -7,7 +7,7 @@ import { WordDisplay } from "@/components/typing/WordDisplay";
 import { PlacementReveal } from "./PlacementReveal";
 import { calibrateElo } from "@typeoff/shared";
 
-type Phase = "idle" | "racing" | "finished" | "reveal";
+type Phase = "idle" | "racing" | "reveal";
 
 const GUEST_WORD_COUNT = 35;
 
@@ -86,17 +86,9 @@ export function GuestPlacement() {
           JSON.stringify({ wpm: engine.stats.wpm })
         );
       } catch {}
-      setPhase("finished");
+      setPhase("reveal");
     }
   }, [engine.status, engine.stats, phase]);
-
-  // Auto-transition from finished stats → reveal after a brief pause
-  useEffect(() => {
-    if (phase === "finished") {
-      const timer = setTimeout(() => setPhase("reveal"), 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [phase]);
 
   // Focus container when entering idle/racing
   useEffect(() => {
@@ -116,7 +108,7 @@ export function GuestPlacement() {
     tabPressedRef.current = false;
   }, []);
 
-  // Handle Tab+Enter restart (matching Solo behavior)
+  // Handle Tab+Enter restart on the typing container
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === "Tab") {
@@ -139,29 +131,49 @@ export function GuestPlacement() {
     [engine.handleKeyDown, restart]
   );
 
-  // Enter key to start from idle CTA
+  // Window-level Tab+Enter / Escape listener (works in all phases including reveal)
   useEffect(() => {
-    if (phase !== "idle") return;
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Enter" && !e.metaKey && !e.ctrlKey && !e.altKey) {
-        const tag = (e.target as HTMLElement)?.tagName;
-        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || tag === "BUTTON" || tag === "A") return;
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || tag === "BUTTON" || tag === "A") return;
+
+      if (e.key === "Tab") {
+        e.preventDefault();
+        tabPressedRef.current = true;
+        return;
+      }
+      if (e.key === "Enter" && tabPressedRef.current) {
+        e.preventDefault();
+        tabPressedRef.current = false;
+        restart();
+        return;
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        restart();
+        return;
+      }
+
+      // Focus container on Enter during idle (start typing)
+      if (phase === "idle" && e.key === "Enter" && !e.metaKey && !e.ctrlKey && !e.altKey) {
         e.preventDefault();
         containerRef.current?.focus();
       }
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [phase]);
+  }, [phase, restart]);
 
   const { elo } = calibrateElo(finishedWpm);
   const isTyping = engine.status === "typing";
 
-  /* ── Reveal phase ────────────────────────────────────── */
+  /* ── Reveal phase (combined stats + rank) ────────────── */
   if (phase === "reveal") {
     return (
       <PlacementReveal
         elo={elo}
+        wpm={finishedWpm}
+        accuracy={finishedAccuracy}
         onContinue={() => signIn("google", { callbackUrl: "/" })}
         subtitle="Sign in to save your rank"
         ctaContent={
@@ -179,28 +191,6 @@ export function GuestPlacement() {
           </button>
         }
       />
-    );
-  }
-
-  /* ── Finished stats (brief display before reveal) ──── */
-  if (phase === "finished") {
-    return (
-      <div className="flex flex-col items-center gap-6 animate-fade-in">
-        <div className="flex gap-8">
-          <div className="text-center">
-            <div className="text-3xl font-black text-accent tabular-nums text-glow-accent">
-              {Math.round(finishedWpm)}
-            </div>
-            <div className="text-xs text-muted mt-1">WPM</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-black text-text tabular-nums">
-              {finishedAccuracy.toFixed(1)}%
-            </div>
-            <div className="text-xs text-muted mt-1">Accuracy</div>
-          </div>
-        </div>
-      </div>
     );
   }
 
@@ -222,9 +212,9 @@ export function GuestPlacement() {
             Placement Test
           </span>
           <p className="text-muted/60 text-xs text-center max-w-sm">
-            Just type naturally to set your starting rank. Don&apos;t stress
-            it&mdash;your first few races carry extra weight, so your rank
-            adjusts quickly.
+            Just type naturally to set your starting rank.
+            <br />
+            Your first few races carry extra weight, so don&apos;t worry.
           </p>
         </div>
       )}
