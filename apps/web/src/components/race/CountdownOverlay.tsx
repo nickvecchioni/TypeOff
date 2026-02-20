@@ -8,6 +8,9 @@ const MODE_LABELS: Record<RaceMode, string | null> = {
   quotes: "Quote",
   marathon: "Marathon",
   sprint: "Sprint",
+  punctuation: "Punctuation",
+  numbers: "Numbers",
+  difficult: "Difficult",
 };
 
 interface CountdownOverlayProps {

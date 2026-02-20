@@ -164,6 +164,184 @@ function AnimatedElo({
   );
 }
 
+/* ── Animated XP panel ──────────────────────────────────── */
+
+function AnimatedXpPanel({
+  xp,
+}: {
+  xp: {
+    xpEarned: number;
+    totalXp: number;
+    cosmeticLevel: number;
+    levelUp: boolean;
+    newRewards: Array<{
+      level: number;
+      type: string;
+      id: string;
+      name: string;
+      value: string;
+    }>;
+  };
+}) {
+  const [displayXp, setDisplayXp] = useState(0);
+  const [barPct, setBarPct] = useState(0);
+  const [levelUpVisible, setLevelUpVisible] = useState(false);
+  const [levelUpGlow, setLevelUpGlow] = useState(false);
+  const [showRewards, setShowRewards] = useState(false);
+  const [animStarted, setAnimStarted] = useState(false);
+  const rafRef = useRef<number>(0);
+  const phaseRef = useRef(0);
+
+  const prevTotalXp = xp.totalXp - xp.xpEarned;
+  const prevXpInLevel = prevTotalXp % XP_PER_COSMETIC_LEVEL;
+  const prevLevel = Math.min(
+    Math.floor(prevTotalXp / XP_PER_COSMETIC_LEVEL),
+    MAX_COSMETIC_LEVEL
+  );
+  const prevPct =
+    prevLevel >= MAX_COSMETIC_LEVEL
+      ? 100
+      : (prevXpInLevel / XP_PER_COSMETIC_LEVEL) * 100;
+
+  const xpInLevel = xp.totalXp % XP_PER_COSMETIC_LEVEL;
+  const finalPct =
+    xp.cosmeticLevel >= MAX_COSMETIC_LEVEL
+      ? 100
+      : (xpInLevel / XP_PER_COSMETIC_LEVEL) * 100;
+
+  useEffect(() => {
+    setBarPct(prevPct);
+
+    const delay = setTimeout(() => {
+      setAnimStarted(true);
+      const startTime = performance.now();
+      const duration = xp.levelUp ? 1800 : 1200;
+
+      const animate = (now: number) => {
+        const elapsed = now - startTime;
+        const t = Math.min(elapsed / duration, 1);
+        const ease = 1 - Math.pow(1 - t, 3);
+
+        setDisplayXp(Math.round(xp.xpEarned * ease));
+
+        if (xp.levelUp) {
+          if (t < 0.45) {
+            const p = t / 0.45;
+            const pe = 1 - Math.pow(1 - p, 3);
+            setBarPct(prevPct + (100 - prevPct) * pe);
+          } else if (t < 0.55) {
+            setBarPct(100);
+            if (phaseRef.current < 2) {
+              phaseRef.current = 2;
+              setLevelUpVisible(true);
+              setLevelUpGlow(true);
+            }
+          } else {
+            if (phaseRef.current < 3) {
+              phaseRef.current = 3;
+            }
+            const p = (t - 0.55) / 0.45;
+            const pe = 1 - Math.pow(1 - p, 3);
+            setBarPct(finalPct * pe);
+          }
+        } else {
+          setBarPct(prevPct + (finalPct - prevPct) * ease);
+        }
+
+        if (t < 1) {
+          rafRef.current = requestAnimationFrame(animate);
+        } else if (xp.newRewards.length > 0) {
+          setTimeout(() => setShowRewards(true), 200);
+        }
+      };
+
+      rafRef.current = requestAnimationFrame(animate);
+    }, 400);
+
+    return () => {
+      clearTimeout(delay);
+      cancelAnimationFrame(rafRef.current);
+    };
+  }, [prevPct, finalPct, xp.levelUp, xp.xpEarned, xp.newRewards.length]);
+
+  useEffect(() => {
+    if (!levelUpGlow) return;
+    const t = setTimeout(() => setLevelUpGlow(false), 800);
+    return () => clearTimeout(t);
+  }, [levelUpGlow]);
+
+  const displayLevel =
+    xp.levelUp && !levelUpVisible ? xp.cosmeticLevel - 1 : xp.cosmeticLevel;
+
+  return (
+    <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden px-3 py-2 sm:px-4 sm:py-2.5">
+      <div className="flex items-center justify-between mb-1">
+        <h3 className="text-xs font-bold text-accent/80 uppercase tracking-wider">
+          Level
+        </h3>
+        <span
+          className={`text-xs font-bold tabular-nums transition-opacity duration-300 ${
+            animStarted ? "opacity-100 text-accent" : "opacity-0 text-accent"
+          }`}
+        >
+          +{displayXp} XP
+        </span>
+      </div>
+      <div
+        className={`rounded-lg bg-surface/60 px-3 py-2 ring-1 transition-all duration-500 ${
+          levelUpGlow ? "ring-accent/40" : "ring-accent/10"
+        }`}
+      >
+        <div className="flex items-center justify-between mb-0.5">
+          <span className="text-xs font-bold text-accent">
+            Level {displayLevel}
+            {levelUpVisible && (
+              <span
+                className="text-correct ml-1.5 font-bold"
+                style={{ animation: "fade-in 0.3s ease-out" }}
+              >
+                &#9650; Level Up!
+              </span>
+            )}
+          </span>
+          <span className="text-[11px] text-muted tabular-nums">
+            {xp.cosmeticLevel >= MAX_COSMETIC_LEVEL
+              ? "Max level"
+              : `${xpInLevel} / ${XP_PER_COSMETIC_LEVEL}`}
+          </span>
+        </div>
+        <div
+          className={`h-1.5 rounded-full bg-surface overflow-hidden transition-shadow duration-500 ${
+            levelUpGlow ? "shadow-[0_0_8px_rgba(77,158,255,0.4)]" : ""
+          }`}
+        >
+          <div
+            className={`h-full rounded-full bg-accent ${
+              levelUpGlow ? "shadow-[0_0_6px_rgba(77,158,255,0.6)]" : ""
+            }`}
+            style={{ width: `${barPct}%` }}
+          />
+        </div>
+        {showRewards && xp.newRewards.length > 0 && (
+          <div
+            className="mt-2 flex flex-wrap gap-1.5"
+            style={{ animation: "slide-up 0.4s ease-out" }}
+          >
+            {xp.newRewards.map((r) => (
+              <span
+                key={r.id}
+                className="text-[10px] font-bold rounded px-2 py-1 bg-accent/[0.08] ring-1 ring-accent/20 text-accent"
+              >
+                {r.type === "badge" ? r.value : ""} {r.name}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ── Main component ──────────────────────────────────────── */
 
 export function RaceResults({
@@ -598,63 +776,9 @@ export function RaceResults({
             )}
 
             {/* Level XP */}
-            {hasXpProgress &&
-              (() => {
-                const xp = myResult!.xpProgress!;
-                const xpInLevel = xp.totalXp % XP_PER_COSMETIC_LEVEL;
-                const levelPct =
-                  xp.cosmeticLevel >= MAX_COSMETIC_LEVEL
-                    ? 100
-                    : (xpInLevel / XP_PER_COSMETIC_LEVEL) * 100;
-
-                return (
-                  <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden px-3 py-2 sm:px-4 sm:py-2.5">
-                    <div className="flex items-center justify-between mb-1">
-                      <h3 className="text-xs font-bold text-accent/80 uppercase tracking-wider">
-                        Level
-                      </h3>
-                      <span className="text-xs font-bold text-accent tabular-nums">
-                        +{xp.xpEarned} XP
-                      </span>
-                    </div>
-                    <div className="rounded-lg bg-surface/60 px-3 py-2 ring-1 ring-accent/10">
-                      <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-xs font-bold text-accent">
-                          Level {xp.cosmeticLevel}
-                          {xp.levelUp && (
-                            <span className="text-correct ml-1.5 font-bold">
-                              &#9650; Level Up!
-                            </span>
-                          )}
-                        </span>
-                        <span className="text-[11px] text-muted tabular-nums">
-                          {xp.cosmeticLevel >= MAX_COSMETIC_LEVEL
-                            ? "Max level"
-                            : `${xpInLevel} / ${XP_PER_COSMETIC_LEVEL}`}
-                        </span>
-                      </div>
-                      <div className="h-1.5 rounded-full bg-surface overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-accent transition-all"
-                          style={{ width: `${Math.round(levelPct)}%` }}
-                        />
-                      </div>
-                      {xp.newRewards.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-1.5">
-                          {xp.newRewards.map((r) => (
-                            <span
-                              key={r.id}
-                              className="text-[10px] font-bold rounded px-2 py-1 bg-white/[0.06] text-text"
-                            >
-                              {r.type === "badge" ? r.value : ""} {r.name}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })()}
+            {hasXpProgress && (
+              <AnimatedXpPanel xp={myResult!.xpProgress!} />
+            )}
         </div>
       )}
 

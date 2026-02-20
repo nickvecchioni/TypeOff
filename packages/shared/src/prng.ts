@@ -1,4 +1,11 @@
 import { commonWords, wordPoolByDifficulty } from "./words";
+
+/** Combined pool from all difficulty levels for "difficult" mode */
+const allDifficultyPool = [
+  ...wordPoolByDifficulty.easy,
+  ...wordPoolByDifficulty.medium,
+  ...wordPoolByDifficulty.hard,
+];
 import { getQuoteWords } from "./quotes";
 import type { RaceMode } from "./race-types";
 import type { TestConfig } from "./types";
@@ -106,6 +113,54 @@ export function generateFromPoolForLines(
   return generateWordsForLines(commonWords, lineWidthCh, numLines, seed);
 }
 
+/**
+ * Generate words mixed with number sequences for "numbers" mode.
+ * ~20% of tokens are random digit strings (1-4 digits).
+ */
+function generateNumbersModeWords(
+  lineWidthCh: number,
+  numLines: number,
+  seed: number
+): string[] {
+  const rng = mulberry32(seed);
+  const words: string[] = [];
+  let prev = -1;
+  let lineUsed = 0;
+  let line = 1;
+
+  while (true) {
+    let word: string;
+
+    if (rng() < 0.2) {
+      const digits = 1 + Math.floor(rng() * 4);
+      word = "";
+      for (let d = 0; d < digits; d++) {
+        word += Math.floor(rng() * 10).toString();
+      }
+    } else {
+      let idx: number;
+      do {
+        idx = Math.floor(rng() * commonWords.length);
+      } while (idx === prev && commonWords.length > 1);
+      prev = idx;
+      word = commonWords[idx];
+    }
+
+    const wordCh = word.length + 1;
+    if (lineUsed + wordCh > lineWidthCh && lineUsed > 0) {
+      line++;
+      if (line > numLines) break;
+      lineUsed = wordCh;
+    } else {
+      lineUsed += wordCh;
+    }
+
+    words.push(word);
+  }
+
+  return words;
+}
+
 /** Generate words for a given race mode.
  *  For quotes mode, seed is the quote index.
  *  For other modes, seed is the PRNG seed. */
@@ -119,6 +174,15 @@ export function generateWordsForMode(mode: RaceMode, seed: number): string[] {
       return generateFromPoolForLines(LINE_WIDTH_CH, SPRINT_LINES, seed);
     case "quotes":
       return getQuoteWords(seed);
+    case "punctuation":
+      return applyPunctuation(
+        generateFromPoolForLines(LINE_WIDTH_CH, TARGET_LINES, seed),
+        seed + 1
+      );
+    case "numbers":
+      return generateNumbersModeWords(LINE_WIDTH_CH, TARGET_LINES, seed);
+    case "difficult":
+      return generateWordsForLines(allDifficultyPool, LINE_WIDTH_CH, TARGET_LINES, seed);
   }
 }
 

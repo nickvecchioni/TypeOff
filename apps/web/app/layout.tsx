@@ -7,6 +7,7 @@ import { UsernameGuard } from "@/components/auth/UsernameGuard";
 import { FriendsButton } from "@/components/social/FriendsButton";
 import { NavNotifications } from "@/components/social/NavNotifications";
 import { MobileNav } from "@/components/MobileNav";
+import { NavLinks } from "@/components/NavLinks";
 import { NotificationToast } from "@/components/social/NotificationToast";
 import { SocketProvider } from "@/hooks/useSocket";
 import { SocialProvider } from "@/hooks/useSocial";
@@ -48,42 +49,7 @@ export default function RootLayout({
                     TypeOff
                   </span>
                 </Link>
-                <Link
-                  href="/leaderboard"
-                  className="hidden md:inline text-sm text-muted hover:text-text transition-colors"
-                >
-                  Leaderboard
-                </Link>
-                <Link
-                  href="/ranks"
-                  className="hidden md:inline text-sm text-muted hover:text-text transition-colors"
-                >
-                  Ranks
-                </Link>
-                <Link
-                  href="/solo"
-                  className="hidden md:inline text-sm text-muted hover:text-text transition-colors"
-                >
-                  Solo
-                </Link>
-                <Link
-                  href="/spectate"
-                  className="hidden md:inline text-sm text-muted hover:text-text transition-colors"
-                >
-                  Spectate
-                </Link>
-                <Link
-                  href="/clans"
-                  className="hidden md:inline text-sm text-muted hover:text-text transition-colors"
-                >
-                  Clans
-                </Link>
-                <Link
-                  href="/pro"
-                  className="hidden md:inline text-sm text-amber-400/70 hover:text-amber-400 transition-colors"
-                >
-                  Pro
-                </Link>
+                <NavLinks />
               </div>
               <div className="flex items-center gap-2 sm:gap-3">
                 <UserMenu />

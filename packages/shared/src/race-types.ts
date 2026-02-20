@@ -6,7 +6,7 @@ export type EmoteKey = (typeof EMOTE_KEYS)[number];
 export type RaceStatus = "waiting" | "countdown" | "racing" | "finished";
 
 /** Race mode determines text generation and display */
-export type RaceMode = "standard" | "quotes" | "marathon" | "sprint";
+export type RaceMode = "standard" | "quotes" | "marathon" | "sprint" | "punctuation" | "numbers" | "difficult";
 
 /** A player in a race */
 export interface RacePlayer {

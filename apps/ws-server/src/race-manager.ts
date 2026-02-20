@@ -82,7 +82,10 @@ export class RaceManager {
   private mode: RaceMode;
   private spectatorInfo = new Map<string, { userId: string; name: string }>();
 
-  private static readonly MODES: RaceMode[] = ["standard", "quotes", "marathon", "sprint"];
+  private static readonly MODES: RaceMode[] = [
+    "standard", "quotes", "marathon", "sprint",
+    "punctuation", "numbers", "difficult",
+  ];
 
   constructor(
     private io: TypedServer,
