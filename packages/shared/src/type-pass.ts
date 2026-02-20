@@ -1,3 +1,9 @@
+// ─── Pro Subscription Constants ────────────────────────────────────────
+
+export const PRO_MONTHLY_PRICE = 4.99;
+export const PRO_YEARLY_PRICE = 39.99;
+export const PRO_BADGE_ID = "pro_badge";
+
 // ─── Types ────────────────────────────────────────────────────────────
 
 export type RewardType =
@@ -26,7 +32,6 @@ export interface SeasonDefinition {
   endDate: string; // ISO date
   maxTier: number;
   xpPerTier: number;
-  priceUsd: number;
   rewards: TypePassReward[];
 }
 
@@ -144,6 +149,7 @@ export const BADGE_EMOJIS: Record<string, string> = {
   s1_badge_bolt: "\u26A1",
   s1_badge_gem: "\uD83D\uDC8E",
   s1_badge_lightning: "\u26A1",
+  pro_badge: "\u2B50",
 };
 
 /** Title text map — keyed by cosmetic ID */
@@ -175,45 +181,45 @@ export const NAME_EFFECT_CLASSES: Record<string, string> = {
 const SEASON_1_REWARDS: TypePassReward[] = [
   // Tier 1-5
   { tier: 1,  type: "badge",         id: "s1_badge_spark",          name: "Spark",              value: "\u2728",        premium: false },
-  { tier: 2,  type: "nameColor",     id: "s1_color_sky",            name: "Sky Blue",           value: "#7dd3fc",       premium: true },
+  { tier: 2,  type: "nameColor",     id: "s1_color_sky",            name: "Sky Blue",           value: "#7dd3fc",       premium: false },
   { tier: 3,  type: "cursorStyle",   id: "s1_cursor_neon_green",    name: "Neon Green",         value: "neon-green",    premium: false },
-  { tier: 4,  type: "title",         id: "s1_title_rookie",         name: "Season Rookie",      value: "Season Rookie", premium: true },
+  { tier: 4,  type: "title",         id: "s1_title_rookie",         name: "Season Rookie",      value: "Season Rookie", premium: false },
   { tier: 5,  type: "badge",         id: "s1_badge_flame",          name: "Flame",              value: "\uD83D\uDD25",  premium: false },
 
   // Tier 6-10
-  { tier: 6,  type: "profileBorder", id: "s1_border_ember",         name: "Ember Border",       value: "ember",         premium: true },
+  { tier: 6,  type: "profileBorder", id: "s1_border_ember",         name: "Ember Border",       value: "ember",         premium: false },
   { tier: 7,  type: "nameColor",     id: "s1_color_lime",           name: "Lime",               value: "#a3e635",       premium: false },
-  { tier: 8,  type: "cursorStyle",   id: "s1_cursor_block_gold",    name: "Block Gold",         value: "block-gold",    premium: true },
+  { tier: 8,  type: "cursorStyle",   id: "s1_cursor_block_gold",    name: "Block Gold",         value: "block-gold",    premium: false },
   { tier: 9,  type: "title",         id: "s1_title_grinder",        name: "Grinder",            value: "Grinder",       premium: false },
-  { tier: 10, type: "typingTheme",   id: "s1_theme_terminal",       name: "Terminal",           value: "terminal",      premium: true },
+  { tier: 10, type: "typingTheme",   id: "s1_theme_terminal",       name: "Terminal",           value: "terminal",      premium: false },
 
   // Tier 11-15
   { tier: 11, type: "badge",         id: "s1_badge_bolt",           name: "Lightning Bolt",     value: "\u26A1",        premium: false },
-  { tier: 12, type: "nameEffect",    id: "s1_effect_glow",          name: "Subtle Glow",        value: "glow-subtle",   premium: true },
+  { tier: 12, type: "nameEffect",    id: "s1_effect_glow",          name: "Subtle Glow",        value: "glow-subtle",   premium: false },
   { tier: 13, type: "cursorStyle",   id: "s1_cursor_pulse_pink",    name: "Pulse Pink",         value: "pulse-pink",    premium: false },
-  { tier: 14, type: "profileBorder", id: "s1_border_ice",           name: "Ice Border",         value: "ice",           premium: true },
+  { tier: 14, type: "profileBorder", id: "s1_border_ice",           name: "Ice Border",         value: "ice",           premium: false },
   { tier: 15, type: "nameColor",     id: "s1_color_violet",         name: "Violet",             value: "#a78bfa",       premium: false },
 
   // Tier 16-20
-  { tier: 16, type: "title",         id: "s1_title_typist",         name: "Pro Typist",         value: "Pro Typist",    premium: true },
+  { tier: 16, type: "title",         id: "s1_title_typist",         name: "Pro Typist",         value: "Pro Typist",    premium: false },
   { tier: 17, type: "typingTheme",   id: "s1_theme_neon",           name: "Neon",               value: "neon",          premium: false },
-  { tier: 18, type: "badge",         id: "s1_badge_gem",            name: "Gem",                value: "\uD83D\uDC8E",  premium: true },
+  { tier: 18, type: "badge",         id: "s1_badge_gem",            name: "Gem",                value: "\uD83D\uDC8E",  premium: false },
   { tier: 19, type: "cursorStyle",   id: "s1_cursor_underline_cyan",name: "Underline Cyan",     value: "underline-cyan",premium: false },
-  { tier: 20, type: "profileBorder", id: "s1_border_diamond",       name: "Diamond Border",     value: "diamond",       premium: true },
+  { tier: 20, type: "profileBorder", id: "s1_border_diamond",       name: "Diamond Border",     value: "diamond",       premium: false },
 
   // Tier 21-25
   { tier: 21, type: "nameColor",     id: "s1_color_rose",           name: "Rose",               value: "#fb7185",       premium: false },
-  { tier: 22, type: "nameEffect",    id: "s1_effect_pulse",         name: "Pulse",              value: "glow-pulse",    premium: true },
+  { tier: 22, type: "nameEffect",    id: "s1_effect_pulse",         name: "Pulse",              value: "glow-pulse",    premium: false },
   { tier: 23, type: "typingTheme",   id: "s1_theme_sunset",         name: "Sunset",             value: "sunset",        premium: false },
-  { tier: 24, type: "cursorStyle",   id: "s1_cursor_ember",         name: "Ember",              value: "ember",         premium: true },
+  { tier: 24, type: "cursorStyle",   id: "s1_cursor_ember",         name: "Ember",              value: "ember",         premium: false },
   { tier: 25, type: "title",         id: "s1_title_elite",          name: "Elite",              value: "Elite",         premium: false },
 
   // Tier 26-30
-  { tier: 26, type: "nameColor",     id: "s1_color_gold",           name: "Gold",               value: "#facc15",       premium: true },
+  { tier: 26, type: "nameColor",     id: "s1_color_gold",           name: "Gold",               value: "#facc15",       premium: false },
   { tier: 27, type: "profileBorder", id: "s1_border_void",          name: "Void Border",        value: "void",          premium: false },
-  { tier: 28, type: "nameEffect",    id: "s1_effect_rainbow",       name: "Rainbow Shift",      value: "glow-rainbow",  premium: true },
+  { tier: 28, type: "nameEffect",    id: "s1_effect_rainbow",       name: "Rainbow Shift",      value: "glow-rainbow",  premium: false },
   { tier: 29, type: "typingTheme",   id: "s1_theme_midnight",       name: "Midnight",           value: "midnight",      premium: false },
-  { tier: 30, type: "cursorStyle",   id: "s1_cursor_rainbow",       name: "Rainbow",            value: "rainbow",       premium: true },
+  { tier: 30, type: "cursorStyle",   id: "s1_cursor_rainbow",       name: "Rainbow",            value: "rainbow",       premium: false },
 ];
 
 export const SEASON_1: SeasonDefinition = {
@@ -223,7 +229,6 @@ export const SEASON_1: SeasonDefinition = {
   endDate: "2026-05-17",
   maxTier: 30,
   xpPerTier: 500,
-  priceUsd: 7.99,
   rewards: SEASON_1_REWARDS,
 };
 

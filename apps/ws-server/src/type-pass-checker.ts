@@ -79,7 +79,7 @@ export async function checkTypePass(
   const newRewards: TypePassReward[] = [];
   if (tierUp) {
     for (let t = prevTier + 1; t <= newTier; t++) {
-      const rewards = getNewRewardsAtTier(season, t, isPremium);
+      const rewards = getNewRewardsAtTier(season, t, true);
       for (const reward of rewards) {
         await db
           .insert(userCosmetics)

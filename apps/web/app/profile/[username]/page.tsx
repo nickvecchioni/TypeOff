@@ -1,8 +1,9 @@
 export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { getDb } from "@/lib/db";
-import { users, userStats, raceParticipants, races, userAchievements, userActiveCosmetics, soloResults } from "@typeoff/db";
+import { users, userStats, raceParticipants, races, userAchievements, userActiveCosmetics, soloResults, clans, userSubscription } from "@typeoff/db";
 import { eq, desc, sql } from "drizzle-orm";
 import { getRankInfo, getRankProgress, getNextDivisionElo, ACHIEVEMENTS, getXpLevel, PROFILE_BORDERS } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
@@ -36,6 +37,7 @@ export default async function ProfilePage({
       peakRankTier: users.peakRankTier,
       placementsCompleted: users.placementsCompleted,
       lastSeen: users.lastSeen,
+      clanId: users.clanId,
     })
     .from(users)
     .where(eq(users.username, username))
@@ -55,6 +57,7 @@ export default async function ProfilePage({
   // Load recent races (last 50)
   const recentRaces = await db
     .select({
+      raceId: raceParticipants.raceId,
       placement: raceParticipants.placement,
       wpm: raceParticipants.wpm,
       rawWpm: raceParticipants.rawWpm,
@@ -107,6 +110,25 @@ export default async function ProfilePage({
     .from(userActiveCosmetics)
     .where(eq(userActiveCosmetics.userId, user.id))
     .limit(1);
+
+  // Load clan info
+  let userClan: { id: string; name: string; tag: string } | null = null;
+  if (user.clanId) {
+    const [clanRow] = await db
+      .select({ id: clans.id, name: clans.name, tag: clans.tag })
+      .from(clans)
+      .where(eq(clans.id, user.clanId))
+      .limit(1);
+    userClan = clanRow ?? null;
+  }
+
+  // Check Pro status
+  const [subRow] = await db
+    .select({ status: userSubscription.status })
+    .from(userSubscription)
+    .where(eq(userSubscription.userId, user.id))
+    .limit(1);
+  const isProUser = subRow?.status === "active";
 
   // Check if this is own profile
   const { auth } = await import("@/lib/auth");
@@ -164,8 +186,18 @@ export default async function ProfilePage({
                         </h1>
                       )}
                       <CosmeticBadge badge={activeCosmetics?.activeBadge} />
+                      {isProUser && (
+                        <span className="text-[10px] font-bold text-amber-400/70 bg-amber-400/[0.08] px-1.5 py-0.5 rounded uppercase tracking-wider">
+                          Pro
+                        </span>
+                      )}
                     </div>
                     <CosmeticTitle title={activeCosmetics?.activeTitle} />
+                    {userClan && (
+                      <Link href={`/clans/${userClan.id}`} className="text-xs text-accent/50 hover:text-accent transition-colors">
+                        [{userClan.tag}] {userClan.name}
+                      </Link>
+                    )}
                   </div>
                 </div>
                 {isOnline && (
@@ -336,6 +368,7 @@ export default async function ProfilePage({
                     <th className="px-3 sm:px-4 py-2.5 font-medium text-right">WPM</th>
                     <th className="px-3 sm:px-4 py-2.5 font-medium text-right">Acc</th>
                     <th className="px-3 sm:px-4 py-2.5 font-medium text-right">ELO</th>
+                    <th className="px-3 sm:px-4 py-2.5 font-medium text-right w-8"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -408,6 +441,17 @@ export default async function ProfilePage({
                             <span className="text-muted text-xs">-</span>
                           )}
                         </td>
+                        <td className="px-3 sm:px-4 py-2.5 text-right">
+                          <Link
+                            href={`/races/${race.raceId}`}
+                            className="text-muted/30 hover:text-accent transition-colors"
+                            title="Watch replay"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M8 5v14l11-7z" />
+                            </svg>
+                          </Link>
+                        </td>
                       </tr>
                     );
                   })}
@@ -415,6 +459,36 @@ export default async function ProfilePage({
               </table>
             </div>
           </section>
+        )}
+
+        {/* ── Pro Feature Links ──────────────────────────── */}
+        {isOwn && (
+          <div className="flex gap-2">
+            <Link
+              href="/history"
+              className="flex items-center gap-2 rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-4 py-2.5 hover:ring-accent/20 transition-all group flex-1"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted/50 group-hover:text-accent transition-colors">
+                <path d="M12 8v4l3 3" /><circle cx="12" cy="12" r="10" />
+              </svg>
+              <span className="text-xs font-medium text-muted group-hover:text-text transition-colors">Full History</span>
+              {!session?.user?.isPro && (
+                <span className="text-[9px] font-bold text-amber-400/60 bg-amber-400/[0.06] px-1.5 py-0.5 rounded uppercase tracking-wider ml-auto">Pro</span>
+              )}
+            </Link>
+            <Link
+              href="/analytics"
+              className="flex items-center gap-2 rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-4 py-2.5 hover:ring-accent/20 transition-all group flex-1"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted/50 group-hover:text-accent transition-colors">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg>
+              <span className="text-xs font-medium text-muted group-hover:text-text transition-colors">Analytics</span>
+              {!session?.user?.isPro && (
+                <span className="text-[9px] font-bold text-amber-400/60 bg-amber-400/[0.06] px-1.5 py-0.5 rounded uppercase tracking-wider ml-auto">Pro</span>
+              )}
+            </Link>
+          </div>
         )}
 
         {isOwn && (

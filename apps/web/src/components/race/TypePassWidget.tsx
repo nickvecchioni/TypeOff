@@ -48,13 +48,12 @@ export function TypePassWidget() {
   const season = data.season;
   const tier = data.userState?.currentTier ?? 0;
   const xp = data.userState?.seasonalXp ?? 0;
-  const isPremium = data.userState?.isPremium ?? false;
   const xpInTier = xp % season.xpPerTier;
   const xpPct = tier >= season.maxTier ? 100 : (xpInTier / season.xpPerTier) * 100;
 
   // Next reward
   const nextReward = season.rewards.find(
-    (r) => r.tier === tier + 1 && (!r.premium || isPremium),
+    (r) => r.tier === tier + 1,
   );
 
   // Season countdown
@@ -66,7 +65,7 @@ export function TypePassWidget() {
 
   return (
     <Link
-      href="/type-pass"
+      href="/pro"
       className="flex flex-col w-full h-full rounded-xl bg-surface/50 ring-1 ring-white/[0.04] overflow-hidden hover:ring-amber-400/20 transition-all group"
     >
       <div className="h-px bg-gradient-to-r from-transparent via-amber-400/20 to-transparent" />
@@ -74,13 +73,8 @@ export function TypePassWidget() {
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
-            TypePass
+            Season
           </span>
-          {isPremium && (
-            <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-400/10 text-amber-400 rounded px-1.5 py-0.5">
-              Premium
-            </span>
-          )}
         </div>
         <span className="text-[11px] text-muted tabular-nums">
           {daysLeft}d left

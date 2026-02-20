@@ -3,7 +3,7 @@ import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { getDb } from "./db";
-import { users, accounts, sessions, verificationTokens, userStats, userTypePass, userActiveCosmetics } from "@typeoff/db";
+import { users, accounts, sessions, verificationTokens, userStats, userTypePass, userActiveCosmetics, userSubscription, clans } from "@typeoff/db";
 import { getCurrentSeason } from "@typeoff/shared";
 import { eq, and } from "drizzle-orm";
 
@@ -69,6 +69,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             rankTier: users.rankTier,
             username: users.username,
             placementsCompleted: users.placementsCompleted,
+            clanId: users.clanId,
             currentStreak: userStats.currentStreak,
             totalXp: userStats.totalXp,
           })
@@ -88,13 +89,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return {} as typeof token;
         }
 
-        // Fetch type pass + cosmetics
+        // Fetch season tier (for progression display)
         const season = getCurrentSeason();
         if (season) {
           const [kp] = await db
             .select({
               currentTier: userTypePass.currentTier,
-              isPremium: userTypePass.isPremium,
             })
             .from(userTypePass)
             .where(
@@ -105,11 +105,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             )
             .limit(1);
           token.seasonTier = kp?.currentTier ?? 0;
-          token.hasTypePass = kp?.isPremium ?? false;
         } else {
           token.seasonTier = 0;
-          token.hasTypePass = false;
         }
+
+        // Fetch Pro subscription status
+        const [sub] = await db
+          .select({ status: userSubscription.status })
+          .from(userSubscription)
+          .where(eq(userSubscription.userId, token.id as string))
+          .limit(1);
+        token.isPro = sub?.status === "active";
 
         const [cosmetics] = await db
           .select({
@@ -123,6 +129,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.activeBadge = cosmetics?.activeBadge ?? null;
         token.activeTitle = cosmetics?.activeTitle ?? null;
         token.activeNameColor = cosmetics?.activeNameColor ?? null;
+
+        // Fetch clan info
+        if (row[0].clanId) {
+          const [clan] = await db
+            .select({ tag: clans.tag })
+            .from(clans)
+            .where(eq(clans.id, row[0].clanId as string))
+            .limit(1);
+          token.clanId = row[0].clanId;
+          token.clanTag = clan?.tag ?? null;
+        } else {
+          token.clanId = null;
+          token.clanTag = null;
+        }
 
         token.eloRefreshedAt = now;
       }
@@ -138,10 +158,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.currentStreak = (token.currentStreak as number) ?? 0;
         session.user.totalXp = (token.totalXp as number) ?? 0;
         session.user.seasonTier = (token.seasonTier as number) ?? 0;
-        session.user.hasTypePass = (token.hasTypePass as boolean) ?? false;
+        session.user.isPro = (token.isPro as boolean) ?? false;
         session.user.activeBadge = (token.activeBadge as string) ?? null;
         session.user.activeTitle = (token.activeTitle as string) ?? null;
         session.user.activeNameColor = (token.activeNameColor as string) ?? null;
+        session.user.clanId = (token.clanId as string) ?? null;
+        session.user.clanTag = (token.clanTag as string) ?? null;
       }
       return session;
     },

@@ -29,6 +29,7 @@ interface RaceResultsProps {
   myWpmHistory?: WpmSample[];
   party?: PartyState | null;
   onMarkReady?: () => void;
+  raceId?: string | null;
 }
 
 const RARITY_RING: Record<AchievementRarity, string> = {
@@ -176,6 +177,7 @@ export function RaceResults({
   myWpmHistory,
   party,
   onMarkReady,
+  raceId,
 }: RaceResultsProps) {
   const { data: session } = useSession();
   const isPlacement = placementRace != null && placementTotal != null;
@@ -645,11 +647,7 @@ export function RaceResults({
                           {kp.newRewards.map((r) => (
                             <span
                               key={r.id}
-                              className={`text-[10px] font-bold rounded px-2 py-1 ${
-                                r.premium
-                                  ? "bg-amber-400/10 text-amber-400"
-                                  : "bg-white/[0.06] text-text"
-                              }`}
+                              className="text-[10px] font-bold rounded px-2 py-1 bg-white/[0.06] text-text"
                             >
                               {r.type === "badge" ? r.value : ""} {r.name}
                             </span>
@@ -755,12 +753,22 @@ export function RaceResults({
             )}
           </>
         )}
-        <button
-          onClick={onGoHome}
-          className="text-xs text-muted/40 hover:text-muted transition-colors"
-        >
-          go home
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onGoHome}
+            className="text-xs text-muted/40 hover:text-muted transition-colors"
+          >
+            go home
+          </button>
+          {raceId && (
+            <Link
+              href={`/races/${raceId}`}
+              className="text-xs text-muted/40 hover:text-muted transition-colors"
+            >
+              watch replay
+            </Link>
+          )}
+        </div>
       </div>
     </div>
   );

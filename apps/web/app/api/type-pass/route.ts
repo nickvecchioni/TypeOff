@@ -55,7 +55,6 @@ export async function GET() {
       endDate: season.endDate,
       maxTier: season.maxTier,
       xpPerTier: season.xpPerTier,
-      priceUsd: season.priceUsd,
       rewards: season.rewards,
     },
     userState,

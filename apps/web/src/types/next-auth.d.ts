@@ -14,10 +14,12 @@ declare module "next-auth" {
       currentStreak: number;
       totalXp: number;
       seasonTier: number;
-      hasTypePass: boolean;
+      isPro: boolean;
       activeBadge: string | null;
       activeTitle: string | null;
       activeNameColor: string | null;
+      clanId: string | null;
+      clanTag: string | null;
     };
   }
 }
@@ -32,9 +34,11 @@ declare module "next-auth/jwt" {
     currentStreak?: number;
     totalXp?: number;
     seasonTier?: number;
-    hasTypePass?: boolean;
+    isPro?: boolean;
     activeBadge?: string | null;
     activeTitle?: string | null;
     activeNameColor?: string | null;
+    clanId?: string | null;
+    clanTag?: string | null;
   }
 }

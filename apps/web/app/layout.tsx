@@ -5,9 +5,12 @@ import { SessionProvider } from "@/components/auth/SessionProvider";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { UsernameGuard } from "@/components/auth/UsernameGuard";
 import { FriendsButton } from "@/components/social/FriendsButton";
+import { NavNotifications } from "@/components/social/NavNotifications";
+import { NotificationToast } from "@/components/social/NotificationToast";
 import { SocketProvider } from "@/hooks/useSocket";
 import { SocialProvider } from "@/hooks/useSocial";
 import { ChatProvider } from "@/hooks/useChat";
+import { NotificationProvider } from "@/hooks/useNotifications";
 import { CosmeticProvider } from "@/contexts/CosmeticContext";
 import "./globals.css";
 
@@ -34,6 +37,7 @@ export default function RootLayout({
           <SocketProvider>
           <SocialProvider>
           <ChatProvider>
+          <NotificationProvider>
           <UsernameGuard>
             <nav className="relative z-30 flex items-center justify-between px-4 sm:px-6 py-3">
               <div className="flex items-center gap-4 sm:gap-8">
@@ -67,21 +71,30 @@ export default function RootLayout({
                   Spectate
                 </Link>
                 <Link
-                  href="/type-pass"
+                  href="/clans"
+                  className="text-sm text-muted hover:text-text transition-colors"
+                >
+                  Clans
+                </Link>
+                <Link
+                  href="/pro"
                   className="text-sm text-amber-400/70 hover:text-amber-400 transition-colors"
                 >
-                  TypePass
+                  Pro
                 </Link>
               </div>
               <div className="flex items-center gap-3">
                 <UserMenu />
+                <NavNotifications />
                 <FriendsButton />
               </div>
             </nav>
             <div className="relative z-10 flex-1 flex flex-col min-h-0">
               {children}
             </div>
+            <NotificationToast />
           </UsernameGuard>
+          </NotificationProvider>
           </ChatProvider>
           </SocialProvider>
           </SocketProvider>

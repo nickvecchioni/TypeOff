@@ -29,6 +29,7 @@ export const users = pgTable("users", {
   peakRankTier: text("peak_rank_tier").notNull().default("bronze"),
   placementsCompleted: boolean("placements_completed").notNull().default(false),
   lastSeen: timestamp("last_seen", { mode: "date" }),
+  clanId: uuid("clan_id"),
 });
 
 export const accounts = pgTable(
@@ -99,6 +100,8 @@ export const raceParticipants = pgTable("race_participants", {
   eloAfter: integer("elo_after"),
   flagged: boolean("flagged").notNull().default(false),
   flagReason: text("flag_reason"),
+  wpmHistory: text("wpm_history"), // JSON: WpmSample[]
+  replayData: text("replay_data"), // JSON: ReplaySnapshot[]
 });
 
 // ─── Friendship Tables ──────────────────────────────────────────────
@@ -245,6 +248,84 @@ export const userCosmetics = pgTable(
   },
   (t) => [primaryKey({ columns: [t.userId, t.cosmeticId] })],
 );
+
+// ─── Notifications ──────────────────────────────────────────────
+
+export const notifications = pgTable("notifications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  type: text("type").notNull(), // "friend_request" | "clan_invite" | "achievement" | "challenge_complete" | "rank_up" | "rank_down"
+  title: text("title").notNull(),
+  body: text("body").notNull(),
+  metadata: text("metadata"), // JSON-stringified
+  actionUrl: text("action_url"),
+  read: boolean("read").notNull().default(false),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+});
+
+// ─── Clans ──────────────────────────────────────────────────────
+
+export const clans = pgTable("clans", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull().unique(),
+  tag: text("tag").notNull().unique(),
+  description: text("description"),
+  leaderId: text("leader_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  eloRating: integer("elo_rating").notNull().default(1000),
+  memberCount: integer("member_count").notNull().default(1),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+});
+
+export const clanMembers = pgTable(
+  "clan_members",
+  {
+    clanId: uuid("clan_id")
+      .notNull()
+      .references(() => clans.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: text("role").notNull().default("member"), // "leader" | "officer" | "member"
+    joinedAt: timestamp("joined_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.clanId, t.userId] })],
+);
+
+export const clanInvites = pgTable("clan_invites", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  clanId: uuid("clan_id")
+    .notNull()
+    .references(() => clans.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  invitedBy: text("invited_by")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  status: text("status").notNull().default("pending"), // "pending" | "accepted" | "declined"
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  expiresAt: timestamp("expires_at", { mode: "date" }).notNull(),
+});
+
+// ─── Pro Subscription ──────────────────────────────────────────────
+
+export const userSubscription = pgTable("user_subscription", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  stripeCustomerId: text("stripe_customer_id").notNull(),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  stripePriceId: text("stripe_price_id"),
+  status: text("status").notNull().default("inactive"), // "active" | "past_due" | "canceled" | "inactive"
+  currentPeriodEnd: timestamp("current_period_end", { mode: "date" }),
+  cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+});
 
 export const userActiveCosmetics = pgTable("user_active_cosmetics", {
   userId: text("user_id")
