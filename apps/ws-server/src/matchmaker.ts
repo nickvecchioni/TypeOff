@@ -3,6 +3,7 @@ import type {
   ClientToServerEvents,
   ServerToClientEvents,
   RacePlayer,
+  ModeCategory,
   WpmSample,
   EmoteKey,
 } from "@typeoff/shared";
@@ -21,6 +22,7 @@ interface QueueEntry {
   player: RacePlayer;
   joinedAt: number;
   partyId?: string;
+  modeCategory: ModeCategory;
 }
 
 const MAX_PLAYERS = 4;
@@ -53,7 +55,7 @@ export class Matchmaker implements RaceOwner {
     this.onRaceStarted = cb;
   }
 
-  async addToQueue(socket: TypedSocket, player: RacePlayer) {
+  async addToQueue(socket: TypedSocket, player: RacePlayer, modeCategory: ModeCategory = "words") {
     // Remove if already in queue
     this.removeFromQueue(socket.id);
 
@@ -82,7 +84,7 @@ export class Matchmaker implements RaceOwner {
     }
 
     // Normal ranked queue
-    this.queue.push({ socket, player, joinedAt: Date.now() });
+    this.queue.push({ socket, player, joinedAt: Date.now(), modeCategory });
     this.broadcastQueueCount();
 
     // Try to match immediately (solo players get bots, groups get matched)
@@ -92,6 +94,7 @@ export class Matchmaker implements RaceOwner {
   async addPartyToQueue(
     entries: Array<{ socket: TypedSocket; player: RacePlayer }>,
     partyId: string,
+    modeCategory: ModeCategory = "words",
   ) {
     // Remove all party members from any existing queue
     for (const entry of entries) {
@@ -133,6 +136,7 @@ export class Matchmaker implements RaceOwner {
         player: entry.player,
         joinedAt: now,
         partyId,
+        modeCategory,
       });
     }
 
@@ -323,12 +327,14 @@ export class Matchmaker implements RaceOwner {
 
       addWithParty(i);
 
-      // Collect ELO-compatible players
+      // Collect ELO-compatible players with matching modeCategory
       for (let j = 0; j < this.queue.length; j++) {
         if (j === i || matched.has(j) || group.includes(j)) continue;
         if (group.length >= MAX_PLAYERS) break;
 
-        const dist = Math.abs(entry.player.elo - this.queue[j].player.elo);
+        const candidate = this.queue[j];
+        if (candidate.modeCategory !== entry.modeCategory) continue;
+        const dist = Math.abs(entry.player.elo - candidate.player.elo);
         if (dist <= window) {
           addWithParty(j);
         }
@@ -345,7 +351,7 @@ export class Matchmaker implements RaceOwner {
         for (const idx of group) matched.add(idx);
         const entries = group.map((idx) => this.queue[idx]);
         const botCount = MAX_PLAYERS - entries.length;
-        this.startRaceWithBots(entries, botCount);
+        this.startRaceWithBots(entries, botCount, entry.modeCategory);
       }
     }
 
@@ -360,8 +366,9 @@ export class Matchmaker implements RaceOwner {
   }
 
   private startRace(entries: QueueEntry[]) {
+    const modeCategory = entries[0]?.modeCategory ?? "words";
     const race = new RaceManager(
-      this.io, entries, this, [], undefined, undefined, this.notificationManager,
+      this.io, entries, this, [], undefined, undefined, this.notificationManager, modeCategory,
     );
 
     this.races.set(race.raceId, race);
@@ -407,7 +414,7 @@ export class Matchmaker implements RaceOwner {
     console.log(`[matchmaker] placement race ${race.raceId} start() completed`);
   }
 
-  private startRaceWithBots(entries: QueueEntry[], botCount: number) {
+  private startRaceWithBots(entries: QueueEntry[], botCount: number, modeCategory?: ModeCategory) {
     const elos = entries.map((e) => e.player.elo);
     const minElo = Math.min(...elos);
     const maxElo = Math.max(...elos);
@@ -454,6 +461,7 @@ export class Matchmaker implements RaceOwner {
       { botWpmMin, botWpmMax, perBotWpm },
       undefined,
       this.notificationManager,
+      modeCategory ?? entries[0]?.modeCategory ?? "words",
     );
     this.races.set(race.raceId, race);
     const userIds: string[] = [];
@@ -472,6 +480,7 @@ export class Matchmaker implements RaceOwner {
 
   async startPrivatePartyRace(
     entries: Array<{ socket: TypedSocket; player: RacePlayer }>,
+    modeCategory: ModeCategory = "words",
   ) {
     if (entries.length < 2) {
       entries[0]?.socket.emit("error", {
@@ -510,7 +519,7 @@ export class Matchmaker implements RaceOwner {
 
     // Start race directly — no bots, no queue
     const race = new RaceManager(
-      this.io, entries, this, [], undefined, undefined, this.notificationManager,
+      this.io, entries, this, [], undefined, undefined, this.notificationManager, modeCategory,
     );
 
     this.races.set(race.raceId, race);

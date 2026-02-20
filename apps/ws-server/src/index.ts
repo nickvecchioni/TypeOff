@@ -4,6 +4,7 @@ import { Server } from "socket.io";
 import type {
   ClientToServerEvents,
   ServerToClientEvents,
+  ModeCategory,
 } from "@typeoff/shared";
 import { authenticateSocket } from "./auth.js";
 import { Matchmaker } from "./matchmaker.js";
@@ -71,6 +72,8 @@ io.on("connection", (socket) => {
       // Fire-and-forget: don't block queue join on friend notifications
       socialManager.trackConnection(socket, player.id).catch(() => {});
 
+      const modeCategory: ModeCategory = data.modeCategory ?? "words";
+
       // If this user is a party leader, enqueue the whole party
       const party = partyManager.getPartyForUser(player.id);
       if (party && party.leaderId === player.id) {
@@ -95,16 +98,16 @@ io.on("connection", (socket) => {
           partyManager.resetReadyState(party.id);
 
           if (data.privateRace) {
-            await matchmaker.startPrivatePartyRace(partyEntries);
+            await matchmaker.startPrivatePartyRace(partyEntries, modeCategory);
           } else {
-            await matchmaker.addPartyToQueue(partyEntries, party.id);
+            await matchmaker.addPartyToQueue(partyEntries, party.id, modeCategory);
           }
           console.log(`[joinQueue] party ${party.id} ${data.privateRace ? "private race" : "enqueued"} ${partyEntries.length} members`);
           return;
         }
       }
 
-      await matchmaker.addToQueue(socket, player);
+      await matchmaker.addToQueue(socket, player, modeCategory);
       console.log(`[joinQueue] ${socket.id} addToQueue completed`);
     } catch (err) {
       console.error(`[joinQueue] ${socket.id} error:`, err);

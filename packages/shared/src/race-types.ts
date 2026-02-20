@@ -8,6 +8,9 @@ export type RaceStatus = "waiting" | "countdown" | "racing" | "finished";
 /** Race mode determines text generation and display */
 export type RaceMode = "standard" | "quotes" | "marathon" | "sprint" | "punctuation" | "numbers" | "difficult" | "code";
 
+/** Mode category chosen by player before queuing */
+export type ModeCategory = "words" | "special" | "quotes" | "code";
+
 /** A player in a race */
 export interface RacePlayer {
   id: string;
@@ -61,7 +64,7 @@ export interface PartyState {
 
 /** Client → Server events */
 export interface ClientToServerEvents {
-  joinQueue: (data: { token?: string; privateRace?: boolean }) => void;
+  joinQueue: (data: { token?: string; privateRace?: boolean; modeCategory?: ModeCategory }) => void;
   leaveQueue: () => void;
   leaveRace: () => void;
   raceProgress: (data: {

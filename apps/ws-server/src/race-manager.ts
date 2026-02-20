@@ -10,7 +10,7 @@ import type {
   EmoteKey,
 } from "@typeoff/shared";
 import { calculateRaceElo, getRankTier, generateWordsForMode, quotes, calculateClanElo, EMOTE_KEYS, scoreTextDifficulty, calculatePP, calculateTotalPP } from "@typeoff/shared";
-import type { RankTier, RaceMode, ReplaySnapshot } from "@typeoff/shared";
+import type { RankTier, RaceMode, ModeCategory, ReplaySnapshot } from "@typeoff/shared";
 import type { NotificationManager } from "./notification-manager.js";
 import { createDb, races, raceParticipants, userStats, users, userActiveCosmetics, clans, clanMembers, textLeaderboards } from "@typeoff/db";
 import { eq, inArray, and, sql, desc } from "drizzle-orm";
@@ -84,10 +84,12 @@ export class RaceManager {
   private disconnectGraceTimer: ReturnType<typeof setTimeout> | null = null;
   private spectatorInfo = new Map<string, { userId: string; name: string }>();
 
-  private static readonly MODES: RaceMode[] = [
-    "standard", "quotes", "marathon", "sprint",
-    "punctuation", "numbers", "difficult", "code",
-  ];
+  private static readonly CATEGORY_MODES: Record<ModeCategory, RaceMode[]> = {
+    words: ["standard", "sprint", "marathon"],
+    special: ["punctuation", "numbers", "difficult"],
+    quotes: ["quotes"],
+    code: ["code"],
+  };
 
   constructor(
     private io: TypedServer,
@@ -97,14 +99,18 @@ export class RaceManager {
     botWpmConfig?: BotWpmConfig,
     placementRace?: number,
     private notificationManager?: NotificationManager,
+    modeCategory?: ModeCategory,
   ) {
     this.placementRace = placementRace;
     this.raceId = crypto.randomUUID();
 
     // Select race mode (placement races always use standard)
-    this.mode = placementRace
-      ? "standard"
-      : RaceManager.MODES[Math.floor(Math.random() * RaceManager.MODES.length)];
+    if (placementRace) {
+      this.mode = "standard";
+    } else {
+      const pool = RaceManager.CATEGORY_MODES[modeCategory ?? "words"];
+      this.mode = pool[Math.floor(Math.random() * pool.length)];
+    }
 
     // For quotes mode, seed is a quote index; otherwise a PRNG seed
     this.seed = this.mode === "quotes"

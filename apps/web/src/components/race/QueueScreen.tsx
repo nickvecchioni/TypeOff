@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { PartyPanel } from "@/components/social/PartyPanel";
@@ -8,7 +8,7 @@ import { RankBadge } from "@/components/RankBadge";
 import { ChallengesWidget } from "@/components/race/ChallengesWidget";
 import { GuestPlacement } from "@/components/race/GuestPlacement";
 import { getXpLevel, COSMETIC_REWARDS } from "@typeoff/shared";
-import type { PartyState, RankTier } from "@typeoff/shared";
+import type { PartyState, RankTier, ModeCategory } from "@typeoff/shared";
 
 const RANK_GLOW: Record<RankTier, string> = {
   bronze: "0 0 40px rgba(217, 119, 6, 0.15)",
@@ -26,7 +26,7 @@ interface QueueScreenProps {
   queueElapsed: number;
   maxWaitSeconds: number;
   connected: boolean;
-  onJoin: (opts?: { privateRace?: boolean }) => void;
+  onJoin: (opts?: { privateRace?: boolean; modeCategory?: ModeCategory }) => void;
   onLeave: () => void;
   party: PartyState | null;
   partyError: string | null;
@@ -58,6 +58,7 @@ export function QueueScreen({
   onSetPrivateRace,
 }: QueueScreenProps) {
   const { data: session, status } = useSession();
+  const [modeCategory, setModeCategory] = useState<ModeCategory>("words");
 
   const myUserId = session?.user?.id;
   const isPartyLeader = party?.leaderId === myUserId;
@@ -83,14 +84,14 @@ export function QueueScreen({
         if (inPartyNotLeader) {
           if (!amReady) onMarkReady?.();
         } else if (allMembersReady) {
-          onJoin({ privateRace });
+          onJoin({ privateRace, modeCategory });
         }
       }
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isQueuing, session?.user, connected, inPartyNotLeader, amReady, allMembersReady, onJoin, onMarkReady, privateRace]);
+  }, [isQueuing, session?.user, connected, inPartyNotLeader, amReady, allMembersReady, onJoin, onMarkReady, privateRace, modeCategory]);
 
   /* ── Loading skeleton ─────────────────────────────────────── */
   if (status === "loading") {
@@ -244,8 +245,39 @@ export function QueueScreen({
                     "radial-gradient(ellipse at center, rgba(77, 158, 255, 0.06) 0%, transparent 70%)",
                 }}
               />
+              {/* Mode category selector */}
+              {session?.user?.placementsCompleted && (
+                <div className="relative w-full grid grid-cols-4 gap-1.5 mb-4">
+                  {(
+                    [
+                      { id: "words", label: "Words", icon: "Aa", desc: "common english words" },
+                      { id: "special", label: "Special", icon: "#!", desc: "numbers & punctuation" },
+                      { id: "quotes", label: "Quotes", icon: "\u201C\u201D", desc: "famous quotes" },
+                      { id: "code", label: "Code", icon: "</>", desc: "programming snippets" },
+                    ] as const
+                  ).map(({ id, label, icon, desc }) => {
+                    const active = modeCategory === id;
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => setModeCategory(id)}
+                        className={`flex flex-col items-center gap-1 px-2 py-2.5 rounded-lg text-center transition-all ${
+                          active
+                            ? "ring-1 ring-accent bg-accent/[0.08] text-accent"
+                            : "ring-1 ring-white/[0.06] bg-white/[0.02] text-muted/60 hover:text-muted hover:ring-white/[0.1] hover:bg-white/[0.04]"
+                        }`}
+                      >
+                        <span className={`text-sm font-bold font-mono leading-none ${active ? "text-accent" : ""}`}>{icon}</span>
+                        <span className="text-[11px] font-semibold leading-none">{label}</span>
+                        <span className={`text-[9px] leading-tight hidden sm:block ${active ? "text-accent/70" : "text-muted/40"}`}>{desc}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
               <button
-                onClick={() => onJoin({ privateRace })}
+                onClick={() => onJoin({ privateRace, modeCategory })}
                 disabled={!connected || (inParty && !allMembersReady)}
                 className="relative w-full rounded-xl bg-accent/[0.08] ring-1 ring-accent/25 text-accent py-5 text-base font-bold tracking-wide glow-accent hover:bg-accent hover:text-bg hover:ring-accent hover:glow-accent-strong transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent/[0.08] disabled:hover:text-accent disabled:hover:ring-accent/25"
               >
