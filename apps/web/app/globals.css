@@ -93,6 +93,16 @@
   100% { opacity: 0; transform: translateY(-60px) scale(1.2); }
 }
 
+@keyframes slide-in-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slide-out-right {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
+}
+
 /* ── Base ────────────────────────────────────────────────── */
 
 html, body {

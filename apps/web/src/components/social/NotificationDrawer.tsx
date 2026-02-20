@@ -1,16 +1,16 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useNotifications } from "@/hooks/useNotifications";
 
 const TYPE_ICONS: Record<string, string> = {
-  friend_request: "👋",
-  clan_invite: "⚔️",
-  achievement: "🏆",
-  challenge_complete: "✅",
-  rank_up: "⬆️",
-  rank_down: "⬇️",
+  friend_request: "\u{1F44B}",
+  clan_invite: "\u2694\uFE0F",
+  achievement: "\u{1F3C6}",
+  challenge_complete: "\u2705",
+  rank_up: "\u2B06\uFE0F",
+  rank_down: "\u2B07\uFE0F",
 };
 
 function timeAgo(dateStr: string): string {
@@ -24,6 +24,8 @@ function timeAgo(dateStr: string): string {
   return `${days}d ago`;
 }
 
+const DURATION = 200;
+
 interface NotificationDrawerProps {
   open: boolean;
   onClose: () => void;
@@ -32,6 +34,23 @@ interface NotificationDrawerProps {
 export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
   const { notifications, fetchNotifications, markAsRead, markAllRead, unreadCount } = useNotifications();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+  const [closing, setClosing] = useState(false);
+
+  // Mount when open becomes true, start close animation before unmounting
+  useEffect(() => {
+    if (open) {
+      setMounted(true);
+      setClosing(false);
+    } else if (mounted) {
+      setClosing(true);
+      const timer = setTimeout(() => {
+        setMounted(false);
+        setClosing(false);
+      }, DURATION);
+      return () => clearTimeout(timer);
+    }
+  }, [open]);
 
   useEffect(() => {
     if (open) fetchNotifications();
@@ -47,7 +66,7 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
     return () => window.removeEventListener("keydown", handler);
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!mounted) return null;
 
   return (
     <>
@@ -55,7 +74,12 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
       <div className="fixed inset-0 z-40" onClick={onClose} />
 
       {/* Panel */}
-      <div className="fixed top-0 right-0 w-80 h-full z-50 bg-bg/95 backdrop-blur-sm border-l border-white/[0.06] flex flex-col animate-slide-in-right">
+      <div
+        className="fixed top-0 right-0 w-80 h-full z-50 bg-bg/95 backdrop-blur-sm border-l border-white/[0.06] flex flex-col"
+        style={{
+          animation: `${closing ? "slide-out-right" : "slide-in-right"} ${DURATION}ms ease-out ${closing ? "forwards" : ""}`,
+        }}
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
           <h2 className="text-sm font-bold text-text">Notifications</h2>
@@ -102,7 +126,7 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
               >
                 <div className="flex items-start gap-2.5">
                   <span className="text-base shrink-0 mt-0.5">
-                    {TYPE_ICONS[notif.type] ?? "📌"}
+                    {TYPE_ICONS[notif.type] ?? "\u{1F4CC}"}
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">

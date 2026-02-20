@@ -34,14 +34,15 @@ export function ConfigBar({ config, status, onConfigChange, onAfterChange, onCus
 
   const setContentType = (newCt: ContentType) => {
     if (FIXED_CONTENT_TYPES.includes(newCt)) {
-      // Fixed modes force wordcount behavior internally
-      set({ contentType: newCt, mode: "wordcount", duration: 0 });
+      // Fixed modes — keep existing mode/duration selection visible
+      set({ contentType: newCt });
     } else {
-      // Switching back to "words" — restore sane defaults
+      // Switching back to "words" — restore sane defaults if needed
+      const needsDefaults = FIXED_CONTENT_TYPES.includes(ct);
       set({
         contentType: newCt,
-        mode: config.mode === "wordcount" && config.duration > 0 ? "wordcount" : "timed",
-        duration: config.mode === "wordcount" && config.duration > 0 ? config.duration : TIME_OPTIONS[0],
+        mode: !needsDefaults && config.mode === "wordcount" && config.duration > 0 ? "wordcount" : config.mode === "wordcount" ? "wordcount" : "timed",
+        duration: config.duration > 0 ? config.duration : TIME_OPTIONS[0],
       });
     }
   };
@@ -52,20 +53,16 @@ export function ConfigBar({ config, status, onConfigChange, onAfterChange, onCus
         isTyping ? "pointer-events-none opacity-40" : ""
       }`}
     >
-      {/* Punctuation toggle (hidden for quotes — they have inherent punctuation) */}
-      {ct !== "quotes" && (
-        <>
-          <div className="flex items-center gap-1">
-            <Chip
-              active={config.punctuation ?? false}
-              onClick={() => set({ punctuation: !config.punctuation })}
-            >
-              @ punctuation
-            </Chip>
-          </div>
-          <Divider />
-        </>
-      )}
+      {/* Punctuation toggle (faded for quotes — they have inherent punctuation) */}
+      <div className={`flex items-center gap-1 transition-opacity ${ct === "quotes" ? "opacity-30 pointer-events-none" : ""}`}>
+        <Chip
+          active={config.punctuation ?? false}
+          onClick={() => set({ punctuation: !config.punctuation })}
+        >
+          @ punctuation
+        </Chip>
+      </div>
+      <Divider />
 
       {/* Content type / difficulty selector */}
       <div className="flex items-center gap-1">
@@ -91,40 +88,36 @@ export function ConfigBar({ config, status, onConfigChange, onAfterChange, onCus
         )}
       </div>
 
-      {/* Time/words toggle + duration (hidden for fixed content types) */}
-      {!isFixed && (
-        <>
-          <Divider />
-          <div className="flex items-center gap-1">
-            <Chip
-              active={mode === "time"}
-              onClick={() => set({ mode: "timed", duration: TIME_OPTIONS[0] })}
-            >
-              time
-            </Chip>
-            <Chip
-              active={mode === "words"}
-              onClick={() => set({ mode: "wordcount", duration: WORD_OPTIONS[0] })}
-            >
-              words
-            </Chip>
-          </div>
+      {/* Time/words toggle + duration (faded for fixed content types) */}
+      <Divider />
+      <div className={`flex items-center gap-1 transition-opacity ${isFixed ? "opacity-30 pointer-events-none" : ""}`}>
+        <Chip
+          active={mode === "time"}
+          onClick={() => set({ mode: "timed", duration: TIME_OPTIONS[0] })}
+        >
+          time
+        </Chip>
+        <Chip
+          active={mode === "words"}
+          onClick={() => set({ mode: "wordcount", duration: WORD_OPTIONS[0] })}
+        >
+          words
+        </Chip>
+      </div>
 
-          <Divider />
+      <Divider />
 
-          <div className="flex items-center gap-1">
-            {durations.map((d) => (
-              <Chip
-                key={d}
-                active={config.duration === d}
-                onClick={() => set({ duration: d })}
-              >
-                {d}
-              </Chip>
-            ))}
-          </div>
-        </>
-      )}
+      <div className={`flex items-center gap-1 transition-opacity ${isFixed ? "opacity-30 pointer-events-none" : ""}`}>
+        {durations.map((d) => (
+          <Chip
+            key={d}
+            active={config.duration === d}
+            onClick={() => set({ duration: d })}
+          >
+            {d}
+          </Chip>
+        ))}
+      </div>
 
       {/* Custom text input */}
       {ct === "custom" && !isTyping && (

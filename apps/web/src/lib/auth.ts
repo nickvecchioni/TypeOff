@@ -3,9 +3,9 @@ import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { getDb } from "./db";
-import { users, accounts, sessions, verificationTokens, userStats, userTypePass, userActiveCosmetics, userSubscription, clans } from "@typeoff/db";
-import { getCurrentSeason } from "@typeoff/shared";
-import { eq, and } from "drizzle-orm";
+import { users, accounts, sessions, verificationTokens, userStats, userActiveCosmetics, userSubscription, clans } from "@typeoff/db";
+import { getCosmeticLevel } from "@typeoff/shared";
+import { eq } from "drizzle-orm";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: DrizzleAdapter(getDb(), {
@@ -91,25 +91,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return {} as typeof token;
         }
 
-        // Fetch season tier (for progression display)
-        const season = getCurrentSeason();
-        if (season) {
-          const [kp] = await db
-            .select({
-              currentTier: userTypePass.currentTier,
-            })
-            .from(userTypePass)
-            .where(
-              and(
-                eq(userTypePass.userId, token.id as string),
-                eq(userTypePass.seasonId, season.id),
-              ),
-            )
-            .limit(1);
-          token.seasonTier = kp?.currentTier ?? 0;
-        } else {
-          token.seasonTier = 0;
-        }
+        // Compute cosmetic level from totalXp
+        token.cosmeticLevel = getCosmeticLevel(token.totalXp as number ?? 0);
 
         // Fetch Pro subscription status
         const [sub] = await db
@@ -159,7 +142,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.placementsCompleted = (token.placementsCompleted as boolean) ?? false;
         session.user.currentStreak = (token.currentStreak as number) ?? 0;
         session.user.totalXp = (token.totalXp as number) ?? 0;
-        session.user.seasonTier = (token.seasonTier as number) ?? 0;
+        session.user.cosmeticLevel = (token.cosmeticLevel as number) ?? 0;
         session.user.isPro = (token.isPro as boolean) ?? false;
         session.user.activeBadge = (token.activeBadge as string) ?? null;
         session.user.activeTitle = (token.activeTitle as string) ?? null;

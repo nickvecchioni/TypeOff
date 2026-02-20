@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
-import { userTypePass, userCosmetics, userSubscription, userActiveCosmetics } from "@typeoff/db";
+import { userCosmetics, userSubscription, userActiveCosmetics } from "@typeoff/db";
 import { eq, and } from "drizzle-orm";
-import { getCurrentSeason, getUnlockedRewards, PRO_BADGE_ID } from "@typeoff/shared";
+import { PRO_BADGE_ID } from "@typeoff/shared";
 import Stripe from "stripe";
 
 export async function POST(request: Request) {
@@ -103,72 +103,6 @@ export async function POST(request: Request) {
         break;
       }
 
-      // Handle legacy TypePass one-time purchase
-      const userId = session.metadata?.userId;
-      const seasonId = session.metadata?.seasonId;
-
-      if (!userId || !seasonId) {
-        console.error("[stripe-webhook] missing metadata", session.metadata);
-        break;
-      }
-
-      const season = getCurrentSeason();
-
-      const [existing] = await db
-        .select()
-        .from(userTypePass)
-        .where(
-          and(
-            eq(userTypePass.userId, userId),
-            eq(userTypePass.seasonId, seasonId),
-          ),
-        )
-        .limit(1);
-
-      if (existing) {
-        await db
-          .update(userTypePass)
-          .set({
-            isPremium: true,
-            stripePaymentId: session.payment_intent as string,
-            purchasedAt: new Date(),
-          })
-          .where(
-            and(
-              eq(userTypePass.userId, userId),
-              eq(userTypePass.seasonId, seasonId),
-            ),
-          );
-
-        if (season) {
-          const premiumRewards = getUnlockedRewards(
-            season,
-            existing.currentTier,
-            true,
-          ).filter((r) => r.premium);
-
-          for (const reward of premiumRewards) {
-            await db
-              .insert(userCosmetics)
-              .values({
-                userId,
-                cosmeticId: reward.id,
-                seasonId,
-              })
-              .onConflictDoNothing();
-          }
-        }
-      } else {
-        await db.insert(userTypePass).values({
-          userId,
-          seasonId,
-          seasonalXp: 0,
-          currentTier: 0,
-          isPremium: true,
-          stripePaymentId: session.payment_intent as string,
-          purchasedAt: new Date(),
-        });
-      }
       break;
     }
 

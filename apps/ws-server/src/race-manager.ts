@@ -16,8 +16,7 @@ import { createDb, races, raceParticipants, userStats, users, userActiveCosmetic
 import { eq, inArray, and, sql } from "drizzle-orm";
 import { checkAchievements } from "./achievement-checker.js";
 import { checkChallenges, type ChallengeCheckResult } from "./challenge-checker.js";
-import { checkTypePass, type TypePassContext } from "./type-pass-checker.js";
-import type { TypePassProgress } from "@typeoff/shared";
+import { checkXpRewards, type XpContext, type XpProgress } from "./xp-checker.js";
 export interface RaceOwner {
   cleanupRace(raceId: string, socketIds: string[]): void;
 }
@@ -630,7 +629,7 @@ export class RaceManager {
         xpAwarded: number;
       }>;
       xpEarned?: number;
-      typePassProgress?: TypePassProgress;
+      xpProgress?: XpProgress;
       activeBadge?: string | null;
       activeNameColor?: string | null;
       activeNameEffect?: string | null;
@@ -643,7 +642,7 @@ export class RaceManager {
     const streakMap = new Map<string, number>();
     const achievementMap = new Map<string, string[]>();
     const challengeMap = new Map<string, ChallengeCheckResult>();
-    const typePassMap = new Map<string, TypePassProgress>();
+    const xpProgressMap = new Map<string, XpProgress>();
     const playerStatsMap = new Map<string, { racesPlayed: number; racesWon: number; currentStreak: number; maxStreak: number }>();
     const cosmeticsMap = new Map<string, { activeBadge: string | null; activeNameColor: string | null; activeNameEffect: string | null }>();
 
@@ -1040,12 +1039,12 @@ export class RaceManager {
         console.error("[race-manager] challenge check error:", challengeErr);
       }
 
-      // 8. Check type pass for authenticated players
+      // 8. Check XP rewards for authenticated players
       try {
         for (const entry of entries) {
           if (entry.isBot || entry.player.isGuest) continue;
           const finalStats = entry.progress.finalStats!;
-          const kpResult = await checkTypePass(
+          const xpResult = await checkXpRewards(
             {
               userId: entry.player.id,
               raceWpm: finalStats.wpm,
@@ -1055,12 +1054,10 @@ export class RaceManager {
             },
             db,
           );
-          if (kpResult) {
-            typePassMap.set(entry.player.id, kpResult);
-          }
+          xpProgressMap.set(entry.player.id, xpResult);
         }
-      } catch (typePassErr) {
-        console.error("[race-manager] type pass check error:", typePassErr);
+      } catch (xpErr) {
+        console.error("[race-manager] xp check error:", xpErr);
       }
     }
 
@@ -1086,7 +1083,7 @@ export class RaceManager {
         newAchievements: achievementMap.get(entry.player.id),
         challengeProgress: challengeResult?.results,
         xpEarned: challengeResult?.totalXpEarned,
-        typePassProgress: typePassMap.get(entry.player.id),
+        xpProgress: xpProgressMap.get(entry.player.id),
         activeBadge: cosmetics?.activeBadge ?? entry.player.activeBadge,
         activeNameColor: cosmetics?.activeNameColor ?? entry.player.activeNameColor,
         activeNameEffect: cosmetics?.activeNameEffect ?? entry.player.activeNameEffect,

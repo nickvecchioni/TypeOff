@@ -4,6 +4,11 @@ export const PRO_MONTHLY_PRICE = 4.99;
 export const PRO_YEARLY_PRICE = 39.99;
 export const PRO_BADGE_ID = "pro_badge";
 
+// ─── Cosmetic XP Leveling Constants ────────────────────────────────────
+
+export const XP_PER_COSMETIC_LEVEL = 1000;
+export const MAX_COSMETIC_LEVEL = 30;
+
 // ─── Types ────────────────────────────────────────────────────────────
 
 export type RewardType =
@@ -15,35 +20,13 @@ export type RewardType =
   | "profileBorder"
   | "typingTheme";
 
-export interface TypePassReward {
-  tier: number;
+export interface CosmeticReward {
+  level: number;
   type: RewardType;
   id: string;
   name: string;
   /** Emoji for badges, hex for colors, text for titles, CSS class for effects */
   value: string;
-  premium: boolean;
-}
-
-export interface SeasonDefinition {
-  id: string;
-  name: string;
-  startDate: string; // ISO date
-  endDate: string; // ISO date
-  maxTier: number;
-  xpPerTier: number;
-  rewards: TypePassReward[];
-}
-
-export interface TypePassProgress {
-  seasonId: string;
-  seasonalXp: number;
-  currentTier: number;
-  isPremium: boolean;
-  xpEarned: number;
-  tierUp: boolean;
-  newTier: number;
-  newRewards: TypePassReward[];
 }
 
 // ─── Cosmetic Definition Maps ─────────────────────────────────────────
@@ -154,7 +137,7 @@ export const BADGE_EMOJIS: Record<string, string> = {
 
 /** Title text map — keyed by cosmetic ID */
 export const TITLE_TEXTS: Record<string, string> = {
-  s1_title_rookie: "Season Rookie",
+  s1_title_rookie: "Rookie",
   s1_title_grinder: "Grinder",
   s1_title_typist: "Pro Typist",
   s1_title_elite: "Elite",
@@ -176,81 +159,75 @@ export const NAME_EFFECT_CLASSES: Record<string, string> = {
   s1_effect_rainbow: "glow-rainbow",
 };
 
-// ─── Season 1 Definition ─────────────────────────────────────────────
+// ─── Cosmetic Rewards (30 levels, 1 per level) ──────────────────────
 
-const SEASON_1_REWARDS: TypePassReward[] = [
-  // Tier 1-5
-  { tier: 1,  type: "badge",         id: "s1_badge_spark",          name: "Spark",              value: "\u2728",        premium: false },
-  { tier: 2,  type: "nameColor",     id: "s1_color_sky",            name: "Sky Blue",           value: "#7dd3fc",       premium: false },
-  { tier: 3,  type: "cursorStyle",   id: "s1_cursor_neon_green",    name: "Neon Green",         value: "neon-green",    premium: false },
-  { tier: 4,  type: "title",         id: "s1_title_rookie",         name: "Season Rookie",      value: "Season Rookie", premium: false },
-  { tier: 5,  type: "badge",         id: "s1_badge_flame",          name: "Flame",              value: "\uD83D\uDD25",  premium: false },
+export const COSMETIC_REWARDS: CosmeticReward[] = [
+  // Level 1-5
+  { level: 1,  type: "badge",         id: "s1_badge_spark",          name: "Spark",              value: "\u2728"        },
+  { level: 2,  type: "nameColor",     id: "s1_color_sky",            name: "Sky Blue",           value: "#7dd3fc"       },
+  { level: 3,  type: "cursorStyle",   id: "s1_cursor_neon_green",    name: "Neon Green",         value: "neon-green"    },
+  { level: 4,  type: "title",         id: "s1_title_rookie",         name: "Rookie",             value: "Rookie"        },
+  { level: 5,  type: "badge",         id: "s1_badge_flame",          name: "Flame",              value: "\uD83D\uDD25"  },
 
-  // Tier 6-10
-  { tier: 6,  type: "profileBorder", id: "s1_border_ember",         name: "Ember Border",       value: "ember",         premium: false },
-  { tier: 7,  type: "nameColor",     id: "s1_color_lime",           name: "Lime",               value: "#a3e635",       premium: false },
-  { tier: 8,  type: "cursorStyle",   id: "s1_cursor_block_gold",    name: "Block Gold",         value: "block-gold",    premium: false },
-  { tier: 9,  type: "title",         id: "s1_title_grinder",        name: "Grinder",            value: "Grinder",       premium: false },
-  { tier: 10, type: "typingTheme",   id: "s1_theme_terminal",       name: "Terminal",           value: "terminal",      premium: false },
+  // Level 6-10
+  { level: 6,  type: "profileBorder", id: "s1_border_ember",         name: "Ember Border",       value: "ember"         },
+  { level: 7,  type: "nameColor",     id: "s1_color_lime",           name: "Lime",               value: "#a3e635"       },
+  { level: 8,  type: "cursorStyle",   id: "s1_cursor_block_gold",    name: "Block Gold",         value: "block-gold"    },
+  { level: 9,  type: "title",         id: "s1_title_grinder",        name: "Grinder",            value: "Grinder"       },
+  { level: 10, type: "typingTheme",   id: "s1_theme_terminal",       name: "Terminal",           value: "terminal"      },
 
-  // Tier 11-15
-  { tier: 11, type: "badge",         id: "s1_badge_bolt",           name: "Lightning Bolt",     value: "\u26A1",        premium: false },
-  { tier: 12, type: "nameEffect",    id: "s1_effect_glow",          name: "Subtle Glow",        value: "glow-subtle",   premium: false },
-  { tier: 13, type: "cursorStyle",   id: "s1_cursor_pulse_pink",    name: "Pulse Pink",         value: "pulse-pink",    premium: false },
-  { tier: 14, type: "profileBorder", id: "s1_border_ice",           name: "Ice Border",         value: "ice",           premium: false },
-  { tier: 15, type: "nameColor",     id: "s1_color_violet",         name: "Violet",             value: "#a78bfa",       premium: false },
+  // Level 11-15
+  { level: 11, type: "badge",         id: "s1_badge_bolt",           name: "Lightning Bolt",     value: "\u26A1"        },
+  { level: 12, type: "nameEffect",    id: "s1_effect_glow",          name: "Subtle Glow",        value: "glow-subtle"   },
+  { level: 13, type: "cursorStyle",   id: "s1_cursor_pulse_pink",    name: "Pulse Pink",         value: "pulse-pink"    },
+  { level: 14, type: "profileBorder", id: "s1_border_ice",           name: "Ice Border",         value: "ice"           },
+  { level: 15, type: "nameColor",     id: "s1_color_violet",         name: "Violet",             value: "#a78bfa"       },
 
-  // Tier 16-20
-  { tier: 16, type: "title",         id: "s1_title_typist",         name: "Pro Typist",         value: "Pro Typist",    premium: false },
-  { tier: 17, type: "typingTheme",   id: "s1_theme_neon",           name: "Neon",               value: "neon",          premium: false },
-  { tier: 18, type: "badge",         id: "s1_badge_gem",            name: "Gem",                value: "\uD83D\uDC8E",  premium: false },
-  { tier: 19, type: "cursorStyle",   id: "s1_cursor_underline_cyan",name: "Underline Cyan",     value: "underline-cyan",premium: false },
-  { tier: 20, type: "profileBorder", id: "s1_border_diamond",       name: "Diamond Border",     value: "diamond",       premium: false },
+  // Level 16-20
+  { level: 16, type: "title",         id: "s1_title_typist",         name: "Pro Typist",         value: "Pro Typist"    },
+  { level: 17, type: "typingTheme",   id: "s1_theme_neon",           name: "Neon",               value: "neon"          },
+  { level: 18, type: "badge",         id: "s1_badge_gem",            name: "Gem",                value: "\uD83D\uDC8E"  },
+  { level: 19, type: "cursorStyle",   id: "s1_cursor_underline_cyan",name: "Underline Cyan",     value: "underline-cyan"},
+  { level: 20, type: "profileBorder", id: "s1_border_diamond",       name: "Diamond Border",     value: "diamond"       },
 
-  // Tier 21-25
-  { tier: 21, type: "nameColor",     id: "s1_color_rose",           name: "Rose",               value: "#fb7185",       premium: false },
-  { tier: 22, type: "nameEffect",    id: "s1_effect_pulse",         name: "Pulse",              value: "glow-pulse",    premium: false },
-  { tier: 23, type: "typingTheme",   id: "s1_theme_sunset",         name: "Sunset",             value: "sunset",        premium: false },
-  { tier: 24, type: "cursorStyle",   id: "s1_cursor_ember",         name: "Ember",              value: "ember",         premium: false },
-  { tier: 25, type: "title",         id: "s1_title_elite",          name: "Elite",              value: "Elite",         premium: false },
+  // Level 21-25
+  { level: 21, type: "nameColor",     id: "s1_color_rose",           name: "Rose",               value: "#fb7185"       },
+  { level: 22, type: "nameEffect",    id: "s1_effect_pulse",         name: "Pulse",              value: "glow-pulse"    },
+  { level: 23, type: "typingTheme",   id: "s1_theme_sunset",         name: "Sunset",             value: "sunset"        },
+  { level: 24, type: "cursorStyle",   id: "s1_cursor_ember",         name: "Ember",              value: "ember"         },
+  { level: 25, type: "title",         id: "s1_title_elite",          name: "Elite",              value: "Elite"         },
 
-  // Tier 26-30
-  { tier: 26, type: "nameColor",     id: "s1_color_gold",           name: "Gold",               value: "#facc15",       premium: false },
-  { tier: 27, type: "profileBorder", id: "s1_border_void",          name: "Void Border",        value: "void",          premium: false },
-  { tier: 28, type: "nameEffect",    id: "s1_effect_rainbow",       name: "Rainbow Shift",      value: "glow-rainbow",  premium: false },
-  { tier: 29, type: "typingTheme",   id: "s1_theme_midnight",       name: "Midnight",           value: "midnight",      premium: false },
-  { tier: 30, type: "cursorStyle",   id: "s1_cursor_rainbow",       name: "Rainbow",            value: "rainbow",       premium: false },
+  // Level 26-30
+  { level: 26, type: "nameColor",     id: "s1_color_gold",           name: "Gold",               value: "#facc15"       },
+  { level: 27, type: "profileBorder", id: "s1_border_void",          name: "Void Border",        value: "void"          },
+  { level: 28, type: "nameEffect",    id: "s1_effect_rainbow",       name: "Rainbow Shift",      value: "glow-rainbow"  },
+  { level: 29, type: "typingTheme",   id: "s1_theme_midnight",       name: "Midnight",           value: "midnight"      },
+  { level: 30, type: "cursorStyle",   id: "s1_cursor_rainbow",       name: "Rainbow",            value: "rainbow"       },
 ];
-
-export const SEASON_1: SeasonDefinition = {
-  id: "season_1",
-  name: "Feb \u2014 May 2026",
-  startDate: "2026-02-17",
-  endDate: "2026-05-17",
-  maxTier: 30,
-  xpPerTier: 500,
-  rewards: SEASON_1_REWARDS,
-};
-
-// All seasons — add future seasons here
-const SEASONS: SeasonDefinition[] = [SEASON_1];
 
 // ─── Helpers ──────────────────────────────────────────────────────────
 
-/** Get the currently active season, or null if between seasons */
-export function getCurrentSeason(date?: Date): SeasonDefinition | null {
-  const d = date ?? new Date();
-  const iso = d.toISOString().slice(0, 10);
-  return SEASONS.find((s) => iso >= s.startDate && iso <= s.endDate) ?? null;
+/** Get cosmetic level from total lifetime XP */
+export function getCosmeticLevel(totalXp: number): number {
+  return Math.min(Math.floor(totalXp / XP_PER_COSMETIC_LEVEL), MAX_COSMETIC_LEVEL);
 }
 
-/** Get the tier for a given XP amount */
-export function getSeasonTier(xp: number, xpPerTier: number): number {
-  return Math.min(Math.floor(xp / xpPerTier), 30);
+/** Get all cosmetic rewards unlocked at the given total XP */
+export function getUnlockedCosmeticRewards(totalXp: number): CosmeticReward[] {
+  const level = getCosmeticLevel(totalXp);
+  return COSMETIC_REWARDS.filter((r) => r.level <= level);
 }
 
-/** Calculate season XP earned from a single race */
-export function calculateRaceSeasonXp(data: {
+/** Get cosmetic rewards newly unlocked between two XP values */
+export function getNewCosmeticRewards(prevXp: number, newXp: number): CosmeticReward[] {
+  const prevLevel = getCosmeticLevel(prevXp);
+  const newLevel = getCosmeticLevel(newXp);
+  if (newLevel <= prevLevel) return [];
+  return COSMETIC_REWARDS.filter((r) => r.level > prevLevel && r.level <= newLevel);
+}
+
+/** Calculate XP earned from a single race */
+export function calculateRaceXp(data: {
   wpm: number;
   accuracy: number;
   placement: number;
@@ -273,26 +250,4 @@ export function calculateRaceSeasonXp(data: {
   }
 
   return base + speedBonus + accBonus + placementBonus;
-}
-
-/** Get all rewards unlocked at or below a given tier */
-export function getUnlockedRewards(
-  season: SeasonDefinition,
-  tier: number,
-  isPremium: boolean,
-): TypePassReward[] {
-  return season.rewards.filter(
-    (r) => r.tier <= tier && (!r.premium || isPremium),
-  );
-}
-
-/** Get rewards that were newly unlocked by reaching a specific tier */
-export function getNewRewardsAtTier(
-  season: SeasonDefinition,
-  tier: number,
-  isPremium: boolean,
-): TypePassReward[] {
-  return season.rewards.filter(
-    (r) => r.tier === tier && (!r.premium || isPremium),
-  );
 }

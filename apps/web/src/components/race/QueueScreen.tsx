@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import { PartyPanel } from "@/components/social/PartyPanel";
 import { RankBadge } from "@/components/RankBadge";
 import { ChallengesWidget } from "@/components/race/ChallengesWidget";
-import { TypePassWidget } from "@/components/race/TypePassWidget";
+import { XpProgressWidget } from "@/components/race/TypePassWidget";
 import { GuestPlacement } from "@/components/race/GuestPlacement";
 import { getXpLevel } from "@typeoff/shared";
 import type { PartyState, RankTier } from "@typeoff/shared";
@@ -369,8 +369,8 @@ export function QueueScreen({
                     </div>
                   </div>
                 </Link>
-                {/* Season XP */}
-                <TypePassWidget />
+                {/* Cosmetic Level */}
+                <XpProgressWidget />
               </div>
             </div>
           )}

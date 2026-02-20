@@ -4,13 +4,13 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import type { RaceResult } from "@/hooks/useRace";
 import type { RankTier, WpmSample } from "@typeoff/shared";
-import { getRankInfo, ACHIEVEMENT_MAP, CHALLENGE_MAP, getCurrentSeason, getXpLevel } from "@typeoff/shared";
+import { getRankInfo, ACHIEVEMENT_MAP, CHALLENGE_MAP, XP_PER_COSMETIC_LEVEL, MAX_COSMETIC_LEVEL } from "@typeoff/shared";
 import { WpmChart } from "@/components/typing/WpmChart";
 import type { AchievementRarity, PartyState } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
 import { CosmeticName } from "@/components/CosmeticName";
 import { CosmeticBadge } from "@/components/CosmeticBadge";
-import { useSession } from "next-auth/react";
+
 
 interface RankChange {
   direction: "up" | "down";
@@ -179,7 +179,6 @@ export function RaceResults({
   onMarkReady,
   raceId,
 }: RaceResultsProps) {
-  const { data: session } = useSession();
   const isPlacement = placementRace != null && placementTotal != null;
   const myResult = results.find((r) => r.playerId === myPlayerId);
 
@@ -223,9 +222,8 @@ export function RaceResults({
   const hasChallenges =
     myResult?.challengeProgress &&
     myResult.challengeProgress.some((c) => c.progress > 0);
-  const hasTypePass = myResult?.typePassProgress != null;
-  const season = getCurrentSeason();
-  const hasProgress = hasChallenges || (hasTypePass && season);
+  const hasXpProgress = myResult?.xpProgress != null;
+  const hasProgress = hasChallenges || hasXpProgress;
 
   const hasElo =
     !isPlacement && myResult?.eloChange != null && myResult?.elo != null;
@@ -529,7 +527,7 @@ export function RaceResults({
       {hasProgress && (
         <div
           className={`grid gap-2 w-full ${
-            hasChallenges && hasTypePass && season
+            hasChallenges && hasXpProgress
               ? "sm:grid-cols-[3fr_2fr]"
               : ""
           }`}
@@ -599,52 +597,51 @@ export function RaceResults({
               </div>
             )}
 
-            {/* TypePass + Level */}
-            {hasTypePass &&
-              season &&
+            {/* Level XP */}
+            {hasXpProgress &&
               (() => {
-                const kp = myResult!.typePassProgress!;
-                const xpInTier = kp.seasonalXp % season.xpPerTier;
-                const tierPct =
-                  kp.currentTier >= season.maxTier
+                const xp = myResult!.xpProgress!;
+                const xpInLevel = xp.totalXp % XP_PER_COSMETIC_LEVEL;
+                const levelPct =
+                  xp.cosmeticLevel >= MAX_COSMETIC_LEVEL
                     ? 100
-                    : (xpInTier / season.xpPerTier) * 100;
-                const totalXp = session?.user?.totalXp ?? 0;
-                const xpInfo = totalXp > 0 ? getXpLevel(totalXp) : null;
+                    : (xpInLevel / XP_PER_COSMETIC_LEVEL) * 100;
 
                 return (
                   <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden px-3 py-2 sm:px-4 sm:py-2.5">
                     <div className="flex items-center justify-between mb-1">
-                      <h3 className="text-xs font-bold text-amber-400/80 uppercase tracking-wider">
-                        Season XP
+                      <h3 className="text-xs font-bold text-accent/80 uppercase tracking-wider">
+                        Level
                       </h3>
-                      <span className="text-xs font-bold text-amber-400 tabular-nums">
-                        +{kp.xpEarned} XP
+                      <span className="text-xs font-bold text-accent tabular-nums">
+                        +{xp.xpEarned} XP
                       </span>
                     </div>
-                    <div className="rounded-lg bg-surface/60 px-3 py-2 ring-1 ring-amber-400/10">
+                    <div className="rounded-lg bg-surface/60 px-3 py-2 ring-1 ring-accent/10">
                       <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-xs font-medium text-text">
-                          Tier {kp.currentTier}
-                          {kp.tierUp && (
-                            <span className="text-amber-400 ml-1.5 font-bold">
-                              &#9650; Tier Up!
+                        <span className="text-xs font-bold text-accent">
+                          Level {xp.cosmeticLevel}
+                          {xp.levelUp && (
+                            <span className="text-correct ml-1.5 font-bold">
+                              &#9650; Level Up!
                             </span>
                           )}
                         </span>
                         <span className="text-[11px] text-muted tabular-nums">
-                          {xpInTier} / {season.xpPerTier}
+                          {xp.cosmeticLevel >= MAX_COSMETIC_LEVEL
+                            ? "Max level"
+                            : `${xpInLevel} / ${XP_PER_COSMETIC_LEVEL}`}
                         </span>
                       </div>
                       <div className="h-1.5 rounded-full bg-surface overflow-hidden">
                         <div
-                          className="h-full rounded-full bg-amber-400 transition-all"
-                          style={{ width: `${Math.round(tierPct)}%` }}
+                          className="h-full rounded-full bg-accent transition-all"
+                          style={{ width: `${Math.round(levelPct)}%` }}
                         />
                       </div>
-                      {kp.newRewards.length > 0 && (
+                      {xp.newRewards.length > 0 && (
                         <div className="mt-2 flex flex-wrap gap-1.5">
-                          {kp.newRewards.map((r) => (
+                          {xp.newRewards.map((r) => (
                             <span
                               key={r.id}
                               className="text-[10px] font-bold rounded px-2 py-1 bg-white/[0.06] text-text"
@@ -655,36 +652,6 @@ export function RaceResults({
                         </div>
                       )}
                     </div>
-                    {xpInfo && (
-                      <>
-                        <div className="flex items-center justify-between mt-2.5 mb-1">
-                          <h3 className="text-xs font-bold text-accent/80 uppercase tracking-wider">
-                            User XP
-                          </h3>
-                          {myResult!.xpEarned != null && myResult!.xpEarned > 0 && (
-                            <span className="text-xs font-bold text-accent tabular-nums">
-                              +{myResult!.xpEarned} XP
-                            </span>
-                          )}
-                        </div>
-                        <div className="rounded-lg bg-surface/60 px-3 py-2 ring-1 ring-accent/10">
-                          <div className="flex items-center justify-between mb-0.5">
-                            <span className="text-xs font-bold text-accent">
-                              Level {xpInfo.level}
-                            </span>
-                            <span className="text-[11px] text-muted tabular-nums">
-                              {xpInfo.currentXp} / {xpInfo.nextLevelXp}
-                            </span>
-                          </div>
-                          <div className="h-1.5 rounded-full bg-surface overflow-hidden">
-                            <div
-                              className="h-full rounded-full bg-accent transition-all"
-                              style={{ width: `${Math.round((xpInfo.currentXp / xpInfo.nextLevelXp) * 100)}%` }}
-                            />
-                          </div>
-                        </div>
-                      </>
-                    )}
                   </div>
                 );
               })()}

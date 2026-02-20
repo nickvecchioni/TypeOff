@@ -33,21 +33,17 @@ export interface RaceResult {
     xpAwarded: number;
   }>;
   xpEarned?: number;
-  typePassProgress?: {
-    seasonId: string;
-    seasonalXp: number;
-    currentTier: number;
-    isPremium: boolean;
+  xpProgress?: {
     xpEarned: number;
-    tierUp: boolean;
-    newTier: number;
+    totalXp: number;
+    cosmeticLevel: number;
+    levelUp: boolean;
     newRewards: Array<{
-      tier: number;
+      level: number;
       type: string;
       id: string;
       name: string;
       value: string;
-      premium: boolean;
     }>;
   };
   activeBadge?: string | null;
