@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { BigramAnalysis } from "@/components/practice/BigramAnalysis";
+import { BigramHeatmap } from "@/components/practice/BigramHeatmap";
 
 interface AnalyticsData {
   totalRaces: number;
@@ -25,6 +27,7 @@ export default function AnalyticsPage() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [bigrams, setBigrams] = useState<Array<{ bigram: string; correct: number; total: number; accuracy: number }>>([]);
 
   const isPro = session?.user?.isPro ?? false;
 
@@ -48,6 +51,15 @@ export default function AnalyticsPage() {
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [session?.user?.id, isPro]);
+
+  // Fetch bigram data (available for all users, not just pro)
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    fetch("/api/bigram-accuracy")
+      .then((r) => r.json())
+      .then((d) => { if (d.bigrams) setBigrams(d.bigrams); })
+      .catch(() => {});
+  }, [session?.user?.id]);
 
   if (status === "loading" || loading) {
     return (
@@ -256,7 +268,7 @@ export default function AnalyticsPage() {
 
         {/* ── WPM Trend ───────────────────────────────────── */}
         {data.wpmTrend.length >= 2 && (
-          <section>
+          <section className="mb-6">
             <SectionHeader>WPM Trend ({data.wpmTrend.length} races)</SectionHeader>
             <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3">
               <MiniChart
@@ -265,6 +277,23 @@ export default function AnalyticsPage() {
                 height={120}
               />
             </div>
+          </section>
+        )}
+
+        {/* ── Bigram Analysis ──────────────────────────────── */}
+        {bigrams.length > 0 && (
+          <section className="mb-6">
+            <SectionHeader>Bigram Analysis</SectionHeader>
+            <BigramAnalysis
+              bigrams={bigrams}
+              onPractice={(weak) => router.push(`/solo?bigrams=${weak.join(",")}`)}
+            />
+          </section>
+        )}
+
+        {bigrams.length > 0 && (
+          <section>
+            <BigramHeatmap bigrams={bigrams} />
           </section>
         )}
       </div>

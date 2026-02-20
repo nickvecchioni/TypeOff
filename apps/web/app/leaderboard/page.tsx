@@ -3,12 +3,14 @@ export const dynamic = "force-dynamic";
 import { Suspense } from "react";
 import Link from "next/link";
 import { getDb } from "@/lib/db";
-import { users, userStats, userActiveCosmetics, soloResults } from "@typeoff/db";
+import { users, userStats, userActiveCosmetics, soloResults, raceParticipants, races } from "@typeoff/db";
 import { and, desc, eq, gt, isNotNull, sql, inArray } from "drizzle-orm";
 import type { RankTier } from "@typeoff/shared";
 import { getRankInfo } from "@typeoff/shared";
 import { LeaderboardTabs } from "@/components/leaderboard/LeaderboardTabs";
 import { SoloModeSelector } from "@/components/leaderboard/SoloModeSelector";
+import { PPLeaderboard } from "@/components/leaderboard/PPLeaderboard";
+import { UniverseSelector } from "@/components/leaderboard/UniverseSelector";
 import { CosmeticName } from "@/components/CosmeticName";
 import { CosmeticBadge } from "@/components/CosmeticBadge";
 import { LiveBadge } from "@/components/WatchLiveButton";
@@ -34,12 +36,22 @@ export default async function LeaderboardPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const params = await searchParams;
-  const tab = params.tab === "solo" ? "solo" : "ranked";
+  const tab = params.tab === "solo" ? "solo" : params.tab === "pp" ? "pp" : "ranked";
 
   const db = getDb();
   const { auth } = await import("@/lib/auth");
   const session = await auth();
   const userId = session?.user?.id;
+
+  if (tab === "pp") {
+    return (
+      <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
+        <div className="max-w-3xl mx-auto">
+          <PPLeaderboardPage userId={userId} />
+        </div>
+      </main>
+    );
+  }
 
   if (tab === "solo") {
     return (
@@ -54,7 +66,7 @@ export default async function LeaderboardPage({
   return (
     <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
       <div className="max-w-3xl mx-auto">
-        <RankedLeaderboard userId={userId} db={db} />
+        <RankedLeaderboard userId={userId} db={db} universe={typeof params.universe === "string" ? params.universe : undefined} />
       </div>
     </main>
   );
@@ -62,7 +74,12 @@ export default async function LeaderboardPage({
 
 /* ── Ranked leaderboard ─────────────────────────────────────── */
 
-async function RankedLeaderboard({ userId, db }: { userId?: string; db: ReturnType<typeof getDb> }) {
+async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db: ReturnType<typeof getDb>; universe?: string }) {
+  // When a universe filter is active, query best WPM per user from races of that mode
+  if (universe && universe !== "all") {
+    return <UniverseLeaderboard userId={userId} db={db} universe={universe} />;
+  }
+
   const rows = await db
     .select({
       id: users.id,
@@ -154,6 +171,15 @@ async function RankedLeaderboard({ userId, db }: { userId?: string; db: ReturnTy
         <span className="text-sm text-muted tabular-nums">
           {rows.length} {rows.length === 1 ? "player" : "players"}
         </span>
+      </div>
+
+      <div
+        className="mb-4 opacity-0 animate-fade-in"
+        style={{ animationDelay: "40ms", animationFillMode: "both" }}
+      >
+        <Suspense>
+          <UniverseSelector />
+        </Suspense>
       </div>
 
       {rows.length === 0 ? (
@@ -587,6 +613,199 @@ async function SoloLeaderboard({
               </div>
             );
           })()}
+        </div>
+      )}
+    </>
+  );
+}
+
+/* ── PP leaderboard ──────────────────────────────────────────── */
+
+function PPLeaderboardPage({ userId }: { userId?: string }) {
+  return (
+    <>
+      <div
+        className="flex items-baseline justify-between mb-6 opacity-0 animate-fade-in"
+        style={{ animationDelay: "0ms", animationFillMode: "both" }}
+      >
+        <div className="flex items-center gap-4">
+          <h1 className="text-lg font-black text-text uppercase tracking-wider">
+            Leaderboard
+          </h1>
+          <Suspense>
+            <LeaderboardTabs />
+          </Suspense>
+        </div>
+      </div>
+      <div
+        className="opacity-0 animate-fade-in"
+        style={{ animationDelay: "120ms", animationFillMode: "both" }}
+      >
+        <PPLeaderboard userId={userId} />
+      </div>
+    </>
+  );
+}
+
+/* ── Universe (mode-filtered) leaderboard ────────────────────── */
+
+async function UniverseLeaderboard({
+  userId,
+  db,
+  universe,
+}: {
+  userId?: string;
+  db: ReturnType<typeof getDb>;
+  universe: string;
+}) {
+  // Best WPM per user for races of this mode
+  const rows = await db
+    .select({
+      usrId: raceParticipants.userId,
+      username: users.username,
+      bestWpm: sql<number>`max(${raceParticipants.wpm})`.as("best_wpm"),
+      bestAccuracy: sql<number>`max(${raceParticipants.accuracy})`.as("best_accuracy"),
+      raceCount: sql<number>`count(*)`.as("race_count"),
+    })
+    .from(raceParticipants)
+    .innerJoin(races, eq(raceParticipants.raceId, races.id))
+    .innerJoin(users, eq(raceParticipants.userId, users.id))
+    .where(
+      and(
+        eq(races.wordPool, universe),
+        isNotNull(raceParticipants.userId),
+        isNotNull(users.username),
+        eq(raceParticipants.flagged, false),
+      ),
+    )
+    .groupBy(raceParticipants.userId, users.username)
+    .orderBy(sql`best_wpm desc`)
+    .limit(100);
+
+  // Cosmetics
+  const playerIds = rows.map((r) => r.usrId).filter(Boolean) as string[];
+  const cosmeticRows = playerIds.length > 0
+    ? await db
+        .select({
+          userId: userActiveCosmetics.userId,
+          activeBadge: userActiveCosmetics.activeBadge,
+          activeNameColor: userActiveCosmetics.activeNameColor,
+          activeNameEffect: userActiveCosmetics.activeNameEffect,
+        })
+        .from(userActiveCosmetics)
+        .where(inArray(userActiveCosmetics.userId, playerIds))
+    : [];
+  const cosmeticMap = new Map(cosmeticRows.map((r) => [r.userId, r]));
+
+  const gridCols = "grid-cols-[2rem_1fr_4.5rem] sm:grid-cols-[2rem_1fr_5rem_4rem_3.5rem]";
+
+  return (
+    <>
+      <div
+        className="flex items-baseline justify-between mb-6 opacity-0 animate-fade-in"
+        style={{ animationDelay: "0ms", animationFillMode: "both" }}
+      >
+        <div className="flex items-center gap-4">
+          <h1 className="text-lg font-black text-text uppercase tracking-wider">
+            Leaderboard
+          </h1>
+          <Suspense>
+            <LeaderboardTabs />
+          </Suspense>
+        </div>
+        <span className="text-sm text-muted tabular-nums">
+          {rows.length} {rows.length === 1 ? "player" : "players"}
+        </span>
+      </div>
+
+      <div
+        className="mb-4 opacity-0 animate-fade-in"
+        style={{ animationDelay: "40ms", animationFillMode: "both" }}
+      >
+        <Suspense>
+          <UniverseSelector />
+        </Suspense>
+      </div>
+
+      {rows.length === 0 ? (
+        <div
+          className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] py-16 text-center opacity-0 animate-fade-in"
+          style={{ animationDelay: "80ms", animationFillMode: "both" }}
+        >
+          <p className="text-muted text-sm">
+            No results for this mode yet. Be the first.
+          </p>
+        </div>
+      ) : (
+        <div>
+          <div
+            className={`grid ${gridCols} items-center gap-3 px-4 py-2 text-xs text-muted/60 uppercase tracking-wider border-b border-white/[0.04] opacity-0 animate-fade-in`}
+            style={{ animationDelay: "60ms", animationFillMode: "both" }}
+          >
+            <span></span>
+            <span>Player</span>
+            <span className="text-right">Best WPM</span>
+            <span className="text-right hidden sm:block">Acc</span>
+            <span className="text-right hidden sm:block">Races</span>
+          </div>
+
+          <div
+            className="divide-y divide-white/[0.03] opacity-0 animate-fade-in"
+            style={{ animationDelay: "120ms", animationFillMode: "both" }}
+          >
+            {rows.map((row, i) => {
+              const rank = i + 1;
+              const isMe = userId === row.usrId;
+              const cosmetic = cosmeticMap.get(row.usrId ?? "");
+
+              const rankDisplay =
+                rank === 1 ? "text-rank-gold" :
+                rank === 2 ? "text-rank-silver" :
+                rank === 3 ? "text-rank-bronze" :
+                "text-muted/40";
+
+              const rowBg = isMe
+                ? "bg-accent/[0.05] ring-1 ring-accent/10"
+                : rank <= 3
+                ? "bg-surface/30"
+                : "hover:bg-white/[0.02]";
+
+              return (
+                <Link
+                  key={row.usrId}
+                  href={`/profile/${row.username}`}
+                  className={`grid ${gridCols} items-center gap-3 px-4 py-2.5 rounded-lg transition-colors ${rowBg}`}
+                >
+                  <span className={`text-sm font-bold tabular-nums ${rankDisplay}`}>
+                    {rank}
+                  </span>
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <CosmeticBadge badge={cosmetic?.activeBadge} />
+                    <span className={`truncate text-sm leading-tight ${isMe ? "font-bold" : ""}`}>
+                      {isMe ? (
+                        <CosmeticName nameColor={null} nameEffect={cosmetic?.activeNameEffect}>
+                          <span className="text-accent">{row.username}</span>
+                        </CosmeticName>
+                      ) : (
+                        <CosmeticName nameColor={cosmetic?.activeNameColor} nameEffect={cosmetic?.activeNameEffect}>
+                          {row.username}
+                        </CosmeticName>
+                      )}
+                    </span>
+                  </div>
+                  <span className="text-sm tabular-nums text-right font-semibold text-text">
+                    {fmtWpm(row.bestWpm)}
+                  </span>
+                  <span className="text-sm text-muted/50 tabular-nums text-right hidden sm:block">
+                    {row.bestAccuracy != null ? `${Math.floor(row.bestAccuracy)}%` : "-"}
+                  </span>
+                  <span className="text-sm text-muted/50 tabular-nums text-right hidden sm:block">
+                    {row.raceCount}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       )}
     </>

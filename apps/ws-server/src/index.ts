@@ -122,6 +122,25 @@ io.on("connection", (socket) => {
     matchmaker.handleLeaveRace(socket.id);
   });
 
+  socket.on("rejoinRace", async (data) => {
+    try {
+      const player = await authenticateSocket(data, socket.id);
+      const result = matchmaker.tryReconnect(socket, player.id);
+      if (result) {
+        const state = result.race.getState();
+        socket.emit("raceStart", state);
+        socket.emit("raceCountdown", { countdown: 0 });
+        console.log(`[rejoinRace] ${socket.id} reconnected to race ${result.raceId}`);
+      } else {
+        socket.emit("error", { message: "No active race found" });
+      }
+    } catch (err) {
+      socket.emit("error", {
+        message: err instanceof Error ? err.message : "Auth failed",
+      });
+    }
+  });
+
   // ─── Race Events ──────────────────────────────────────────────────
 
   socket.on("raceProgress", (data) => {

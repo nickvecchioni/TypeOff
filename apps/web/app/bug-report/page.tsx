@@ -84,7 +84,7 @@ export default function BugReportPage() {
   }
 
   return (
-    <main className="flex-1 flex flex-col items-center px-4 py-12">
+    <main className="flex-1 overflow-y-auto flex flex-col items-center px-4 py-12">
       <div className="animate-fade-in flex flex-col items-center w-full max-w-md">
         <h1 className="text-3xl font-bold text-accent mb-2">Report a Bug</h1>
         <p className="text-muted mb-8 text-center">

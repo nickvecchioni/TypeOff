@@ -102,6 +102,7 @@ export const raceParticipants = pgTable("race_participants", {
   flagReason: text("flag_reason"),
   wpmHistory: text("wpm_history"), // JSON: WpmSample[]
   replayData: text("replay_data"), // JSON: ReplaySnapshot[]
+  pp: real("pp"),
 });
 
 // ─── Friendship Tables ──────────────────────────────────────────────
@@ -157,6 +158,8 @@ export const soloResults = pgTable("solo_results", {
   isPb: boolean("is_pb").notNull().default(false),
   consistency: real("consistency"),
   keyStatsJson: text("key_stats_json"),
+  replayData: text("replay_data"), // JSON: ReplaySnapshot[]
+  seed: integer("seed"),
   createdAt: timestamp("created_at", { mode: "date" })
     .notNull()
     .$defaultFn(() => new Date()),
@@ -245,6 +248,7 @@ export const userStats = pgTable("user_stats", {
   rankedDayStreak: integer("ranked_day_streak").notNull().default(0),
   maxRankedDayStreak: integer("max_ranked_day_streak").notNull().default(0),
   totalXp: integer("total_xp").notNull().default(0),
+  totalPp: real("total_pp").notNull().default(0),
   updatedAt: timestamp("updated_at", { mode: "date" })
     .notNull()
     .$defaultFn(() => new Date()),
@@ -372,4 +376,91 @@ export const userActiveCosmetics = pgTable("user_active_cosmetics", {
   activeCursorStyle: text("active_cursor_style"),
   activeProfileBorder: text("active_profile_border"),
   activeTypingTheme: text("active_typing_theme"),
+});
+
+// ─── Text Leaderboards ───────────────────────────────────────────
+
+export const textLeaderboards = pgTable(
+  "text_leaderboards",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    textHash: text("text_hash").notNull(),
+    seed: integer("seed").notNull(),
+    mode: text("mode").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    bestWpm: real("best_wpm").notNull(),
+    bestAccuracy: real("best_accuracy").notNull(),
+    bestRaceId: uuid("best_race_id").references(() => races.id, { onDelete: "set null" }),
+    pp: real("pp").notNull().default(0),
+    textDifficulty: real("text_difficulty").notNull().default(1),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (t) => [unique().on(t.textHash, t.userId)],
+);
+
+// ─── Daily Challenges ────────────────────────────────────────────
+
+export const dailyChallenges = pgTable("daily_challenges", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  date: text("date").notNull().unique(),
+  seed: integer("seed").notNull(),
+  mode: text("mode").notNull().default("standard"),
+  wordCount: integer("word_count").notNull().default(50),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+});
+
+export const dailyChallengeResults = pgTable(
+  "daily_challenge_results",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    dailyChallengeId: uuid("daily_challenge_id")
+      .notNull()
+      .references(() => dailyChallenges.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    wpm: real("wpm").notNull(),
+    rawWpm: real("raw_wpm").notNull(),
+    accuracy: real("accuracy").notNull(),
+    attempts: integer("attempts").notNull().default(1),
+    completedAt: timestamp("completed_at", { mode: "date" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (t) => [unique().on(t.dailyChallengeId, t.userId)],
+);
+
+// ─── Bigram Accuracy ─────────────────────────────────────────────
+
+export const userBigramAccuracy = pgTable(
+  "user_bigram_accuracy",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    bigram: text("bigram").notNull(),
+    correctCount: integer("correct_count").notNull().default(0),
+    totalCount: integer("total_count").notNull().default(0),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.bigram] })],
+);
+
+// ─── User Preferences ────────────────────────────────────────────
+
+export const userPreferences = pgTable("user_preferences", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  typingThemeOverride: text("typing_theme_override"),
+  customThemeJson: text("custom_theme_json"),
+  updatedAt: timestamp("updated_at", { mode: "date" })
+    .notNull()
+    .$defaultFn(() => new Date()),
 });

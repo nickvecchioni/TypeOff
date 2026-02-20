@@ -7,6 +7,8 @@ import { useTypingEngine } from "@/hooks/useTypingEngine";
 import { WordDisplay } from "@/components/typing/WordDisplay";
 import { ConfigBar } from "./ConfigBar";
 import { PracticeResults } from "./PracticeResults";
+import { FailScreen } from "./FailScreen";
+import { ZenArena } from "./ZenArena";
 
 function getVisibleLines(): number {
   return 3;
@@ -196,8 +198,17 @@ export function PracticeArena() {
 
   // Whether to show a stopwatch (elapsed time) instead of countdown
   const ct = engine.config.contentType ?? "words";
-  const showStopwatch = ct === "quotes" || ct === "custom" || ct === "practice" ||
+  const showStopwatch = ct === "quotes" || ct === "custom" || ct === "practice" || ct === "code" || ct === "zen" ||
     (ct === "words" && engine.config.mode === "wordcount");
+
+  // Route zen mode to dedicated ZenArena
+  if (ct === "zen" && engine.status !== "idle") {
+    return (
+      <div className="flex flex-col items-center gap-6 w-full max-w-4xl mx-auto">
+        <ZenArena engine={engine} />
+      </div>
+    );
+  }
 
   return (
     <div
@@ -272,6 +283,7 @@ export function PracticeArena() {
               currentWordIndex={engine.currentWordIndex}
               currentCharIndex={engine.currentCharIndex}
               isTyping={isTyping}
+              contentType={engine.config.contentType}
             />
           </div>
         </div>
@@ -321,7 +333,14 @@ export function PracticeArena() {
       )}
 
       {/* Results */}
-      {isFinished && engine.stats && (
+      {isFinished && engine.stats && engine.stats.failed && (
+        <FailScreen
+          stats={engine.stats}
+          config={engine.config}
+          onRestart={handleRestart}
+        />
+      )}
+      {isFinished && engine.stats && !engine.stats.failed && (
         <PracticeResults
           stats={engine.stats}
           config={engine.config}

@@ -13,8 +13,10 @@ export interface WordState {
 
 export type TestMode = "timed" | "wordcount";
 
-export type ContentType = "words" | "quotes" | "marathon" | "sprint" | "custom" | "practice";
+export type ContentType = "words" | "quotes" | "marathon" | "sprint" | "custom" | "practice" | "code" | "zen";
 export type Difficulty = "easy" | "medium" | "hard";
+
+export type StrictMode = "normal" | "expert" | "master";
 
 export interface TestConfig {
   mode: TestMode;
@@ -24,6 +26,10 @@ export interface TestConfig {
   punctuation: boolean;
   customText?: string;    // raw pasted text for "custom" mode
   weakKeys?: string[];    // populated from server for "practice" mode
+  strictMode?: StrictMode;
+  codeLanguage?: string;
+  weakBigrams?: string[];
+  ghostReplayData?: ReplaySnapshot[];
 }
 
 /** Build a key for the word-pool column: "words:easy:false" */
@@ -66,6 +72,24 @@ export interface TestStats {
   wpmHistory: WpmSample[];
   keyStats: KeyStatsMap;
   consistency: number; // 0-100, higher = more consistent WPM
+  failed?: boolean;
+  failedAt?: { wordIndex: number; charIndex: number };
+  bigramStats?: Record<string, { correct: number; total: number }>;
+}
+
+export interface TextDifficultyInfo {
+  score: number;       // 0-1, higher = harder
+  bigramRarity: number;
+  avgWordLength: number;
+  specialCharDensity: number;
+}
+
+export interface GhostCursor {
+  wordIndex: number;
+  charIndex: number;
+  progress: number;
+  name: string;
+  wpm: number;
 }
 
 export interface ReplaySnapshot {

@@ -10,8 +10,11 @@ import {
   type EngineAPI,
   type WpmSample,
   type KeyStatsMap,
+  type ReplaySnapshot,
   generateFromPool,
   generateSoloWords,
+  generateWords,
+  wordPoolByDifficulty,
 } from "@typeoff/shared";
 
 const DEFAULT_CONFIG: TestConfig = {
@@ -26,6 +29,8 @@ const WORD_POOL_SIZE = 200;
 export interface TypingEngine extends EngineAPI {
   handleKeyDown: (e: React.KeyboardEvent) => void;
   timeElapsed: number;
+  stopZen: () => void;
+  replaySnapshots: React.MutableRefObject<ReplaySnapshot[]>;
 }
 
 export interface ExternalConfig {
@@ -69,6 +74,16 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
   const misstypedCharsRef = useRef(0);
   const totalCharsRef = useRef(0);
   const keyStatsRef = useRef<Map<string, { correct: number; total: number }>>(new Map());
+  // Strict mode failure tracking
+  const failedRef = useRef(false);
+  const failedAtRef = useRef<{ wordIndex: number; charIndex: number } | null>(null);
+  // Bigram tracking (prevChar + currentChar)
+  const bigramStatsRef = useRef<Map<string, { correct: number; total: number }>>(new Map());
+  const prevTypedCharRef = useRef<string | null>(null);
+  // Zen mode batch counter for generating more words
+  const zenBatchRef = useRef(0);
+  // Replay snapshot tracking for solo mode
+  const replaySnapshotsRef = useRef<ReplaySnapshot[]>([]);
 
   // Whether the effective behavior is "type all words and finish" (wordcount-like)
   const isWordcountBehavior =
@@ -77,7 +92,8 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     config.contentType === "marathon" ||
     config.contentType === "sprint" ||
     config.contentType === "custom" ||
-    config.contentType === "practice";
+    config.contentType === "practice" ||
+    config.contentType === "code";
 
   // Generate words on mount (avoids hydration mismatch from Date.now() seed)
   const initialized = useRef(false);
@@ -150,6 +166,10 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
       consistency = Math.round(Math.max(0, Math.min(100, 100 - cv)));
     }
 
+    // Bigram stats Map to plain Record
+    const bigramStats: Record<string, { correct: number; total: number }> = {};
+    bigramStatsRef.current.forEach((v, k) => { bigramStats[k] = v; });
+
     setStats({
       wpm,
       rawWpm,
@@ -163,6 +183,9 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
       wpmHistory: wpmHistoryRef.current,
       keyStats,
       consistency,
+      failed: failedRef.current,
+      failedAt: failedAtRef.current ?? undefined,
+      bigramStats: Object.keys(bigramStats).length > 0 ? bigramStats : undefined,
     });
     setStatus("finished");
   }, [stopTimer]);
@@ -219,6 +242,12 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     totalCharsRef.current = 0;
     keyStatsRef.current = new Map();
     wpmHistoryRef.current = [];
+    failedRef.current = false;
+    failedAtRef.current = null;
+    bigramStatsRef.current = new Map();
+    prevTypedCharRef.current = null;
+    zenBatchRef.current = 0;
+    replaySnapshotsRef.current = [];
   }, [stopTimer, config]);
 
   // Reset when config changes
@@ -228,10 +257,19 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
 
   const handleCharacter = useCallback(
     (char: string) => {
+      if (failedRef.current) return; // strict mode failed — block further input
       const word = words[currentWordIndex];
       if (!word || currentCharIndex >= word.chars.length) return;
 
       const isCorrect = char === word.chars[currentCharIndex].expected;
+
+      // Master mode: fail immediately on any wrong character
+      if (!isCorrect && config.strictMode === "master") {
+        failedRef.current = true;
+        failedAtRef.current = { wordIndex: currentWordIndex, charIndex: currentCharIndex };
+        finishTest();
+        return;
+      }
 
       setWords((prev) => {
         const newWords = [...prev];
@@ -263,7 +301,31 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
         correct: existing.correct + (isCorrect ? 1 : 0),
         total: existing.total + 1,
       });
+
+      // Track bigram accuracy (previous char + current char)
+      if (prevTypedCharRef.current !== null) {
+        const bigram = (prevTypedCharRef.current + expectedKey).toLowerCase();
+        const bg = bigramStatsRef.current.get(bigram) ?? { correct: 0, total: 0 };
+        bigramStatsRef.current.set(bigram, {
+          correct: bg.correct + (isCorrect ? 1 : 0),
+          total: bg.total + 1,
+        });
+      }
+      prevTypedCharRef.current = expectedKey;
+
       setCurrentCharIndex((prev) => prev + 1);
+
+      // Capture replay snapshot
+      if (startTimeRef.current > 0) {
+        replaySnapshotsRef.current.push({
+          t: Math.round(performance.now() - startTimeRef.current),
+          w: currentWordIndex,
+          c: currentCharIndex + 1,
+        });
+      }
+
+      // Zen mode: never auto-finish; generate more words when running low
+      if (config.contentType === "zen") return;
 
       // Auto-finish: last char of last word, only if all chars correct
       // For wordcount-behavior modes (wordcount, quotes, marathon, sprint), finish when all words typed
@@ -353,16 +415,52 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
   }, [words, currentWordIndex, currentCharIndex]);
 
   const handleSpace = useCallback(() => {
+    if (failedRef.current) return;
     // Only allow space when the current word is fully and correctly typed
     const word = words[currentWordIndex];
     if (!word || currentCharIndex < word.chars.length) return;
-    if (word.chars.some((c) => c.status !== "correct")) return;
+    if (word.chars.some((c) => c.status !== "correct")) {
+      // Expert mode: fail when trying to advance a word with errors
+      if (config.strictMode === "expert" || config.strictMode === "master") {
+        failedRef.current = true;
+        failedAtRef.current = { wordIndex: currentWordIndex, charIndex: currentCharIndex };
+        finishTest();
+        return;
+      }
+      return;
+    }
+
+    // Reset bigram tracking at word boundary (space breaks the bigram)
+    prevTypedCharRef.current = null;
 
     // Count the space keystroke
     correctCharsRef.current++;
     totalCharsRef.current++;
 
     const nextWordIndex = currentWordIndex + 1;
+
+    // Zen mode: generate more words when running low, never auto-finish
+    if (config.contentType === "zen" && nextWordIndex > words.length - 30) {
+      zenBatchRef.current++;
+      const pool = wordPoolByDifficulty[config.difficulty ?? "easy"];
+      const newBatch = generateWords(pool, 200, (Date.now() + zenBatchRef.current * 7919));
+      const newWordStates = newBatch.map((w) => ({
+        chars: w.split("").map((ch) => ({
+          expected: ch,
+          actual: null,
+          status: "idle" as const,
+        })),
+        extraChars: [] as CharState[],
+      }));
+      setWords((prev) => [...prev, ...newWordStates]);
+    }
+
+    // Zen mode never auto-finishes
+    if (config.contentType === "zen") {
+      setCurrentWordIndex(nextWordIndex);
+      setCurrentCharIndex(0);
+      return;
+    }
 
     // Last word auto-finishes via handleCharacter, but keep as safety net
     const totalWordCount = isWordcountBehavior
@@ -377,30 +475,71 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     setCurrentCharIndex(0);
   }, [words, currentWordIndex, currentCharIndex, config, finishTest]);
 
+  // Stop zen mode manually
+  const stopZen = useCallback(() => {
+    if (config.contentType === "zen" && status === "typing") {
+      finishTest();
+    }
+  }, [config.contentType, status, finishTest]);
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent | KeyboardEvent) => {
       if (status === "finished") return;
+      if (failedRef.current) return;
 
-      // Tab+Enter = restart (Tab sets flag, Enter triggers)
+      const isCodeMode = config.contentType === "code";
+
+      // Tab handling: in code mode, Tab types indent spaces; otherwise Tab+Enter = restart
       if (e.key === "Tab") {
         e.preventDefault();
+        if (isCodeMode) {
+          // In code mode, Tab auto-advances through the current word if it's all spaces (indent token)
+          const word = words[currentWordIndex];
+          if (word && word.chars.every(c => c.expected === " ")) {
+            // Auto-type all space chars in the indent token
+            for (let i = currentCharIndex; i < word.chars.length; i++) {
+              handleCharacter(" ");
+            }
+          }
+          return;
+        }
         tabPressedRef.current = true;
         return;
       }
 
-      if (e.key === "Enter" && tabPressedRef.current) {
-        e.preventDefault();
-        tabPressedRef.current = false;
-        restart();
-        return;
+      if (e.key === "Enter") {
+        if (tabPressedRef.current) {
+          e.preventDefault();
+          tabPressedRef.current = false;
+          restart();
+          return;
+        }
+        // In code mode, Enter advances past \n tokens
+        if (isCodeMode) {
+          e.preventDefault();
+          const word = words[currentWordIndex];
+          if (word && word.chars.length === 2 && word.chars[0].expected === "\\" && word.chars[1].expected === "n") {
+            // Auto-type the \n token
+            if (currentCharIndex === 0) handleCharacter("\\");
+            if (currentCharIndex <= 1) handleCharacter("n");
+            // Then advance via space logic
+            handleSpace();
+          }
+          return;
+        }
       }
 
       // Any other key clears the tab flag
       tabPressedRef.current = false;
 
-      // Escape = restart
+      // Escape = restart (always works)
       if (e.key === "Escape") {
         e.preventDefault();
+        // In zen mode, Escape stops the test instead of restarting
+        if (config.contentType === "zen" && status === "typing") {
+          finishTest();
+          return;
+        }
         restart();
         return;
       }
@@ -433,7 +572,7 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
         handleCharacter(e.key);
       }
     },
-    [status, restart, startTimer, handleBackspace, handleWordDelete, handleSpace, handleCharacter]
+    [status, config, words, currentWordIndex, currentCharIndex, restart, startTimer, finishTest, handleBackspace, handleWordDelete, handleSpace, handleCharacter]
   );
 
   // Attach keydown handler to window for this hook's consumer to use
@@ -452,6 +591,8 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     stats,
     setConfig,
     restart,
+    stopZen,
+    replaySnapshots: replaySnapshotsRef,
     handleKeyDown: (e: React.KeyboardEvent) => keyDownRef.current(e),
   };
 }

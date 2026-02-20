@@ -9,11 +9,11 @@ import type {
   WpmSample,
   EmoteKey,
 } from "@typeoff/shared";
-import { calculateRaceElo, getRankTier, generateWordsForMode, quotes, calculateClanElo, EMOTE_KEYS } from "@typeoff/shared";
+import { calculateRaceElo, getRankTier, generateWordsForMode, quotes, calculateClanElo, EMOTE_KEYS, scoreTextDifficulty, calculatePP, calculateTotalPP } from "@typeoff/shared";
 import type { RankTier, RaceMode, ReplaySnapshot } from "@typeoff/shared";
 import type { NotificationManager } from "./notification-manager.js";
-import { createDb, races, raceParticipants, userStats, users, userActiveCosmetics, clans, clanMembers } from "@typeoff/db";
-import { eq, inArray, and, sql } from "drizzle-orm";
+import { createDb, races, raceParticipants, userStats, users, userActiveCosmetics, clans, clanMembers, textLeaderboards } from "@typeoff/db";
+import { eq, inArray, and, sql, desc } from "drizzle-orm";
 import { checkAchievements } from "./achievement-checker.js";
 import { checkChallenges, type ChallengeCheckResult } from "./challenge-checker.js";
 import { checkXpRewards, type XpContext, type XpProgress } from "./xp-checker.js";
@@ -45,7 +45,7 @@ interface PlayerEntry {
   lastEmoteAt: number;
 }
 
-const COUNTDOWN_SECONDS = 3;
+const COUNTDOWN_SECONDS = 5;
 const PROGRESS_INTERVAL_MS = 100;
 
 const DEFAULT_BOT_WPM_MIN = 40;
@@ -62,6 +62,7 @@ export interface BotWpmConfig {
 
 const FINISH_TIMEOUT_SECONDS = 15;
 const PLACEMENT_RACE_COUNT = 3;
+const DISCONNECT_GRACE_MS = 10_000;
 
 export class RaceManager {
   readonly raceId: string;
@@ -80,11 +81,12 @@ export class RaceManager {
   private expectedWords: string[] = [];
   private playerFlags = new Map<string, string[]>();
   private mode: RaceMode;
+  private disconnectGraceTimer: ReturnType<typeof setTimeout> | null = null;
   private spectatorInfo = new Map<string, { userId: string; name: string }>();
 
   private static readonly MODES: RaceMode[] = [
     "standard", "quotes", "marathon", "sprint",
-    "punctuation", "numbers", "difficult",
+    "punctuation", "numbers", "difficult", "code",
   ];
 
   constructor(
@@ -159,6 +161,7 @@ export class RaceManager {
       punctuation: 0.78,
       numbers: 0.82,
       difficult: 0.75,
+      code: 0.65,
     };
     const modeMultiplier = modeDifficultyMultiplier[this.mode];
 
@@ -322,25 +325,96 @@ export class RaceManager {
       return;
     }
 
-    // Mark as finished with last placement (0 WPM = guaranteed loss)
-    if (!entry.progress.finished && this.status === "racing") {
-      entry.progress.finished = true;
-      entry.progress.placement = this.nextPlacement++;
-      entry.progress.finalStats = { wpm: 0, rawWpm: 0, accuracy: 0 };
-    }
-
-    // Keep player in the map so persistResults() records their participation
-    // and calculates ELO loss. Just null out the socket and leave the room.
+    // Null out the socket and leave the room (keep entry for reconnection / persist)
     entry.socket?.leave(this.raceId);
     entry.socket = null;
 
-    // End race if no real players with active sockets remain
+    // Check if other humans are still connected
     const hasConnectedRealPlayers = [...this.players.values()].some(
       (p) => !p.isBot && p.socket != null,
     );
-    if (!hasConnectedRealPlayers) {
-      this.endRace();
+
+    if (hasConnectedRealPlayers) {
+      // Multi-human race: immediate forfeit for the disconnected player
+      if (!entry.progress.finished && this.status === "racing") {
+        entry.progress.finished = true;
+        entry.progress.placement = this.nextPlacement++;
+        entry.progress.finalStats = { wpm: 0, rawWpm: 0, accuracy: 0 };
+      }
+    } else {
+      // Last human disconnected — start grace period (bots keep ticking)
+      if (!this.disconnectGraceTimer && this.status === "racing") {
+        this.disconnectGraceTimer = setTimeout(() => {
+          this.disconnectGraceTimer = null;
+          // Grace expired — mark all disconnected humans as forfeited, then end
+          for (const p of this.players.values()) {
+            if (!p.isBot && p.socket == null && !p.progress.finished) {
+              p.progress.finished = true;
+              p.progress.placement = this.nextPlacement++;
+              p.progress.finalStats = { wpm: 0, rawWpm: 0, accuracy: 0 };
+            }
+          }
+          this.endRace();
+        }, DISCONNECT_GRACE_MS);
+      }
     }
+  }
+
+  /** Reconnect a player who briefly disconnected. Returns true on success. */
+  reconnectPlayer(userId: string, newSocket: TypedSocket): boolean {
+    if (this.status === "finished") return false;
+
+    // Find existing entry by userId
+    let oldSocketId: string | null = null;
+    let entry: PlayerEntry | null = null;
+    for (const [key, e] of this.players.entries()) {
+      if (e.player.id === userId && !e.isBot) {
+        oldSocketId = key;
+        entry = e;
+        break;
+      }
+    }
+    if (!oldSocketId || !entry) return false;
+
+    // Re-key the entry from old socketId to new socketId
+    this.players.delete(oldSocketId);
+    entry.socket = newSocket;
+    this.players.set(newSocket.id, entry);
+
+    // Join the new socket to the race room
+    newSocket.join(this.raceId);
+
+    // Cancel grace timer if running
+    if (this.disconnectGraceTimer) {
+      clearTimeout(this.disconnectGraceTimer);
+      this.disconnectGraceTimer = null;
+    }
+
+    return true;
+  }
+
+  /** Get the current race state (used for reconnection and spectating) */
+  getState(): RaceState {
+    const players: RacePlayer[] = [];
+    const progress: Record<string, RacePlayerProgress> = {};
+
+    for (const entry of this.players.values()) {
+      players.push(entry.player);
+      progress[entry.player.id] = entry.progress;
+    }
+
+    return {
+      raceId: this.raceId,
+      status: this.status,
+      players,
+      progress,
+      seed: this.seed,
+      wordCount: this.wordCount,
+      countdown: 0,
+      finishTimeoutEnd: this.finishTimeoutEnd,
+      placementRace: this.placementRace,
+      mode: this.mode,
+    };
   }
 
   private validateProgress(
@@ -921,6 +995,77 @@ export class RaceManager {
       console.error("[race-manager] DB error (persist):", err);
     }
 
+    // 3b. PP calculation + text leaderboard upsert (non-placement races only)
+    if (!this.placementRace) {
+      try {
+        const difficulty = scoreTextDifficulty(this.expectedWords);
+        const textHash = `${this.seed}:${this.mode}`;
+
+        for (const entry of entries) {
+          if (entry.isBot || entry.player.isGuest) continue;
+          const flags = this.playerFlags.get(entry.player.id);
+          if (flags && flags.length > 0) continue; // Skip flagged players
+
+          const stats = entry.progress.finalStats;
+          if (!stats || stats.wpm <= 0) continue;
+
+          const pp = calculatePP(stats.wpm, stats.accuracy, difficulty.score);
+
+          // Update participant PP
+          await db
+            .update(raceParticipants)
+            .set({ pp })
+            .where(
+              and(
+                eq(raceParticipants.raceId, this.raceId),
+                eq(raceParticipants.userId, entry.player.id),
+              ),
+            );
+
+          // Upsert text leaderboard (best WPM wins)
+          await db
+            .insert(textLeaderboards)
+            .values({
+              textHash,
+              seed: this.seed,
+              mode: this.mode,
+              userId: entry.player.id,
+              bestWpm: stats.wpm,
+              bestAccuracy: stats.accuracy,
+              bestRaceId: this.raceId,
+              pp,
+              textDifficulty: difficulty.score,
+            })
+            .onConflictDoUpdate({
+              target: [textLeaderboards.textHash, textLeaderboards.userId],
+              set: {
+                bestWpm: sql`CASE WHEN excluded.best_wpm > ${textLeaderboards.bestWpm} THEN excluded.best_wpm ELSE ${textLeaderboards.bestWpm} END`,
+                bestAccuracy: sql`CASE WHEN excluded.best_wpm > ${textLeaderboards.bestWpm} THEN excluded.best_accuracy ELSE ${textLeaderboards.bestAccuracy} END`,
+                bestRaceId: sql`CASE WHEN excluded.best_wpm > ${textLeaderboards.bestWpm} THEN excluded.best_race_id ELSE ${textLeaderboards.bestRaceId} END`,
+                pp: sql`CASE WHEN excluded.best_wpm > ${textLeaderboards.bestWpm} THEN excluded.pp ELSE ${textLeaderboards.pp} END`,
+                updatedAt: new Date(),
+              },
+            });
+
+          // Recalculate user's total PP (weighted sum of top 50)
+          const topScores = await db
+            .select({ pp: textLeaderboards.pp })
+            .from(textLeaderboards)
+            .where(eq(textLeaderboards.userId, entry.player.id))
+            .orderBy(desc(textLeaderboards.pp))
+            .limit(50);
+
+          const totalPp = calculateTotalPP(topScores.map((s) => s.pp));
+          await db
+            .update(userStats)
+            .set({ totalPp })
+            .where(eq(userStats.userId, entry.player.id));
+        }
+      } catch (ppErr) {
+        console.error("[race-manager] PP/text-leaderboard error:", ppErr);
+      }
+    }
+
     // 4. Load display data (usernames + elo + cosmetics for players not yet in eloAfterMap)
     try {
       const authPlayerIds = entries
@@ -1148,6 +1293,7 @@ export class RaceManager {
     if (this.countdownTimer) clearInterval(this.countdownTimer);
     if (this.progressTimer) clearInterval(this.progressTimer);
     if (this.finishTimeoutTimer) clearTimeout(this.finishTimeoutTimer);
+    if (this.disconnectGraceTimer) clearTimeout(this.disconnectGraceTimer);
 
     // Evict spectators from the room
     for (const socketId of this.spectatorInfo.keys()) {
@@ -1224,26 +1370,4 @@ export class RaceManager {
     });
   }
 
-  private getState(): RaceState {
-    const players: RacePlayer[] = [];
-    const progress: Record<string, RacePlayerProgress> = {};
-
-    for (const entry of this.players.values()) {
-      players.push(entry.player);
-      progress[entry.player.id] = entry.progress;
-    }
-
-    return {
-      raceId: this.raceId,
-      status: this.status,
-      players,
-      progress,
-      seed: this.seed,
-      wordCount: this.wordCount,
-      countdown: 0,
-      finishTimeoutEnd: this.finishTimeoutEnd,
-      placementRace: this.placementRace,
-      mode: this.mode,
-    };
-  }
 }

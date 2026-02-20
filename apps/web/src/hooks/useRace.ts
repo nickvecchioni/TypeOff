@@ -69,6 +69,9 @@ export function useRace() {
   // Keep track of own player id
   const myPlayerIdRef = useRef<string | null>(null);
 
+  // Track previous connected state for reconnection detection
+  const prevConnectedRef = useRef(connected);
+
   useEffect(() => {
     const unsubs = [
       on("queueUpdate", (data) => {
@@ -133,6 +136,28 @@ export function useRace() {
     }, 1000);
     return () => clearInterval(timer);
   }, [phase]);
+
+  // Reconnect to active race after brief disconnect
+  useEffect(() => {
+    const wasDisconnected = !prevConnectedRef.current;
+    prevConnectedRef.current = connected;
+
+    if (connected && wasDisconnected && (phase === "racing" || phase === "countdown")) {
+      (async () => {
+        try {
+          const res = await fetch("/api/ws-token");
+          if (res.ok) {
+            const data = await res.json();
+            if (data.token) {
+              emit("rejoinRace", { token: data.token });
+            }
+          }
+        } catch {
+          // Token fetch failed — server will end race after grace period
+        }
+      })();
+    }
+  }, [connected, phase, emit]);
 
   const queueTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 

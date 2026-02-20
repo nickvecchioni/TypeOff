@@ -6,7 +6,7 @@ export type EmoteKey = (typeof EMOTE_KEYS)[number];
 export type RaceStatus = "waiting" | "countdown" | "racing" | "finished";
 
 /** Race mode determines text generation and display */
-export type RaceMode = "standard" | "quotes" | "marathon" | "sprint" | "punctuation" | "numbers" | "difficult";
+export type RaceMode = "standard" | "quotes" | "marathon" | "sprint" | "punctuation" | "numbers" | "difficult" | "code";
 
 /** A player in a race */
 export interface RacePlayer {
@@ -104,6 +104,8 @@ export interface ClientToServerEvents {
   respondToClanInvite: (data: { inviteId: string; accept: boolean; token?: string }) => void;
   // Emote events
   sendRaceEmote: (data: { emote: EmoteKey; token?: string }) => void;
+  // Reconnection events
+  rejoinRace: (data: { token?: string }) => void;
 }
 
 /** Server → Client events */

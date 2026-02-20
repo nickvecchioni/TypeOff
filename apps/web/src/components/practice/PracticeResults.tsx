@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from "react";
 import { useSession, signIn } from "next-auth/react";
+import Link from "next/link";
 import type { TestStats, TestConfig } from "@typeoff/shared";
 import { WpmChart } from "@/components/typing/WpmChart";
 import { KeyboardHeatmap } from "@/components/typing/KeyboardHeatmap";
@@ -176,6 +177,14 @@ export function PracticeResults({ stats, config, isPb, onRestart }: PracticeResu
           <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/50 text-[10px]">Enter</kbd>
           {" "}to restart
         </p>
+        {session?.user && (
+          <Link
+            href="/ghost"
+            className="text-xs text-purple-400/60 hover:text-purple-400 transition-colors mt-1"
+          >
+            Race your PB
+          </Link>
+        )}
       </div>
     </div>
   );

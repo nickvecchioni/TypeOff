@@ -11,6 +11,7 @@ const MODE_LABELS: Record<RaceMode, string | null> = {
   punctuation: "Punctuation",
   numbers: "Numbers",
   difficult: "Difficult",
+  code: "Code",
 };
 
 interface CountdownOverlayProps {

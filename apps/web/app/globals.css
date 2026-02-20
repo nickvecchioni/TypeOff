@@ -317,3 +317,180 @@ button, [role="button"], a {
   --color-error: #f472b6;
   --color-current: #ede9fe;
 }
+
+/* ── Extended typing themes ───────────────────────────────── */
+
+.typing-theme-dracula {
+  --color-muted: #6272a4;
+  --color-correct: #50fa7b;
+  --color-error: #ff5555;
+  --color-current: #f8f8f2;
+}
+
+.typing-theme-solarized-dark {
+  --color-muted: #586e75;
+  --color-correct: #859900;
+  --color-error: #dc322f;
+  --color-current: #fdf6e3;
+}
+
+.typing-theme-solarized-light {
+  --color-muted: #93a1a1;
+  --color-correct: #859900;
+  --color-error: #dc322f;
+  --color-current: #002b36;
+}
+
+.typing-theme-nord {
+  --color-muted: #4c566a;
+  --color-correct: #a3be8c;
+  --color-error: #bf616a;
+  --color-current: #eceff4;
+}
+
+.typing-theme-gruvbox {
+  --color-muted: #928374;
+  --color-correct: #b8bb26;
+  --color-error: #fb4934;
+  --color-current: #ebdbb2;
+}
+
+.typing-theme-monokai {
+  --color-muted: #75715e;
+  --color-correct: #a6e22e;
+  --color-error: #f92672;
+  --color-current: #f8f8f2;
+}
+
+.typing-theme-one-dark {
+  --color-muted: #5c6370;
+  --color-correct: #98c379;
+  --color-error: #e06c75;
+  --color-current: #abb2bf;
+}
+
+.typing-theme-catppuccin {
+  --color-muted: #6c7086;
+  --color-correct: #a6e3a1;
+  --color-error: #f38ba8;
+  --color-current: #cdd6f4;
+}
+
+.typing-theme-tokyo-night {
+  --color-muted: #565f89;
+  --color-correct: #9ece6a;
+  --color-error: #f7768e;
+  --color-current: #c0caf5;
+}
+
+.typing-theme-kanagawa {
+  --color-muted: #727169;
+  --color-correct: #98bb6c;
+  --color-error: #e82424;
+  --color-current: #dcd7ba;
+}
+
+.typing-theme-rose-pine {
+  --color-muted: #6e6a86;
+  --color-correct: #31748f;
+  --color-error: #eb6f92;
+  --color-current: #e0def4;
+}
+
+.typing-theme-everforest {
+  --color-muted: #859289;
+  --color-correct: #a7c080;
+  --color-error: #e67e80;
+  --color-current: #d3c6aa;
+}
+
+.typing-theme-synthwave {
+  --color-muted: #848bbd;
+  --color-correct: #72f1b8;
+  --color-error: #fe4450;
+  --color-current: #f92aad;
+}
+
+.typing-theme-cyberpunk {
+  --color-muted: #7b7f8b;
+  --color-correct: #00ff9f;
+  --color-error: #ff003c;
+  --color-current: #fcee09;
+}
+
+.typing-theme-retro {
+  --color-muted: #b8a898;
+  --color-correct: #83a598;
+  --color-error: #cc241d;
+  --color-current: #fce8c3;
+}
+
+.typing-theme-paper {
+  --color-muted: #999999;
+  --color-correct: #444444;
+  --color-error: #cc0000;
+  --color-current: #1a1a1a;
+}
+
+.typing-theme-sepia {
+  --color-muted: #a08c72;
+  --color-correct: #6b5e4a;
+  --color-error: #c0392b;
+  --color-current: #5c4837;
+}
+
+.typing-theme-arctic {
+  --color-muted: #8fbcbb;
+  --color-correct: #88c0d0;
+  --color-error: #bf616a;
+  --color-current: #e5e9f0;
+}
+
+.typing-theme-ocean {
+  --color-muted: #6699cc;
+  --color-correct: #99c794;
+  --color-error: #ec5f67;
+  --color-current: #d8dee9;
+}
+
+.typing-theme-forest {
+  --color-muted: #6a8759;
+  --color-correct: #629755;
+  --color-error: #cf6171;
+  --color-current: #a9b7c6;
+}
+
+.typing-theme-lavender {
+  --color-muted: #988bc7;
+  --color-correct: #c4b5fd;
+  --color-error: #fca5a5;
+  --color-current: #ede9fe;
+}
+
+.typing-theme-copper {
+  --color-muted: #b87333;
+  --color-correct: #cd7f32;
+  --color-error: #e74c3c;
+  --color-current: #faebd7;
+}
+
+.typing-theme-matrix {
+  --color-muted: #003b00;
+  --color-correct: #00ff41;
+  --color-error: #ff0000;
+  --color-current: #00ff41;
+}
+
+.typing-theme-vaporwave {
+  --color-muted: #e47eed;
+  --color-correct: #ff71ce;
+  --color-error: #ff6b6b;
+  --color-current: #01cdfe;
+}
+
+.typing-theme-minimal {
+  --color-muted: #555555;
+  --color-correct: #ffffff;
+  --color-error: #ff4444;
+  --color-current: #ffffff;
+}

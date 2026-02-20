@@ -63,6 +63,8 @@ export async function GET(req: NextRequest) {
       eloAfter: raceParticipants.eloAfter,
       finishedAt: raceParticipants.finishedAt,
       playerCount: races.playerCount,
+      mode: races.wordPool,
+      seed: races.seed,
     })
     .from(raceParticipants)
     .innerJoin(races, eq(raceParticipants.raceId, races.id))
@@ -92,6 +94,9 @@ export async function GET(req: NextRequest) {
       eloChange: r.eloBefore != null && r.eloAfter != null ? r.eloAfter - r.eloBefore : null,
       finishedAt: r.finishedAt?.toISOString() ?? null,
       playerCount: r.playerCount,
+      mode: r.mode,
+      seed: r.seed,
+      date: r.finishedAt?.toISOString() ?? null,
     })),
     nextCursor: isPro ? nextCursor : undefined,
     total: countRow?.count ?? 0,

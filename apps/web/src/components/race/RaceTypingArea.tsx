@@ -152,6 +152,7 @@ export function RaceTypingArea({
           currentWordIndex={engine.currentWordIndex}
           currentCharIndex={engine.currentCharIndex}
           isTyping={engine.status === "typing"}
+          contentType={mode === "code" ? "code" : undefined}
         />
       </div>
       <div className={`flex items-baseline justify-center text-muted text-sm tabular-nums mt-4 transition-opacity duration-200 ${

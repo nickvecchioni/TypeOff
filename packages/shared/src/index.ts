@@ -8,3 +8,5 @@ export * from "./username";
 export * from "./achievements";
 export * from "./challenges";
 export * from "./type-pass";
+export * from "./difficulty";
+export * from "./code-snippets";

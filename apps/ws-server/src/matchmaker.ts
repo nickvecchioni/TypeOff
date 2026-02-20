@@ -41,6 +41,7 @@ export class Matchmaker implements RaceOwner {
   private races = new Map<string, RaceManager>();
   private socketToRace = new Map<string, string>();
   private socketToUserId = new Map<string, string>();
+  private userIdToRace = new Map<string, string>();
   private queueTimer: ReturnType<typeof setInterval> | null = null;
   private onRaceStarted?: (raceId: string, playerUserIds: string[]) => void;
 
@@ -201,8 +202,36 @@ export class Matchmaker implements RaceOwner {
       if (userId) {
         this.socialManager?.setUserRace(userId, null);
         this.socketToUserId.delete(socketId);
+        // Note: userIdToRace is intentionally NOT cleared here —
+        // it persists so tryReconnect() can find the race during grace period.
+        // It will be cleaned up by cleanupRace() when the race ends.
       }
     }
+  }
+
+  tryReconnect(socket: TypedSocket, userId: string): { raceId: string; race: RaceManager } | null {
+    const raceId = this.userIdToRace.get(userId);
+    if (!raceId) return null;
+
+    const race = this.races.get(raceId);
+    if (!race) {
+      // Stale mapping — clean up
+      this.userIdToRace.delete(userId);
+      return null;
+    }
+
+    const success = race.reconnectPlayer(userId, socket);
+    if (!success) {
+      this.userIdToRace.delete(userId);
+      return null;
+    }
+
+    // Update socket-level mappings with the new socket
+    this.socketToRace.set(socket.id, raceId);
+    this.socketToUserId.set(socket.id, userId);
+    this.socialManager?.setUserRace(userId, raceId);
+
+    return { raceId, race };
   }
 
   cleanupRace(raceId: string, socketIds: string[]) {
@@ -213,6 +242,7 @@ export class Matchmaker implements RaceOwner {
       if (userId) {
         this.socialManager?.setUserRace(userId, null);
         this.socketToUserId.delete(id);
+        this.userIdToRace.delete(userId);
       }
     }
   }
@@ -340,6 +370,7 @@ export class Matchmaker implements RaceOwner {
       this.socketToRace.set(entry.socket.id, race.raceId);
       if (!entry.player.isGuest) {
         this.socketToUserId.set(entry.socket.id, entry.player.id);
+        this.userIdToRace.set(entry.player.id, race.raceId);
         this.socialManager?.setUserRace(entry.player.id, race.raceId);
         userIds.push(entry.player.id);
       }
@@ -365,6 +396,7 @@ export class Matchmaker implements RaceOwner {
     this.socketToRace.set(socket.id, race.raceId);
     if (!player.isGuest) {
       this.socketToUserId.set(socket.id, player.id);
+      this.userIdToRace.set(player.id, race.raceId);
       this.socialManager?.setUserRace(player.id, race.raceId);
     }
     console.log(`[matchmaker] placement race ${race.raceId} created, calling start() for socket ${socket.id} (connected=${socket.connected})`);
@@ -429,6 +461,7 @@ export class Matchmaker implements RaceOwner {
       this.socketToRace.set(entry.socket.id, race.raceId);
       if (!entry.player.isGuest) {
         this.socketToUserId.set(entry.socket.id, entry.player.id);
+        this.userIdToRace.set(entry.player.id, race.raceId);
         this.socialManager?.setUserRace(entry.player.id, race.raceId);
         userIds.push(entry.player.id);
       }
@@ -485,6 +518,7 @@ export class Matchmaker implements RaceOwner {
       this.socketToRace.set(entry.socket.id, race.raceId);
       if (!entry.player.isGuest) {
         this.socketToUserId.set(entry.socket.id, entry.player.id);
+        this.userIdToRace.set(entry.player.id, race.raceId);
         this.socialManager?.setUserRace(entry.player.id, race.raceId);
       }
     }

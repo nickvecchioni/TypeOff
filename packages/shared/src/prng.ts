@@ -1,4 +1,5 @@
 import { commonWords, wordPoolByDifficulty } from "./words";
+import { tokenizeCode, getCodeSnippet } from "./code-snippets";
 
 /** Combined pool from all difficulty levels for "difficult" mode */
 const allDifficultyPool = [
@@ -183,6 +184,8 @@ export function generateWordsForMode(mode: RaceMode, seed: number): string[] {
       return generateNumbersModeWords(LINE_WIDTH_CH, TARGET_LINES, seed);
     case "difficult":
       return generateWordsForLines(allDifficultyPool, LINE_WIDTH_CH, TARGET_LINES, seed);
+    case "code":
+      return tokenizeCode(getCodeSnippet(seed).code);
   }
 }
 
@@ -315,16 +318,94 @@ export function generateSoloWords(config: TestConfig, seed?: number): string[] {
       break;
     case "practice": {
       const count = config.mode === "wordcount" ? config.duration : 200;
-      words = generatePracticeWords(pool, count, config.weakKeys ?? [], s);
+      const weakKeys = config.weakKeys ?? [];
+      const weakBigrams = config.weakBigrams ?? [];
+      if (weakBigrams.length > 0) {
+        words = generatePracticeWordsWithBigrams(pool, count, weakBigrams, s);
+      } else {
+        words = generatePracticeWords(pool, count, weakKeys, s);
+      }
+      break;
+    }
+    case "code": {
+      const snippet = getCodeSnippet(s, config.codeLanguage);
+      words = tokenizeCode(snippet.code);
+      break;
+    }
+    case "zen": {
+      // Generate a large initial batch for zen (infinite) mode
+      words = generateWords(pool, 500, s);
       break;
     }
     default:
       words = generateWords(pool, 200, s);
   }
 
-  // Apply punctuation (quotes already have their own)
-  if (config.punctuation && config.contentType !== "quotes") {
+  // Apply punctuation (quotes already have their own; skip for code/zen)
+  if (config.punctuation && config.contentType !== "quotes" && config.contentType !== "code" && config.contentType !== "zen") {
     words = applyPunctuation(words, s + 1);
+  }
+
+  return words;
+}
+
+/**
+ * Deterministic daily seed from a date string (e.g. "2026-02-20").
+ * Produces the same seed for the same date, different for different dates.
+ */
+export function dailySeed(date: string): number {
+  let hash = 0;
+  for (let i = 0; i < date.length; i++) {
+    const ch = date.charCodeAt(i);
+    hash = ((hash << 5) - hash + ch) | 0;
+  }
+  return Math.abs(hash);
+}
+
+/**
+ * Generate words biased toward words containing specified weak bigrams.
+ * Words containing more weak bigrams get proportionally more draw weight.
+ */
+export function generatePracticeWordsWithBigrams(
+  pool: string[],
+  count: number,
+  weakBigrams: string[],
+  seed?: number
+): string[] {
+  if (weakBigrams.length === 0) return generateWords(pool, count, seed);
+
+  const bigramSet = new Set(weakBigrams.map(b => b.toLowerCase()));
+  const scored = pool.map(word => {
+    const lower = word.toLowerCase();
+    let hits = 0;
+    for (let i = 0; i < lower.length - 1; i++) {
+      if (bigramSet.has(lower[i] + lower[i + 1])) hits++;
+    }
+    return { word, weight: 1 + hits * 3 };
+  });
+
+  const totalWeight = scored.reduce((s, e) => s + e.weight, 0);
+  const rng = mulberry32(seed ?? Date.now());
+  const words: string[] = [];
+  let prevWord = "";
+
+  for (let i = 0; i < count; i++) {
+    let target = rng() * totalWeight;
+    let chosen = scored[scored.length - 1].word;
+    for (const entry of scored) {
+      target -= entry.weight;
+      if (target <= 0) { chosen = entry.word; break; }
+    }
+    if (chosen === prevWord && scored.length > 1) {
+      target = rng() * totalWeight;
+      for (const entry of scored) {
+        if (entry.word === chosen) continue;
+        target -= entry.weight;
+        if (target <= 0) { chosen = entry.word; break; }
+      }
+    }
+    prevWord = chosen;
+    words.push(chosen);
   }
 
   return words;

@@ -1,8 +1,10 @@
 "use client";
 
 import React from "react";
-import type { TestConfig, ContentType } from "@typeoff/shared";
+import type { TestConfig, ContentType, StrictMode } from "@typeoff/shared";
 import type { EngineStatus } from "@typeoff/shared";
+import { StrictModeSelector } from "./StrictModeSelector";
+import { CodeLanguagePicker } from "./CodeLanguagePicker";
 
 interface ConfigBarProps {
   config: TestConfig;
@@ -17,7 +19,7 @@ const TIME_OPTIONS = [15, 30, 60, 120];
 const WORD_OPTIONS = [10, 25, 50, 100];
 
 /** Content types that use a fixed word set (no time/words toggle or duration picker) */
-const FIXED_CONTENT_TYPES: ContentType[] = ["quotes", "custom", "practice"];
+const FIXED_CONTENT_TYPES: ContentType[] = ["quotes", "custom", "practice", "code", "zen"];
 
 export function ConfigBar({ config, status, onConfigChange, onAfterChange, onCustomTextChange, practiceWeakKeys }: ConfigBarProps) {
   const [customInput, setCustomInput] = React.useState("");
@@ -86,6 +88,12 @@ export function ConfigBar({ config, status, onConfigChange, onAfterChange, onCus
             practice
           </Chip>
         )}
+        <Chip active={ct === "code"} onClick={() => setContentType("code")}>
+          code
+        </Chip>
+        <Chip active={ct === "zen"} onClick={() => setContentType("zen")}>
+          zen
+        </Chip>
       </div>
 
       {/* Time/words toggle + duration (faded for fixed content types) */}
@@ -146,6 +154,28 @@ export function ConfigBar({ config, status, onConfigChange, onAfterChange, onCus
             </span>
           ))}
         </div>
+      )}
+
+      {/* Code language picker (visible when code mode active) */}
+      {ct === "code" && (
+        <>
+          <Divider />
+          <CodeLanguagePicker
+            value={config.codeLanguage}
+            onChange={(lang) => set({ codeLanguage: lang })}
+          />
+        </>
+      )}
+
+      {/* Strict mode selector (visible for non-zen, non-code modes) */}
+      {ct !== "zen" && ct !== "code" && (
+        <>
+          <Divider />
+          <StrictModeSelector
+            value={config.strictMode ?? "normal"}
+            onChange={(mode: StrictMode) => set({ strictMode: mode })}
+          />
+        </>
       )}
     </div>
   );

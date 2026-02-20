@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
-import { soloResults, userKeyAccuracy } from "@typeoff/db";
+import { soloResults, userKeyAccuracy, userBigramAccuracy } from "@typeoff/db";
 import { eq, and, desc, sql } from "drizzle-orm";
 import type { KeyStatsMap } from "@typeoff/shared";
 
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     mode, duration, wpm, rawWpm, accuracy,
     correctChars, incorrectChars, extraChars, totalChars, time,
     contentType, difficulty, punctuation,
-    consistency, keyStats,
+    consistency, keyStats, bigramStats, replayData, seed,
   } = body;
 
   // Validate required fields
@@ -110,6 +110,8 @@ export async function POST(request: Request) {
     isPb,
     consistency: typeof consistency === "number" ? consistency : null,
     keyStatsJson: keyStats ? JSON.stringify(keyStats) : null,
+    replayData: replayData ? JSON.stringify(replayData) : null,
+    seed: typeof seed === "number" ? seed : null,
   });
 
   // Upsert per-key accuracy (skip custom — arbitrary text)
@@ -136,6 +138,36 @@ export async function POST(request: Request) {
             set: {
               correctCount: sql`${userKeyAccuracy.correctCount} + ${val.correctCount}`,
               totalCount: sql`${userKeyAccuracy.totalCount} + ${val.totalCount}`,
+              updatedAt: now,
+            },
+          });
+      }
+    }
+  }
+
+  // Upsert per-bigram accuracy (skip custom — arbitrary text)
+  if (bigramStats && contentType !== "custom" && typeof bigramStats === "object") {
+    const bgEntries = Object.entries(bigramStats as Record<string, { correct: number; total: number }>)
+      .filter(([bg]) => bg.length === 2)
+      .slice(0, 200); // cap to prevent abuse
+
+    if (bgEntries.length > 0) {
+      const now = new Date();
+      for (const [bigram, stat] of bgEntries) {
+        await db
+          .insert(userBigramAccuracy)
+          .values({
+            userId,
+            bigram,
+            correctCount: stat.correct,
+            totalCount: stat.total,
+            updatedAt: now,
+          })
+          .onConflictDoUpdate({
+            target: [userBigramAccuracy.userId, userBigramAccuracy.bigram],
+            set: {
+              correctCount: sql`${userBigramAccuracy.correctCount} + ${stat.correct}`,
+              totalCount: sql`${userBigramAccuracy.totalCount} + ${stat.total}`,
               updatedAt: now,
             },
           });

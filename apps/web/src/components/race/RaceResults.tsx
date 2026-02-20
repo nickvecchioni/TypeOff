@@ -10,6 +10,7 @@ import type { AchievementRarity, PartyState } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
 import { CosmeticName } from "@/components/CosmeticName";
 import { CosmeticBadge } from "@/components/CosmeticBadge";
+import { TextLeaderboard } from "@/components/leaderboard/TextLeaderboard";
 
 
 interface RankChange {
@@ -30,6 +31,8 @@ interface RaceResultsProps {
   party?: PartyState | null;
   onMarkReady?: () => void;
   raceId?: string | null;
+  seed?: number | null;
+  mode?: string | null;
 }
 
 const RARITY_RING: Record<AchievementRarity, string> = {
@@ -343,6 +346,8 @@ export function RaceResults({
   party,
   onMarkReady,
   raceId,
+  seed,
+  mode,
 }: RaceResultsProps) {
   const isPlacement = placementRace != null && placementTotal != null;
   const myResult = results.find((r) => r.playerId === myPlayerId);
@@ -847,6 +852,13 @@ export function RaceResults({
             </Link>
           )}
         </div>
+
+        {/* Text leaderboard */}
+        {seed != null && mode && (
+          <div className="mt-4">
+            <TextLeaderboard seed={seed} mode={mode} limit={10} />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -23,8 +23,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TypeOff",
-  description: "Race your friends in real-time typing battles",
+  title: "TypeOff — Ranked Competitive Typing",
+  description: "Race real players in ELO-matched typing battles. Climb from Bronze to Grandmaster.",
 };
 
 export default function RootLayout({
