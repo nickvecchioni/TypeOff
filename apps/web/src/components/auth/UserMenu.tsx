@@ -19,7 +19,7 @@ export function UserMenu() {
   if (!session?.user) {
     return (
       <Link
-        href="/api/auth/signin"
+        href="/signin"
         className="text-sm font-medium text-muted hover:text-text transition-colors px-3 py-1.5 rounded-lg hover:bg-white/[0.05]"
       >
         Sign In
