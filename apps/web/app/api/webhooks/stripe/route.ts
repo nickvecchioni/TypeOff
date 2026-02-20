@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
-import { userCosmetics, userSubscription, userActiveCosmetics } from "@typeoff/db";
+import { userCosmetics, userSubscription, userActiveCosmetics, userStats } from "@typeoff/db";
 import { eq, and } from "drizzle-orm";
-import { PRO_BADGE_ID } from "@typeoff/shared";
+import { PRO_BADGE_ID, getMissedProRewards } from "@typeoff/shared";
 import Stripe from "stripe";
 
 export async function POST(request: Request) {
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
   const db = getDb();
 
   switch (event.type) {
-    // ── Legacy TypePass one-time purchase ──────────────────────
+    // ── Subscription checkout completed ────────────────────────
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
 
@@ -99,6 +99,37 @@ export async function POST(request: Request) {
             seasonId: "pro",
           })
           .onConflictDoNothing();
+
+        // Auto-equip Pro badge
+        await db
+          .insert(userActiveCosmetics)
+          .values({ userId, activeBadge: PRO_BADGE_ID })
+          .onConflictDoUpdate({
+            target: userActiveCosmetics.userId,
+            set: { activeBadge: PRO_BADGE_ID },
+          });
+
+        // Retroactively unlock Pro XP cosmetics the user already passed
+        const [[statsRow], existingCosmetics] = await Promise.all([
+          db
+            .select({ totalXp: userStats.totalXp })
+            .from(userStats)
+            .where(eq(userStats.userId, userId))
+            .limit(1),
+          db
+            .select({ cosmeticId: userCosmetics.cosmeticId })
+            .from(userCosmetics)
+            .where(eq(userCosmetics.userId, userId)),
+        ]);
+        const totalXp = statsRow?.totalXp ?? 0;
+        const ownedSet = new Set(existingCosmetics.map((c) => c.cosmeticId));
+        const missed = getMissedProRewards(totalXp, ownedSet);
+        for (const reward of missed) {
+          await db
+            .insert(userCosmetics)
+            .values({ userId, cosmeticId: reward.id, seasonId: "xp" })
+            .onConflictDoNothing();
+        }
 
         break;
       }

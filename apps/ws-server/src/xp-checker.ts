@@ -1,6 +1,8 @@
-import { type Database, userCosmetics, userStats } from "@typeoff/db";
+import { type Database, userCosmetics, userStats, userSubscription } from "@typeoff/db";
 import { eq } from "drizzle-orm";
 import { sql } from "drizzle-orm";
+
+const PRO_XP_MULTIPLIER = 1.5;
 import {
   calculateRaceXp,
   getXpLevel,
@@ -22,25 +24,36 @@ export interface XpProgress {
   level: number;
   levelUp: boolean;
   newRewards: CosmeticReward[];
+  isPro: boolean;
 }
 
 export async function checkXpRewards(
   ctx: XpContext,
   db: Database,
 ): Promise<XpProgress> {
-  const xpEarned = calculateRaceXp({
+  // Check Pro status and read current XP in parallel
+  const [[sub], [stats]] = await Promise.all([
+    db
+      .select({ status: userSubscription.status })
+      .from(userSubscription)
+      .where(eq(userSubscription.userId, ctx.userId))
+      .limit(1),
+    db
+      .select({ totalXp: userStats.totalXp })
+      .from(userStats)
+      .where(eq(userStats.userId, ctx.userId))
+      .limit(1),
+  ]);
+
+  const isPro = sub?.status === "active";
+
+  const baseXp = calculateRaceXp({
     wpm: ctx.raceWpm,
     accuracy: ctx.raceAccuracy,
     placement: ctx.placement,
     playerCount: ctx.playerCount,
   });
-
-  // Read current totalXp
-  const [stats] = await db
-    .select({ totalXp: userStats.totalXp })
-    .from(userStats)
-    .where(eq(userStats.userId, ctx.userId))
-    .limit(1);
+  const xpEarned = isPro ? Math.round(baseXp * PRO_XP_MULTIPLIER) : baseXp;
 
   const prevXp = stats?.totalXp ?? 0;
   const newXp = prevXp + xpEarned;
@@ -58,7 +71,7 @@ export async function checkXpRewards(
   const levelUp = newLevel > prevLevel;
 
   // If level increased, unlock new cosmetic rewards
-  const newRewards = getNewCosmeticRewards(prevXp, newXp);
+  const newRewards = getNewCosmeticRewards(prevXp, newXp, isPro);
   if (newRewards.length > 0) {
     for (const reward of newRewards) {
       await db
@@ -78,5 +91,6 @@ export async function checkXpRewards(
     level: newLevel,
     levelUp,
     newRewards,
+    isPro,
   };
 }

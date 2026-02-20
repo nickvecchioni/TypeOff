@@ -32,11 +32,13 @@ export function XpProgressWidget() {
   }
 
   const totalXp = session.user.totalXp ?? 0;
+  const isPro = session.user.isPro ?? false;
   const { level, currentXp, nextLevelXp } = getXpLevel(totalXp);
   const xpPct = (currentXp / nextLevelXp) * 100;
 
-  // Next reward
+  // Next reward — show even if Pro-only (will render with PRO overlay)
   const nextReward = COSMETIC_REWARDS.find((r) => r.level === level + 1);
+  const nextRewardProLocked = nextReward?.proOnly && !isPro;
   const xpToNext = nextLevelXp - currentXp;
 
   return (
@@ -71,20 +73,27 @@ export function XpProgressWidget() {
           </div>
 
           {nextReward && (
-            <span className="text-base shrink-0" title={nextReward.name}>
-              {nextReward.type === "badge"
-                ? nextReward.value
-                : nextReward.type === "nameColor"
-                ? "\uD83C\uDFA8"
-                : nextReward.type === "title"
-                ? "\uD83C\uDFF7\uFE0F"
-                : nextReward.type === "cursorStyle"
-                ? "\uD83D\uDD32"
-                : nextReward.type === "profileBorder"
-                ? "\uD83D\uDDBC\uFE0F"
-                : nextReward.type === "typingTheme"
-                ? "\uD83C\uDFA8"
-                : "\u2728"}
+            <span className="relative shrink-0" title={nextReward.name}>
+              <span className={`text-base ${nextRewardProLocked ? "opacity-50" : ""}`}>
+                {nextReward.type === "badge"
+                  ? nextReward.value
+                  : nextReward.type === "nameColor"
+                  ? "\uD83C\uDFA8"
+                  : nextReward.type === "title"
+                  ? "\uD83C\uDFF7\uFE0F"
+                  : nextReward.type === "cursorStyle"
+                  ? "\uD83D\uDD32"
+                  : nextReward.type === "profileBorder"
+                  ? "\uD83D\uDDBC\uFE0F"
+                  : nextReward.type === "typingTheme"
+                  ? "\uD83C\uDFA8"
+                  : "\u2728"}
+              </span>
+              {nextRewardProLocked && (
+                <span className="absolute -top-1.5 -right-2 text-[7px] font-black tracking-wider text-amber-400 bg-amber-400/10 ring-1 ring-amber-400/30 px-1 py-px rounded leading-none">
+                  PRO
+                </span>
+              )}
             </span>
           )}
         </div>
