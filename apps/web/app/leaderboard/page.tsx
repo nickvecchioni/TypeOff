@@ -6,7 +6,7 @@ import { getDb } from "@/lib/db";
 import { users, userStats, userActiveCosmetics, soloResults, raceParticipants, races } from "@typeoff/db";
 import { and, desc, eq, gt, isNotNull, sql, inArray } from "drizzle-orm";
 import type { RankTier } from "@typeoff/shared";
-import { getRankInfo, getXpLevel } from "@typeoff/shared";
+import { getRankInfo, getXpLevel, TITLE_TEXTS } from "@typeoff/shared";
 import { LeaderboardTabs } from "@/components/leaderboard/LeaderboardTabs";
 import { SoloModeSelector } from "@/components/leaderboard/SoloModeSelector";
 import { PPLeaderboard } from "@/components/leaderboard/PPLeaderboard";
@@ -274,7 +274,7 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
                                 {info.label}
                               </span>
                               {cosmetic?.activeTitle && (
-                                <span className="text-[10px] text-muted/40 leading-tight">{cosmetic.activeTitle}</span>
+                                <span className="text-[10px] text-muted/40 leading-tight">{TITLE_TEXTS[cosmetic.activeTitle] ?? cosmetic.activeTitle}</span>
                               )}
                             </span>
                           </div>
@@ -343,7 +343,7 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
                           {info.label}
                         </span>
                         {myCosmetic?.activeTitle && (
-                          <span className="text-[10px] text-muted/40 leading-tight">{myCosmetic.activeTitle}</span>
+                          <span className="text-[10px] text-muted/40 leading-tight">{TITLE_TEXTS[myCosmetic.activeTitle] ?? myCosmetic.activeTitle}</span>
                         )}
                       </span>
                     </div>
@@ -584,7 +584,7 @@ async function SoloLeaderboard({
                         <span className="text-[10px] text-muted/40 ml-1.5 tabular-nums">Lv.{getXpLevel(row.totalXp ?? 0).level}</span>
                       </span>
                       {soloCosmetic?.activeTitle && (
-                        <span className="text-[10px] text-muted/40 leading-tight">{soloCosmetic.activeTitle}</span>
+                        <span className="text-[10px] text-muted/40 leading-tight">{TITLE_TEXTS[soloCosmetic.activeTitle] ?? soloCosmetic.activeTitle}</span>
                       )}
                     </div>
                   </div>
@@ -630,7 +630,7 @@ async function SoloLeaderboard({
                         <span className="text-[10px] text-muted/40 ml-1.5 tabular-nums font-normal">Lv.{getXpLevel(row.totalXp ?? 0).level}</span>
                       </span>
                       {mySoloCosmetic?.activeTitle && (
-                        <span className="text-[10px] text-muted/40 leading-tight">{mySoloCosmetic.activeTitle}</span>
+                        <span className="text-[10px] text-muted/40 leading-tight">{TITLE_TEXTS[mySoloCosmetic.activeTitle] ?? mySoloCosmetic.activeTitle}</span>
                       )}
                     </div>
                   </div>
@@ -832,7 +832,7 @@ async function UniverseLeaderboard({
                         <span className="text-[10px] text-muted/40 ml-1.5 tabular-nums">Lv.{getXpLevel(row.totalXp ?? 0).level}</span>
                       </span>
                       {cosmetic?.activeTitle && (
-                        <span className="text-[10px] text-muted/40 leading-tight">{cosmetic.activeTitle}</span>
+                        <span className="text-[10px] text-muted/40 leading-tight">{TITLE_TEXTS[cosmetic.activeTitle] ?? cosmetic.activeTitle}</span>
                       )}
                     </div>
                   </div>

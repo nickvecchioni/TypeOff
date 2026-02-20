@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { getXpLevel } from "@typeoff/shared";
+import { getXpLevel, TITLE_TEXTS } from "@typeoff/shared";
 import { CosmeticName } from "@/components/CosmeticName";
 import { CosmeticBadge } from "@/components/CosmeticBadge";
 
@@ -112,7 +112,7 @@ export function PPLeaderboard({ userId }: PPLeaderboardProps) {
                     <span className="text-[10px] text-muted/40 ml-1.5 tabular-nums">Lv.{getXpLevel(entry.totalXp ?? 0).level}</span>
                   </span>
                   {entry.activeTitle && (
-                    <span className="text-[10px] text-muted/40 leading-tight">{entry.activeTitle}</span>
+                    <span className="text-[10px] text-muted/40 leading-tight">{TITLE_TEXTS[entry.activeTitle] ?? entry.activeTitle}</span>
                   )}
                 </div>
               </div>
