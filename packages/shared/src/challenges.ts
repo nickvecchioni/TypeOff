@@ -109,7 +109,7 @@ export function getActiveChallenges(date?: Date): ChallengeDefinition[] {
   return getWeeklyChallenges(date);
 }
 
-// ─── XP Leveling ──────────────────────────────────────────────────────
+// ─── XP Leveling ───────────────────────────────────────────────────────
 
 /** Each level costs level * 200 XP */
 export function getXpLevel(totalXp: number): XpLevel {
