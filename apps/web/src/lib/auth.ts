@@ -7,13 +7,17 @@ import { users, accounts, sessions, verificationTokens, userStats, userActiveCos
 import { getXpLevel } from "@typeoff/shared";
 import { eq } from "drizzle-orm";
 
+const adapter = process.env.DATABASE_URL
+  ? DrizzleAdapter(getDb(), {
+      usersTable: users,
+      accountsTable: accounts,
+      sessionsTable: sessions,
+      verificationTokensTable: verificationTokens,
+    })
+  : undefined;
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: DrizzleAdapter(getDb(), {
-    usersTable: users,
-    accountsTable: accounts,
-    sessionsTable: sessions,
-    verificationTokensTable: verificationTokens,
-  }),
+  adapter,
   session: { strategy: "jwt" },
   providers: [
     Google({
