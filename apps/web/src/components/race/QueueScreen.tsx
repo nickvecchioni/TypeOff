@@ -4,10 +4,9 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useSession, signIn } from "next-auth/react";
 import { PartyPanel } from "@/components/social/PartyPanel";
-import { RankBadge } from "@/components/RankBadge";
 import { ChallengesWidget } from "@/components/race/ChallengesWidget";
 import { GuestPlacement } from "@/components/race/GuestPlacement";
-import { getXpLevel, COSMETIC_REWARDS, getRankInfo } from "@typeoff/shared";
+import { getXpLevel, COSMETIC_REWARDS, getRankInfo, getRankProgress, getNextDivisionElo } from "@typeoff/shared";
 import type { PartyState, RankTier, ModeCategory } from "@typeoff/shared";
 
 // ── Rank styling maps ───────────────────────────────────────────────────────
@@ -64,6 +63,59 @@ interface QueueScreenProps {
 
 // ── Sub-components ──────────────────────────────────────────────────────────
 
+function EloProgressBar({ elo, tier }: { elo: number; tier: RankTier }) {
+  const progress = getRankProgress(elo);
+  const nextElo = getNextDivisionElo(elo);
+
+  if (nextElo == null) {
+    return <div className="flex-1" />;
+  }
+
+  const nextRankInfo = getRankInfo(nextElo);
+  const eloNeeded = nextElo - elo;
+
+  return (
+    <div className="flex-1 min-w-0 flex flex-col gap-1.5 justify-center">
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-[9px] text-muted/50 uppercase tracking-widest leading-none">
+          next rank
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[9px] text-muted/50 tabular-nums">{eloNeeded} away</span>
+          <span
+            className="text-[9px] font-bold leading-none"
+            style={{ color: RANK_HEX[nextRankInfo.tier] }}
+          >
+            {nextRankInfo.label}
+          </span>
+        </div>
+      </div>
+      <div className="h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all"
+          style={{
+            width: `${Math.round(progress * 100)}%`,
+            backgroundColor: RANK_HEX[tier],
+            boxShadow: progress > 0.7 ? `0 0 8px ${RANK_GLOW[tier]}` : undefined,
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function rewardTypeIcon(type: string, value: string): string {
+  switch (type) {
+    case "badge": return value;
+    case "nameColor": return "🎨";
+    case "title": return "🏷️";
+    case "cursorStyle": return "🔲";
+    case "profileBorder": return "🖼️";
+    case "typingTheme": return "🎨";
+    case "nameEffect": return "✦";
+    default: return "✨";
+  }
+}
 
 function LevelWidget({
   level,
@@ -77,22 +129,7 @@ function LevelWidget({
   isPro: boolean;
 }) {
   const xpPct = Math.round((currentXp / nextLevelXp) * 100);
-  const nextReward = COSMETIC_REWARDS.find((r) => r.level === level + 1);
-  const proLocked = nextReward?.proOnly && !isPro;
-
-  const rewardIcon = (() => {
-    if (!nextReward) return "✨";
-    switch (nextReward.type) {
-      case "badge": return nextReward.value;
-      case "nameColor": return "🎨";
-      case "title": return "🏷️";
-      case "cursorStyle": return "🔲";
-      case "profileBorder": return "🖼️";
-      case "typingTheme": return "🎨";
-      default: return "✨";
-    }
-  })();
-
+  const upcomingRewards = COSMETIC_REWARDS.filter((r) => r.level > level).slice(0, 3);
   const xpRemaining = nextLevelXp - currentXp;
 
   return (
@@ -106,7 +143,7 @@ function LevelWidget({
         {/* Level number + XP bar */}
         <div className="flex items-center gap-4">
           <div className="shrink-0 w-12 text-center">
-            <div className="text-[9px] font-black text-muted/60 uppercase tracking-widest leading-none mb-0.5">LV.</div>
+            <div className="text-[9px] font-black text-muted/60 uppercase tracking-widest leading-none mb-0.5">Level</div>
             <div className="text-4xl font-black text-text tabular-nums leading-none">{level}</div>
           </div>
           <div className="flex-1 min-w-0">
@@ -132,25 +169,36 @@ function LevelWidget({
           </div>
         </div>
 
-        {/* Next unlock */}
-        {nextReward && (
-          <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-white/[0.02] ring-1 ring-white/[0.04] group-hover:ring-accent/10 transition-colors">
-            <span className={`text-base shrink-0 leading-none ${proLocked ? "opacity-30" : ""}`}>
-              {rewardIcon}
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className="text-[11px] font-semibold text-text/80 truncate leading-none mb-0.5">
-                {nextReward.name}
-              </div>
-              <div className="text-[10px] text-muted/60 leading-none">
-                unlocks at level {nextReward.level}
-              </div>
-            </div>
-            {proLocked && (
-              <span className="text-[8px] font-black tracking-wider text-amber-400 bg-amber-400/10 ring-1 ring-amber-400/30 px-1.5 py-0.5 rounded shrink-0 leading-none">
-                PRO
-              </span>
-            )}
+        {/* Upcoming unlocks */}
+        {upcomingRewards.length > 0 && (
+          <div className="space-y-1.5">
+            {upcomingRewards.map((reward) => {
+              const proLocked = reward.proOnly && !isPro;
+              const icon = rewardTypeIcon(reward.type, reward.value);
+              return (
+                <div
+                  key={reward.id}
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-white/[0.02] ring-1 ring-white/[0.04] group-hover:ring-accent/10 transition-colors"
+                >
+                  <span className={`text-sm shrink-0 leading-none ${proLocked ? "opacity-30" : ""}`}>
+                    {icon}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[11px] font-semibold text-text/80 truncate leading-none mb-0.5">
+                      {reward.name}
+                    </div>
+                    <div className="text-[10px] text-muted/60 leading-none">
+                      unlocks at level {reward.level}
+                    </div>
+                  </div>
+                  {proLocked && (
+                    <span className="text-[8px] font-black tracking-wider text-amber-400 bg-amber-400/10 ring-1 ring-amber-400/30 px-1.5 py-0.5 rounded shrink-0 leading-none">
+                      PRO
+                    </span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
 
@@ -356,29 +404,6 @@ export function QueueScreen({
               />
 
               <div className="relative flex items-center gap-4 sm:gap-5 px-5 py-3.5 ring-1 ring-white/[0.05] rounded-xl bg-surface/40">
-                {/* Badge + rank name */}
-                <div className="flex items-center gap-3 shrink-0">
-                  <RankBadge
-                    tier={session.user.rankTier}
-                    elo={session.user.eloRating}
-                    size="md"
-                    showElo={false}
-                  />
-                  <div className="hidden sm:block">
-                    <div className="text-[9px] text-muted/60 uppercase tracking-widest leading-none mb-0.5">
-                      rank
-                    </div>
-                    <div
-                      className="text-sm font-bold leading-none"
-                      style={{ color: RANK_HEX[session.user.rankTier] }}
-                    >
-                      {getRankInfo(session.user.eloRating).label}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="w-px h-8 bg-white/[0.05] shrink-0" />
-
                 {/* ELO */}
                 <div className="shrink-0">
                   <div className="text-[9px] text-muted/60 uppercase tracking-widest leading-none mb-0.5">
@@ -402,7 +427,7 @@ export function QueueScreen({
                     <div className="w-px h-8 bg-white/[0.05] shrink-0" />
                     <div className="shrink-0">
                       <div className="text-[9px] text-muted/60 uppercase tracking-widest leading-none mb-0.5">
-                        streak
+                        win streak
                       </div>
                       <div className="text-sm font-bold text-amber-400 tabular-nums leading-none">
                         🔥 {session.user.currentStreak}
@@ -411,33 +436,7 @@ export function QueueScreen({
                   </>
                 )}
 
-                <div className="flex-1" />
-
-                {/* Level + mini XP bar */}
-                {xpInfo && (
-                  <Link
-                    href="/cosmetics"
-                    className="hidden sm:flex flex-col items-end gap-1 shrink-0 group"
-                  >
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[9px] text-muted/60 uppercase tracking-widest">lv.</span>
-                      <span className="text-sm font-black text-accent tabular-nums">
-                        {xpInfo.level}
-                      </span>
-                    </div>
-                    <div className="w-20 h-[3px] bg-surface rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-accent/70 rounded-full group-hover:bg-accent transition-colors duration-300"
-                        style={{
-                          width: `${Math.round((xpInfo.currentXp / xpInfo.nextLevelXp) * 100)}%`,
-                        }}
-                      />
-                    </div>
-                    <div className="text-[9px] text-muted/65 group-hover:text-muted/65 transition-colors tabular-nums">
-                      {xpInfo.currentXp}/{xpInfo.nextLevelXp} xp
-                    </div>
-                  </Link>
-                )}
+                <EloProgressBar elo={session.user.eloRating} tier={session.user.rankTier} />
               </div>
             </div>
           )}
