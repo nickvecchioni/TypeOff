@@ -62,6 +62,7 @@ export function CodeWordDisplay({
               return (
                 <span
                   key={globalIdx}
+                  data-wordindex={globalIdx}
                   className={`relative inline-block mr-[1ch] ${
                     isActive ? "border-b-2 border-accent/50" : ""
                   }`}
@@ -77,6 +78,7 @@ export function CodeWordDisplay({
               return (
                 <span
                   key={globalIdx}
+                  data-wordindex={globalIdx}
                   className={`relative inline-block ${
                     isActive ? "border-b-2 border-accent/50" : ""
                   }`}
@@ -103,6 +105,7 @@ export function CodeWordDisplay({
             return (
               <span
                 key={globalIdx}
+                data-wordindex={globalIdx}
                 className={`relative inline-block mr-[1ch] border-b-2 ${
                   isActive
                     ? hasErrors

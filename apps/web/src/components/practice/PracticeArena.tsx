@@ -72,8 +72,7 @@ export function PracticeArena() {
     const inner = wordsInnerRef.current;
     if (!inner) return;
 
-    const wordSpans = inner.querySelectorAll(".no-ligatures > span");
-    const activeSpan = wordSpans[engine.currentWordIndex] as HTMLElement;
+    const activeSpan = inner.querySelector(`[data-wordindex="${engine.currentWordIndex}"]`) as HTMLElement;
     if (!activeSpan) return;
 
     const wordTop = activeSpan.offsetTop;

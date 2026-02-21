@@ -40,6 +40,7 @@ export function WordDisplay({
           isActive={i === currentWordIndex}
           charIndex={i === currentWordIndex ? currentCharIndex : 0}
           isTyping={isTyping}
+          wordIndex={i}
         />
       ))}
     </div>

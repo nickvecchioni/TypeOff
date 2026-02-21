@@ -11,6 +11,7 @@ import {
   type WpmSample,
   type KeyStatsMap,
   type ReplaySnapshot,
+  type ContentType,
   generateFromPool,
   generateSoloWords,
   generateWords,
@@ -38,6 +39,7 @@ export interface ExternalConfig {
   externalWordCount?: number;
   externalWords?: string[]; // pre-built word list (e.g. quotes mode)
   mode?: "timed" | "wordcount";
+  contentType?: ContentType;
 }
 
 function createWordStates(wordStrings: string[]): WordState[] {
@@ -54,7 +56,7 @@ function createWordStates(wordStrings: string[]): WordState[] {
 export function useTypingEngine(external?: ExternalConfig): TypingEngine {
   const wordCount = external?.externalWords?.length ?? external?.externalWordCount ?? 50;
   const initialConfig: TestConfig = external?.mode === "wordcount"
-    ? { ...DEFAULT_CONFIG, mode: "wordcount", duration: wordCount }
+    ? { ...DEFAULT_CONFIG, mode: "wordcount", duration: wordCount, contentType: external?.contentType ?? "words" }
     : DEFAULT_CONFIG;
   const [config, setConfig] = useState<TestConfig>(initialConfig);
   const [words, setWords] = useState<WordState[]>([]);

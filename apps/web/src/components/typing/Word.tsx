@@ -10,15 +10,17 @@ interface WordProps {
   isActive: boolean;
   charIndex: number;
   isTyping: boolean;
+  wordIndex?: number;
 }
 
 const WordInner = forwardRef<HTMLSpanElement, WordProps>(
-  function WordInner({ word, isActive, charIndex, isTyping }, ref) {
+  function WordInner({ word, isActive, charIndex, isTyping, wordIndex }, ref) {
     const hasErrors = word.chars.some((c) => c.status === "incorrect");
 
     return (
       <span
         ref={ref}
+        data-wordindex={wordIndex}
         className={`relative inline-block mr-[1ch] border-b-2 ${
           isActive
             ? hasErrors

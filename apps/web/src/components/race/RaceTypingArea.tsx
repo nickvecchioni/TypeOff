@@ -49,6 +49,7 @@ export function RaceTypingArea({
   const engine = useTypingEngine({
     externalWords,
     mode: "wordcount",
+    contentType: mode === "code" ? "code" : undefined,
   });
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -106,14 +107,19 @@ export function RaceTypingArea({
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      // Don't allow Tab/Escape to restart during a race
-      if (e.key === "Tab" || e.key === "Escape") {
+      // Don't allow Escape to restart during a race
+      if (e.key === "Escape") {
+        e.preventDefault();
+        return;
+      }
+      // Allow Tab through in code mode (used to skip indent tokens)
+      if (e.key === "Tab" && mode !== "code") {
         e.preventDefault();
         return;
       }
       engine.handleKeyDown(e);
     },
-    [engine.handleKeyDown]
+    [engine.handleKeyDown, mode]
   );
 
   // Finish timeout countdown
