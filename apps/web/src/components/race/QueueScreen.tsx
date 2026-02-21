@@ -342,9 +342,19 @@ export function QueueScreen({
         </div>
 
         {party && (
-          <div className="text-xs text-muted">
-            Queuing with {party.members.length} party{" "}
-            {party.members.length === 1 ? "member" : "members"}
+          <div className="flex flex-col items-center gap-3 w-full max-w-xs">
+            <div className="text-xs text-muted">
+              Queuing with {party.members.length} party{" "}
+              {party.members.length === 1 ? "member" : "members"}
+            </div>
+            <PartyPanel
+              party={party}
+              error={partyError}
+              onCreateParty={onCreateParty}
+              onInvite={onInviteToParty}
+              onKick={onKickFromParty}
+              onLeave={onLeaveParty}
+            />
           </div>
         )}
 

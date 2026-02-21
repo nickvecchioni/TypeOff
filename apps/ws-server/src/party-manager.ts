@@ -21,6 +21,7 @@ interface PartyMember {
   activeBadge?: string | null;
   activeNameColor?: string | null;
   activeNameEffect?: string | null;
+  lastMessageAt: number;
 }
 
 interface Party {
@@ -50,7 +51,7 @@ export class PartyManager {
     const party: Party = {
       id: partyId,
       leaderId: userId,
-      members: new Map([[userId, { userId, name, socketId: socket.id, elo, ...cosmetics }]]),
+      members: new Map([[userId, { userId, name, socketId: socket.id, elo, lastMessageAt: 0, ...cosmetics }]]),
       pendingInvites: new Set(),
       privateRace: false,
       readyState: new Map(),
@@ -151,7 +152,7 @@ export class PartyManager {
     // Leave any existing party
     this.leaveParty(socket);
 
-    party.members.set(userId, { userId, name, socketId: socket.id, elo, ...cosmetics });
+    party.members.set(userId, { userId, name, socketId: socket.id, elo, lastMessageAt: 0, ...cosmetics });
     this.userToParty.set(userId, partyId);
     this.socketToUser.set(socket.id, userId);
 
@@ -356,6 +357,37 @@ export class PartyManager {
 
   getUserForSocket(socketId: string): string | undefined {
     return this.socketToUser.get(socketId);
+  }
+
+  sendMessage(socket: TypedSocket, message: string) {
+    const userId = this.socketToUser.get(socket.id);
+    if (!userId) return;
+
+    const partyId = this.userToParty.get(userId);
+    if (!partyId) return;
+
+    const party = this.parties.get(partyId);
+    if (!party) return;
+
+    const member = party.members.get(userId);
+    if (!member) return;
+
+    // Rate limit: 500 ms between messages
+    const now = Date.now();
+    if (now - member.lastMessageAt < 500) return;
+    member.lastMessageAt = now;
+
+    const text = message.trim().slice(0, 150);
+    if (!text) return;
+
+    for (const m of party.members.values()) {
+      this.io.to(m.socketId).emit("partyMessage", {
+        userId,
+        name: member.name,
+        message: text,
+        timestamp: now,
+      });
+    }
   }
 
   private broadcastPartyUpdate(party: Party) {

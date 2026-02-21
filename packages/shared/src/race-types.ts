@@ -100,6 +100,8 @@ export interface ClientToServerEvents {
   stopFollowing: () => void;
   // Emote events
   sendRaceEmote: (data: { emote: EmoteKey; token?: string }) => void;
+  // Party chat
+  sendPartyMessage: (data: { message: string }) => void;
   // Reconnection events
   rejoinRace: (data: { token?: string }) => void;
 }
@@ -174,4 +176,6 @@ export interface ServerToClientEvents {
   notification: (data: { id: string; type: string; title: string; body: string; metadata?: string; actionUrl?: string; createdAt: string }) => void;
   // Emote events
   raceEmote: (data: { playerId: string; playerName: string; emote: EmoteKey }) => void;
+  // Party chat
+  partyMessage: (data: { userId: string; name: string; message: string; timestamp: number }) => void;
 }

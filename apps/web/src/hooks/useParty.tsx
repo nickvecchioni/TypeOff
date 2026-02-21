@@ -10,6 +10,13 @@ export interface PartyInvite {
   fromName: string;
 }
 
+export interface PartyMessage {
+  userId: string;
+  name: string;
+  message: string;
+  timestamp: number;
+}
+
 type PartyHook = ReturnType<typeof usePartyInternal>;
 
 const PartyContext = createContext<PartyHook | null>(null);
@@ -19,6 +26,7 @@ function usePartyInternal() {
   const [party, setParty] = useState<PartyState | null>(null);
   const [pendingInvite, setPendingInvite] = useState<PartyInvite | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [messages, setMessages] = useState<PartyMessage[]>([]);
 
   const inviteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -38,12 +46,16 @@ function usePartyInternal() {
       }),
       on("partyDisbanded", () => {
         setParty(null);
+        setMessages([]);
       }),
       on("partyError", (data) => {
         setError(data.message);
       }),
       on("partyReadyReset", () => {
         setParty((prev) => prev ? { ...prev, readyState: {} } : prev);
+      }),
+      on("partyMessage", (data) => {
+        setMessages((prev) => [...prev.slice(-99), data]);
       }),
     ];
 
@@ -129,10 +141,16 @@ function usePartyInternal() {
     emit("partyMarkReady");
   }, [emit]);
 
+  const sendMessage = useCallback((message: string) => {
+    if (!message.trim()) return;
+    emit("sendPartyMessage", { message });
+  }, [emit]);
+
   return {
     party,
     pendingInvite,
     error,
+    messages,
     createParty,
     inviteToParty,
     respondToInvite,
@@ -140,6 +158,7 @@ function usePartyInternal() {
     kickMember,
     setPrivateRace,
     markReady,
+    sendMessage,
   };
 }
 

@@ -198,6 +198,10 @@ io.on("connection", (socket) => {
     partyManager.markReady(socket);
   });
 
+  socket.on("sendPartyMessage", (data) => {
+    partyManager.sendMessage(socket, data.message);
+  });
+
   // ─── Social Events ───────────────────────────────────────────────
 
   socket.on("requestFriendStatuses", async (data) => {
