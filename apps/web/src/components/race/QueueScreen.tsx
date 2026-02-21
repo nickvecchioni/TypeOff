@@ -180,6 +180,7 @@ export function QueueScreen({
   onSetPrivateRace,
 }: QueueScreenProps) {
   const { data: session, status, update: updateSession } = useSession();
+  const tabPressedRef = React.useRef(false);
   const [modeCategories, setModeCategories] = useState<ModeCategory[]>(["words"]);
 
   async function handlePlacementClaim(wpm: number) {
@@ -214,28 +215,30 @@ export function QueueScreen({
       : true;
   const xpInfo = session?.user ? getXpLevel(session.user.totalXp) : null;
 
-  // Enter key shortcut to join queue (or mark ready for non-leaders)
+  // Tab+Enter shortcut to join queue (or mark ready for non-leaders)
   React.useEffect(() => {
     if (isQueuing || !session?.user || !session.user.placementsCompleted || !connected) return;
 
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Enter" && !e.metaKey && !e.ctrlKey && !e.altKey) {
-        const tag = (e.target as HTMLElement)?.tagName;
-        if (
-          tag === "INPUT" ||
-          tag === "TEXTAREA" ||
-          tag === "SELECT" ||
-          tag === "BUTTON" ||
-          tag === "A"
-        )
-          return;
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || tag === "BUTTON" || tag === "A") return;
+
+      if (e.key === "Tab") {
         e.preventDefault();
+        tabPressedRef.current = true;
+        return;
+      }
+      if (e.key === "Enter" && tabPressedRef.current && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        tabPressedRef.current = false;
         if (inPartyNotLeader) {
           if (!amReady) onMarkReady?.();
         } else if (allMembersReady) {
           onJoin({ privateRace, modeCategories });
         }
+        return;
       }
+      tabPressedRef.current = false;
     }
 
     window.addEventListener("keydown", handleKeyDown);
@@ -465,9 +468,9 @@ export function QueueScreen({
                 ) : (
                   <>
                     press{" "}
-                    <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/60 text-[10px] font-medium">
-                      Enter ↵
-                    </kbd>
+                    <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/60 text-[10px] font-medium">Tab</kbd>
+                    {" + "}
+                    <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/60 text-[10px] font-medium">Enter ↵</kbd>
                   </>
                 )}
               </span>
@@ -546,9 +549,9 @@ export function QueueScreen({
                   ) : (
                     <>
                       press{" "}
-                      <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/60 text-[10px] font-medium">
-                        Enter ↵
-                      </kbd>
+                      <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/60 text-[10px] font-medium">Tab</kbd>
+                      {" + "}
+                      <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/60 text-[10px] font-medium">Enter ↵</kbd>
                     </>
                   )}
                 </span>

@@ -504,19 +504,30 @@ export function RaceResults({
       ? party!.members.filter((m) => m.userId !== myPlayerId).every((m) => party!.readyState[m.userId])
       : true;
 
-  // Enter key shortcut
+  const tabPressedRef = useRef(false);
+
+  // Tab+Enter shortcut (race again / mark ready)
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Enter" && !e.metaKey && !e.ctrlKey && !e.altKey) {
-        const tag = (e.target as HTMLElement)?.tagName;
-        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || tag === "BUTTON" || tag === "A") return;
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || tag === "BUTTON" || tag === "A") return;
+
+      if (e.key === "Tab") {
         e.preventDefault();
+        tabPressedRef.current = true;
+        return;
+      }
+      if (e.key === "Enter" && tabPressedRef.current) {
+        e.preventDefault();
+        tabPressedRef.current = false;
         if (inParty && !isLeader) {
           if (!amReady) onMarkReady?.();
         } else if (allMembersReady) {
           onRaceAgain();
         }
+        return;
       }
+      tabPressedRef.current = false;
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
@@ -945,9 +956,15 @@ export function RaceResults({
               {isPlacement ? "Next Placement" : "Race Again"}
               <span className="inline-block w-[2px] h-[1em] bg-current animate-blink ml-0.5 translate-y-px" />
             </button>
-            {inParty && !allMembersReady && (
+            {inParty && !allMembersReady ? (
               <span className="text-[10px] text-muted/40">
                 waiting for party to ready up...
+              </span>
+            ) : (
+              <span className="text-[10px] text-muted/30">
+                <kbd className="inline-flex items-center px-1 py-px rounded bg-white/[0.04] ring-1 ring-white/[0.07] text-muted/50 text-[9px] font-medium">Tab</kbd>
+                {" + "}
+                <kbd className="inline-flex items-center px-1 py-px rounded bg-white/[0.04] ring-1 ring-white/[0.07] text-muted/50 text-[9px] font-medium">Enter ↵</kbd>
               </span>
             )}
           </>

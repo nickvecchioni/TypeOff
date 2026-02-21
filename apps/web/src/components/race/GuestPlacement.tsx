@@ -370,7 +370,12 @@ export function GuestPlacement({
         if (e.key === "Enter" && tabPressedRef.current) {
           e.preventDefault();
           tabPressedRef.current = false;
-          restart();
+          if (phase === "idle") {
+            // Tab+Enter during idle focuses the typing container (starts typing)
+            containerRef.current?.focus();
+          } else {
+            restart();
+          }
           return;
         }
         if (e.key === "Escape") {
@@ -378,12 +383,6 @@ export function GuestPlacement({
           restart();
           return;
         }
-      }
-
-      // Focus container on Enter during idle (start typing)
-      if (phase === "idle" && e.key === "Enter" && !e.metaKey && !e.ctrlKey && !e.altKey) {
-        e.preventDefault();
-        containerRef.current?.focus();
       }
     }
     window.addEventListener("keydown", onKeyDown);
