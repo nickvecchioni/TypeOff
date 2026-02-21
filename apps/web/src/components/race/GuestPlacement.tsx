@@ -476,34 +476,31 @@ export function GuestPlacement() {
         </div>
       </div>
 
-      {/* Live WPM (always reserves space to prevent layout shift) */}
-      <div className={`flex items-center justify-center gap-6 tabular-nums -mt-2 transition-opacity duration-200 ${
-        isTyping ? "opacity-100" : "opacity-0"
-      }`}>
-        <span className="text-muted text-sm inline-flex items-baseline">
-          <span className="text-accent font-black text-5xl inline-block w-[3ch] text-right">{engine.liveWpm}</span> wpm
-        </span>
-      </div>
+      {/* Live WPM / Tab+Enter hint — overlaid in shared space */}
+      <div className="relative flex items-center justify-center h-16 -mt-2 tabular-nums w-full">
+        {/* Live WPM (fades in when typing) */}
+        <div className={`absolute inset-0 flex items-center justify-center gap-6 transition-opacity duration-300 ${
+          isTyping ? "opacity-100" : "opacity-0"
+        }`}>
+          <span className="text-muted text-sm inline-flex items-baseline">
+            <span className="text-accent font-black text-5xl inline-block w-[3ch] text-right">{engine.liveWpm}</span> wpm
+          </span>
+        </div>
 
-      {/* Tab+Enter hint (always reserves space to prevent layout shift) */}
-      <p
-        className={`text-muted/30 text-xs mt-4 ${
-          phase === "idle"
-            ? "opacity-0 animate-fade-in"
-            : "invisible"
-        }`}
-        style={phase === "idle" ? { animationDelay: "320ms", animationFillMode: "both" } : undefined}
-      >
-        press{" "}
-        <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/50 text-[10px]">
-          Tab
-        </kbd>{" "}
-        +{" "}
-        <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/50 text-[10px]">
-          Enter
-        </kbd>{" "}
-        to restart
-      </p>
+        {/* Tab+Enter hint (fades out when typing starts) */}
+        <p
+          className={`absolute text-muted/30 text-xs transition-opacity duration-300 ${
+            phase === "idle" ? "opacity-0 animate-fade-in" : "opacity-0"
+          }`}
+          style={phase === "idle" ? { animationDelay: "320ms", animationFillMode: "both" } : undefined}
+        >
+          press{" "}
+          <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/50 text-[10px]">Tab</kbd>
+          {" "}+{" "}
+          <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/50 text-[10px]">Enter</kbd>
+          {" "}to restart
+        </p>
+      </div>
     </div>
   );
 }
