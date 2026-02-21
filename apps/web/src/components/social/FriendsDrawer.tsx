@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useSocial } from "@/hooks/useSocial";
 import { useParty } from "@/hooks/useParty";
+import { useDm } from "@/hooks/useDm";
 
 function formatLastSeen(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -37,6 +38,7 @@ export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
     searchUsers,
   } = useSocial();
   const { party, inviteToParty } = useParty();
+  const { openDm, unreadFrom } = useDm();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<
@@ -150,6 +152,23 @@ export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
               INV
             </button>
           )}
+          <button
+            onClick={() => {
+              openDm(friend.userId, friend.username ?? friend.name ?? "Unknown");
+              onClose();
+            }}
+            className={`relative text-[10px] font-bold px-1.5 py-0.5 rounded border transition-all ${
+              unreadFrom.has(friend.userId)
+                ? "text-accent border-accent/40 bg-accent/10"
+                : "text-accent/70 hover:text-accent border-accent/20 hover:border-accent/40 hover:bg-accent/10"
+            }`}
+            title="Send message"
+          >
+            MSG
+            {unreadFrom.has(friend.userId) && (
+              <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-accent" />
+            )}
+          </button>
           <button
             onClick={() => removeFriend(friend.userId)}
             className="text-muted/40 hover:text-error w-5 h-5 flex items-center justify-center rounded hover:bg-error/10 transition-all"

@@ -15,6 +15,8 @@ import { SocketProvider } from "@/hooks/useSocket";
 import { SocialProvider } from "@/hooks/useSocial";
 import { NotificationProvider } from "@/hooks/useNotifications";
 import { PartyProvider } from "@/hooks/useParty";
+import { DmProvider } from "@/hooks/useDm";
+import { DirectMessageWindow } from "@/components/social/DirectMessageWindow";
 import { CosmeticProvider } from "@/contexts/CosmeticContext";
 import "./globals.css";
 
@@ -46,6 +48,7 @@ export default function RootLayout({
           <SocketProvider>
           <SocialProvider>
           <PartyProvider>
+          <DmProvider>
           <NotificationProvider>
           <UsernameGuard>
             <nav className="relative z-30 flex items-center justify-between px-4 sm:px-6 py-3">
@@ -73,8 +76,10 @@ export default function RootLayout({
             </footer>
             <NotificationToast />
             <PartyInviteToast />
+            <DirectMessageWindow />
           </UsernameGuard>
           </NotificationProvider>
+          </DmProvider>
           </PartyProvider>
           </SocialProvider>
           </SocketProvider>

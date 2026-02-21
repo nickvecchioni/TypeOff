@@ -197,6 +197,20 @@ export const userBlocks = pgTable(
   (t) => [primaryKey({ columns: [t.blockerId, t.blockedId] })],
 );
 
+// ─── Direct Messages ────────────────────────────────────────────────
+
+export const directMessages = pgTable("direct_messages", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  senderId: text("sender_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  receiverId: text("receiver_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+});
+
 // ─── Achievements ───────────────────────────────────────────────────
 
 export const userAchievements = pgTable(

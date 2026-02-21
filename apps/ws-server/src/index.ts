@@ -11,6 +11,8 @@ import { Matchmaker } from "./matchmaker.js";
 import { PartyManager } from "./party-manager.js";
 import { SocialManager } from "./social-manager.js";
 import { NotificationManager } from "./notification-manager.js";
+import { createDb, directMessages } from "@typeoff/db";
+import leoProfanity from "leo-profanity";
 
 const PORT = parseInt(process.env.PORT ?? "3001", 10);
 const CORS_ORIGIN = process.env.CORS_ORIGIN ?? "http://localhost:3000";
@@ -39,6 +41,9 @@ const partyManager = new PartyManager(io, socialManager);
 
 // Track spectators: socketId → raceId
 const spectators = new Map<string, string>();
+
+// DM rate limiting: userId → last send timestamp
+const dmLastSent = new Map<string, number>();
 
 // Track followers: userId being followed → Set of follower socketIds
 const followers = new Map<string, Set<string>>();
@@ -200,6 +205,54 @@ io.on("connection", (socket) => {
 
   socket.on("sendPartyMessage", (data) => {
     partyManager.sendMessage(socket, data.message);
+  });
+
+  // ─── Direct Message Events ────────────────────────────────────────
+
+  socket.on("sendDm", async (data) => {
+    try {
+      const player = await authenticateSocket(data, socket.id);
+
+      // Rate limit: 500ms between messages
+      const last = dmLastSent.get(player.id) ?? 0;
+      if (Date.now() - last < 500) return;
+      dmLastSent.set(player.id, Date.now());
+
+      // Profanity filter + length cap (500 chars)
+      const content = leoProfanity.clean(data.message.trim().slice(0, 500));
+      if (!content) return;
+
+      const { toUserId } = data;
+      if (!toUserId || toUserId === player.id) return;
+
+      // Persist to DB
+      const db = createDb(process.env.DATABASE_URL!);
+      const [row] = await db.insert(directMessages).values({
+        senderId: player.id,
+        receiverId: toUserId,
+        content,
+      }).returning();
+
+      const payload = {
+        id: row.id,
+        fromUserId: player.id,
+        fromName: player.name,
+        toUserId,
+        message: content,
+        timestamp: Date.now(),
+      };
+
+      // Deliver to recipient (all their sockets)
+      for (const socketId of socialManager.getSocketsForUser(toUserId)) {
+        io.to(socketId).emit("dmMessage", payload);
+      }
+      // Echo back to sender (all their sockets, for multi-tab)
+      for (const socketId of socialManager.getSocketsForUser(player.id)) {
+        io.to(socketId).emit("dmMessage", payload);
+      }
+    } catch {
+      // silently drop auth failures
+    }
   });
 
   // ─── Social Events ───────────────────────────────────────────────

@@ -102,6 +102,8 @@ export interface ClientToServerEvents {
   sendRaceEmote: (data: { emote: EmoteKey; token?: string }) => void;
   // Party chat
   sendPartyMessage: (data: { message: string }) => void;
+  // Direct messages
+  sendDm: (data: { toUserId: string; message: string; token?: string }) => void;
   // Reconnection events
   rejoinRace: (data: { token?: string }) => void;
 }
@@ -178,4 +180,6 @@ export interface ServerToClientEvents {
   raceEmote: (data: { playerId: string; playerName: string; emote: EmoteKey }) => void;
   // Party chat
   partyMessage: (data: { userId: string; name: string; message: string; timestamp: number }) => void;
+  // Direct messages
+  dmMessage: (data: { id: string; fromUserId: string; fromName: string; toUserId: string; message: string; timestamp: number }) => void;
 }
