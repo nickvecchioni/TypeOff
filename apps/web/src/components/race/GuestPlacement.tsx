@@ -419,7 +419,7 @@ export function GuestPlacement() {
   /* ── Idle / Racing ───────────────────────────────────── */
   return (
     <div
-      className={`flex flex-col items-center gap-5 w-full max-w-4xl mx-auto ${
+      className={`flex flex-col items-center gap-5 w-full max-w-4xl mx-auto pb-20 ${
         isTyping ? "focus-active" : ""
       }`}
       key={cascadeKey}
@@ -439,16 +439,16 @@ export function GuestPlacement() {
           <span className="text-muted/40 text-xs">{GUEST_WORD_COUNT} words</span>
         </div>
         <p
-          className="text-muted/50 text-sm text-center max-w-sm leading-relaxed opacity-0 animate-fade-in"
+          className="text-muted/50 text-sm text-center leading-relaxed opacity-0 animate-fade-in"
           style={{ animationDelay: "40ms", animationFillMode: "both" }}
         >
-          Type at your natural pace. Your speed determines your starting rank and who you get matched against.
+          Type at your natural pace.
         </p>
         <p
-          className="text-muted/30 text-xs text-center opacity-0 animate-fade-in"
-          style={{ animationDelay: "80ms", animationFillMode: "both" }}
+          className="text-muted/40 text-sm text-center leading-relaxed opacity-0 animate-fade-in"
+          style={{ animationDelay: "70ms", animationFillMode: "both" }}
         >
-          Win races to climb <span className="text-correct/60">↑</span>, lose to drop <span className="text-error/60">↓</span>. ELO updates after every race.
+          Your speed determines your starting rank and who you get matched against.
         </p>
       </div>
 
