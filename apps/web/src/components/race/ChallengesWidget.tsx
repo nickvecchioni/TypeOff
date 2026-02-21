@@ -8,16 +8,20 @@ interface ProgressEntry {
   completed: boolean;
 }
 
-function useWeeklyCountdown() {
+function useCountdown(type: "daily" | "weekly") {
   const [timeLeft, setTimeLeft] = useState("");
 
   useEffect(() => {
     function calc() {
       const now = new Date();
-      // Next Monday UTC midnight
-      const dayOfWeek = now.getUTCDay(); // 0=Sun
-      const daysUntilMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
-      const target = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + daysUntilMonday));
+      let target: Date;
+      if (type === "daily") {
+        target = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
+      } else {
+        const dayOfWeek = now.getUTCDay();
+        const daysUntilMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
+        target = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + daysUntilMonday));
+      }
 
       const diff = target.getTime() - now.getTime();
       if (diff <= 0) return "Resetting...";
@@ -32,18 +36,21 @@ function useWeeklyCountdown() {
     setTimeLeft(calc());
     const timer = setInterval(() => setTimeLeft(calc()), 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [type]);
 
   return timeLeft;
 }
 
 export function ChallengesWidget() {
   // Challenge definitions are deterministic — render immediately, no flash
-  const weeklies = useMemo(() => getActiveChallenges(), []);
+  const challenges = useMemo(() => getActiveChallenges(), []);
+  const dailies = challenges.filter((c) => c.type === "daily");
+  const weeklies = challenges.filter((c) => c.type === "weekly");
 
   // Only the progress values come from the API
   const [progressMap, setProgressMap] = useState<Map<string, ProgressEntry> | null>(null);
-  const weeklyCountdown = useWeeklyCountdown();
+  const dailyCountdown = useCountdown("daily");
+  const weeklyCountdown = useCountdown("weekly");
 
   useEffect(() => {
     fetch("/api/challenges")
@@ -64,6 +71,25 @@ export function ChallengesWidget() {
     <div className="w-full rounded-xl bg-surface/50 ring-1 ring-white/[0.04] overflow-hidden">
       <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
       <div className="p-5 space-y-4">
+        {/* Daily Challenges */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-muted/60 uppercase tracking-wider">
+              Daily Challenges
+            </span>
+            <span className="text-xs text-muted tabular-nums">{dailyCountdown}</span>
+          </div>
+          {dailies.map((c) => (
+            <ChallengeRow
+              key={c.id}
+              challenge={c}
+              progress={progressMap?.get(c.id)?.progress ?? 0}
+              completed={progressMap?.get(c.id)?.completed ?? false}
+              loading={progressMap === null}
+            />
+          ))}
+        </div>
+
         {/* Weekly Challenge */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">

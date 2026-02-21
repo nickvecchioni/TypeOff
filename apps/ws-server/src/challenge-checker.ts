@@ -2,6 +2,7 @@ import { type Database, userChallengeProgress, userStats } from "@typeoff/db";
 import { eq, and } from "drizzle-orm";
 import {
   getActiveChallenges,
+  getDailyKey,
   getWeeklyKey,
   type ChallengeDefinition,
   type ChallengeProgress,
@@ -27,17 +28,18 @@ export async function checkChallenges(
   db: Database,
 ): Promise<ChallengeCheckResult> {
   const now = new Date();
+  const dailyKey = getDailyKey(now);
   const weeklyKey = getWeeklyKey(now);
   const activeChallenges = getActiveChallenges(now);
 
-  // Load existing progress for active period key
+  // Load existing progress for active period keys
   const existingRows = await db
     .select()
     .from(userChallengeProgress)
     .where(
       and(
         eq(userChallengeProgress.userId, ctx.userId),
-        eq(userChallengeProgress.periodKey, weeklyKey),
+        sql`(${userChallengeProgress.periodKey} = ${dailyKey} OR ${userChallengeProgress.periodKey} = ${weeklyKey})`,
       ),
     );
 
@@ -49,7 +51,7 @@ export async function checkChallenges(
   let totalXpEarned = 0;
 
   for (const challenge of activeChallenges) {
-    const periodKey = weeklyKey;
+    const periodKey = challenge.type === "daily" ? dailyKey : weeklyKey;
     const key = `${challenge.id}:${periodKey}`;
     const existing = progressMap.get(key);
 
