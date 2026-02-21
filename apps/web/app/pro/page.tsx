@@ -21,10 +21,10 @@ const COMPARISON_ROWS = [
   { feature: "Leaderboard",            free: true,             pro: true },
   { feature: "Level Rewards",          free: "28 cosmetics",   pro: "All 50" },
   { feature: "XP Multiplier",          free: "1×",             pro: "1.5×" },
-  { feature: "Race History",           free: "Recent",         pro: "Full Archive" },
-  { feature: "Performance Analytics",  free: false,            pro: true },
+  { feature: "Race History",           free: "Last 20 races",  pro: "Full Archive" },
+  { feature: "WPM Trend",              free: "Last 20",        pro: "All races" },
+  { feature: "Advanced Analytics",     free: false,            pro: true },
   { feature: "Race Replays",           free: false,            pro: true },
-  { feature: "Pro Badge",              free: false,            pro: true },
 ];
 
 // A cross-type sample of Pro cosmetics to show on the upsell page
@@ -49,7 +49,7 @@ const FEATURES = [
   },
   {
     title: "Analytics",
-    description: "See exactly where you lose speed. Per-key accuracy, WPM trends, bigram heatmaps.",
+    description: "Full breakdown beyond basic WPM trends. Bigram heatmaps, placement stats, consistency scores, and activity history.",
     icon: (
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
@@ -138,7 +138,7 @@ export default function ProPage() {
                 Level up faster.<br className="sm:hidden" /> Look better doing it.
               </h1>
               <p className="text-sm text-muted/40 mt-3 max-w-sm mx-auto leading-relaxed">
-                1.5× XP on every race, exclusive cosmetics free players never unlock, and the analytics to climb faster.
+                1.5× XP means faster levels and 22 exclusive cosmetics free players never reach — plus advanced analytics, full race history, and replays.
               </p>
             </div>
 
