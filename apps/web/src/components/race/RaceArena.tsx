@@ -188,6 +188,13 @@ export function RaceArena() {
     [race.sendFinish],
   );
 
+  // Reset race when the nav logo is clicked while already on "/"
+  React.useEffect(() => {
+    const handler = () => { if (race.phase !== "idle") race.reset(); };
+    window.addEventListener("nav-go-home", handler);
+    return () => window.removeEventListener("nav-go-home", handler);
+  }, [race.phase, race.reset]);
+
   // Prevent rage-quitting during active races
   React.useEffect(() => {
     const isActive = race.phase === "racing" || race.phase === "countdown";

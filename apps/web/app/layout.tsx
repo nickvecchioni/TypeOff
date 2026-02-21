@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next"; // trigger deploy
 import { JetBrains_Mono } from "next/font/google";
-import Link from "next/link";
 import { SessionProvider } from "@/components/auth/SessionProvider";
 import { ReportIssueButton } from "@/components/shared/ReportIssueButton";
 import { UserMenu } from "@/components/auth/UserMenu";
@@ -9,6 +8,7 @@ import { FriendsButton } from "@/components/social/FriendsButton";
 import { NavNotifications } from "@/components/social/NavNotifications";
 import { MobileNav } from "@/components/MobileNav";
 import { NavLinks } from "@/components/NavLinks";
+import { NavLogo } from "@/components/NavLogo";
 import { NotificationToast } from "@/components/social/NotificationToast";
 import { PartyInviteToast } from "@/components/social/PartyInviteToast";
 import { SocketProvider } from "@/hooks/useSocket";
@@ -54,15 +54,10 @@ export default function RootLayout({
             <nav className="relative z-30 flex items-center justify-between px-4 sm:px-6 py-3">
               <div className="flex items-center gap-4 sm:gap-8">
                 <MobileNav />
-                <Link href="/" className="nav-logo text-accent font-bold text-base">
-                  <span className="nav-logo-text transition-[text-shadow] duration-300">
-                    TypeOff
-                  </span>
-                </Link>
+                <NavLogo />
                 <NavLinks />
               </div>
               <div className="flex items-center gap-2 sm:gap-3">
-                <ReportIssueButton />
                 <NavNotifications />
                 <FriendsButton />
                 <UserMenu />
@@ -73,6 +68,8 @@ export default function RootLayout({
             </div>
             <footer className="focus-fade relative z-10 flex items-center justify-center gap-3 py-3 text-[10px] text-muted/30">
               <span>TypeOff</span>
+              <span>·</span>
+              <ReportIssueButton />
             </footer>
             <NotificationToast />
             <PartyInviteToast />
