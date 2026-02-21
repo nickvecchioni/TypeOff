@@ -263,6 +263,14 @@ export default function AnalyticsPage() {
                 <SectionHeader>Key Accuracy</SectionHeader>
                 <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] px-4 py-5">
                   <KeyboardHeatmap keyStats={keyStats} />
+                  <div className="mt-4 flex justify-center">
+                    <Link
+                      href="/solo?drill=true"
+                      className="px-4 py-2 rounded-lg bg-accent/10 ring-1 ring-accent/20 text-xs font-semibold text-accent hover:bg-accent/15 transition-colors"
+                    >
+                      Start Drill Session →
+                    </Link>
+                  </div>
                 </div>
               </section>
             )}

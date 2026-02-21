@@ -103,7 +103,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           .from(userSubscription)
           .where(eq(userSubscription.userId, token.id as string))
           .limit(1);
-        token.isPro = sub?.status === "active";
+        token.isPro = sub?.status === "active" || sub?.status === "lifetime";
 
         const [cosmetics] = await db
           .select({

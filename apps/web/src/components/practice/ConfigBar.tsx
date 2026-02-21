@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import type { TestConfig, ContentType, StrictMode } from "@typeoff/shared";
 import type { EngineStatus } from "@typeoff/shared";
 import { StrictModeSelector } from "./StrictModeSelector";
@@ -13,6 +14,8 @@ interface ConfigBarProps {
   onAfterChange?: () => void;
   onCustomTextChange?: (words: string[]) => void;
   practiceWeakKeys?: string[];
+  weakKeyAccuracy?: Record<string, number>;
+  isPro?: boolean;
 }
 
 const TIME_OPTIONS = [15, 30, 60, 120];
@@ -28,7 +31,10 @@ export function ConfigBar({
   onAfterChange,
   onCustomTextChange,
   practiceWeakKeys,
+  weakKeyAccuracy,
+  isPro = false,
 }: ConfigBarProps) {
+  const router = useRouter();
   const [customInput, setCustomInput] = React.useState("");
   const isTyping = status === "typing";
   const ct = config.contentType ?? "words";
@@ -77,7 +83,14 @@ export function ConfigBar({
         <Chip active={ct === "quotes"} onClick={() => setContentType("quotes")}>
           quotes
         </Chip>
-        <Chip active={ct === "custom"} onClick={() => setContentType("custom")}>
+        <Chip
+          active={ct === "custom"}
+          onClick={() => {
+            if (!isPro) { router.push("/pro"); return; }
+            setContentType("custom");
+          }}
+          proLocked={!isPro}
+        >
           custom
         </Chip>
         <Chip active={ct === "code"} onClick={() => setContentType("code")}>
@@ -86,12 +99,12 @@ export function ConfigBar({
         <Chip active={ct === "zen"} onClick={() => setContentType("zen")}>
           zen
         </Chip>
-        {practiceWeakKeys?.length ? (
+        {isPro && practiceWeakKeys?.length ? (
           <Chip
             active={ct === "practice"}
             onClick={() => setContentType("practice")}
           >
-            practice
+            drill
           </Chip>
         ) : null}
       </div>
@@ -189,16 +202,22 @@ export function ConfigBar({
         </div>
       )}
 
-      {/* ── Practice weak keys info ── */}
+      {/* ── Drill weak keys info ── */}
       {ct === "practice" && !isTyping && practiceWeakKeys && practiceWeakKeys.length > 0 && (
-        <div className="text-[11px] text-muted/40">
-          practicing:{" "}
-          {practiceWeakKeys.map((k, i) => (
-            <span key={k}>
-              <span className="text-accent font-bold">{k}</span>
-              {i < practiceWeakKeys.length - 1 ? ", " : ""}
-            </span>
-          ))}
+        <div className="flex flex-wrap justify-center gap-1.5">
+          {practiceWeakKeys.map((k) => {
+            const acc = weakKeyAccuracy?.[k];
+            return (
+              <span key={k} className="flex items-center gap-1 px-2 py-0.5 rounded bg-surface/60 ring-1 ring-white/[0.06]">
+                <span className="text-accent font-bold text-xs">{k}</span>
+                {acc != null && (
+                  <span className={`text-[10px] tabular-nums ${acc < 0.7 ? "text-error/60" : acc < 0.9 ? "text-amber-400/60" : "text-correct/60"}`}>
+                    {Math.round(acc * 100)}%
+                  </span>
+                )}
+              </span>
+            );
+          })}
         </div>
       )}
     </div>
@@ -220,21 +239,26 @@ function Chip({
   active,
   onClick,
   children,
+  proLocked,
 }: {
   active: boolean;
   onClick: () => void;
   children: React.ReactNode;
+  proLocked?: boolean;
 }) {
   return (
     <button
       onClick={onClick}
-      className={`px-2.5 py-1.5 rounded-md text-xs font-medium transition-all ${
-        active
-          ? "bg-accent/15 text-accent ring-1 ring-accent/20"
-          : "text-muted/50 hover:text-text hover:bg-white/[0.04]"
+      className={`px-2.5 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1 ${
+        proLocked
+          ? "text-amber-400/40 hover:text-amber-400/60 hover:bg-amber-400/[0.04]"
+          : active
+            ? "bg-accent/15 text-accent ring-1 ring-accent/20"
+            : "text-muted/50 hover:text-text hover:bg-white/[0.04]"
       }`}
     >
       {children}
+      {proLocked && <span className="text-[8px] font-bold text-amber-400/50 leading-none">PRO</span>}
     </button>
   );
 }

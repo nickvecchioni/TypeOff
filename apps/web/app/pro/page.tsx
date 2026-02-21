@@ -7,6 +7,7 @@ import Link from "next/link";
 import {
   PRO_MONTHLY_PRICE,
   PRO_YEARLY_PRICE,
+  PRO_LIFETIME_PRICE,
   COSMETIC_REWARDS,
   BADGE_EMOJIS,
   TITLE_TEXTS,
@@ -22,9 +23,10 @@ const COMPARISON_ROWS = [
   { feature: "Level Rewards",       free: "28 cosmetics",  pro: "All 50" },
   { feature: "XP Multiplier",       free: "1×",            pro: "1.5×" },
   { feature: "Race History",        free: "Last 20",       pro: "Full Archive" },
-  { feature: "WPM Trend",           free: "Last 20",       pro: "All races" },
   { feature: "Advanced Analytics",  free: false,           pro: true },
   { feature: "Race Replays",        free: false,           pro: true },
+  { feature: "Custom Text Mode",    free: false,           pro: true },
+  { feature: "Focus Drill",         free: false,           pro: true },
 ];
 
 const TEASER_IDS = [
@@ -48,7 +50,7 @@ const FEATURES = [
   },
   {
     title: "Analytics",
-    description: "Bigram heatmaps, placement stats, consistency scores, and full WPM history.",
+    description: "Bigram heatmaps, ELO trend, win rate, placement stats, consistency scores, and full WPM history.",
     icon: (
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
@@ -239,8 +241,17 @@ export default function ProPage() {
                 onSubscribe={() => router.push("/pro/checkout?plan=yearly")}
               />
 
+              {/* Lifetime */}
+              <PricingCard
+                plan="Lifetime"
+                price={PRO_LIFETIME_PRICE}
+                period=" one-time"
+                badge="Forever"
+                onSubscribe={() => router.push("/pro/checkout?plan=lifetime")}
+              />
+
               <p className="text-center text-[9px] text-muted/20 leading-relaxed">
-                Cancel anytime. Cosmetics earned<br />while subscribed are yours to keep.
+                Subscriptions cancel anytime. Lifetime is permanent.<br />Cosmetics earned are yours to keep.
               </p>
             </div>
           </div>
@@ -299,6 +310,7 @@ function SubscriberView({
                 "1.5x XP on every race",
                 "Full race history & advanced analytics",
                 "Unlimited replays",
+                "Custom text & focus drill modes",
                 "Pro badge in every race",
               ].map((perk) => (
                 <li key={perk} className="flex items-center gap-2 text-[11px] text-muted/60">

@@ -14,8 +14,9 @@ function getVisibleLines(): number {
   return 3;
 }
 
-export function PracticeArena() {
+export function PracticeArena({ initialDrill = false }: { initialDrill?: boolean }) {
   const { data: session } = useSession();
+  const isPro = session?.user?.isPro ?? false;
   const engine = useTypingEngine();
   const visibleLines = getVisibleLines();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -31,8 +32,9 @@ export function PracticeArena() {
   const [cascadeKey, setCascadeKey] = useState(0);
   // Custom text words (for "custom" content type)
   const [customWords, setCustomWords] = useState<string[] | null>(null);
-  // Weak keys for practice mode
+  // Weak keys and accuracy for drill mode (Pro only)
   const [weakKeys, setWeakKeys] = useState<string[]>([]);
+  const [weakKeyAccuracy, setWeakKeyAccuracy] = useState<Record<string, number>>({});
 
   // Fetch PBs on mount (logged-in only)
   useEffect(() => {
@@ -43,14 +45,21 @@ export function PracticeArena() {
       .catch(() => {});
   }, [session?.user?.id]);
 
-  // Fetch weak keys for practice mode (logged-in only)
+  // Fetch weak keys for drill mode (Pro only)
   useEffect(() => {
-    if (!session?.user?.id) return;
+    if (!session?.user?.id || !isPro) return;
     fetch("/api/key-accuracy")
       .then((res) => res.json())
-      .then((data) => { if (data.weakKeys) setWeakKeys(data.weakKeys); })
+      .then((data: { weakKeys?: string[]; all?: Array<{ key: string; accuracy: number; total: number }> }) => {
+        if (data.weakKeys) setWeakKeys(data.weakKeys);
+        if (data.all) {
+          const acc: Record<string, number> = {};
+          for (const k of data.all) acc[k.key] = k.accuracy;
+          setWeakKeyAccuracy(acc);
+        }
+      })
       .catch(() => {});
-  }, [session?.user?.id]);
+  }, [session?.user?.id, isPro]);
 
   // Measure line height from the words container
   useEffect(() => {
@@ -124,6 +133,16 @@ export function PracticeArena() {
     setCascadeKey((k) => k + 1);
     requestAnimationFrame(() => containerRef.current?.focus());
   }, []);
+
+  // Auto-start drill mode when ?drill=true is set and weak keys are ready
+  const drillActivatedRef = useRef(false);
+  useEffect(() => {
+    if (!initialDrill || !isPro || !weakKeys.length || drillActivatedRef.current) return;
+    drillActivatedRef.current = true;
+    engine.setConfig({ ...engine.config, contentType: "practice", weakKeys });
+    handleAfterConfigChange();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialDrill, isPro, weakKeys]);
 
   // Save results when test finishes (logged-in only)
   useEffect(() => {
@@ -223,6 +242,8 @@ export function PracticeArena() {
               handleAfterConfigChange();
             }}
             practiceWeakKeys={weakKeys}
+            weakKeyAccuracy={weakKeyAccuracy}
+            isPro={isPro}
           />
         </div>
         <ZenFreeformArena />
@@ -281,6 +302,8 @@ export function PracticeArena() {
               handleAfterConfigChange();
             }}
             practiceWeakKeys={weakKeys}
+            weakKeyAccuracy={weakKeyAccuracy}
+            isPro={isPro}
           />
         </div>
       )}

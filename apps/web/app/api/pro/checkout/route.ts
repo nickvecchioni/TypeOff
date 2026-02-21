@@ -15,7 +15,9 @@ export async function POST(req: NextRequest) {
   const priceId =
     plan === "yearly"
       ? process.env.STRIPE_PRO_YEARLY_PRICE_ID
-      : process.env.STRIPE_PRO_MONTHLY_PRICE_ID;
+      : plan === "lifetime"
+        ? process.env.STRIPE_PRO_LIFETIME_PRICE_ID
+        : process.env.STRIPE_PRO_MONTHLY_PRICE_ID;
 
   const stripeKey = process.env.STRIPE_SECRET_KEY;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -23,7 +25,7 @@ export async function POST(req: NextRequest) {
   if (!stripeKey || !priceId) {
     const missing = [
       !stripeKey && "STRIPE_SECRET_KEY",
-      !priceId && (plan === "yearly" ? "STRIPE_PRO_YEARLY_PRICE_ID" : "STRIPE_PRO_MONTHLY_PRICE_ID"),
+      !priceId && (plan === "yearly" ? "STRIPE_PRO_YEARLY_PRICE_ID" : plan === "lifetime" ? "STRIPE_PRO_LIFETIME_PRICE_ID" : "STRIPE_PRO_MONTHLY_PRICE_ID"),
     ].filter(Boolean).join(", ");
     console.error(`[pro/checkout] Missing env vars: ${missing}`);
     return NextResponse.json(
@@ -42,7 +44,7 @@ export async function POST(req: NextRequest) {
     .where(eq(userSubscription.userId, session.user.id))
     .limit(1);
 
-  if (existing?.status === "active") {
+  if (existing?.status === "active" || existing?.status === "lifetime") {
     return NextResponse.json(
       { error: "Already subscribed" },
       { status: 409 },
@@ -74,7 +76,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const checkoutSession = await stripe.checkout.sessions.create({
-      mode: "subscription",
+      mode: plan === "lifetime" ? "payment" : "subscription",
       ui_mode: "embedded",
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
