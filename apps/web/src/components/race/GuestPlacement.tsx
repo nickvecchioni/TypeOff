@@ -115,55 +115,56 @@ function LandingPhase({ onStart }: { onStart: () => void }) {
             title: "Real Competition",
             body: "ELO matchmaking places you against players at your exact skill level. Every race counts.",
             icon: (
-              /* Racing flag — crossed pattern pole + waving flag */
-              <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="3" y1="2" x2="3" y2="14"/>
-                <path d="M3 2c2-1.2 3.5 1.2 5.5 0s3.5-1.2 5.5 0v5c-2-1.2-3.5 1.2-5.5 0S5 5.8 3 7V2z"/>
+              /* Zap / lightning bolt — speed, intensity, competition */
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
               </svg>
             ),
-            iconHoverClass: "group-hover:translate-x-0.5 group-hover:scale-110",
           },
           {
             title: "7 Rank Tiers",
             body: "Bronze through Grandmaster. Your ELO rating is recalculated after every race.",
             icon: (
               /* Trophy cup */
-              <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 2h6v5a3 3 0 01-6 0V2z"/>
-                <path d="M2 2h3M11 2h3M2 2c0 2.5 1.5 4 3 4.5M14 2c0 2.5-1.5 4-3 4.5"/>
-                <line x1="8" y1="9" x2="8" y2="12"/>
-                <line x1="5.5" y1="12" x2="10.5" y2="12"/>
-                <line x1="5.5" y1="14" x2="10.5" y2="14"/>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 9H3.5a2.5 2.5 0 010-5H6"/>
+                <path d="M18 9h2.5a2.5 2.5 0 000-5H18"/>
+                <path d="M6 4h12v6a6 6 0 01-12 0V4z"/>
+                <line x1="12" y1="16" x2="12" y2="20"/>
+                <line x1="8" y1="20" x2="16" y2="20"/>
               </svg>
             ),
-            iconHoverClass: "group-hover:-translate-y-0.5 group-hover:scale-110",
           },
           {
             title: "Earn Cosmetics",
             body: "Unlock titles, cursor effects, name colors, and profile borders as you climb.",
             icon: (
-              /* Sparkle / wand with stars */
-              <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="3" y1="13" x2="10" y2="6"/>
-                <path d="M10 6l1-3 1 3 3 1-3 1-1 3-1-3-3-1 3-1z"/>
-                <line x1="2" y1="5" x2="2" y2="7"/>
-                <line x1="1" y1="6" x2="3" y2="6"/>
-                <line x1="5" y1="2" x2="5" y2="4"/>
-                <line x1="4" y1="3" x2="6" y2="3"/>
+              /* Sparkles — three-point star burst with small accent stars */
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 3l1.5 4 4 1.5-4 1.5L12 14l-1.5-4-4-1.5 4-1.5L12 3z"/>
+                <path d="M5 3v4M3 5h4"/>
+                <path d="M19 17v4M17 19h4"/>
               </svg>
             ),
-            iconHoverClass: "group-hover:rotate-12 group-hover:scale-110",
           },
         ].map((card) => (
           <div
             key={card.title}
-            className="group flex flex-col gap-2 rounded-xl bg-white/[0.03] ring-1 ring-white/[0.07] px-5 py-4 hover:bg-white/[0.06] hover:ring-accent/25 transition-all duration-200 cursor-default"
+            className="group relative flex flex-col gap-3 rounded-xl bg-white/[0.03] ring-1 ring-white/[0.07] px-5 py-5 hover:bg-white/[0.06] hover:ring-white/[0.14] hover:-translate-y-0.5 transition-all duration-200 cursor-default overflow-hidden"
           >
-            <span className={`text-accent/70 group-hover:text-accent transition-all duration-200 ${card.iconHoverClass}`}>
-              {card.icon}
-            </span>
-            <span className="text-text/70 group-hover:text-text text-sm font-semibold transition-colors duration-200">{card.title}</span>
-            <span className="text-muted/50 group-hover:text-muted/70 text-xs leading-relaxed transition-colors duration-200">{card.body}</span>
+            {/* Radial bloom on hover */}
+            <div
+              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+              style={{ background: "radial-gradient(ellipse at 25% 0%, rgba(77,158,255,0.07) 0%, transparent 65%)" }}
+            />
+            {/* Icon bubble */}
+            <div className="relative w-10 h-10 rounded-lg flex items-center justify-center bg-white/[0.04] group-hover:bg-accent/[0.1] transition-colors duration-200">
+              <span className="text-accent/60 group-hover:text-accent inline-flex transition-all duration-200 group-hover:scale-110">
+                {card.icon}
+              </span>
+            </div>
+            <p className="relative text-text/80 group-hover:text-text text-sm font-semibold transition-colors duration-200">{card.title}</p>
+            <p className="relative text-muted/50 group-hover:text-muted/65 text-xs leading-relaxed transition-colors duration-200">{card.body}</p>
           </div>
         ))}
       </div>
