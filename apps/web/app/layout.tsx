@@ -10,6 +10,7 @@ import { NavNotifications } from "@/components/social/NavNotifications";
 import { MobileNav } from "@/components/MobileNav";
 import { NavLinks } from "@/components/NavLinks";
 import { NotificationToast } from "@/components/social/NotificationToast";
+import { PartyInviteToast } from "@/components/social/PartyInviteToast";
 import { SocketProvider } from "@/hooks/useSocket";
 import { SocialProvider } from "@/hooks/useSocial";
 import { NotificationProvider } from "@/hooks/useNotifications";
@@ -71,6 +72,7 @@ export default function RootLayout({
               <span>TypeOff</span>
             </footer>
             <NotificationToast />
+            <PartyInviteToast />
           </UsernameGuard>
           </NotificationProvider>
           </PartyProvider>

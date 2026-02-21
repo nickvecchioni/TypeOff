@@ -235,7 +235,11 @@ export function PracticeArena() {
       className={`flex flex-col items-center gap-6 w-full max-w-4xl mx-auto ${
         isTyping ? "focus-active" : ""
       }`}
-      onClick={() => containerRef.current?.focus()}
+      onClick={(e) => {
+        const tag = (e.target as HTMLElement).tagName;
+        if (tag === "TEXTAREA" || tag === "INPUT") return;
+        containerRef.current?.focus();
+      }}
     >
       {/* PB + Config bar */}
       {!isFinished && (

@@ -96,30 +96,6 @@ export function ConfigBar({
         ) : null}
       </div>
 
-      {/* ── Difficulty sub-row (words mode only) ── */}
-      {ct === "words" && (
-        <div className="flex items-center gap-0.5">
-          <Sub
-            active={config.difficulty === "easy"}
-            onClick={() => set({ difficulty: "easy" })}
-          >
-            easy
-          </Sub>
-          <Sub
-            active={config.difficulty === "medium"}
-            onClick={() => set({ difficulty: "medium" })}
-          >
-            medium
-          </Sub>
-          <Sub
-            active={config.difficulty === "hard"}
-            onClick={() => set({ difficulty: "hard" })}
-          >
-            hard
-          </Sub>
-        </div>
-      )}
-
       {/* ── Secondary row: timing + accessories ── */}
       <div className="flex items-center gap-1.5">
         {/* Time / words toggle + duration (faded for fixed modes) */}
@@ -174,7 +150,13 @@ export function ConfigBar({
             <MicroDivider />
             <StrictModeSelector
               value={config.strictMode ?? "normal"}
-              onChange={(m: StrictMode) => set({ strictMode: m })}
+              onChange={(m: StrictMode) =>
+                set({
+                  strictMode: m,
+                  difficulty:
+                    m === "master" ? "hard" : m === "expert" ? "medium" : "easy",
+                })
+              }
             />
           </>
         )}

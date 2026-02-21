@@ -537,12 +537,20 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
         if (isCodeMode) {
           e.preventDefault();
           const word = words[currentWordIndex];
-          if (word && word.chars.length === 2 && word.chars[0].expected === "\\" && word.chars[1].expected === "n") {
-            // Atomically mark both chars correct and advance to next word
+          if (!word) return;
+
+          const wordText = word.chars.map((c) => c.expected).join("");
+          const isNewlineToken = wordText === "\\n";
+          const isWordFullyTyped =
+            currentCharIndex >= word.chars.length &&
+            !word.chars.some((c) => c.status !== "correct");
+
+          if (isNewlineToken) {
+            // Already on a \n token — mark remaining chars correct and advance
             const remaining = word.chars.length - currentCharIndex;
             correctCharsRef.current += remaining;
             totalCharsRef.current += remaining;
-            setWords(prev => {
+            setWords((prev) => {
               const newWords = [...prev];
               newWords[currentWordIndex] = {
                 chars: prev[currentWordIndex].chars.map((c, ci) =>
@@ -552,13 +560,36 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
               };
               return newWords;
             });
-            const nextWord = currentWordIndex + 1;
-            if (nextWord >= words.length) {
-              finishTest();
-            } else {
-              setCurrentWordIndex(nextWord);
-              setCurrentCharIndex(0);
+            const next = currentWordIndex + 1;
+            if (next >= words.length) finishTest();
+            else { setCurrentWordIndex(next); setCurrentCharIndex(0); }
+          } else if (isWordFullyTyped) {
+            // At end of a fully-typed regular token — advance past it and skip the subsequent \n token
+            prevTypedCharRef.current = null;
+            correctCharsRef.current++; // count the separator keystroke
+            totalCharsRef.current++;
+
+            let next = currentWordIndex + 1;
+            if (next < words.length) {
+              const nextText = words[next].chars.map((c) => c.expected).join("");
+              if (nextText === "\\n") {
+                // Mark the \n token as correct and skip over it
+                correctCharsRef.current += words[next].chars.length;
+                totalCharsRef.current += words[next].chars.length;
+                const skipIdx = next;
+                setWords((prev) => {
+                  const newWords = [...prev];
+                  newWords[skipIdx] = {
+                    chars: prev[skipIdx].chars.map((c) => ({ ...c, actual: c.expected, status: "correct" as const })),
+                    extraChars: [],
+                  };
+                  return newWords;
+                });
+                next = next + 1;
+              }
             }
+            if (next >= words.length) finishTest();
+            else { setCurrentWordIndex(next); setCurrentCharIndex(0); }
           }
           return;
         }

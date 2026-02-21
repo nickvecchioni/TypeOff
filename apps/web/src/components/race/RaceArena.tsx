@@ -10,7 +10,6 @@ import { RaceTrack } from "./RaceTrack";
 import { RaceTypingArea } from "./RaceTypingArea";
 import { RaceResults } from "./RaceResults";
 import { PlacementReveal } from "./PlacementReveal";
-import { PartyInviteToast } from "@/components/social/PartyInviteToast";
 import { SpectatorIndicator } from "./SpectatorIndicator";
 import { RaceEmoteBar } from "./RaceEmoteBar";
 import type { EmoteEvent } from "./FloatingEmote";
@@ -398,13 +397,6 @@ export function RaceArena() {
         );
       })()}
 
-      {/* Party invite toast */}
-      {partyHook.pendingInvite && (
-        <PartyInviteToast
-          invite={partyHook.pendingInvite}
-          onRespond={partyHook.respondToInvite}
-        />
-      )}
     </div>
   );
 }
