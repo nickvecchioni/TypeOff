@@ -40,40 +40,43 @@ const TEASER_REWARDS = COSMETIC_REWARDS.filter((r) => TEASER_IDS.includes(r.id))
 
 const FEATURES = [
   {
-    title: "Race History",
-    description: "Every race preserved forever. Filter by mode, date, opponent, and performance.",
     icon: (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
       </svg>
     ),
+    title: "Race History",
+    description: "Every race preserved forever. Filter by mode, date, opponent, and performance.",
+    amber: false,
   },
   {
-    title: "Analytics",
-    description: "Bigram heatmaps, ELO trend, win rate, placement stats, consistency scores, and full WPM history.",
     icon: (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
       </svg>
     ),
+    title: "Analytics",
+    description: "Bigram heatmaps, ELO trend, win rate, placement stats, consistency scores, and full WPM history.",
+    amber: false,
   },
   {
-    title: "Race Replays",
-    description: "Watch any race back keystroke by keystroke. Study and share your best runs.",
     icon: (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <polygon points="5 3 19 12 5 21 5 3" />
       </svg>
     ),
+    title: "Race Replays",
+    description: "Watch any race back keystroke by keystroke. Study and share your best runs.",
+    amber: false,
   },
   {
-    title: "Pro Cosmetics",
-    description: "22 exclusive rewards in the level track — yours to keep even if you cancel.",
     icon: (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
       </svg>
     ),
+    title: "Pro Cosmetics",
+    description: "22 exclusive rewards in the level track — yours to keep even if you cancel.",
     amber: true,
   },
 ] as const;
@@ -116,8 +119,8 @@ export default function ProPage() {
   }
 
   return (
-    <main className="flex-1 flex flex-col min-h-0 overflow-hidden px-4 sm:px-5 py-4">
-      <div className="flex-1 min-h-0 max-w-[960px] mx-auto w-full">
+    <main className="flex-1 flex flex-col min-h-0 overflow-y-auto px-4 sm:px-6 py-6">
+      <div className="max-w-[960px] mx-auto w-full">
         {isPro ? (
           <SubscriberView
             session={session}
@@ -125,135 +128,250 @@ export default function ProPage() {
             onManage={handleManageSubscription}
           />
         ) : (
-          /* Non-subscriber: 2-column layout */
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_210px] gap-5 h-full items-start">
+          <div className="flex flex-col gap-8 pb-8">
 
-            {/* ── Left column ── */}
-            <div className="flex flex-col gap-3">
-
-              {/* Hero */}
-              <div className="animate-fade-in">
-                <div className="inline-flex items-center gap-1.5 text-[9px] font-bold text-amber-400/60 ring-1 ring-amber-400/20 px-2.5 py-0.5 rounded-full uppercase tracking-widest mb-2.5">
-                  <span className="w-1 h-1 rounded-full bg-amber-400/60" />
+            {/* ── Hero ── */}
+            <div className="relative animate-fade-in">
+              <div
+                className="absolute inset-0 pointer-events-none rounded-2xl"
+                style={{
+                  background:
+                    "radial-gradient(ellipse 70% 50% at 50% -10%, rgba(245,158,11,0.10) 0%, transparent 70%)",
+                }}
+              />
+              <div className="relative text-center pt-8 pb-6 px-4">
+                <div className="inline-flex items-center gap-1.5 text-[9px] font-bold text-amber-400/70 ring-1 ring-amber-400/25 px-3 py-1 rounded-full uppercase tracking-widest mb-5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400/70" />
                   TypeOff Pro
                 </div>
-                <h1 className="text-xl sm:text-2xl font-black text-text tracking-tight leading-tight">
-                  Level up faster. Look better doing it.
-                </h1>
-                <p className="text-[11px] text-muted/40 mt-1.5 max-w-md leading-relaxed">
-                  1.5× XP, 22 exclusive cosmetics free players never reach — plus advanced analytics, full race history, and replays.
-                </p>
-              </div>
 
-              {/* Feature strip */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-white/[0.04] rounded-xl overflow-hidden ring-1 ring-white/[0.04] animate-slide-up">
-                {FEATURES.map((f) => (
-                  <div
-                    key={f.title}
-                    className={`p-3.5 transition-colors group ${
-                      "amber" in f && f.amber
-                        ? "bg-amber-400/[0.03] hover:bg-amber-400/[0.05]"
-                        : "bg-[#0c0c12] hover:bg-white/[0.015]"
-                    }`}
+                <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-tight mb-4">
+                  <span className="text-text">Type at the top.</span>
+                  <br />
+                  <span
+                    style={{
+                      background: "linear-gradient(135deg, #f59e0b 0%, #fde68a 55%, #f59e0b 100%)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      backgroundClip: "text",
+                    }}
                   >
-                    <div className={`mb-2 transition-colors ${
-                      "amber" in f && f.amber
-                        ? "text-amber-400/50 group-hover:text-amber-400/70"
-                        : "text-muted/30 group-hover:text-muted/50"
-                    }`}>
-                      {f.icon}
-                    </div>
-                    <p className="text-[11px] font-bold text-text mb-1">{f.title}</p>
-                    <p className="text-[10px] text-muted/35 leading-relaxed line-clamp-2">{f.description}</p>
-                  </div>
-                ))}
-              </div>
-
-              {/* Comparison table */}
-              <div className="animate-slide-up" style={{ animationDelay: "40ms" }}>
-                <p className="text-[9px] font-bold text-muted/30 uppercase tracking-widest mb-1.5">
-                  Free vs Pro
-                </p>
-                <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden">
-                  <div className="grid grid-cols-[1fr_4rem_4rem] text-[9px] font-bold text-muted/40 uppercase tracking-wider px-3 py-1.5 border-b border-white/[0.06]">
-                    <span />
-                    <span className="text-center">Free</span>
-                    <span className="text-center text-amber-400/60">Pro</span>
-                  </div>
-                  {COMPARISON_ROWS.map((row, i) => (
-                    <div
-                      key={row.feature}
-                      className={`grid grid-cols-[1fr_4rem_4rem] px-3 py-[5px] ${
-                        i < COMPARISON_ROWS.length - 1 ? "border-b border-white/[0.03]" : ""
-                      }`}
-                    >
-                      <span className="text-[10px] text-text/60">{row.feature}</span>
-                      <span className="text-center text-[10px] text-muted/30">
-                        {row.free === true ? "✓" : row.free === false ? "—" : row.free}
-                      </span>
-                      <span className="text-center text-[10px] text-amber-400/70">
-                        {row.pro === true ? "✓" : row.pro === false ? "—" : row.pro}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* ── Right column ── */}
-            <div className="flex flex-col gap-2.5 animate-slide-up" style={{ animationDelay: "60ms" }}>
-
-              {/* Cosmetics teaser */}
-              <div className="rounded-xl ring-1 ring-amber-400/10 overflow-hidden">
-                <div className="px-3 py-1.5 border-b border-amber-400/[0.07] bg-amber-400/[0.02] flex items-center justify-between">
-                  <span className="text-[9px] font-bold text-amber-400/50 uppercase tracking-widest">
-                    22 Pro cosmetics
+                    Look the part.
                   </span>
-                  <span className="text-[9px] text-muted/25">keep on cancel</span>
-                </div>
-                <div className="flex divide-x divide-white/[0.03] bg-[#0c0c12]">
-                  {TEASER_REWARDS.map((item) => (
-                    <div key={item.id} className="flex-1 flex items-center justify-center py-3">
-                      <div className="opacity-60">
-                        <TeaserVisual item={item} />
+                </h1>
+
+                <p className="text-sm text-muted/50 max-w-md mx-auto leading-relaxed">
+                  1.5× XP on every race. 22 exclusive cosmetics. Full archive,
+                  advanced analytics, and keystroke replays.
+                </p>
+
+                {/* Stat highlights */}
+                <div className="flex justify-center gap-10 mt-8">
+                  {[
+                    { value: "1.5×", label: "XP Multiplier" },
+                    { value: "22",   label: "Pro Cosmetics" },
+                    { value: "∞",    label: "Race History"  },
+                  ].map((s) => (
+                    <div key={s.label} className="text-center">
+                      <div
+                        className="text-2xl font-black tabular-nums"
+                        style={{
+                          background: "linear-gradient(135deg, #f59e0b 0%, #fde68a 100%)",
+                          WebkitBackgroundClip: "text",
+                          WebkitTextFillColor: "transparent",
+                          backgroundClip: "text",
+                        }}
+                      >
+                        {s.value}
+                      </div>
+                      <div className="text-[10px] text-muted/35 uppercase tracking-wider mt-0.5">
+                        {s.label}
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
+            </div>
 
-              {/* Monthly */}
-              <PricingCard
-                plan="Monthly"
-                price={PRO_MONTHLY_PRICE}
-                period="/mo"
-                onSubscribe={() => router.push("/pro/checkout?plan=monthly")}
-              />
+            {/* ── Features ── */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 animate-slide-up">
+              {FEATURES.map((f) => (
+                <div
+                  key={f.title}
+                  className={`rounded-xl p-4 ring-1 transition-all group ${
+                    "amber" in f && f.amber
+                      ? "bg-amber-400/[0.04] ring-amber-400/15 hover:bg-amber-400/[0.07] hover:ring-amber-400/25"
+                      : "bg-surface/40 ring-white/[0.05] hover:bg-surface/60 hover:ring-white/[0.08]"
+                  }`}
+                >
+                  <div
+                    className={`mb-3 transition-colors ${
+                      "amber" in f && f.amber
+                        ? "text-amber-400/60 group-hover:text-amber-400/90"
+                        : "text-muted/30 group-hover:text-muted/55"
+                    }`}
+                  >
+                    {f.icon}
+                  </div>
+                  <p className="text-sm font-bold text-text mb-1.5">{f.title}</p>
+                  <p className="text-[11px] text-muted/40 leading-relaxed">{f.description}</p>
+                </div>
+              ))}
+            </div>
 
-              {/* Yearly */}
-              <PricingCard
-                plan="Yearly"
-                price={PRO_YEARLY_PRICE}
-                period="/yr"
-                perMonth={+(PRO_YEARLY_PRICE / 12).toFixed(2)}
-                badge="Save 33%"
-                highlighted
-                onSubscribe={() => router.push("/pro/checkout?plan=yearly")}
-              />
+            {/* ── Pricing ── */}
+            <div className="animate-slide-up" style={{ animationDelay: "40ms" }}>
+              <p className="text-[9px] font-bold text-muted/30 uppercase tracking-widest mb-4 text-center">
+                Choose your plan
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
 
-              {/* Lifetime */}
-              <PricingCard
-                plan="Lifetime"
-                price={PRO_LIFETIME_PRICE}
-                period=" one-time"
-                badge="Forever"
-                onSubscribe={() => router.push("/pro/checkout?plan=lifetime")}
-              />
+                {/* Monthly */}
+                <div className="rounded-xl px-5 py-5 ring-1 ring-white/[0.06] bg-surface/30 flex flex-col">
+                  <div className="text-[10px] font-bold text-muted/40 uppercase tracking-wider mb-3">
+                    Monthly
+                  </div>
+                  <div className="text-3xl font-black text-text tabular-nums leading-none mb-0.5">
+                    ${PRO_MONTHLY_PRICE.toFixed(2)}
+                    <span className="text-sm font-normal text-muted/40">/mo</span>
+                  </div>
+                  <div className="text-[10px] text-muted/25 mb-6">Billed monthly, cancel anytime</div>
+                  <button
+                    onClick={() => router.push("/pro/checkout?plan=monthly")}
+                    className="mt-auto w-full rounded-lg py-2.5 text-[13px] font-bold ring-1 ring-white/[0.10] bg-white/[0.04] text-text/70 hover:ring-amber-400/30 hover:bg-amber-400/[0.05] hover:text-amber-400/80 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
+                  >
+                    Get Pro
+                  </button>
+                </div>
 
-              <p className="text-center text-[9px] text-muted/20 leading-relaxed">
-                Subscriptions cancel anytime. Lifetime is permanent.<br />Cosmetics earned are yours to keep.
+                {/* Yearly — highlighted */}
+                <div
+                  className="relative rounded-xl px-5 py-5 ring-1 ring-amber-400/25 bg-amber-400/[0.04] flex flex-col"
+                  style={{ boxShadow: "0 0 40px rgba(245,158,11,0.08), inset 0 1px 0 rgba(245,158,11,0.12)" }}
+                >
+                  <div className="absolute -top-3 left-0 right-0 flex justify-center">
+                    <span className="text-[9px] font-black bg-amber-400 text-[#1a0e00] px-3 py-1 rounded-full uppercase tracking-wider shadow-[0_2px_12px_rgba(245,158,11,0.5)]">
+                      Save 33%
+                    </span>
+                  </div>
+                  <div className="text-[10px] font-bold text-amber-400/60 uppercase tracking-wider mb-3">
+                    Yearly
+                  </div>
+                  <div className="text-3xl font-black text-text tabular-nums leading-none mb-0.5">
+                    ${PRO_YEARLY_PRICE.toFixed(2)}
+                    <span className="text-sm font-normal text-muted/40">/yr</span>
+                  </div>
+                  <div className="text-[10px] text-amber-400/40 mb-6">
+                    ${(PRO_YEARLY_PRICE / 12).toFixed(2)}/mo billed annually
+                  </div>
+                  <button
+                    onClick={() => router.push("/pro/checkout?plan=yearly")}
+                    className="mt-auto relative w-full rounded-lg py-2.5 text-[13px] font-black tracking-wide overflow-hidden transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                    style={{
+                      background: "linear-gradient(135deg, #f59e0b 0%, #fcd34d 50%, #f59e0b 100%)",
+                      color: "#1a0e00",
+                      boxShadow: "0 2px 20px rgba(245,158,11,0.35)",
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.boxShadow =
+                        "0 4px 32px rgba(245,158,11,0.55)";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.boxShadow =
+                        "0 2px 20px rgba(245,158,11,0.35)";
+                    }}
+                  >
+                    Get Pro →
+                  </button>
+                </div>
+
+                {/* Lifetime */}
+                <div className="rounded-xl px-5 py-5 ring-1 ring-white/[0.06] bg-surface/30 flex flex-col">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="text-[10px] font-bold text-muted/40 uppercase tracking-wider">
+                      Lifetime
+                    </div>
+                    <span className="text-[9px] font-bold text-muted/35 ring-1 ring-white/[0.08] px-2 py-0.5 rounded-full uppercase tracking-wider">
+                      Forever
+                    </span>
+                  </div>
+                  <div className="text-3xl font-black text-text tabular-nums leading-none mb-0.5">
+                    ${PRO_LIFETIME_PRICE.toFixed(2)}
+                    <span className="text-sm font-normal text-muted/40"> one-time</span>
+                  </div>
+                  <div className="text-[10px] text-muted/25 mb-6">Pay once, Pro forever</div>
+                  <button
+                    onClick={() => router.push("/pro/checkout?plan=lifetime")}
+                    className="mt-auto w-full rounded-lg py-2.5 text-[13px] font-bold ring-1 ring-white/[0.10] bg-white/[0.04] text-text/70 hover:ring-amber-400/30 hover:bg-amber-400/[0.05] hover:text-amber-400/80 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
+                  >
+                    Get Pro
+                  </button>
+                </div>
+
+              </div>
+              <p className="text-center text-[9px] text-muted/20 mt-3 leading-relaxed">
+                Subscriptions cancel anytime. Lifetime is permanent.{" "}
+                Cosmetics earned are yours to keep.
               </p>
             </div>
+
+            {/* ── Cosmetics teaser ── */}
+            <div className="animate-slide-up" style={{ animationDelay: "60ms" }}>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[9px] font-bold text-muted/30 uppercase tracking-widest">
+                  22 Pro Cosmetics
+                </p>
+                <p className="text-[9px] text-muted/20">yours to keep on cancel</p>
+              </div>
+              <div className="rounded-xl ring-1 ring-amber-400/10 overflow-hidden bg-[#0c0c12]">
+                <div className="flex divide-x divide-white/[0.03]">
+                  {TEASER_REWARDS.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex-1 flex flex-col items-center justify-center py-5 gap-2 group hover:bg-amber-400/[0.03] transition-colors"
+                    >
+                      <div className="opacity-60 group-hover:opacity-100 transition-opacity">
+                        <TeaserVisual item={item} />
+                      </div>
+                      <span className="text-[9px] text-muted/25 group-hover:text-muted/45 transition-colors capitalize">
+                        {item.type}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* ── Comparison table ── */}
+            <div className="animate-slide-up" style={{ animationDelay: "80ms" }}>
+              <p className="text-[9px] font-bold text-muted/30 uppercase tracking-widest mb-3">
+                Free vs Pro
+              </p>
+              <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden">
+                <div className="grid grid-cols-[1fr_5rem_5rem] text-[9px] font-bold text-muted/40 uppercase tracking-wider px-4 py-2.5 border-b border-white/[0.06]">
+                  <span />
+                  <span className="text-center">Free</span>
+                  <span className="text-center text-amber-400/60">Pro</span>
+                </div>
+                {COMPARISON_ROWS.map((row, i) => (
+                  <div
+                    key={row.feature}
+                    className={`grid grid-cols-[1fr_5rem_5rem] px-4 py-2.5 ${
+                      i < COMPARISON_ROWS.length - 1 ? "border-b border-white/[0.03]" : ""
+                    }`}
+                  >
+                    <span className="text-[11px] text-text/60">{row.feature}</span>
+                    <span className="text-center text-[11px] text-muted/30">
+                      {row.free === true ? "✓" : row.free === false ? "—" : row.free}
+                    </span>
+                    <span className="text-center text-[11px] text-amber-400/70">
+                      {row.pro === true ? "✓" : row.pro === false ? "—" : row.pro}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
           </div>
         )}
       </div>
@@ -337,7 +455,9 @@ function SubscriberView({
       >
         <div className="flex items-center justify-between mb-1.5">
           <span className="text-xs font-bold text-accent tabular-nums">Level {level}</span>
-          <span className="text-[11px] text-muted/40 tabular-nums">{currentXp} / {nextLevelXp} XP</span>
+          <span className="text-[11px] text-muted/40 tabular-nums">
+            {currentXp} / {nextLevelXp} XP
+          </span>
         </div>
         <div className="h-1.5 rounded-full bg-surface overflow-hidden mb-3">
           <div
@@ -351,12 +471,18 @@ function SubscriberView({
               <p className="text-[11px] text-muted/50">Next Pro cosmetic</p>
               <p className="text-xs font-bold text-amber-400/80 mt-0.5">
                 {nextProReward.name}
-                <span className="text-[10px] font-normal text-muted/40 ml-1">at level {nextProReward.level}</span>
+                <span className="text-[10px] font-normal text-muted/40 ml-1">
+                  at level {nextProReward.level}
+                </span>
               </p>
             </div>
             <div className="text-right">
-              <p className="text-[11px] text-muted/40 tabular-nums">{xpToNextPro?.toLocaleString()} XP away</p>
-              <p className="text-[10px] text-muted/30 mt-0.5">{xpToNext} to level {level + 1}</p>
+              <p className="text-[11px] text-muted/40 tabular-nums">
+                {xpToNextPro?.toLocaleString()} XP away
+              </p>
+              <p className="text-[10px] text-muted/30 mt-0.5">
+                {xpToNext} to level {level + 1}
+              </p>
             </div>
           </div>
         ) : (
@@ -372,17 +498,19 @@ function SubscriberView({
         style={{ animationDelay: "60ms" }}
       >
         {[
-          { href: "/history", title: "Race History", desc: "Full paginated history with filters" },
-          { href: "/analytics", title: "Analytics", desc: "Advanced performance insights" },
+          { href: "/history",  title: "Race History", desc: "Full paginated history with filters" },
+          { href: "/analytics", title: "Analytics",    desc: "Advanced performance insights" },
           { href: `/profile/${session?.user?.username}`, title: "Profile", desc: "View your profile with Pro badge" },
-          { href: "/cosmetics", title: "Items", desc: "Browse and equip your cosmetics" },
+          { href: "/cosmetics", title: "Items",        desc: "Browse and equip your cosmetics" },
         ].map((link) => (
           <Link
             key={link.href}
             href={link.href}
             className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3 hover:ring-accent/20 transition-all group"
           >
-            <div className="text-sm font-bold text-text group-hover:text-accent transition-colors">{link.title}</div>
+            <div className="text-sm font-bold text-text group-hover:text-accent transition-colors">
+              {link.title}
+            </div>
             <p className="text-[11px] text-muted/50 mt-0.5">{link.desc}</p>
           </Link>
         ))}
@@ -396,9 +524,13 @@ function SubscriberView({
 function TeaserVisual({ item }: { item: (typeof COSMETIC_REWARDS)[number] }) {
   switch (item.type) {
     case "badge":
-      return <span className="text-lg">{BADGE_EMOJIS[item.id] ?? item.value}</span>;
+      return <span className="text-xl">{BADGE_EMOJIS[item.id] ?? item.value}</span>;
     case "title":
-      return <span className="text-[10px] text-amber-400/70 font-medium">{TITLE_TEXTS[item.id] ?? item.value}</span>;
+      return (
+        <span className="text-[10px] text-amber-400/70 font-medium">
+          {TITLE_TEXTS[item.id] ?? item.value}
+        </span>
+      );
     case "nameColor": {
       const hex = NAME_COLORS[item.id] ?? item.value;
       return (
@@ -427,9 +559,9 @@ function TeaserVisual({ item }: { item: (typeof COSMETIC_REWARDS)[number] }) {
           className="rounded-sm"
           style={{
             width: 2,
-            height: 16,
+            height: 18,
             backgroundColor: def.color,
-            boxShadow: def.glowColor ? `0 0 8px ${def.glowColor}` : undefined,
+            boxShadow: def.glowColor ? `0 0 10px ${def.glowColor}` : undefined,
           }}
         />
       );
@@ -437,81 +569,4 @@ function TeaserVisual({ item }: { item: (typeof COSMETIC_REWARDS)[number] }) {
     default:
       return <span className="text-base">✨</span>;
   }
-}
-
-/* ── Pricing Card ─────────────────────────────────────── */
-
-function PricingCard({
-  plan,
-  price,
-  period,
-  perMonth,
-  badge,
-  highlighted,
-  onSubscribe,
-}: {
-  plan: string;
-  price: number;
-  period: string;
-  perMonth?: number;
-  badge?: string;
-  highlighted?: boolean;
-  onSubscribe: () => void;
-}) {
-  return (
-    <div
-      className={`relative rounded-xl px-4 py-4 ring-1 transition-all ${
-        highlighted
-          ? "ring-amber-400/20 bg-amber-400/[0.03]"
-          : "ring-white/[0.06] bg-surface/40"
-      }`}
-    >
-      {badge && (
-        <span className="absolute -top-2 right-3 text-[9px] font-bold bg-amber-400 text-bg px-2 py-0.5 rounded-full uppercase tracking-wider">
-          {badge}
-        </span>
-      )}
-      <div className="text-[10px] font-bold text-muted/50 uppercase tracking-wider mb-1.5">
-        {plan}
-      </div>
-      <div className="text-2xl font-black text-text tabular-nums leading-none">
-        ${price.toFixed(2)}
-        <span className="text-xs font-normal text-muted/50">{period}</span>
-      </div>
-      {perMonth && (
-        <div className="text-[10px] text-muted/35 mt-0.5">
-          ${perMonth.toFixed(2)}/mo billed annually
-        </div>
-      )}
-
-      {highlighted ? (
-        /* Primary CTA — premium amber gradient */
-        <button
-          onClick={onSubscribe}
-          className="relative w-full mt-3 rounded-lg py-2.5 text-[13px] font-black tracking-wide overflow-hidden
-            transition-all duration-200
-            hover:scale-[1.02] active:scale-[0.98]
-            shadow-[0_2px_20px_rgba(245,158,11,0.3)] hover:shadow-[0_4px_28px_rgba(245,158,11,0.55)]"
-          style={{
-            background: "linear-gradient(135deg, #f59e0b 0%, #fcd34d 50%, #f59e0b 100%)",
-            color: "#1a0e00",
-          }}
-        >
-          Get Pro →
-        </button>
-      ) : (
-        /* Secondary CTA */
-        <button
-          onClick={onSubscribe}
-          className="w-full mt-3 rounded-lg py-2.5 text-[13px] font-bold
-            transition-all duration-200
-            ring-1 ring-white/[0.1] bg-white/[0.04] text-text/70
-            hover:ring-amber-400/30 hover:bg-amber-400/[0.05] hover:text-amber-400/80
-            hover:scale-[1.02] active:scale-[0.98]"
-        >
-          Get Pro
-        </button>
-      )}
-    </div>
-  );
 }
