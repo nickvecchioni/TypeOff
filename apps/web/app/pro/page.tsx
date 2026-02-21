@@ -108,6 +108,11 @@ export default function ProPage() {
     );
   }
 
+  if (status === "unauthenticated") {
+    router.push("/signin");
+    return null;
+  }
+
   return (
     <main className="flex-1 flex flex-col min-h-0 overflow-hidden px-4 sm:px-5 py-4">
       <div className="flex-1 min-h-0 max-w-[960px] mx-auto w-full">
