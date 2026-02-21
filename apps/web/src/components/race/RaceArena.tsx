@@ -306,14 +306,13 @@ export function RaceArena() {
               emotes={emotes}
             />
           </div>
-          {/* Emote bar — always in DOM (no layout shift), fades in after local player finishes */}
-          {race.phase === "racing" && !isInPlacement && (
+          {/* Emote bar — always in DOM when not a placement race (prevents layout shift on start) */}
+          {!isInPlacement && (
             <div
               className="transition-opacity duration-500"
               style={{
-                opacity: localFinished ? 1 : 0,
-                pointerEvents: localFinished ? "auto" : "none",
-                animation: localFinished ? "fade-in 0.4s ease-out both" : undefined,
+                opacity: race.phase === "racing" && localFinished ? 1 : 0,
+                pointerEvents: race.phase === "racing" && localFinished ? "auto" : "none",
               }}
             >
               <RaceEmoteBar />

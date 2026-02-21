@@ -29,15 +29,13 @@ export function CodeWordDisplay({
   for (let i = 0; i < words.length; i++) {
     const text = words[i].chars.map((c) => c.expected).join("");
     if (text === "\\n") {
-      // \n token — commit current line and start new
-      lines.push({ words: currentLine });
-      currentLine = [];
-      // The \n token itself is typed but not visually rendered as a word
-      // We still need it clickable/active if it's the current word
+      // If this is the active token, place an invisible cursor holder at the
+      // END of the current line (before committing it), not the start of the next.
       if (i === currentWordIndex) {
-        // Show as a subtle newline indicator on the current line
         currentLine.push({ word: words[i], globalIdx: i });
       }
+      lines.push({ words: currentLine });
+      currentLine = [];
     } else {
       currentLine.push({ word: words[i], globalIdx: i });
     }
@@ -58,16 +56,13 @@ export function CodeWordDisplay({
             const hasErrors = word.chars.some((c) => c.status === "incorrect");
 
             if (isNewlineToken) {
-              // Render newline token as a subtle indicator
+              // Invisible — just anchor the cursor at end of line, no visible text
               return (
                 <span
                   key={globalIdx}
                   data-wordindex={globalIdx}
-                  className={`relative inline-block mr-[1ch] ${
-                    isActive ? "border-b-2 border-accent/50" : ""
-                  }`}
+                  className="relative inline-block w-0"
                 >
-                  <span className="text-muted/20">{"\\n"}</span>
                   {isActive && <Cursor charIndex={currentCharIndex} isTyping={isTyping} />}
                 </span>
               );
