@@ -287,48 +287,89 @@ function AnimatedXpPanel({
 
   const displayLevel = xp.levelUp && !levelUpVisible ? xp.level - 1 : xp.level;
 
+  const nextReward = COSMETIC_REWARDS.find((r) => r.level === xp.level + 1);
+  const proLocked = nextReward?.proOnly && !isPro;
+
+  const rewardIcon = (() => {
+    if (!nextReward) return "✨";
+    switch (nextReward.type) {
+      case "badge": return nextReward.value;
+      case "nameColor": return "🎨";
+      case "title": return "🏷️";
+      case "cursorStyle": return "🔲";
+      case "profileBorder": return "🖼️";
+      case "typingTheme": return "🎨";
+      default: return "✨";
+    }
+  })();
+
   return (
-    <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden px-3 py-2 sm:px-4 sm:py-2.5">
-      <div className="flex items-center justify-between mb-1">
-        <h3 className="text-xs font-bold text-accent/80 uppercase tracking-wider">Level</h3>
-        <span
-          className={`text-sm font-black tabular-nums transition-all duration-500 ${
-            animStarted ? "opacity-100 text-accent scale-100" : "opacity-0 text-accent scale-75"
-          }`}
-        >
-          +{displayXp} XP
-        </span>
-      </div>
-      <div
-        className={`rounded-lg bg-surface/60 px-3 py-2 ring-1 transition-all duration-500 ${
-          levelUpGlow ? "ring-accent/40" : "ring-accent/10"
-        }`}
-      >
-        <div className="flex items-center justify-between mb-0.5">
-          <span className="text-xs font-bold text-accent">
-            Level {displayLevel}
-            {levelUpVisible && (
-              <span className="text-correct ml-1.5 font-bold" style={{ animation: "fade-in 0.3s ease-out" }}>
-                ▲ Level Up!
-              </span>
-            )}
-          </span>
-          <span className="text-[11px] text-muted tabular-nums">
-            {curInfo.currentXp} / {curInfo.nextLevelXp}
+    <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden">
+      <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
+      <div className="px-3 py-2.5 sm:px-4 sm:py-3 flex flex-col gap-2.5">
+
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h3 className="text-[10px] font-bold text-accent/80 uppercase tracking-wider">Level</h3>
+          <span
+            className={`text-sm font-black tabular-nums transition-all duration-500 ${
+              animStarted ? "opacity-100 text-accent" : "opacity-0"
+            }`}
+          >
+            +{displayXp} XP
           </span>
         </div>
+
+        {/* Level number + XP bar */}
         <div
-          className={`h-1.5 rounded-full bg-surface overflow-hidden transition-shadow duration-500 ${
-            levelUpGlow ? "shadow-[0_0_8px_rgba(77,158,255,0.4)]" : ""
+          className={`rounded-lg px-3 py-2 ring-1 transition-all duration-500 flex items-center gap-4 ${
+            levelUpGlow ? "ring-accent/40 bg-surface/60" : "ring-accent/10 bg-surface/40"
           }`}
         >
-          <div
-            className={`h-full rounded-full bg-accent ${levelUpGlow ? "shadow-[0_0_6px_rgba(77,158,255,0.6)]" : ""}`}
-            style={{ width: `${barPct}%` }}
-          />
+          {/* Big level number */}
+          <div className="shrink-0 w-10 text-center">
+            <div className="text-[9px] font-black text-muted/40 uppercase tracking-widest leading-none mb-0.5">LV.</div>
+            <div
+              className={`text-3xl font-black tabular-nums leading-none transition-colors duration-300 ${
+                levelUpGlow ? "text-accent" : "text-text"
+              }`}
+            >
+              {displayLevel}
+            </div>
+            {levelUpVisible && (
+              <div className="text-correct text-[9px] font-black mt-0.5" style={{ animation: "fade-in 0.3s ease-out" }}>
+                ▲ UP!
+              </div>
+            )}
+          </div>
+
+          {/* XP bar + text */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-baseline justify-between mb-1.5">
+              <span className="text-[11px] font-bold text-accent tabular-nums">
+                {curInfo.currentXp.toLocaleString()}
+                <span className="text-muted/40 font-normal"> / {curInfo.nextLevelXp.toLocaleString()} XP</span>
+              </span>
+            </div>
+            <div
+              className={`h-1.5 rounded-full bg-surface overflow-hidden transition-shadow duration-500 ${
+                levelUpGlow ? "shadow-[0_0_8px_rgba(77,158,255,0.4)]" : ""
+              }`}
+            >
+              <div
+                className={`h-full rounded-full bg-accent ${levelUpGlow ? "shadow-[0_0_6px_rgba(77,158,255,0.6)]" : ""}`}
+                style={{ width: `${barPct}%` }}
+              />
+            </div>
+            <div className="text-[10px] text-muted/35 mt-1 tabular-nums">
+              {(curInfo.nextLevelXp - curInfo.currentXp).toLocaleString()} XP to level {xp.level + 1}
+            </div>
+          </div>
         </div>
+
+        {/* New rewards */}
         {showRewards && xp.newRewards.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1.5" style={{ animation: "slide-up 0.4s ease-out" }}>
+          <div className="flex flex-wrap gap-1.5" style={{ animation: "slide-up 0.4s ease-out" }}>
             {xp.newRewards.map((r) => (
               <span key={r.id} className="text-[10px] font-bold rounded px-2 py-1 bg-accent/[0.08] ring-1 ring-accent/20 text-accent">
                 {r.type === "badge" ? r.value : ""} {r.name}
@@ -336,23 +377,45 @@ function AnimatedXpPanel({
             ))}
           </div>
         )}
-      </div>
 
-      {/* Next Pro-locked reward teaser */}
-      {nextProReward && (
-        <div className="mt-2 flex items-center justify-between px-0.5">
-          <span className="text-[10px] text-muted/40 leading-none">
-            🔒 <span className="text-amber-400/60 font-medium">{nextProReward.name}</span>
-            {" "}at Level {nextProReward.level} is Pro-locked
-          </span>
-          <Link
-            href="/pro"
-            className="text-[9px] font-black tracking-wider text-amber-400 bg-amber-400/10 ring-1 ring-amber-400/20 rounded px-1.5 py-0.5 hover:bg-amber-400/15 transition-colors shrink-0 ml-2"
-          >
-            PRO
-          </Link>
-        </div>
-      )}
+        {/* Next unlock teaser */}
+        {(nextReward || nextProReward) && (
+          <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-white/[0.02] ring-1 ring-white/[0.04]">
+            <span className={`text-base shrink-0 leading-none ${proLocked ? "opacity-30" : ""}`}>
+              {nextReward ? rewardIcon : "🔒"}
+            </span>
+            <div className="min-w-0 flex-1">
+              {nextReward ? (
+                <>
+                  <div className="text-[11px] font-semibold text-text/80 truncate leading-none mb-0.5">
+                    {nextReward.name}
+                  </div>
+                  <div className="text-[10px] text-muted/40 leading-none">
+                    unlocks at level {nextReward.level}
+                  </div>
+                </>
+              ) : nextProReward ? (
+                <>
+                  <div className="text-[11px] font-semibold text-amber-400/70 truncate leading-none mb-0.5">
+                    {nextProReward.name}
+                  </div>
+                  <div className="text-[10px] text-muted/40 leading-none">
+                    Pro-locked · level {nextProReward.level}
+                  </div>
+                </>
+              ) : null}
+            </div>
+            {proLocked && (
+              <Link
+                href="/pro"
+                className="text-[8px] font-black tracking-wider text-amber-400 bg-amber-400/10 ring-1 ring-amber-400/30 px-1.5 py-0.5 rounded shrink-0 leading-none hover:bg-amber-400/20 transition-colors"
+              >
+                PRO
+              </Link>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -460,11 +523,11 @@ export function RaceResults({
   }, [onRaceAgain, inParty, isLeader, amReady, allMembersReady, onMarkReady]);
 
   const mobileCols = isPlacement
-    ? "grid-cols-[2.5rem_1fr_5rem]"
+    ? "grid-cols-[2rem_1fr_5rem]"
     : "grid-cols-[2rem_1fr_4rem_3.5rem]";
   const desktopCols = isPlacement
     ? ""
-    : "sm:grid-cols-[2.5rem_1fr_7rem_5rem_4rem_4rem]";
+    : "sm:grid-cols-[2rem_1fr_5rem_5rem_4rem_4rem]";
   const tableCols = `${mobileCols} ${desktopCols}`;
 
   const hasAchievements = myResult?.newAchievements && myResult.newAchievements.length > 0;
@@ -511,7 +574,7 @@ export function RaceResults({
             </div>
 
             {/* WPM */}
-            <div className="bg-surface/40 px-3 py-3 sm:px-4">
+            <div className="bg-surface/40 px-3 py-3 sm:px-4 flex flex-col justify-end">
               <div className="text-2xl font-black text-text tabular-nums leading-none">
                 {Math.floor(myResult.wpm)}
                 <span className="text-base opacity-50">
@@ -530,7 +593,7 @@ export function RaceResults({
 
             {/* Accuracy */}
             {!isPlacement && (
-              <div className="bg-surface/40 px-3 py-3 sm:px-4">
+              <div className="bg-surface/40 px-3 py-3 sm:px-4 flex flex-col justify-end">
                 <div className="text-2xl font-black text-text tabular-nums leading-none">
                   {Math.floor(myResult.accuracy)}
                   <span className="text-base opacity-50">
@@ -586,7 +649,7 @@ export function RaceResults({
         className={`grid gap-2 w-full ${
           myWpmHistory && myWpmHistory.length >= 2 ? "sm:grid-cols-[3fr_2fr]" : ""
         }`}
-        style={{ animation: "slide-up 0.5s ease-out 0.08s both" }}
+        style={{ animation: "slide-up 0.5s ease-out 0.05s both" }}
       >
         {/* Standings table */}
         <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden">
@@ -640,22 +703,12 @@ export function RaceResults({
                       href={`/profile/${result.username}`}
                       className="hover:text-accent transition-colors truncate"
                     >
-                      {isMe ? (
-                        <CosmeticName nameColor={null} nameEffect={result.activeNameEffect}>
-                          {displayName}
-                          <span className="text-muted text-xs ml-1">(you)</span>
-                        </CosmeticName>
-                      ) : (
-                        <CosmeticName nameColor={result.activeNameColor} nameEffect={result.activeNameEffect}>
-                          {displayName}
-                        </CosmeticName>
-                      )}
+                      <CosmeticName nameColor={isMe ? null : result.activeNameColor} nameEffect={result.activeNameEffect}>
+                        {displayName}
+                      </CosmeticName>
                     </Link>
                   ) : (
-                    <span className="truncate">
-                      {displayName}
-                      {isMe && <span className="text-muted text-xs ml-1">(you)</span>}
-                    </span>
+                    <span className="truncate">{displayName}</span>
                   )}
                   {isBot && (
                     <span className="text-[10px] text-muted/70 bg-white/[0.06] rounded px-1.5 py-0.5 shrink-0 uppercase tracking-wider font-semibold">
@@ -735,7 +788,7 @@ export function RaceResults({
       {hasAchievements && (
         <div
           className="flex flex-col gap-1 w-full"
-          style={{ animation: "slide-up 0.5s ease-out 0.14s both" }}
+          style={{ animation: "slide-up 0.5s ease-out 0.08s both" }}
         >
           <h3 className="text-[10px] font-bold text-muted/50 uppercase tracking-widest px-0.5">
             Achievements Unlocked
@@ -772,7 +825,7 @@ export function RaceResults({
       {hasProgress && (
         <div
           className={`grid gap-2 w-full ${hasChallenges && hasXpProgress ? "sm:grid-cols-[3fr_2fr]" : ""}`}
-          style={{ animation: "slide-up 0.5s ease-out 0.18s both" }}
+          style={{ animation: "slide-up 0.5s ease-out 0.1s both" }}
         >
           {hasChallenges && (
             <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden px-3 py-2 sm:px-4 sm:py-2.5">
@@ -832,8 +885,8 @@ export function RaceResults({
       {/* ── Text Leaderboard ──────────────────────────────── */}
       {seed != null && mode && (
         <div
-          className="w-full"
-          style={{ animation: "slide-up 0.5s ease-out 0.20s both" }}
+          className="w-full min-h-[4rem]"
+          style={{ animation: "slide-up 0.5s ease-out 0.12s both" }}
         >
           <TextLeaderboard seed={seed} mode={mode} limit={10} />
         </div>
@@ -841,7 +894,7 @@ export function RaceResults({
 
       {/* ── Pro panel (non-Pro users only) ────────────────── */}
       {showProPanel && (
-        <div style={{ animation: "slide-up 0.5s ease-out 0.22s both" }}>
+        <div style={{ animation: "slide-up 0.5s ease-out 0.14s both" }}>
           <ProPanel level={currentLevel} />
         </div>
       )}
@@ -850,7 +903,7 @@ export function RaceResults({
       {inParty && !isPlacement && (
         <div
           className="flex items-center justify-center gap-3 flex-wrap"
-          style={{ animation: "slide-up 0.5s ease-out 0.24s both" }}
+          style={{ animation: "slide-up 0.5s ease-out 0.16s both" }}
         >
           {party!.members.map((m) => {
             const ready = party!.readyState[m.userId] ?? false;
@@ -868,7 +921,7 @@ export function RaceResults({
       {/* ── Actions ───────────────────────────────────────── */}
       <div
         className="flex flex-col items-center gap-1.5 w-full max-w-xs mx-auto"
-        style={{ animation: "slide-up 0.5s ease-out 0.26s both" }}
+        style={{ animation: "slide-up 0.5s ease-out 0.18s both" }}
       >
         {inParty && !isLeader && !isPlacement ? (
           <button

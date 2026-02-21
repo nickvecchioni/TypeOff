@@ -82,6 +82,7 @@ export class RaceManager {
   private playerFlags = new Map<string, string[]>();
   private mode: RaceMode;
   private disconnectGraceTimer: ReturnType<typeof setTimeout> | null = null;
+  private resultsCleanupTimer: ReturnType<typeof setTimeout> | null = null;
   private spectatorInfo = new Map<string, { userId: string; name: string }>();
 
   private static readonly CATEGORY_MODES: Record<ModeCategory, RaceMode[]> = {
@@ -698,7 +699,8 @@ export class RaceManager {
 
     // Broadcast to entire room (players + spectators)
     this.io.to(this.raceId).emit("raceFinished", payload);
-    this.cleanup();
+    // Keep race alive for 90s so players can emote on the results screen
+    this.resultsCleanupTimer = setTimeout(() => this.cleanup(), 90_000);
   }
 
   private async persistResults() {
@@ -1275,6 +1277,7 @@ export class RaceManager {
     if (this.progressTimer) clearInterval(this.progressTimer);
     if (this.finishTimeoutTimer) clearTimeout(this.finishTimeoutTimer);
     if (this.disconnectGraceTimer) clearTimeout(this.disconnectGraceTimer);
+    if (this.resultsCleanupTimer) { clearTimeout(this.resultsCleanupTimer); this.resultsCleanupTimer = null; }
 
     // Evict spectators from the room
     for (const socketId of this.spectatorInfo.keys()) {
