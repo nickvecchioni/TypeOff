@@ -6,7 +6,7 @@ import { useSession, signIn } from "next-auth/react";
 import { PartyPanel } from "@/components/social/PartyPanel";
 import { RankBadge } from "@/components/RankBadge";
 import { ChallengesWidget } from "@/components/race/ChallengesWidget";
-import { GuestPlacement, LandingPhase } from "@/components/race/GuestPlacement";
+import { GuestPlacement } from "@/components/race/GuestPlacement";
 import { getXpLevel, COSMETIC_REWARDS, getRankInfo } from "@typeoff/shared";
 import type { PartyState, RankTier, ModeCategory } from "@typeoff/shared";
 
@@ -666,7 +666,7 @@ export function QueueScreen({
         )
       ) : (
         /* ── Signed-out: Hero landing ───────────────────────────────── */
-        <LandingPhase onStart={() => signIn("google")} />
+        <GuestPlacement onPlacementComplete={handlePlacementClaim} />
       )}
     </div>
   );
