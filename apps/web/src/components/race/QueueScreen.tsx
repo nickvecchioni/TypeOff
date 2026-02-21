@@ -666,7 +666,7 @@ export function QueueScreen({
         )
       ) : (
         /* ── Signed-out: Hero landing ───────────────────────────────── */
-        <GuestPlacement onPlacementComplete={handlePlacementClaim} />
+        <GuestPlacement />
       )}
     </div>
   );
