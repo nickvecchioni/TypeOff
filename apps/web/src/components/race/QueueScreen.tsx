@@ -537,7 +537,6 @@ export function QueueScreen({
                     ? "Start Private Race"
                     : "Find Race"
                   : "Start Placement"}
-                <span className="inline-block w-[2px] h-[1.1em] bg-current animate-blink ml-0.5 translate-y-[2px]" />
               </button>
 
               {/* Hint row + secondary actions */}
