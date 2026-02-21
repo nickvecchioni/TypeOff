@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { getRankTier } from "@typeoff/shared";
+import { getRankTier, getRankInfo } from "@typeoff/shared";
 import type { RankTier } from "@typeoff/shared";
-import { RankBadge } from "@/components/RankBadge";
 
 interface PlacementRevealProps {
   elo: number;
@@ -15,80 +14,137 @@ interface PlacementRevealProps {
   ctaContent?: React.ReactNode;
 }
 
-const TIER_GLOW: Record<RankTier, string> = {
-  bronze: "drop-shadow(0 0 24px rgba(217, 119, 6, 0.4))",
-  silver: "drop-shadow(0 0 24px rgba(156, 163, 175, 0.4))",
-  gold: "drop-shadow(0 0 24px rgba(234, 179, 8, 0.4))",
-  platinum: "drop-shadow(0 0 24px rgba(103, 232, 249, 0.4))",
-  diamond: "drop-shadow(0 0 24px rgba(59, 130, 246, 0.4))",
-  master: "drop-shadow(0 0 24px rgba(168, 85, 247, 0.4))",
-  grandmaster: "drop-shadow(0 0 24px rgba(239, 68, 68, 0.4))",
+const TIER_COLOR: Record<RankTier, string> = {
+  bronze:      "#d97706",
+  silver:      "#9ca3af",
+  gold:        "#eab308",
+  platinum:    "#67e8f9",
+  diamond:     "#3b82f6",
+  master:      "#a855f7",
+  grandmaster: "#ef4444",
+};
+
+const TIER_MESSAGE: Record<RankTier, string> = {
+  bronze:      "A solid start. The only way is up.",
+  silver:      "Above average. Keep pushing.",
+  gold:        "Impressive. You're ahead of most.",
+  platinum:    "Elite speed. You're among the best.",
+  diamond:     "Exceptional. Only a handful reach this.",
+  master:      "World-class. You're nearly untouchable.",
+  grandmaster: "Legendary. You're among the fastest in the world.",
 };
 
 export function PlacementReveal({ elo, wpm, accuracy, onContinue, subtitle, ctaLabel, ctaContent }: PlacementRevealProps) {
   const [phase, setPhase] = useState<"intro" | "reveal">("intro");
   const tier = getRankTier(elo) as RankTier;
+  const info = getRankInfo(elo);
+  const color = TIER_COLOR[tier];
 
   useEffect(() => {
-    const timer = setTimeout(() => setPhase("reveal"), 800);
+    const timer = setTimeout(() => setPhase("reveal"), 600);
     return () => clearTimeout(timer);
   }, []);
 
   return (
-    <div className="flex flex-col items-center gap-10 animate-fade-in">
-      {/* Heading */}
-      <div className="flex flex-col items-center gap-1">
-        <span className="text-accent text-xs uppercase tracking-[0.25em] font-bold">
-          Placement Complete
-        </span>
-      </div>
+    <div className="relative flex flex-col items-center gap-8 w-full max-w-sm mx-auto px-4 py-8 animate-fade-in">
+
+      {/* Ambient background glow */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: `radial-gradient(ellipse 80% 50% at 50% 35%, ${color}18 0%, transparent 70%)`,
+          transition: "opacity 1s ease",
+          opacity: phase === "reveal" ? 1 : 0,
+        }}
+      />
+
+      {/* Label */}
+      <span className="relative text-[11px] font-bold uppercase tracking-[0.25em] text-muted/40">
+        Placement Complete
+      </span>
 
       {/* Rank reveal */}
       <div
-        className={`flex flex-col items-center gap-3 transition-all duration-700 ease-out ${
-          phase === "reveal"
-            ? "opacity-100 scale-100 translate-y-0"
-            : "opacity-0 scale-90 translate-y-4"
-        }`}
+        className="relative flex flex-col items-center gap-2 transition-all duration-700 ease-out"
         style={{
-          filter: phase === "reveal" ? TIER_GLOW[tier] : "none",
-          transitionProperty: "opacity, transform, filter",
+          opacity: phase === "reveal" ? 1 : 0,
+          transform: phase === "reveal" ? "translateY(0) scale(1)" : "translateY(16px) scale(0.92)",
         }}
       >
-        <RankBadge tier={tier} elo={elo} size="md" />
+        {/* Tier name — large */}
+        <div
+          className="text-6xl sm:text-7xl font-black tracking-tight leading-none"
+          style={{
+            color,
+            textShadow: `0 0 40px ${color}66, 0 0 80px ${color}33`,
+          }}
+        >
+          {tier.charAt(0).toUpperCase() + tier.slice(1)}
+        </div>
+
+        {/* Subdivision + ELO */}
+        <div
+          className="flex items-center gap-2 text-sm font-semibold"
+          style={{ color: `${color}99` }}
+        >
+          <span>{info.label}</span>
+          <span className="opacity-40">·</span>
+          <span className="tabular-nums">{elo} ELO</span>
+        </div>
       </div>
 
       {/* Stats */}
       {wpm != null && accuracy != null && (
-        <div className="flex gap-8">
-          <div className="text-center">
-            <div className="text-3xl font-black text-accent tabular-nums text-glow-accent">
+        <div
+          className="relative flex gap-10 transition-all duration-700 delay-150 ease-out"
+          style={{
+            opacity: phase === "reveal" ? 1 : 0,
+            transform: phase === "reveal" ? "translateY(0)" : "translateY(12px)",
+          }}
+        >
+          <div className="flex flex-col items-center gap-1">
+            <div className="text-4xl font-black tabular-nums" style={{ color, textShadow: `0 0 20px ${color}55` }}>
               {Math.round(wpm)}
             </div>
-            <div className="text-xs text-muted mt-1">WPM</div>
+            <div className="text-[10px] uppercase tracking-widest text-muted/40 font-bold">WPM</div>
           </div>
-          <div className="text-center">
-            <div className="text-3xl font-black text-text tabular-nums">
-              {accuracy.toFixed(1)}%
+          <div className="w-px bg-white/[0.06] self-stretch" />
+          <div className="flex flex-col items-center gap-1">
+            <div className="text-4xl font-black tabular-nums text-text/80">
+              {accuracy.toFixed(1)}<span className="text-2xl text-text/40">%</span>
             </div>
-            <div className="text-xs text-muted mt-1">Accuracy</div>
+            <div className="text-[10px] uppercase tracking-widest text-muted/40 font-bold">Accuracy</div>
           </div>
         </div>
       )}
 
-      {/* Subtitle */}
-      {subtitle && (
-        <p className="text-muted text-sm text-center whitespace-nowrap">
-          {subtitle}
-        </p>
-      )}
+      {/* Flavor message */}
+      <p
+        className="relative text-xs text-muted/40 text-center leading-relaxed transition-all duration-700 delay-300 ease-out"
+        style={{
+          opacity: phase === "reveal" ? 1 : 0,
+          transform: phase === "reveal" ? "translateY(0)" : "translateY(8px)",
+        }}
+      >
+        {subtitle ?? TIER_MESSAGE[tier]}
+      </p>
 
       {/* CTA */}
-      <div className={`${phase === "reveal" ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}>
+      <div
+        className="relative transition-all duration-500 delay-500 ease-out"
+        style={{
+          opacity: phase === "reveal" ? 1 : 0,
+          transform: phase === "reveal" ? "translateY(0)" : "translateY(8px)",
+        }}
+      >
         {ctaContent ?? (
           <button
             onClick={onContinue}
-            className="rounded-lg bg-accent text-bg px-10 py-3.5 text-sm font-bold tracking-wide uppercase hover:bg-accent/90 transition-colors glow-accent-strong"
+            className="rounded-xl px-10 py-3.5 text-sm font-bold tracking-wide text-bg transition-all hover:brightness-110 active:scale-[0.98]"
+            style={{
+              background: color,
+              boxShadow: `0 0 24px ${color}44`,
+            }}
           >
             {ctaLabel ?? "Start Ranked"}
           </button>
