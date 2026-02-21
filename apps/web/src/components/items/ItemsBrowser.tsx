@@ -126,7 +126,7 @@ export function ItemsBrowser({ totalXp, isPro }: { totalXp: number; isPro: boole
       {/* ── Header ────────────────────────────────────────── */}
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h1 className="text-lg font-bold text-text tracking-tight">Items</h1>
+          <h1 className="text-lg font-bold text-text tracking-tight">Cosmetics</h1>
           <p className="text-xs text-muted/40 mt-0.5">Earn cosmetics by levelling up through gameplay</p>
         </div>
         <div className="flex items-center gap-2">
