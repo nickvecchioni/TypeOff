@@ -22,13 +22,14 @@ type PartyHook = ReturnType<typeof usePartyInternal>;
 const PartyContext = createContext<PartyHook | null>(null);
 
 function usePartyInternal() {
-  const { emit, on } = useSocket();
+  const { emit, on, connected } = useSocket();
   const [party, setParty] = useState<PartyState | null>(null);
   const [pendingInvite, setPendingInvite] = useState<PartyInvite | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [messages, setMessages] = useState<PartyMessage[]>([]);
 
   const inviteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevConnectedRef = useRef(false);
 
   useEffect(() => {
     const unsubs = [
@@ -64,6 +65,29 @@ function usePartyInternal() {
       if (inviteTimerRef.current) clearTimeout(inviteTimerRef.current);
     };
   }, [on]);
+
+  // Re-create party on reconnect if client still thinks it's in one.
+  // The server clears party state on disconnect, so after a transparent
+  // Socket.io reconnect the new socket ID won't be in partyManager.socketToUser,
+  // causing every invite/action to fail with "Not in a party".
+  useEffect(() => {
+    const wasConnected = prevConnectedRef.current;
+    prevConnectedRef.current = connected;
+
+    // Only act on reconnects (false → true), not the initial mount connect
+    if (connected && wasConnected === false && party !== null) {
+      (async () => {
+        try {
+          const res = await fetch("/api/ws-token");
+          if (!res.ok) return;
+          const { token } = await res.json();
+          if (token) emit("createParty", { token });
+        } catch {
+          // ignore — party will be gone but UI will self-correct on next partyUpdate
+        }
+      })();
+    }
+  }, [connected, party, emit]);
 
   const createParty = useCallback(async () => {
     setError(null);

@@ -98,19 +98,29 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     }
   }, [emit]);
 
-  // Request friend statuses when socket connects
+  // Request friend statuses when socket connects, with retry on failure
   useEffect(() => {
     if (!connected) return;
     let cancelled = false;
-    (async () => {
+    let retryTimeout: ReturnType<typeof setTimeout>;
+
+    const register = async (attempt = 0) => {
       try {
         const res = await fetch("/api/ws-token");
-        if (!res.ok || cancelled) return;
+        if (!res.ok) throw new Error("token fetch failed");
         const { token } = await res.json();
         if (!cancelled && token) emit("requestFriendStatuses", { token });
-      } catch {}
-    })();
-    return () => { cancelled = true; };
+      } catch {
+        if (!cancelled && attempt < 3) {
+          retryTimeout = setTimeout(() => register(attempt + 1), 2000 * (attempt + 1));
+        }
+      }
+    };
+    register();
+    return () => {
+      cancelled = true;
+      clearTimeout(retryTimeout);
+    };
   }, [connected, emit]);
 
   // Re-request statuses when user returns to the tab (catches missed events)
