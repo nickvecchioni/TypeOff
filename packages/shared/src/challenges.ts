@@ -80,7 +80,7 @@ export function getWeeklyKey(date?: Date): string {
 // ─── Deterministic Rotation ───────────────────────────────────────────
 
 /** ET week number since epoch */
-function weekNumber(date?: Date): number {
+function _weekNumber(date?: Date): number {
   const d = date ?? new Date();
   const etStr = etDateString(d);
   const [y, m, day] = etStr.split("-").map(Number);
@@ -101,7 +101,7 @@ function pickSeeded<T>(pool: T[], count: number, seed: number): T[] {
 
 /** Get 1 weekly challenge for a given date (same for all players) */
 export function getWeeklyChallenges(date?: Date): ChallengeDefinition[] {
-  return pickSeeded(WEEKLY_CHALLENGES, 1, weekNumber(date) * 7919);
+  return pickSeeded(WEEKLY_CHALLENGES, 1, _weekNumber(date) * 7919);
 }
 
 /** Get all active challenges (1 weekly) */
