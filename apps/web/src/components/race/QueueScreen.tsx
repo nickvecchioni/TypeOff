@@ -49,7 +49,7 @@ interface QueueScreenProps {
   queueElapsed: number;
   maxWaitSeconds: number;
   connected: boolean;
-  onJoin: (opts?: { privateRace?: boolean; modeCategory?: ModeCategory }) => void;
+  onJoin: (opts?: { privateRace?: boolean; modeCategories?: ModeCategory[] }) => void;
   onLeave: () => void;
   party: PartyState | null;
   partyError: string | null;
@@ -237,7 +237,15 @@ export function QueueScreen({
   onSetPrivateRace,
 }: QueueScreenProps) {
   const { data: session, status } = useSession();
-  const [modeCategory, setModeCategory] = useState<ModeCategory>("words");
+  const [modeCategories, setModeCategories] = useState<ModeCategory[]>(["words"]);
+
+  function toggleMode(id: ModeCategory) {
+    setModeCategories(prev =>
+      prev.includes(id)
+        ? prev.length > 1 ? prev.filter(m => m !== id) : prev
+        : [...prev, id]
+    );
+  }
 
   const myUserId = session?.user?.id;
   const isPartyLeader = party?.leaderId === myUserId;
@@ -271,7 +279,7 @@ export function QueueScreen({
         if (inPartyNotLeader) {
           if (!amReady) onMarkReady?.();
         } else if (allMembersReady) {
-          onJoin({ privateRace, modeCategory });
+          onJoin({ privateRace, modeCategories });
         }
       }
     }
@@ -288,7 +296,7 @@ export function QueueScreen({
     onJoin,
     onMarkReady,
     privateRace,
-    modeCategory,
+    modeCategories,
   ]);
 
   /* ── Loading skeleton ─────────────────────────────────────────────────── */
@@ -520,12 +528,12 @@ export function QueueScreen({
               {session.user.placementsCompleted && (
                 <div className="relative w-full grid grid-cols-4 gap-1.5 mb-4">
                   {MODES.map(({ id, label, icon, desc }) => {
-                    const active = modeCategory === id;
+                    const active = modeCategories.includes(id);
                     return (
                       <button
                         key={id}
                         type="button"
-                        onClick={() => setModeCategory(id)}
+                        onClick={() => toggleMode(id)}
                         className={`flex flex-col items-center gap-1 px-2 py-2.5 rounded-lg text-center transition-all ${
                           active
                             ? "ring-1 ring-accent bg-accent/[0.08] text-accent"
@@ -551,7 +559,7 @@ export function QueueScreen({
 
               {/* Find Race button */}
               <button
-                onClick={() => onJoin({ privateRace, modeCategory })}
+                onClick={() => onJoin({ privateRace, modeCategories })}
                 disabled={!connected || (inParty && !allMembersReady)}
                 className="relative w-full rounded-xl bg-accent/[0.08] ring-1 ring-accent/25 text-accent py-5 text-base font-bold tracking-wide glow-accent hover:bg-accent hover:text-bg hover:ring-accent hover:glow-accent-strong transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent/[0.08] disabled:hover:text-accent disabled:hover:ring-accent/25"
               >

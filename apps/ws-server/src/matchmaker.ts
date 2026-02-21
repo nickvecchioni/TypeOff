@@ -490,8 +490,9 @@ export class Matchmaker implements RaceOwner {
 
   async startPrivatePartyRace(
     entries: Array<{ socket: TypedSocket; player: RacePlayer }>,
-    modeCategory: ModeCategory = "words",
+    modeCategories: ModeCategory[] = ["words"],
   ) {
+    const modeCategory = modeCategories[Math.floor(Math.random() * modeCategories.length)] ?? "words";
     if (entries.length < 2) {
       entries[0]?.socket.emit("error", {
         message: "Private races require at least 2 party members",
