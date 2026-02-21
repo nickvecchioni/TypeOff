@@ -212,6 +212,7 @@ io.on("connection", (socket) => {
   socket.on("sendDm", async (data) => {
     try {
       const player = await authenticateSocket(data, socket.id);
+      socialManager.trackConnection(socket, player.id).catch(() => {});
 
       // Rate limit: 500ms between messages
       const last = dmLastSent.get(player.id) ?? 0;

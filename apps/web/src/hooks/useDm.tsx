@@ -115,9 +115,13 @@ function useDmInternal(): DmContextValue {
   }, []);
 
   const sendDm = useCallback(
-    (message: string) => {
+    async (message: string) => {
       if (!openConvRef.current) return;
-      emit("sendDm", { toUserId: openConvRef.current.userId, message });
+      const res = await fetch("/api/ws-token");
+      if (!res.ok) return;
+      const { token } = await res.json();
+      if (!token) return;
+      emit("sendDm", { toUserId: openConvRef.current.userId, message, token });
     },
     [emit],
   );
