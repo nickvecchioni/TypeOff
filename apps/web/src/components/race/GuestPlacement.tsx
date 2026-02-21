@@ -53,7 +53,7 @@ function LandingPhase({ onStart }: { onStart: () => void }) {
             Bronze
           </span>
           {" "}to{" "}
-          <span style={{ color: "#ef4444", textShadow: "0 0 10px rgba(239,68,68,0.4)" }}>
+          <span style={{ color: "#ef4444", textShadow: "0 0 10px rgba(239,68,68,0.6), 0 0 24px rgba(239,68,68,0.3)" }}>
             Grandmaster
           </span>
           .
