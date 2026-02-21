@@ -7,7 +7,7 @@ const NAV_LINKS = [
   { href: "/leaderboard", label: "Leaderboard" },
   { href: "/ranks", label: "Ranks" },
   { href: "/solo", label: "Solo" },
-  { href: "/items", label: "Items" },
+  { href: "/cosmetics", label: "Cosmetics" },
   { href: "/pro", label: "Pro", isPro: true },
 ];
 

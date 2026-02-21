@@ -363,7 +363,7 @@ function SubscriberView({
           { href: "/history", title: "Race History", desc: "Full paginated history with filters" },
           { href: "/analytics", title: "Analytics", desc: "Advanced performance insights" },
           { href: `/profile/${session?.user?.username}`, title: "Profile", desc: "View your profile with Pro badge" },
-          { href: "/items", title: "Items", desc: "Browse and equip your cosmetics" },
+          { href: "/cosmetics", title: "Items", desc: "Browse and equip your cosmetics" },
         ].map((link) => (
           <Link
             key={link.href}

@@ -321,7 +321,7 @@ export default async function ProfilePage({
         {/* ── Loadout link ───────────────────────────────────── */}
         {isOwn && (
           <Link
-            href="/items"
+            href="/cosmetics"
             className="flex items-center justify-between rounded-xl bg-surface/50 ring-1 ring-white/[0.04] px-5 py-3.5 hover:ring-accent/20 hover:bg-surface/70 transition-all group animate-slide-up"
             style={{ animationDelay: "100ms" }}
           >
