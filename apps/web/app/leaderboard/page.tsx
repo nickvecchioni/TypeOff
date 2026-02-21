@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import { Suspense } from "react";
 import Link from "next/link";
 import { getDb } from "@/lib/db";
-import { users, userStats, userActiveCosmetics, soloResults, raceParticipants, races, clans } from "@typeoff/db";
+import { users, userStats, userActiveCosmetics, soloResults, raceParticipants, races } from "@typeoff/db";
 import { and, desc, eq, gt, isNotNull, sql, inArray } from "drizzle-orm";
 import type { RankTier } from "@typeoff/shared";
 import { getRankInfo, getXpLevel, TITLE_TEXTS } from "@typeoff/shared";
@@ -15,7 +15,6 @@ import { CosmeticName } from "@/components/CosmeticName";
 import { CosmeticBadge } from "@/components/CosmeticBadge";
 import { LiveBadge } from "@/components/WatchLiveButton";
 import { RankBadge } from "@/components/RankBadge";
-import { CreateClanButton } from "@/components/CreateClanButton";
 
 const TIER_TEXT: Record<RankTier, string> = {
   bronze: "text-rank-bronze",
@@ -38,7 +37,7 @@ export default async function LeaderboardPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const params = await searchParams;
-  const tab = params.tab === "solo" ? "solo" : params.tab === "pp" ? "pp" : params.tab === "clans" ? "clans" : "ranked";
+  const tab = params.tab === "solo" ? "solo" : params.tab === "pp" ? "pp" : "ranked";
 
   const db = getDb();
   const { auth } = await import("@/lib/auth");
@@ -60,16 +59,6 @@ export default async function LeaderboardPage({
       <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
         <div className="max-w-3xl mx-auto">
           <SoloLeaderboard params={params} userId={userId} db={db} />
-        </div>
-      </main>
-    );
-  }
-
-  if (tab === "clans") {
-    return (
-      <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
-        <div className="max-w-3xl mx-auto">
-          <ClansLeaderboard db={db} />
         </div>
       </main>
     );
@@ -867,111 +856,3 @@ async function UniverseLeaderboard({
   );
 }
 
-/* ── Clans leaderboard ──────────────────────────────────────── */
-
-async function ClansLeaderboard({ db }: { db: ReturnType<typeof getDb> }) {
-  const topClans = await db
-    .select()
-    .from(clans)
-    .orderBy(desc(clans.eloRating))
-    .limit(50);
-
-  const gridCols = "grid-cols-[2rem_1fr_4rem_3.5rem] sm:grid-cols-[2.5rem_1fr_5rem_4rem_4rem]";
-
-  return (
-    <>
-      <div
-        className="flex items-baseline justify-between mb-6 opacity-0 animate-fade-in"
-        style={{ animationDelay: "0ms", animationFillMode: "both" }}
-      >
-        <div className="flex items-center gap-4">
-          <h1 className="text-lg font-black text-text uppercase tracking-wider">
-            Leaderboard
-          </h1>
-          <Suspense>
-            <LeaderboardTabs />
-          </Suspense>
-        </div>
-        <div className="flex items-center gap-3">
-          <CreateClanButton />
-          <span className="text-sm text-muted tabular-nums">
-            {topClans.length} {topClans.length === 1 ? "clan" : "clans"}
-          </span>
-        </div>
-      </div>
-
-      {topClans.length === 0 ? (
-        <div
-          className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] py-16 text-center opacity-0 animate-fade-in"
-          style={{ animationDelay: "80ms", animationFillMode: "both" }}
-        >
-          <p className="text-muted text-sm">No clans yet. Create the first one.</p>
-        </div>
-      ) : (
-        <div>
-          {/* Header */}
-          <div
-            className={`grid ${gridCols} items-center gap-3 px-3 sm:px-4 py-2 text-xs text-muted/60 uppercase tracking-wider border-b border-white/[0.04] opacity-0 animate-fade-in`}
-            style={{ animationDelay: "60ms", animationFillMode: "both" }}
-          >
-            <span>#</span>
-            <span>Clan</span>
-            <span className="text-right">ELO</span>
-            <span className="text-right hidden sm:block">Rank</span>
-            <span className="text-right">Members</span>
-          </div>
-
-          {/* Rows */}
-          <div
-            className="divide-y divide-white/[0.03] opacity-0 animate-fade-in"
-            style={{ animationDelay: "120ms", animationFillMode: "both" }}
-          >
-            {topClans.map((clan, i) => {
-              const rank = i + 1;
-              const rankInfo = getRankInfo(clan.eloRating);
-              const tierColor = TIER_TEXT[rankInfo.tier];
-
-              const rankDisplay = rank === 1
-                ? "text-rank-gold"
-                : rank === 2
-                ? "text-rank-silver"
-                : rank === 3
-                ? "text-rank-bronze"
-                : "text-muted/40";
-
-              const rowBg = rank <= 3
-                ? "bg-surface/30"
-                : "hover:bg-white/[0.02]";
-
-              return (
-                <div
-                  key={clan.id}
-                  className={`grid ${gridCols} items-center gap-3 px-3 sm:px-4 py-2.5 rounded-lg transition-colors ${rowBg}`}
-                >
-                  <span className={`text-sm font-bold tabular-nums ${rankDisplay}`}>
-                    {rank}
-                  </span>
-                  <span className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-                    <span className="text-xs font-bold text-accent/70">[{clan.tag}]</span>
-                    <span className={`text-sm font-medium text-text truncate ${tierColor}`}>
-                      {clan.name}
-                    </span>
-                  </span>
-                  <span className={`text-right text-sm tabular-nums font-semibold ${tierColor}`}>
-                    {clan.eloRating}
-                  </span>
-                  <span className="text-right hidden sm:block">
-                    <RankBadge tier={rankInfo.tier} elo={clan.eloRating} showElo={false} size="xs" />
-                  </span>
-                  <span className="text-right text-sm tabular-nums text-muted">
-                    {clan.memberCount}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </>
-  );
-}

@@ -22,8 +22,6 @@ declare module "next-auth" {
       activeCursorStyle: string | null;
       activeProfileBorder: string | null;
       activeTypingTheme: string | null;
-      clanId: string | null;
-      clanTag: string | null;
     };
   }
 }
@@ -46,7 +44,5 @@ declare module "next-auth/jwt" {
     activeCursorStyle?: string | null;
     activeProfileBorder?: string | null;
     activeTypingTheme?: string | null;
-    clanId?: string | null;
-    clanTag?: string | null;
   }
 }

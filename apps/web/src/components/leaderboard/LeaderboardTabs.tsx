@@ -2,13 +2,13 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 
-type Tab = "ranked" | "solo" | "pp" | "clans";
+type Tab = "ranked" | "solo" | "pp";
 
 export function LeaderboardTabs() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const rawTab = searchParams.get("tab");
-  const active: Tab = rawTab === "solo" ? "solo" : rawTab === "pp" ? "pp" : rawTab === "clans" ? "clans" : "ranked";
+  const active: Tab = rawTab === "solo" ? "solo" : rawTab === "pp" ? "pp" : "ranked";
 
   function switchTab(tab: Tab) {
     if (tab === active) return;
@@ -16,8 +16,6 @@ export function LeaderboardTabs() {
       router.replace("?tab=solo&mode=timed&duration=60");
     } else if (tab === "pp") {
       router.replace("?tab=pp");
-    } else if (tab === "clans") {
-      router.replace("?tab=clans");
     } else {
       router.replace("/leaderboard");
     }
@@ -33,9 +31,6 @@ export function LeaderboardTabs() {
       </Chip>
       <Chip active={active === "pp"} onClick={() => switchTab("pp")}>
         PP
-      </Chip>
-      <Chip active={active === "clans"} onClick={() => switchTab("clans")}>
-        Clans
       </Chip>
     </div>
   );

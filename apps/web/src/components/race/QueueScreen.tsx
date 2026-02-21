@@ -443,21 +443,6 @@ export function QueueScreen({
                   </>
                 )}
 
-                {/* Clan tag */}
-                {session.user.clanTag && (
-                  <>
-                    <div className="w-px h-8 bg-white/[0.05] shrink-0 hidden md:block" />
-                    <div className="hidden md:block shrink-0">
-                      <div className="text-[9px] text-muted/40 uppercase tracking-widest leading-none mb-0.5">
-                        clan
-                      </div>
-                      <div className="text-xs font-bold text-accent/70 leading-none font-mono">
-                        [{session.user.clanTag}]
-                      </div>
-                    </div>
-                  </>
-                )}
-
                 <div className="flex-1" />
 
                 {/* Level + mini XP bar */}

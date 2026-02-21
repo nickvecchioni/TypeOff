@@ -29,7 +29,6 @@ export const users = pgTable("users", {
   peakRankTier: text("peak_rank_tier").notNull().default("bronze"),
   placementsCompleted: boolean("placements_completed").notNull().default(false),
   lastSeen: timestamp("last_seen", { mode: "date" }),
-  clanId: uuid("clan_id"),
 });
 
 export const accounts = pgTable(
@@ -118,23 +117,6 @@ export const friendships = pgTable("friendships", {
   status: text("status").notNull().default("pending"), // "pending" | "accepted" | "declined"
   createdAt: timestamp("created_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
-});
-
-// ─── Direct Messages ───────────────────────────────────────────────
-
-export const directMessages = pgTable("direct_messages", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  senderId: text("sender_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  recipientId: text("recipient_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  content: text("content").notNull(),
-  createdAt: timestamp("created_at", { mode: "date" })
-    .notNull()
-    .$defaultFn(() => new Date()),
-  readAt: timestamp("read_at", { mode: "date" }),
 });
 
 // ─── Solo Results ──────────────────────────────────────────────────
@@ -294,59 +276,13 @@ export const notifications = pgTable("notifications", {
   userId: text("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  type: text("type").notNull(), // "friend_request" | "clan_invite" | "achievement" | "challenge_complete" | "rank_up" | "rank_down"
+  type: text("type").notNull(), // "friend_request" | "achievement" | "challenge_complete" | "rank_up" | "rank_down"
   title: text("title").notNull(),
   body: text("body").notNull(),
   metadata: text("metadata"), // JSON-stringified
   actionUrl: text("action_url"),
   read: boolean("read").notNull().default(false),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
-});
-
-// ─── Clans ──────────────────────────────────────────────────────
-
-export const clans = pgTable("clans", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull().unique(),
-  tag: text("tag").notNull().unique(),
-  description: text("description"),
-  leaderId: text("leader_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  eloRating: integer("elo_rating").notNull().default(1000),
-  memberCount: integer("member_count").notNull().default(1),
-  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
-});
-
-export const clanMembers = pgTable(
-  "clan_members",
-  {
-    clanId: uuid("clan_id")
-      .notNull()
-      .references(() => clans.id, { onDelete: "cascade" }),
-    userId: text("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    role: text("role").notNull().default("member"), // "leader" | "officer" | "member"
-    joinedAt: timestamp("joined_at", { mode: "date" }).notNull().defaultNow(),
-  },
-  (t) => [primaryKey({ columns: [t.clanId, t.userId] })],
-);
-
-export const clanInvites = pgTable("clan_invites", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  clanId: uuid("clan_id")
-    .notNull()
-    .references(() => clans.id, { onDelete: "cascade" }),
-  userId: text("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  invitedBy: text("invited_by")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  status: text("status").notNull().default("pending"), // "pending" | "accepted" | "declined"
-  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
-  expiresAt: timestamp("expires_at", { mode: "date" }).notNull(),
 });
 
 // ─── Pro Subscription ──────────────────────────────────────────────

@@ -2,11 +2,8 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
 import { useSocial } from "@/hooks/useSocial";
-import { useChat } from "@/hooks/useChat";
 import { useParty } from "@/hooks/useParty";
-import { ChatPanel } from "./ChatPanel";
 
 function formatLastSeen(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -27,7 +24,6 @@ interface FriendsDrawerProps {
 }
 
 export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
-  const { data: session } = useSession();
   const {
     friends,
     pendingRequests,
@@ -40,7 +36,6 @@ export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
     removeFriend,
     searchUsers,
   } = useSocial();
-  const { activeChat, openChat, closeChat, unreadCounts } = useChat();
   const { party, inviteToParty } = useParty();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -57,13 +52,6 @@ export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
       fetchRequests();
     }
   }, [open, fetchFriends, fetchRequests]);
-
-  // Close chat when drawer closes
-  useEffect(() => {
-    if (!open && activeChat) {
-      closeChat();
-    }
-  }, [open, activeChat, closeChat]);
 
   const handleSearch = useCallback(
     (query: string) => {
@@ -97,41 +85,27 @@ export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
   useEffect(() => {
     if (!open) return;
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        if (activeChat) {
-          closeChat();
-        } else {
-          onClose();
-        }
-      }
+      if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [open, onClose, activeChat, closeChat]);
+  }, [open, onClose]);
 
   const friendIds = new Set(friends.map((f) => f.userId));
   const onlineFriends = friends.filter((f) => f.online);
   const offlineFriends = friends.filter((f) => !f.online);
 
-  const myUserId = session?.user?.id;
-  const isPartyLeader = party != null && party.leaderId === myUserId;
   const partyMemberIds = new Set(party?.members.map((m) => m.userId) ?? []);
-  const canInvite = isPartyLeader && (party?.members.length ?? 0) < 4;
-
-  // Find active chat friend info
-  const activeFriend = activeChat
-    ? friends.find((f) => f.userId === activeChat)
-    : null;
+  const partyFull = (party?.members.length ?? 0) >= 4;
 
   const renderFriendRow = (friend: (typeof friends)[0]) => {
-    const unread = unreadCounts.get(friend.userId) ?? 0;
     const isOnline = friend.online;
+    const canInviteToParty = isOnline && !partyMemberIds.has(friend.userId) && !partyFull;
 
     return (
       <div
         key={friend.userId}
-        className="flex items-center gap-3 rounded-md px-3 py-2.5 hover:bg-white/[0.04] transition-colors group cursor-pointer"
-        onClick={() => openChat(friend.userId)}
+        className="flex items-center gap-3 rounded-md px-3 py-2.5 hover:bg-white/[0.04] transition-colors group"
       >
         {/* Online indicator */}
         <span
@@ -146,7 +120,7 @@ export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
         <span
           className={`text-sm truncate flex-1 ${
             isOnline ? "text-text" : "text-muted"
-          } group-hover:text-text transition-colors`}
+          }`}
         >
           {friend.username ?? friend.name ?? "Unknown"}
           {!isOnline && friend.lastSeen && (
@@ -156,14 +130,25 @@ export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
           )}
         </span>
 
-        {/* Right side: unread badge OR hover actions */}
+        {/* Right side actions */}
         <div className="flex items-center gap-1 shrink-0">
-          {canInvite && isOnline && !partyMemberIds.has(friend.userId) && (
+          {friend.raceId && (
+            <Link
+              href={`/spectate?raceId=${friend.raceId}`}
+              onClick={onClose}
+              className="flex items-center gap-1 text-[10px] font-bold text-accent/70 hover:text-accent px-1.5 py-0.5 rounded border border-accent/20 hover:border-accent/40 hover:bg-accent/10 transition-all"
+              title="Watch this race"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              Watch
+            </Link>
+          )}
+          {canInviteToParty && (
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                inviteToParty(friend.userId);
-              }}
+              onClick={() => inviteToParty(friend.userId)}
               className="flex items-center gap-1 text-[10px] font-bold text-accent/70 hover:text-accent px-1.5 py-0.5 rounded border border-accent/20 hover:border-accent/40 hover:bg-accent/10 transition-all"
               title="Invite to party"
             >
@@ -176,62 +161,8 @@ export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
               Invite
             </button>
           )}
-          {friend.raceId && (
-            <Link
-              href={`/spectate?raceId=${friend.raceId}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                onClose();
-              }}
-              className="flex items-center gap-1 text-[10px] font-bold text-accent/70 hover:text-accent px-1.5 py-0.5 rounded border border-accent/20 hover:border-accent/40 hover:bg-accent/10 transition-all"
-              title="Watch this race"
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-              Watch
-            </Link>
-          )}
-          {unread > 0 ? (
-            <span className="min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-accent text-bg text-[10px] font-bold tabular-nums px-1">
-              {unread}
-            </span>
-          ) : (
-            /* Chat icon — visible on hover */
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-white/[0.06] group-hover:text-muted transition-colors"
-            >
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            </svg>
-          )}
-          <Link
-            href={`/profile/${friend.username ?? friend.userId}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              onClose();
-            }}
-            className="opacity-0 group-hover:opacity-100 text-muted hover:text-accent transition-all w-5 h-5 flex items-center justify-center rounded hover:bg-white/[0.06]"
-            title="View profile"
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-          </Link>
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              removeFriend(friend.userId);
-            }}
+            onClick={() => removeFriend(friend.userId)}
             className="opacity-0 group-hover:opacity-100 text-muted hover:text-error transition-all w-5 h-5 flex items-center justify-center rounded hover:bg-error/10"
             title="Remove friend"
           >
@@ -260,16 +191,7 @@ export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        {/* Chat view */}
-        {activeChat && activeFriend && session?.user?.id ? (
-          <ChatPanel
-            friendId={activeChat}
-            friendName={activeFriend.username ?? activeFriend.name ?? "Unknown"}
-            online={activeFriend.online ?? false}
-            currentUserId={session.user.id}
-          />
-        ) : (
-          <>
+        <>
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
               <h2 className="text-xs font-bold text-muted uppercase tracking-widest">
@@ -406,7 +328,6 @@ export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
               </div>
             </div>
           </>
-        )}
       </div>
     </>
   );

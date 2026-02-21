@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useSocial } from "@/hooks/useSocial";
-import { useParty, type PartyChatMessage } from "@/hooks/useParty";
 import type { PartyState } from "@typeoff/shared";
 
 interface PartyPanelProps {
@@ -23,29 +22,16 @@ export function PartyPanel({
   onKick,
   onLeave,
 }: PartyPanelProps) {
-  const { data: session } = useSession();
   const { friends, fetchFriends } = useSocial();
-  const { chatMessages, sendChatMessage } = useParty();
   const [showInvite, setShowInvite] = useState(false);
-  const [showChat, setShowChat] = useState(false);
-  const [chatInput, setChatInput] = useState("");
-  const chatEndRef = useRef<HTMLDivElement>(null);
 
-  const myUserId = session?.user?.id;
-  const isLeader = party?.leaderId === myUserId;
+  const isLeader = party?.leaderId === session?.user?.id;
 
   useEffect(() => {
     if (showInvite) {
       fetchFriends();
     }
   }, [showInvite, fetchFriends]);
-
-  // Auto-scroll chat to bottom
-  useEffect(() => {
-    if (showChat) {
-      chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [chatMessages, showChat]);
 
   if (!party) {
     return (
@@ -62,13 +48,6 @@ export function PartyPanel({
     (f) => f.online && !party.members.some((m) => m.userId === f.userId),
   );
   const emptySlots = 4 - party.members.length;
-
-  const handleSendChat = () => {
-    const trimmed = chatInput.trim();
-    if (trimmed.length === 0) return;
-    sendChatMessage(trimmed);
-    setChatInput("");
-  };
 
   return (
     <div className="w-full animate-fade-in">
@@ -161,16 +140,6 @@ export function PartyPanel({
             )}
           </>
         )}
-        {party.members.length >= 2 && (
-          <button
-            onClick={() => setShowChat((v) => !v)}
-            className={`text-xs transition-colors ${
-              showChat ? "text-accent" : "text-muted/40 hover:text-muted"
-            }`}
-          >
-            {showChat ? "Hide Chat" : "Chat"}
-          </button>
-        )}
         <button
           onClick={onLeave}
           className="text-xs text-muted/40 hover:text-error transition-colors"
@@ -179,49 +148,6 @@ export function PartyPanel({
         </button>
       </div>
 
-      {/* Party Chat */}
-      {showChat && party.members.length >= 2 && (
-        <div className="mt-3 rounded-lg bg-surface/40 ring-1 ring-white/[0.04] overflow-hidden animate-fade-in">
-          {/* Messages */}
-          <div className="max-h-32 overflow-y-auto px-3 py-2 space-y-1">
-            {chatMessages.length === 0 ? (
-              <p className="text-[10px] text-muted/25 text-center py-2">
-                No messages yet
-              </p>
-            ) : (
-              chatMessages.map((msg, i) => (
-                <div key={i} className="text-xs">
-                  <span className={`font-semibold ${
-                    msg.senderId === myUserId ? "text-accent" : "text-text"
-                  }`}>
-                    {msg.senderId === myUserId ? "you" : msg.senderName}
-                  </span>
-                  <span className="text-muted/70 ml-1.5">{msg.message}</span>
-                </div>
-              ))
-            )}
-            <div ref={chatEndRef} />
-          </div>
-          {/* Input */}
-          <div className="border-t border-white/[0.04] px-3 py-2">
-            <input
-              type="text"
-              value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleSendChat();
-                }
-                e.stopPropagation();
-              }}
-              placeholder="Type a message..."
-              maxLength={200}
-              className="w-full bg-transparent text-xs text-text outline-none placeholder:text-muted/20"
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }

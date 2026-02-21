@@ -6,7 +6,6 @@ import { useNotifications } from "@/hooks/useNotifications";
 
 const TYPE_ICONS: Record<string, string> = {
   friend_request: "\u{1F44B}",
-  clan_invite: "\u2694\uFE0F",
   achievement: "\u{1F3C6}",
   challenge_complete: "\u2705",
   rank_up: "\u2B06\uFE0F",

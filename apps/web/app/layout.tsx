@@ -12,7 +12,6 @@ import { NavLinks } from "@/components/NavLinks";
 import { NotificationToast } from "@/components/social/NotificationToast";
 import { SocketProvider } from "@/hooks/useSocket";
 import { SocialProvider } from "@/hooks/useSocial";
-import { ChatProvider } from "@/hooks/useChat";
 import { NotificationProvider } from "@/hooks/useNotifications";
 import { PartyProvider } from "@/hooks/useParty";
 import { CosmeticProvider } from "@/contexts/CosmeticContext";
@@ -45,7 +44,6 @@ export default function RootLayout({
           <CosmeticProvider>
           <SocketProvider>
           <SocialProvider>
-          <ChatProvider>
           <PartyProvider>
           <NotificationProvider>
           <UsernameGuard>
@@ -76,7 +74,6 @@ export default function RootLayout({
           </UsernameGuard>
           </NotificationProvider>
           </PartyProvider>
-          </ChatProvider>
           </SocialProvider>
           </SocketProvider>
           </CosmeticProvider>

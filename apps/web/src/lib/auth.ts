@@ -3,7 +3,7 @@ import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { getDb } from "./db";
-import { users, accounts, sessions, verificationTokens, userStats, userActiveCosmetics, userSubscription, clans } from "@typeoff/db";
+import { users, accounts, sessions, verificationTokens, userStats, userActiveCosmetics, userSubscription } from "@typeoff/db";
 import { getXpLevel } from "@typeoff/shared";
 import { eq } from "drizzle-orm";
 
@@ -71,7 +71,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             rankTier: users.rankTier,
             username: users.username,
             placementsCompleted: users.placementsCompleted,
-            clanId: users.clanId,
             currentStreak: userStats.currentStreak,
             totalXp: userStats.totalXp,
           })
@@ -123,20 +122,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.activeProfileBorder = cosmetics?.activeProfileBorder ?? null;
         token.activeTypingTheme = cosmetics?.activeTypingTheme ?? null;
 
-        // Fetch clan info
-        if (row[0].clanId) {
-          const [clan] = await db
-            .select({ tag: clans.tag })
-            .from(clans)
-            .where(eq(clans.id, row[0].clanId as string))
-            .limit(1);
-          token.clanId = row[0].clanId;
-          token.clanTag = clan?.tag ?? null;
-        } else {
-          token.clanId = null;
-          token.clanTag = null;
-        }
-
         token.eloRefreshedAt = now;
       }
       return token;
@@ -159,8 +144,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.activeCursorStyle = (token.activeCursorStyle as string) ?? null;
         session.user.activeProfileBorder = (token.activeProfileBorder as string) ?? null;
         session.user.activeTypingTheme = (token.activeTypingTheme as string) ?? null;
-        session.user.clanId = (token.clanId as string) ?? null;
-        session.user.clanTag = (token.clanTag as string) ?? null;
       }
       return session;
     },

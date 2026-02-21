@@ -6,7 +6,6 @@ import { getRankTier } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
 import { CosmeticName } from "@/components/CosmeticName";
 import { CosmeticBadge } from "@/components/CosmeticBadge";
-import { ClanTag } from "./ClanTag";
 
 interface RaceTrackProps {
   players: RacePlayer[];
@@ -39,7 +38,6 @@ export function RaceTrack({ players, progress, myPlayerId, isPlacement }: RaceTr
               <span className={`flex items-center gap-2 min-w-0 ${isMe ? "text-accent font-bold" : "text-text"}`}>
                 {!isPlacement && !isBot && <RankBadge tier={getRankTier(player.elo)} />}
                 {!isBot && <CosmeticBadge badge={player.activeBadge} />}
-                <ClanTag tag={player.clanTag} />
                 <span className="truncate">
                   {isBot ? (
                     player.name

@@ -317,35 +317,6 @@ export class PartyManager {
     this.broadcastPartyUpdate(party);
   }
 
-  handleChatMessage(socket: TypedSocket, message: string) {
-    const userId = this.socketToUser.get(socket.id);
-    if (!userId) return;
-
-    const partyId = this.userToParty.get(userId);
-    if (!partyId) return;
-
-    const party = this.parties.get(partyId);
-    if (!party) return;
-
-    const member = party.members.get(userId);
-    if (!member) return;
-
-    // Sanitize and limit message length
-    const trimmed = message.trim().slice(0, 200);
-    if (trimmed.length === 0) return;
-
-    const payload = {
-      senderId: userId,
-      senderName: member.name,
-      message: trimmed,
-      timestamp: Date.now(),
-    };
-
-    for (const m of party.members.values()) {
-      this.io.to(m.socketId).emit("partyChatMessage", payload);
-    }
-  }
-
   getPartyForUser(userId: string): Party | null {
     const partyId = this.userToParty.get(userId);
     if (!partyId) return null;

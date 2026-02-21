@@ -20,7 +20,6 @@ export interface RacePlayer {
   activeBadge?: string | null;
   activeNameColor?: string | null;
   activeNameEffect?: string | null;
-  clanTag?: string | null;
 }
 
 /** Real-time progress of a player */
@@ -92,19 +91,13 @@ export interface ClientToServerEvents {
   // Party race events
   partySetPrivateRace: (data: { privateRace: boolean }) => void;
   partyMarkReady: () => void;
-  partyChatSend: (data: { message: string }) => void;
   // Spectator events
   listActiveRaces: () => void;
   spectateRace: (data: { raceId: string; token?: string }) => void;
   stopSpectating: () => void;
-  // Chat events
-  sendDirectMessage: (data: { token?: string; recipientId: string; content: string }) => void;
-  markMessagesRead: (data: { token?: string; friendId: string }) => void;
   // Follow events (persistent spectating)
   followPlayer: (data: { userId: string }) => void;
   stopFollowing: () => void;
-  // Clan events
-  respondToClanInvite: (data: { inviteId: string; accept: boolean; token?: string }) => void;
   // Emote events
   sendRaceEmote: (data: { emote: EmoteKey; token?: string }) => void;
   // Reconnection events
@@ -167,7 +160,6 @@ export interface ServerToClientEvents {
   partyDisbanded: () => void;
   partyReadyReset: () => void;
   partyError: (data: { message: string }) => void;
-  partyChatMessage: (data: { senderId: string; senderName: string; message: string; timestamp: number }) => void;
   // Spectator events
   activeRaces: (data: { races: Array<{ raceId: string; players: RacePlayer[]; status: RaceStatus; spectatorCount: number }> }) => void;
   spectateStarted: (data: RaceState) => void;
@@ -176,22 +168,10 @@ export interface ServerToClientEvents {
   // Social events
   friendStatus: (data: { userId: string; online: boolean; lastSeen?: string | null; raceId?: string | null }) => void;
   friendStatuses: (data: Array<{ userId: string; online: boolean; lastSeen?: string | null; raceId?: string | null }>) => void;
-  // Chat events
-  directMessage: (data: {
-    messageId: string;
-    senderId: string;
-    recipientId: string;
-    senderName: string;
-    content: string;
-    createdAt: string;
-  }) => void;
-  messagesMarkedRead: (data: { byUserId: string; friendId: string }) => void;
   // Follow events (persistent spectating)
   followedPlayerRacing: (data: { raceId: string; userId: string }) => void;
   // Notification events
   notification: (data: { id: string; type: string; title: string; body: string; metadata?: string; actionUrl?: string; createdAt: string }) => void;
-  // Clan events
-  clanInvite: (data: { inviteId: string; clanId: string; clanName: string; clanTag: string; fromName: string }) => void;
   // Emote events
   raceEmote: (data: { playerId: string; playerName: string; emote: EmoteKey }) => void;
 }
