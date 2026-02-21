@@ -85,7 +85,7 @@ function LandingPhase({ onStart }: { onStart: () => void }) {
                   boxShadow: isHovered
                     ? `0 0 14px ${tier.color}cc, 0 0 28px ${tier.color}55`
                     : i === 6
-                    ? `0 0 6px ${tier.color}66`
+                    ? `0 0 10px ${tier.color}99, 0 0 22px ${tier.color}44`
                     : `0 0 4px ${tier.color}33`,
                   transition: "all 0.15s ease",
                 }}
@@ -94,8 +94,8 @@ function LandingPhase({ onStart }: { onStart: () => void }) {
                 className="mt-1.5 text-[9px] sm:text-[10px] font-bold tracking-wide uppercase transition-all duration-150"
                 style={{
                   color: tier.color,
-                  opacity: isHovered ? 1 : 0.6,
-                  textShadow: isHovered ? `0 0 8px ${tier.color}99` : "none",
+                  opacity: isHovered ? 1 : i === 6 ? 0.85 : 0.6,
+                  textShadow: isHovered ? `0 0 8px ${tier.color}99` : i === 6 ? `0 0 8px ${tier.color}88` : "none",
                 }}
               >
                 {tier.label === "Grandmaster" ? "GM" : tier.label.slice(0, 2)}
@@ -442,13 +442,13 @@ export function GuestPlacement() {
           className="text-muted/50 text-sm text-center leading-relaxed opacity-0 animate-fade-in"
           style={{ animationDelay: "40ms", animationFillMode: "both" }}
         >
-          Type at your natural pace.
+          Your speed determines your starting rank and who you get matched against.
         </p>
         <p
-          className="text-muted/40 text-sm text-center leading-relaxed opacity-0 animate-fade-in"
+          className="text-muted/35 text-xs text-center leading-relaxed opacity-0 animate-fade-in"
           style={{ animationDelay: "70ms", animationFillMode: "both" }}
         >
-          Your speed determines your starting rank and who you get matched against.
+          No pressure — your first 30 races use boosted ELO adjustments to get you to your true rank fast.
         </p>
       </div>
 
