@@ -240,7 +240,8 @@ export function PracticeArena() {
       {/* PB + Config bar */}
       {!isFinished && (
         <div
-          className="flex flex-col items-center gap-2"
+          className="flex flex-col items-center gap-2 opacity-0 animate-fade-in"
+          style={{ animationDelay: "0ms", animationFillMode: "both" }}
         >
           {session?.user?.id && (
             <div className="focus-fade text-sm text-muted/50 tabular-nums">
@@ -286,8 +287,8 @@ export function PracticeArena() {
           ref={containerRef}
           tabIndex={0}
           onKeyDown={engine.handleKeyDown}
-          className="w-full outline-none cursor-default select-none overflow-hidden"
-          style={{ height: containerHeight }}
+          className="w-full outline-none cursor-default select-none overflow-hidden opacity-0 animate-fade-in"
+          style={{ height: containerHeight, animationDelay: "40ms", animationFillMode: "both" }}
           role="textbox"
           aria-label="Solo typing area"
         >

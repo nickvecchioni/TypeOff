@@ -171,7 +171,7 @@ export function DailyArena({ challenge, leaderboard: initialLeaderboard, myResul
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-baseline justify-between">
+      <div className="flex items-baseline justify-between opacity-0 animate-fade-in" style={{ animationDelay: "0ms", animationFillMode: "both" }}>
         <div>
           <h1 className="text-lg font-black text-text uppercase tracking-wider">
             Daily Challenge
@@ -188,7 +188,7 @@ export function DailyArena({ challenge, leaderboard: initialLeaderboard, myResul
 
       {/* My best result */}
       {myResult && !isFinished && (
-        <div className="flex items-center gap-4 rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-4 py-2.5">
+        <div className="flex items-center gap-4 rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-4 py-2.5 opacity-0 animate-fade-in" style={{ animationDelay: "40ms", animationFillMode: "both" }}>
           <span className="text-xs text-muted/50">Your best:</span>
           <span className="text-sm font-bold text-accent tabular-nums">{myResult.wpm.toFixed(1)} wpm</span>
           <span className="text-xs text-muted/40 tabular-nums">{myResult.accuracy.toFixed(1)}%</span>
@@ -202,8 +202,8 @@ export function DailyArena({ challenge, leaderboard: initialLeaderboard, myResul
           ref={containerRef}
           tabIndex={0}
           onKeyDown={engine.handleKeyDown}
-          className="w-full outline-none cursor-default select-none overflow-hidden"
-          style={{ height: containerHeight }}
+          className="w-full outline-none cursor-default select-none overflow-hidden opacity-0 animate-fade-in"
+          style={{ height: containerHeight, animationDelay: "80ms", animationFillMode: "both" }}
           role="textbox"
           aria-label="Daily challenge typing area"
         >
@@ -278,7 +278,7 @@ export function DailyArena({ challenge, leaderboard: initialLeaderboard, myResul
       )}
 
       {/* Leaderboard */}
-      <div>
+      <div className="opacity-0 animate-fade-in" style={{ animationDelay: "160ms", animationFillMode: "both" }}>
         <h2 className="text-xs font-bold text-muted/60 uppercase tracking-wider mb-3 flex items-center gap-3">
           Today&apos;s Leaderboard
           <span className="flex-1 h-px bg-white/[0.03]" />
