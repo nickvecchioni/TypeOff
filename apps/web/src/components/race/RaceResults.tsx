@@ -18,6 +18,8 @@ import { RankBadge } from "@/components/RankBadge";
 import { CosmeticName } from "@/components/CosmeticName";
 import { CosmeticBadge } from "@/components/CosmeticBadge";
 import { TextLeaderboard } from "@/components/leaderboard/TextLeaderboard";
+import { PlayerEmotePill, type EmoteEvent } from "./FloatingEmote";
+import { RaceEmoteBar } from "./RaceEmoteBar";
 
 interface RankChange {
   direction: "up" | "down";
@@ -39,6 +41,7 @@ interface RaceResultsProps {
   raceId?: string | null;
   seed?: number | null;
   mode?: string | null;
+  emotes?: EmoteEvent[];
 }
 
 const RARITY_RING: Record<AchievementRarity, string> = {
@@ -422,6 +425,7 @@ export function RaceResults({
   raceId,
   seed,
   mode,
+  emotes = [],
 }: RaceResultsProps) {
   const { data: session } = useSession();
   const isPro = session?.user?.isPro ?? false;
@@ -609,10 +613,12 @@ export function RaceResults({
             const rInfo = !isGuest && result.elo != null ? getRankInfo(result.elo) : null;
             const rowPlacementStyle = PLACEMENT_STYLE[result.placement];
 
+            const rowEmotes = emotes.filter((e) => e.playerId === result.playerId);
+
             return (
               <div
                 key={result.playerId}
-                className={`grid items-center px-3 sm:px-4 py-1.5 border-b border-white/[0.03] last:border-0 transition-colors border-l-2 ${tableCols} ${
+                className={`relative grid items-center px-3 sm:px-4 py-1.5 border-b border-white/[0.03] last:border-0 transition-colors border-l-2 ${tableCols} ${
                   rowPlacementStyle ? rowPlacementStyle.leftBorder : "border-l-transparent"
                 } ${
                   isMe
@@ -622,6 +628,9 @@ export function RaceResults({
                     : "text-text hover:bg-white/[0.015]"
                 }`}
               >
+                {rowEmotes.map((e) => (
+                  <PlayerEmotePill key={e.id} event={e} />
+                ))}
                 <span className="font-bold tabular-nums">{result.placement}</span>
 
                 <span className="flex items-center gap-2 min-w-0 pr-3">
@@ -704,6 +713,14 @@ export function RaceResults({
               </div>
             );
           })}
+
+          {/* Emote bar in results */}
+          {!isPlacement && (
+            <div className="flex items-center gap-2 px-3 sm:px-4 py-2 border-t border-white/[0.04]">
+              <span className="text-[10px] text-muted/35 uppercase tracking-widest shrink-0">React</span>
+              <RaceEmoteBar />
+            </div>
+          )}
         </div>
 
         {/* WPM Chart */}

@@ -13,7 +13,7 @@ import { PlacementReveal } from "./PlacementReveal";
 import { PartyInviteToast } from "@/components/social/PartyInviteToast";
 import { SpectatorIndicator } from "./SpectatorIndicator";
 import { RaceEmoteBar } from "./RaceEmoteBar";
-import { FloatingEmote, type EmoteEvent } from "./FloatingEmote";
+import type { EmoteEvent } from "./FloatingEmote";
 import { useSocket } from "@/hooks/useSocket";
 import { getRankInfo } from "@typeoff/shared";
 import type { RankTier, WpmSample } from "@typeoff/shared";
@@ -170,10 +170,19 @@ export function RaceArena() {
     }
   }, [race.phase, race.results, session?.user?.id, updateSession]);
 
+  // Track whether the local player has finished typing (to show emote bar)
+  const [localFinished, setLocalFinished] = React.useState(false);
+  React.useEffect(() => {
+    if (race.phase === "idle" || race.phase === "queuing" || race.phase === "countdown") {
+      setLocalFinished(false);
+    }
+  }, [race.phase]);
+
   // Capture wpmHistory locally (not sent to server, only used for chart)
   const wpmHistoryRef = React.useRef<WpmSample[]>([]);
   const handleFinish = React.useCallback(
     (data: { wpm: number; rawWpm: number; accuracy: number; misstypedChars: number; wpmHistory?: WpmSample[] }) => {
+      setLocalFinished(true);
       wpmHistoryRef.current = data.wpmHistory ?? [];
       race.sendFinish(data);
     },
@@ -295,15 +304,21 @@ export function RaceArena() {
               progress={race.progress}
               myPlayerId={myPlayerId}
               isPlacement={isInPlacement}
+              emotes={emotes}
             />
-            {/* Floating emotes */}
-            {emotes.map((e) => (
-              <FloatingEmote key={e.id} event={e} />
-            ))}
           </div>
-          {/* Emote bar during racing */}
+          {/* Emote bar — always in DOM (no layout shift), fades in after local player finishes */}
           {race.phase === "racing" && !isInPlacement && (
-            <RaceEmoteBar disabled={false} />
+            <div
+              className="transition-opacity duration-500"
+              style={{
+                opacity: localFinished ? 1 : 0,
+                pointerEvents: localFinished ? "auto" : "none",
+                animation: localFinished ? "fade-in 0.4s ease-out both" : undefined,
+              }}
+            >
+              <RaceEmoteBar />
+            </div>
           )}
           <div className="relative w-full">
             {/* Countdown overlay — absolutely positioned, no layout shift */}
@@ -367,6 +382,7 @@ export function RaceArena() {
             raceId={race.raceId}
             seed={race.raceState?.seed ?? null}
             mode={race.raceState?.mode ?? null}
+            emotes={emotes}
           />
         </div>
       )}

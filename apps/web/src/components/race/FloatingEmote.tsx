@@ -11,26 +11,35 @@ export interface EmoteEvent {
   receivedAt: number;
 }
 
-interface FloatingEmoteProps {
+interface PlayerEmotePillProps {
   event: EmoteEvent;
 }
 
-export function FloatingEmote({ event }: FloatingEmoteProps) {
-  const [visible, setVisible] = useState(true);
+/** Renders a floating emote pill that animates up then disappears.
+ *  Must be placed inside a `relative` container. */
+export function PlayerEmotePill({ event }: PlayerEmotePillProps) {
+  const [gone, setGone] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setVisible(false), 2500);
-    return () => clearTimeout(timer);
+    const t = setTimeout(() => setGone(true), 2500);
+    return () => clearTimeout(t);
   }, []);
 
-  if (!visible) return null;
+  if (gone) return null;
 
   return (
     <span
-      className="absolute right-0 -top-5 text-xs font-bold text-accent bg-surface/80 ring-1 ring-accent/20 rounded px-1.5 py-0.5 pointer-events-none select-none"
-      style={{ animation: "emote-float 2.5s ease-out forwards" }}
+      className="absolute right-2 top-0 z-20 pointer-events-none select-none flex items-center gap-1 text-[11px] font-bold text-accent whitespace-nowrap"
+      style={{
+        animation: "emote-float 2.5s ease-out forwards",
+        background: "rgba(13,13,22,0.92)",
+        border: "1px solid rgba(77,158,255,0.25)",
+        borderRadius: "99px",
+        padding: "1px 8px",
+      }}
     >
-      {event.emote}
+      <span className="text-muted/50 font-normal text-[10px]">{event.playerName}</span>
+      <span>{event.emote}</span>
     </span>
   );
 }

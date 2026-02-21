@@ -1295,7 +1295,7 @@ export class RaceManager {
   handleEmote(socketId: string, emote: EmoteKey) {
     if (!EMOTE_KEYS.includes(emote)) return;
     const entry = this.players.get(socketId);
-    if (!entry || this.status !== "racing") return;
+    if (!entry || (this.status !== "racing" && this.status !== "finished")) return;
 
     // Rate limit: 2s cooldown per player
     const now = Date.now();

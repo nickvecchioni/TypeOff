@@ -6,15 +6,17 @@ import { getRankTier } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
 import { CosmeticName } from "@/components/CosmeticName";
 import { CosmeticBadge } from "@/components/CosmeticBadge";
+import { PlayerEmotePill, type EmoteEvent } from "./FloatingEmote";
 
 interface RaceTrackProps {
   players: RacePlayer[];
   progress: Record<string, RacePlayerProgress>;
   myPlayerId: string | null;
   isPlacement?: boolean;
+  emotes?: EmoteEvent[];
 }
 
-export function RaceTrack({ players, progress, myPlayerId, isPlacement }: RaceTrackProps) {
+export function RaceTrack({ players, progress, myPlayerId, isPlacement, emotes = [] }: RaceTrackProps) {
   // Sort: other players first (preserving order), current user always last
   const sorted = [...players].sort((a, b) => {
     const aMe = a.id === myPlayerId ? 1 : 0;
@@ -31,9 +33,15 @@ export function RaceTrack({ players, progress, myPlayerId, isPlacement }: RaceTr
         const isBot = player.id.startsWith("bot_");
         const finished = p?.finished ?? false;
         const wpm = finished && p?.finalStats ? p.finalStats.wpm : (p?.wpm ?? 0);
+        const playerEmotes = emotes.filter((e) => e.playerId === player.id);
 
         return (
-          <div key={player.id} className="flex flex-col gap-1">
+          <div key={player.id} className="relative flex flex-col gap-1">
+            {/* Per-player emote pills — absolutely positioned, no layout shift */}
+            {playerEmotes.map((e) => (
+              <PlayerEmotePill key={e.id} event={e} />
+            ))}
+
             <div className="flex justify-between text-sm">
               <span className={`flex items-center gap-2 min-w-0 ${isMe ? "text-accent font-bold" : "text-text"}`}>
                 {!isPlacement && !isBot && <RankBadge tier={getRankTier(player.elo)} />}
