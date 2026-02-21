@@ -23,7 +23,7 @@ const RANK_TIERS = [
 ] as const;
 
 /* ── Landing phase component ─────────────────────────── */
-function LandingPhase({ onStart }: { onStart: () => void }) {
+export function LandingPhase({ onStart, hideSignIn }: { onStart: () => void; hideSignIn?: boolean }) {
   const [hoveredBar, setHoveredBar] = useState<number | null>(null);
 
   return (
@@ -191,15 +191,17 @@ function LandingPhase({ onStart }: { onStart: () => void }) {
           </svg>
         </button>
 
-        <p className="text-muted/40 text-xs">
-          Already have an account?{" "}
-          <button
-            onClick={() => signIn("google")}
-            className="text-muted/60 underline underline-offset-2 hover:text-muted/80 transition-colors"
-          >
-            Sign in
-          </button>
-        </p>
+        {!hideSignIn && (
+          <p className="text-muted/40 text-xs">
+            Already have an account?{" "}
+            <button
+              onClick={() => signIn("google")}
+              className="text-muted/60 underline underline-offset-2 hover:text-muted/80 transition-colors"
+            >
+              Sign in
+            </button>
+          </p>
+        )}
       </div>
     </div>
   );

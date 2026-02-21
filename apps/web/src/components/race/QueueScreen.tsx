@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import { PartyPanel } from "@/components/social/PartyPanel";
 import { RankBadge } from "@/components/RankBadge";
 import { ChallengesWidget } from "@/components/race/ChallengesWidget";
-import { GuestPlacement } from "@/components/race/GuestPlacement";
+import { GuestPlacement, LandingPhase } from "@/components/race/GuestPlacement";
 import { getXpLevel, COSMETIC_REWARDS, getRankInfo } from "@typeoff/shared";
 import type { PartyState, RankTier, ModeCategory } from "@typeoff/shared";
 
@@ -323,6 +323,9 @@ export function QueueScreen({
   return (
     <div className="flex flex-col items-center w-full max-w-4xl gap-5">
       {session?.user ? (
+        !session.user.placementsCompleted ? (
+          <LandingPhase onStart={() => onJoin()} hideSignIn />
+        ) : (
         <>
           {/* ── Player identity card ──────────────────────────────────── */}
           {session.user.placementsCompleted && (
@@ -646,6 +649,7 @@ export function QueueScreen({
             </div>
           )}
         </>
+        )
       ) : (
         /* ── Signed-out: Guest Placement ───────────────────────────── */
         <div className="w-full max-w-4xl">
