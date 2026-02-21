@@ -64,75 +64,6 @@ interface QueueScreenProps {
 
 // ── Sub-components ──────────────────────────────────────────────────────────
 
-function QuickLinks() {
-  return (
-    <div className="grid grid-cols-4 gap-2">
-      {[
-        {
-          href: "/ghost",
-          label: "Ghost",
-          sub: "Race",
-          color: "text-purple-400",
-          icon: (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 10h.01M15 10h.01M12 2a8 8 0 0 0-8 8v10l3-3 2.5 3L12 17l2.5 3L17 17l3 3V10a8 8 0 0 0-8-8z" />
-            </svg>
-          ),
-        },
-        {
-          href: "/leaderboard",
-          label: "Leaders",
-          sub: "board",
-          color: "text-rank-gold",
-          icon: (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M8 21H5a2 2 0 0 1-2-2v-5" />
-              <path d="M16 21h3a2 2 0 0 0 2-2v-5" />
-              <path d="M12 21V9" />
-              <path d="M5 16V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v11" />
-              <path d="M9 9h6" />
-            </svg>
-          ),
-        },
-        {
-          href: "/analytics",
-          label: "Analytics",
-          sub: "Stats",
-          color: "text-accent",
-          icon: (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-            </svg>
-          ),
-        },
-        {
-          href: "/spectate",
-          label: "Spectate",
-          sub: "Live",
-          color: "text-correct",
-          icon: (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-              <circle cx="12" cy="12" r="3" />
-            </svg>
-          ),
-        },
-      ].map(({ href, label, sub, color, icon }) => (
-        <Link
-          key={href}
-          href={href}
-          className="group flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl bg-white/[0.02] ring-1 ring-white/[0.04] hover:bg-white/[0.04] hover:ring-white/[0.08] transition-all text-center"
-        >
-          <span className={`${color} group-hover:scale-110 transition-transform duration-150`}>{icon}</span>
-          <div>
-            <div className="text-[11px] font-semibold text-text/70 group-hover:text-text/90 transition-colors leading-none">{label}</div>
-            <div className="text-[9px] text-muted/35 leading-none mt-0.5">{sub}</div>
-          </div>
-        </Link>
-      ))}
-    </div>
-  );
-}
 
 function LevelWidget({
   level,
@@ -162,41 +93,67 @@ function LevelWidget({
     }
   })();
 
+  const xpRemaining = nextLevelXp - currentXp;
+
   return (
     <Link
       href="/cosmetics"
       className="rounded-xl bg-surface/50 ring-1 ring-white/[0.04] overflow-hidden flex flex-col hover:ring-accent/20 transition-all group"
     >
       <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
-      <div className="p-4 flex-1 flex flex-col justify-center">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-bold text-accent uppercase tracking-wider">
-            Level {level}
-          </span>
-          <span className="text-xs text-muted tabular-nums group-hover:text-muted/80 transition-colors">
-            {currentXp} / {nextLevelXp} XP
-          </span>
+      <div className="p-4 flex-1 flex flex-col gap-3">
+
+        {/* Level number + XP bar */}
+        <div className="flex items-center gap-4">
+          <div className="shrink-0 w-12 text-center">
+            <div className="text-[9px] font-black text-muted/40 uppercase tracking-widest leading-none mb-0.5">LV.</div>
+            <div className="text-4xl font-black text-text tabular-nums leading-none">{level}</div>
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-baseline justify-between mb-1.5">
+              <span className="text-[11px] font-bold text-accent tabular-nums">
+                {currentXp.toLocaleString()}
+                <span className="text-muted/40 font-normal"> / {nextLevelXp.toLocaleString()} XP</span>
+              </span>
+              <span className="text-[10px] text-muted/40 tabular-nums">{xpPct}%</span>
+            </div>
+            <div className="h-2 rounded-full bg-white/[0.04] overflow-hidden">
+              <div
+                className="h-full rounded-full bg-accent transition-all"
+                style={{
+                  width: `${xpPct}%`,
+                  boxShadow: xpPct >= 80 ? "0 0 10px rgba(77,158,255,0.4)" : undefined,
+                }}
+              />
+            </div>
+            <div className="text-[10px] text-muted/35 mt-1 tabular-nums">
+              {xpRemaining.toLocaleString()} XP to level {level + 1}
+            </div>
+          </div>
         </div>
-        <div className="h-1.5 rounded-full bg-surface overflow-hidden mb-3">
-          <div
-            className="h-full rounded-full bg-accent transition-all"
-            style={{ width: `${xpPct}%` }}
-          />
-        </div>
+
+        {/* Next unlock */}
         {nextReward && (
-          <div className="flex items-center gap-2 text-[11px] text-muted/50 group-hover:text-muted/70 transition-colors">
-            <span className={`text-sm ${proLocked ? "opacity-40" : ""}`}>{rewardIcon}</span>
-            <span>
-              <span className="text-text/70 font-medium">{nextReward.name}</span>
-              {" "}at Level {nextReward.level}
+          <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-white/[0.02] ring-1 ring-white/[0.04] group-hover:ring-accent/10 transition-colors">
+            <span className={`text-base shrink-0 leading-none ${proLocked ? "opacity-30" : ""}`}>
+              {rewardIcon}
             </span>
+            <div className="min-w-0 flex-1">
+              <div className="text-[11px] font-semibold text-text/80 truncate leading-none mb-0.5">
+                {nextReward.name}
+              </div>
+              <div className="text-[10px] text-muted/40 leading-none">
+                unlocks at level {nextReward.level}
+              </div>
+            </div>
             {proLocked && (
-              <span className="text-[8px] font-black tracking-wider text-amber-400 bg-amber-400/10 ring-1 ring-amber-400/30 px-1 py-px rounded leading-none">
+              <span className="text-[8px] font-black tracking-wider text-amber-400 bg-amber-400/10 ring-1 ring-amber-400/30 px-1.5 py-0.5 rounded shrink-0 leading-none">
                 PRO
               </span>
             )}
           </div>
         )}
+
       </div>
     </Link>
   );
@@ -672,15 +629,6 @@ export function QueueScreen({
             </div>
           )}
 
-          {/* ── Quick links ───────────────────────────────────────────── */}
-          {session.user.placementsCompleted && (
-            <div
-              className="w-full animate-fade-in"
-              style={{ animationDelay: "80ms", animationFillMode: "both" }}
-            >
-              <QuickLinks />
-            </div>
-          )}
 
           {/* ── Dashboard ─────────────────────────────────────────────── */}
           {session.user.placementsCompleted && xpInfo && (
