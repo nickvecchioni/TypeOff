@@ -9,7 +9,7 @@ import { calibrateElo } from "@typeoff/shared";
 
 type Phase = "landing" | "idle" | "racing" | "reveal";
 
-const GUEST_WORD_COUNT = 35;
+const GUEST_WORD_COUNT = 50;
 
 /* ── Rank tier ladder data ───────────────────────────── */
 const RANK_TIERS = [
@@ -419,7 +419,7 @@ export function GuestPlacement() {
   /* ── Idle / Racing ───────────────────────────────────── */
   return (
     <div
-      className={`flex flex-col items-center gap-8 w-full max-w-4xl mx-auto ${
+      className={`flex flex-col items-center gap-5 w-full max-w-4xl mx-auto ${
         isTyping ? "focus-active" : ""
       }`}
       key={cascadeKey}
@@ -427,52 +427,29 @@ export function GuestPlacement() {
     >
       {/* Placement info — fades out when typing starts */}
       <div
-        className="w-full transition-opacity duration-500 ease-out"
+        className="flex flex-col items-center gap-1.5 w-full transition-opacity duration-500 ease-out"
         style={{ opacity: isTyping ? 0 : 1, pointerEvents: isTyping ? "none" : undefined }}
       >
-        {/* Title + description */}
         <div
-          className="flex flex-col items-center gap-2 mb-6 opacity-0 animate-fade-in"
+          className="flex items-center gap-2 opacity-0 animate-fade-in"
           style={{ animationDelay: "0ms", animationFillMode: "both" }}
         >
-          <div className="flex items-center gap-2">
-            <span className="text-accent text-xs font-bold uppercase tracking-[0.2em]">Placement Test</span>
-            <span className="text-muted/25">·</span>
-            <span className="text-muted/40 text-xs">{GUEST_WORD_COUNT} words</span>
-          </div>
-          <p className="text-muted/55 text-sm text-center max-w-sm leading-relaxed">
-            Type at your natural pace — no need to rush. Your speed sets your starting ELO and determines which players you'll race against.
-          </p>
+          <span className="text-accent text-xs font-bold uppercase tracking-[0.2em]">Placement Test</span>
+          <span className="text-muted/25">·</span>
+          <span className="text-muted/40 text-xs">{GUEST_WORD_COUNT} words</span>
         </div>
-
-        {/* Stats row */}
-        <div
-          className="grid grid-cols-3 gap-2 w-full max-w-lg mx-auto mb-4 opacity-0 animate-fade-in"
-          style={{ animationDelay: "60ms", animationFillMode: "both" }}
+        <p
+          className="text-muted/50 text-sm text-center max-w-sm leading-relaxed opacity-0 animate-fade-in"
+          style={{ animationDelay: "40ms", animationFillMode: "both" }}
         >
-          {[
-            { value: String(GUEST_WORD_COUNT), label: "words to type" },
-            { value: "600–1800", label: "starting ELO range" },
-            { value: "±32", label: "ELO per race" },
-          ].map(({ value, label }) => (
-            <div key={label} className="flex flex-col items-center gap-0.5 rounded-lg bg-white/[0.03] ring-1 ring-white/[0.05] px-3 py-2.5">
-              <span className="text-accent font-black text-base tabular-nums">{value}</span>
-              <span className="text-muted/40 text-[10px] uppercase tracking-wide text-center leading-tight">{label}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* ELO explainer */}
-        <div
-          className="flex items-center justify-center gap-3 text-[11px] text-muted/35 opacity-0 animate-fade-in"
-          style={{ animationDelay: "120ms", animationFillMode: "both" }}
+          Type at your natural pace. Your speed determines your starting rank and who you get matched against.
+        </p>
+        <p
+          className="text-muted/30 text-xs text-center opacity-0 animate-fade-in"
+          style={{ animationDelay: "80ms", animationFillMode: "both" }}
         >
-          <span>Win a race <span className="text-correct/70">↑ gain ELO</span></span>
-          <span className="text-muted/20">·</span>
-          <span>Lose a race <span className="text-error/70">↓ lose ELO</span></span>
-          <span className="text-muted/20">·</span>
-          <span>K-factor halves after 30 races</span>
-        </div>
+          Win races to climb <span className="text-correct/60">↑</span>, lose to drop <span className="text-error/60">↓</span>. ELO updates after every race.
+        </p>
       </div>
 
       {/* Typing area with scroll clipping */}
