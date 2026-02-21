@@ -12,9 +12,9 @@ export function NavNotifications() {
   if (!session?.user) return null;
 
   return (
-    <>
-      <NotificationBell onClick={() => setOpen(true)} />
+    <div className="relative">
+      <NotificationBell onClick={() => setOpen((prev) => !prev)} />
       <NotificationDrawer open={open} onClose={() => setOpen(false)} />
-    </>
+    </div>
   );
 }

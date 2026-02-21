@@ -39,7 +39,7 @@ export function FriendsButton() {
   if (!session?.user) return null;
 
   return (
-    <>
+    <div className="relative">
       <button
         onClick={() => setOpen((prev) => !prev)}
         className="relative text-muted hover:text-text transition-colors"
@@ -66,6 +66,6 @@ export function FriendsButton() {
         )}
       </button>
       <FriendsDrawer open={open} onClose={handleClose} />
-    </>
+    </div>
   );
 }

@@ -74,14 +74,11 @@ export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
   const handleSendRequest = useCallback(
     async (userId: string) => {
       const ok = await sendRequest(userId);
-      if (ok) {
-        setSentRequests((prev) => new Set(prev).add(userId));
-      }
+      if (ok) setSentRequests((prev) => new Set(prev).add(userId));
     },
     [sendRequest],
   );
 
-  // Close on Escape
   useEffect(() => {
     if (!open) return;
     const handleKey = (e: KeyboardEvent) => {
@@ -94,31 +91,33 @@ export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
   const friendIds = new Set(friends.map((f) => f.userId));
   const onlineFriends = friends.filter((f) => f.online);
   const offlineFriends = friends.filter((f) => !f.online);
-
   const partyMemberIds = new Set(party?.members.map((m) => m.userId) ?? []);
   const partyFull = (party?.members.length ?? 0) >= 4;
 
   const renderFriendRow = (friend: (typeof friends)[0]) => {
     const isOnline = friend.online;
     const canInviteToParty = isOnline && !partyMemberIds.has(friend.userId) && !partyFull;
+    const profileHref = `/profile/${friend.username ?? friend.userId}`;
 
     return (
       <div
         key={friend.userId}
-        className="flex items-center gap-3 rounded-md px-3 py-2.5 hover:bg-white/[0.04] transition-colors group"
+        className="flex items-center gap-2.5 px-3 py-2 hover:bg-white/[0.04] transition-colors group"
       >
-        {/* Online indicator */}
+        {/* Status dot */}
         <span
           className={`w-1.5 h-1.5 rounded-full shrink-0 ${
             isOnline
-              ? "bg-correct shadow-[0_0_6px_rgba(63,185,80,0.5)]"
-              : "bg-white/[0.12]"
+              ? "bg-[#3fb950] shadow-[0_0_6px_rgba(63,185,80,0.6)]"
+              : "bg-white/[0.15]"
           }`}
         />
 
-        {/* Name + last seen */}
-        <span
-          className={`text-sm truncate flex-1 ${
+        {/* Name — links to profile */}
+        <Link
+          href={profileHref}
+          onClick={onClose}
+          className={`text-sm flex-1 truncate transition-colors hover:text-accent ${
             isOnline ? "text-text" : "text-muted"
           }`}
         >
@@ -128,45 +127,35 @@ export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
               {formatLastSeen(friend.lastSeen)}
             </span>
           )}
-        </span>
+        </Link>
 
-        {/* Right side actions */}
-        <div className="flex items-center gap-1 shrink-0">
+        {/* Actions (visible on hover) */}
+        <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
           {friend.raceId && (
             <Link
               href={`/spectate?raceId=${friend.raceId}`}
               onClick={onClose}
-              className="flex items-center gap-1 text-[10px] font-bold text-accent/70 hover:text-accent px-1.5 py-0.5 rounded border border-accent/20 hover:border-accent/40 hover:bg-accent/10 transition-all"
-              title="Watch this race"
+              className="text-[10px] font-bold text-accent/70 hover:text-accent px-1.5 py-0.5 rounded border border-accent/20 hover:border-accent/40 hover:bg-accent/10 transition-all"
+              title="Watch race"
             >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-              Watch
+              LIVE
             </Link>
           )}
           {canInviteToParty && (
             <button
               onClick={() => inviteToParty(friend.userId)}
-              className="flex items-center gap-1 text-[10px] font-bold text-accent/70 hover:text-accent px-1.5 py-0.5 rounded border border-accent/20 hover:border-accent/40 hover:bg-accent/10 transition-all"
+              className="text-[10px] font-bold text-accent/70 hover:text-accent px-1.5 py-0.5 rounded border border-accent/20 hover:border-accent/40 hover:bg-accent/10 transition-all"
               title="Invite to party"
             >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <line x1="19" y1="8" x2="19" y2="14" />
-                <line x1="22" y1="11" x2="16" y2="11" />
-              </svg>
-              Invite
+              INV
             </button>
           )}
           <button
             onClick={() => removeFriend(friend.userId)}
-            className="opacity-0 group-hover:opacity-100 text-muted hover:text-error transition-all w-5 h-5 flex items-center justify-center rounded hover:bg-error/10"
+            className="text-muted/40 hover:text-error w-5 h-5 flex items-center justify-center rounded hover:bg-error/10 transition-all"
             title="Remove friend"
           >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <path d="M18 6L6 18M6 6l12 12" />
             </svg>
           </button>
@@ -175,159 +164,179 @@ export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
     );
   };
 
+  if (!open) return null;
+
   return (
     <>
-      {/* Backdrop */}
-      <div
-        className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-200 ${
-          open ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
-        onClick={onClose}
-      />
+      {/* Invisible backdrop for click-outside */}
+      <div className="fixed inset-0 z-40" onClick={onClose} />
 
-      {/* Drawer panel */}
+      {/* Dropdown panel */}
       <div
-        className={`fixed top-0 right-0 z-50 h-full w-full sm:w-80 bg-bg border-l border-white/[0.06] flex flex-col transition-transform duration-200 ease-out ${
-          open ? "translate-x-0" : "translate-x-full"
-        }`}
+        className="absolute top-full right-0 mt-2 w-80 z-50 flex flex-col overflow-hidden"
+        style={{
+          background: "#0d0d16",
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: "8px",
+          boxShadow: "0 20px 60px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.04) inset",
+          maxHeight: "520px",
+          animation: "dropdown-in 150ms ease-out",
+        }}
       >
-        <>
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
-              <h2 className="text-xs font-bold text-muted uppercase tracking-widest">
-                Friends
-              </h2>
-              <button
-                onClick={onClose}
-                className="text-muted hover:text-text transition-colors w-6 h-6 flex items-center justify-center rounded hover:bg-white/[0.06]"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
+        {/* Header */}
+        <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-white/[0.06] shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-bold text-muted/60 uppercase tracking-widest">Friends</span>
+            <span className="text-[10px] text-muted/30 tabular-nums">{friends.length}</span>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-muted/40 hover:text-text transition-colors w-5 h-5 flex items-center justify-center rounded hover:bg-white/[0.06]"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
 
-            {/* Search — fixed below header */}
-            <div className="px-3 py-2.5 border-b border-white/[0.04]">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
-                placeholder="Find or add friends..."
-                className="w-full bg-surface/60 text-text text-sm rounded-md px-3 py-2 outline-none ring-1 ring-white/[0.06] focus:ring-accent/25 transition-all placeholder:text-muted/30"
-              />
-              {/* Search results dropdown */}
-              {(searching || searchResults.length > 0 || (searchQuery.length >= 2 && !searching && searchResults.length === 0)) && (
-                <div className="mt-2 rounded-md bg-surface/40 ring-1 ring-white/[0.04] overflow-hidden">
-                  {searching && (
-                    <p className="text-xs text-muted/50 px-3 py-2.5">Searching...</p>
-                  )}
-                  {searchResults.map((user) => {
-                    const isFriend = friendIds.has(user.userId);
-                    const isSent = sentRequests.has(user.userId);
-                    return (
-                      <div
-                        key={user.userId}
-                        className="flex items-center justify-between px-3 py-2 hover:bg-white/[0.03] transition-colors"
-                      >
-                        <span className="text-sm text-text truncate">
-                          {user.username ?? user.name ?? "Unknown"}
-                        </span>
-                        {isFriend ? (
-                          <span className="text-[10px] text-muted/40 uppercase tracking-wider">Friends</span>
-                        ) : isSent ? (
-                          <span className="text-[10px] text-correct/50 uppercase tracking-wider">Sent</span>
-                        ) : (
-                          <button
-                            onClick={() => handleSendRequest(user.userId)}
-                            className="text-xs text-accent hover:text-accent font-bold px-2 py-0.5 rounded hover:bg-accent/10 transition-colors"
-                          >
-                            Add
-                          </button>
-                        )}
-                      </div>
-                    );
-                  })}
-                  {searchQuery.length >= 2 && !searching && searchResults.length === 0 && (
-                    <p className="text-xs text-muted/40 px-3 py-2.5">No users found</p>
-                  )}
-                </div>
+        {/* Search */}
+        <div className="px-3 py-2 border-b border-white/[0.04] shrink-0">
+          <div className="relative">
+            <svg
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted/30 pointer-events-none"
+              width="11"
+              height="11"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+            </svg>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+              placeholder="Find or add friends..."
+              className="w-full bg-white/[0.04] text-text text-xs rounded px-3 py-1.5 pl-7 outline-none ring-1 ring-white/[0.06] focus:ring-accent/25 transition-all placeholder:text-muted/30"
+            />
+          </div>
+          {(searching || searchResults.length > 0 || (searchQuery.length >= 2 && !searching && searchResults.length === 0)) && (
+            <div className="mt-1.5 rounded bg-white/[0.03] ring-1 ring-white/[0.04] overflow-hidden">
+              {searching && (
+                <p className="text-[11px] text-muted/50 px-3 py-2">Searching...</p>
               )}
-            </div>
-
-            {/* Scrollable content */}
-            <div className="flex-1 overflow-y-auto">
-              {/* Pending requests banner */}
-              {pendingRequests.length > 0 && (
-                <div className="px-3 py-2.5 border-b border-white/[0.04]">
-                  <h3 className="text-[10px] font-bold text-accent/70 uppercase tracking-widest mb-2">
-                    Requests
-                    <span className="text-accent/40 tabular-nums ml-1">
-                      {pendingRequests.length}
-                    </span>
-                  </h3>
-                  <div className="space-y-1">
-                    {pendingRequests.map((req) => (
-                      <div
-                        key={req.id}
-                        className="flex items-center justify-between rounded-md px-3 py-2 bg-accent/[0.04] ring-1 ring-accent/[0.08]"
+              {searchResults.map((user) => {
+                const isFriend = friendIds.has(user.userId);
+                const isSent = sentRequests.has(user.userId);
+                return (
+                  <div
+                    key={user.userId}
+                    className="flex items-center justify-between px-3 py-2 hover:bg-white/[0.03] transition-colors"
+                  >
+                    <Link
+                      href={`/profile/${user.username ?? user.userId}`}
+                      onClick={onClose}
+                      className="text-xs text-text hover:text-accent truncate transition-colors"
+                    >
+                      {user.username ?? user.name ?? "Unknown"}
+                    </Link>
+                    {isFriend ? (
+                      <span className="text-[10px] text-muted/40 uppercase tracking-wider ml-2 shrink-0">Friends</span>
+                    ) : isSent ? (
+                      <span className="text-[10px] text-[#3fb950]/50 uppercase tracking-wider ml-2 shrink-0">Sent</span>
+                    ) : (
+                      <button
+                        onClick={() => handleSendRequest(user.userId)}
+                        className="text-[10px] font-bold text-accent hover:bg-accent/10 px-2 py-0.5 rounded transition-colors ml-2 shrink-0 uppercase tracking-wider"
                       >
-                        <span className="text-sm text-text truncate">
-                          {req.username ?? req.name ?? "Unknown"}
-                        </span>
-                        <div className="flex gap-1 shrink-0">
-                          <button
-                            onClick={() => acceptRequest(req.id)}
-                            className="text-[11px] text-correct hover:bg-correct/10 font-bold px-2 py-0.5 rounded transition-colors"
-                          >
-                            Accept
-                          </button>
-                          <button
-                            onClick={() => declineRequest(req.id)}
-                            className="text-[11px] text-muted/50 hover:text-error hover:bg-error/10 font-bold px-2 py-0.5 rounded transition-colors"
-                          >
-                            Decline
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                        Add
+                      </button>
+                    )}
                   </div>
-                </div>
+                );
+              })}
+              {searchQuery.length >= 2 && !searching && searchResults.length === 0 && (
+                <p className="text-[11px] text-muted/40 px-3 py-2">No users found</p>
               )}
+            </div>
+          )}
+        </div>
 
-              {/* Online friends */}
-              {onlineFriends.length > 0 && (
-                <div className="px-1.5 pt-2.5">
-                  <h3 className="text-[10px] font-bold text-muted/50 uppercase tracking-widest px-3 mb-1">
-                    Online
-                    <span className="tabular-nums ml-1">{onlineFriends.length}</span>
-                  </h3>
-                  {onlineFriends.map(renderFriendRow)}
-                </div>
-              )}
-
-              {/* Offline / All friends */}
-              <div className="px-1.5 pt-2.5 pb-4">
-                <h3 className="text-[10px] font-bold text-muted/50 uppercase tracking-widest px-3 mb-1">
-                  {onlineFriends.length > 0 ? "Offline" : "Friends"}
-                  <span className="tabular-nums ml-1">
-                    {onlineFriends.length > 0 ? offlineFriends.length : friends.length}
-                  </span>
-                </h3>
-                {loading ? (
-                  <p className="text-xs text-muted/30 px-3 py-4">Loading...</p>
-                ) : friends.length === 0 ? (
-                  <p className="text-xs text-muted/25 px-3 py-6 leading-relaxed">
-                    No friends yet. Search above to add someone.
-                  </p>
-                ) : offlineFriends.length === 0 && onlineFriends.length > 0 ? (
-                  <p className="text-xs text-muted/25 px-3 py-2">Everyone&apos;s online!</p>
-                ) : (
-                  offlineFriends.map(renderFriendRow)
-                )}
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden" style={{ minHeight: 0 }}>
+          {/* Pending requests */}
+          {pendingRequests.length > 0 && (
+            <div className="border-b border-white/[0.04] py-2">
+              <p className="text-[10px] font-bold text-accent/60 uppercase tracking-widest px-3.5 mb-1.5">
+                Requests <span className="text-accent/40 tabular-nums">{pendingRequests.length}</span>
+              </p>
+              <div className="px-2 space-y-1">
+                {pendingRequests.map((req) => (
+                  <div
+                    key={req.id}
+                    className="flex items-center justify-between rounded px-2.5 py-1.5 bg-accent/[0.05] ring-1 ring-accent/[0.1]"
+                  >
+                    <Link
+                      href={`/profile/${req.username ?? req.requesterId}`}
+                      onClick={onClose}
+                      className="text-xs text-text hover:text-accent truncate transition-colors"
+                    >
+                      {req.username ?? req.name ?? "Unknown"}
+                    </Link>
+                    <div className="flex gap-1 shrink-0 ml-2">
+                      <button
+                        onClick={() => acceptRequest(req.id)}
+                        className="text-[10px] font-bold text-[#3fb950] hover:bg-[#3fb950]/10 px-2 py-0.5 rounded transition-colors"
+                      >
+                        Accept
+                      </button>
+                      <button
+                        onClick={() => declineRequest(req.id)}
+                        className="text-[10px] text-muted/50 hover:text-error hover:bg-error/10 font-bold px-2 py-0.5 rounded transition-colors"
+                      >
+                        Decline
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          </>
+          )}
+
+          {/* Online friends */}
+          {onlineFriends.length > 0 && (
+            <div className="pt-2">
+              <p className="text-[10px] font-bold text-muted/40 uppercase tracking-widest px-3.5 mb-1">
+                Online <span className="tabular-nums">{onlineFriends.length}</span>
+              </p>
+              {onlineFriends.map(renderFriendRow)}
+            </div>
+          )}
+
+          {/* Offline friends */}
+          <div className="pt-2 pb-2">
+            <p className="text-[10px] font-bold text-muted/30 uppercase tracking-widest px-3.5 mb-1">
+              {onlineFriends.length > 0 ? "Offline" : "Friends"}{" "}
+              <span className="tabular-nums">
+                {onlineFriends.length > 0 ? offlineFriends.length : friends.length}
+              </span>
+            </p>
+            {loading ? (
+              <p className="text-[11px] text-muted/30 px-3.5 py-3">Loading...</p>
+            ) : friends.length === 0 ? (
+              <p className="text-[11px] text-muted/25 px-3.5 py-4 leading-relaxed">
+                No friends yet. Search above to add someone.
+              </p>
+            ) : offlineFriends.length === 0 && onlineFriends.length > 0 ? (
+              <p className="text-[11px] text-muted/25 px-3.5 py-2">Everyone is online!</p>
+            ) : (
+              offlineFriends.map(renderFriendRow)
+            )}
+          </div>
+        </div>
       </div>
     </>
   );
