@@ -4,7 +4,7 @@ import { getXpLevel } from "./challenges";
 
 export const PRO_MONTHLY_PRICE = 4.99;
 export const PRO_YEARLY_PRICE = 39.99;
-export const PRO_LIFETIME_PRICE = 69;
+export const PRO_LIFETIME_PRICE = 99.99;
 export const PRO_BADGE_ID = "pro_badge";
 
 // ─── Types ─────────────────────────────────────────────────────────────
