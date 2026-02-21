@@ -352,38 +352,6 @@ export const textLeaderboards = pgTable(
   (t) => [unique().on(t.textHash, t.userId)],
 );
 
-// ─── Daily Challenges ────────────────────────────────────────────
-
-export const dailyChallenges = pgTable("daily_challenges", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  date: text("date").notNull().unique(),
-  seed: integer("seed").notNull(),
-  mode: text("mode").notNull().default("standard"),
-  wordCount: integer("word_count").notNull().default(50),
-  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
-});
-
-export const dailyChallengeResults = pgTable(
-  "daily_challenge_results",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    dailyChallengeId: uuid("daily_challenge_id")
-      .notNull()
-      .references(() => dailyChallenges.id, { onDelete: "cascade" }),
-    userId: text("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    wpm: real("wpm").notNull(),
-    rawWpm: real("raw_wpm").notNull(),
-    accuracy: real("accuracy").notNull(),
-    attempts: integer("attempts").notNull().default(1),
-    completedAt: timestamp("completed_at", { mode: "date" })
-      .notNull()
-      .$defaultFn(() => new Date()),
-  },
-  (t) => [unique().on(t.dailyChallengeId, t.userId)],
-);
-
 // ─── Bigram Accuracy ─────────────────────────────────────────────
 
 export const userBigramAccuracy = pgTable(

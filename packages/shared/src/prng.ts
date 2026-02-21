@@ -349,18 +349,6 @@ export function generateSoloWords(config: TestConfig, seed?: number): string[] {
   return words;
 }
 
-/**
- * Deterministic daily seed from a date string (e.g. "2026-02-20").
- * Produces the same seed for the same date, different for different dates.
- */
-export function dailySeed(date: string): number {
-  let hash = 0;
-  for (let i = 0; i < date.length; i++) {
-    const ch = date.charCodeAt(i);
-    hash = ((hash << 5) - hash + ch) | 0;
-  }
-  return Math.abs(hash);
-}
 
 /**
  * Generate words biased toward words containing specified weak bigrams.

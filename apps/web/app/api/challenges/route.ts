@@ -5,14 +5,12 @@ import { userChallengeProgress, userStats } from "@typeoff/db";
 import { eq, and, inArray } from "drizzle-orm";
 import {
   getActiveChallenges,
-  getDailyKey,
   getWeeklyKey,
   type ChallengeDefinition,
 } from "@typeoff/shared";
 
 export async function GET() {
   const now = new Date();
-  const dailyKey = getDailyKey(now);
   const weeklyKey = getWeeklyKey(now);
   const challenges = getActiveChallenges(now);
 
@@ -38,7 +36,7 @@ export async function GET() {
         and(
           eq(userChallengeProgress.userId, session.user.id),
           inArray(userChallengeProgress.challengeId, challengeIds),
-          inArray(userChallengeProgress.periodKey, [dailyKey, weeklyKey]),
+          eq(userChallengeProgress.periodKey, weeklyKey),
         ),
       );
 
@@ -59,7 +57,7 @@ export async function GET() {
   }
 
   const challengesWithProgress = challenges.map((c: ChallengeDefinition) => {
-    const periodKey = c.type === "daily" ? dailyKey : weeklyKey;
+    const periodKey = weeklyKey;
     const prog = progressMap.get(`${c.id}:${periodKey}`);
     return {
       ...c,
@@ -71,7 +69,6 @@ export async function GET() {
   return NextResponse.json({
     challenges: challengesWithProgress,
     totalXp,
-    dailyKey,
     weeklyKey,
   });
 }
