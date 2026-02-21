@@ -137,6 +137,9 @@ export function PlacementReveal({ elo, wpm, accuracy, onContinue, subtitle, ctaL
           transform: phase === "reveal" ? "translateY(0)" : "translateY(8px)",
         }}
       >
+        <p className="text-[11px] text-muted/65 text-center">
+          Sign in to save your rank and start climbing.
+        </p>
         {ctaContent ?? (
           <button
             onClick={onContinue}
@@ -149,9 +152,6 @@ export function PlacementReveal({ elo, wpm, accuracy, onContinue, subtitle, ctaL
             {ctaLabel ?? "Start Ranked"}
           </button>
         )}
-        <p className="text-[11px] text-muted/65 text-center">
-          Sign in to save your rank and start climbing.
-        </p>
       </div>
     </div>
   );
