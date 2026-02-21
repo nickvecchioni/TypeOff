@@ -7,7 +7,7 @@ import { PartyPanel } from "@/components/social/PartyPanel";
 import { RankBadge } from "@/components/RankBadge";
 import { ChallengesWidget } from "@/components/race/ChallengesWidget";
 import { GuestPlacement } from "@/components/race/GuestPlacement";
-import { getXpLevel, COSMETIC_REWARDS } from "@typeoff/shared";
+import { getXpLevel, COSMETIC_REWARDS, getRankInfo } from "@typeoff/shared";
 import type { PartyState, RankTier, ModeCategory } from "@typeoff/shared";
 
 // ── Rank styling maps ───────────────────────────────────────────────────────
@@ -30,16 +30,6 @@ const RANK_GLOW: Record<RankTier, string> = {
   diamond: "rgba(59, 130, 246, 0.22)",
   master: "rgba(168, 85, 247, 0.22)",
   grandmaster: "rgba(239, 68, 68, 0.22)",
-};
-
-const RANK_LABEL: Record<RankTier, string> = {
-  bronze: "Bronze",
-  silver: "Silver",
-  gold: "Gold",
-  platinum: "Platinum",
-  diamond: "Diamond",
-  master: "Master",
-  grandmaster: "Grandmaster",
 };
 
 // ── Static data ─────────────────────────────────────────────────────────────
@@ -404,7 +394,7 @@ export function QueueScreen({
                       className="text-sm font-bold leading-none"
                       style={{ color: RANK_HEX[session.user.rankTier] }}
                     >
-                      {RANK_LABEL[session.user.rankTier]}
+                      {getRankInfo(session.user.eloRating).label}
                     </div>
                   </div>
                 </div>
@@ -477,7 +467,7 @@ export function QueueScreen({
           {/* ── Action area ───────────────────────────────────────────── */}
           {inPartyNotLeader ? (
             <div
-              className="flex flex-col items-center gap-3 w-full max-w-lg animate-fade-in"
+              className="flex flex-col items-center gap-3 w-full animate-fade-in"
               style={{ animationDelay: "50ms", animationFillMode: "both" }}
             >
               <button
@@ -514,7 +504,7 @@ export function QueueScreen({
             </div>
           ) : (
             <div
-              className="relative flex flex-col items-center w-full max-w-lg animate-fade-in"
+              className="relative flex flex-col items-center w-full animate-fade-in"
               style={{ animationDelay: "50ms", animationFillMode: "both" }}
             >
               {/* Ambient glow behind action area */}
@@ -601,12 +591,8 @@ export function QueueScreen({
                         fill="none"
                         className="opacity-70"
                       >
-                        <path
-                          d="M8 1v14M1 8h14"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                        />
+                        <circle cx="8" cy="5" r="3" stroke="currentColor" strokeWidth="1.5" />
+                        <path d="M2 14c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                       </svg>
                       Solo
                     </Link>
