@@ -6,6 +6,7 @@ import type {
   RacePlayer,
 } from "@typeoff/shared";
 import type { SocialManager } from "./social-manager.js";
+import leoProfanity from "leo-profanity";
 
 type TypedServer = Server<ClientToServerEvents, ServerToClientEvents>;
 type TypedSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
@@ -377,7 +378,7 @@ export class PartyManager {
     if (now - member.lastMessageAt < 500) return;
     member.lastMessageAt = now;
 
-    const text = message.trim().slice(0, 150);
+    const text = leoProfanity.clean(message.trim().slice(0, 150));
     if (!text) return;
 
     for (const m of party.members.values()) {
