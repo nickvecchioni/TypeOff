@@ -30,6 +30,7 @@ interface NotificationContextValue {
   markAsRead: (ids: string[]) => Promise<void>;
   markAllRead: () => Promise<void>;
   clearAll: () => Promise<void>;
+  toastQueue: Notification[];
   latestToast: Notification | null;
   clearToast: (id: string) => void;
 }
@@ -43,6 +44,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [toastQueue, setToastQueue] = useState<Notification[]>([]);
   const pollRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+  const seenNotifIds = useRef(new Set<string>());
 
   // Poll for unread count
   useEffect(() => {
@@ -63,13 +65,15 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(pollRef.current);
   }, [session?.user?.id]);
 
-  // Listen for WS notifications
+  // Listen for WS notifications (deduplicated by ID to prevent multi-tab duplicates)
   useEffect(() => {
     const unsub = on("notification", (data) => {
+      if (seenNotifIds.current.has(data.id)) return;
+      seenNotifIds.current.add(data.id);
       const notif: Notification = { ...data, read: false };
       setUnreadCount((c) => c + 1);
       setNotifications((prev) => [notif, ...prev]);
-      setToastQueue((prev) => [...prev, notif].slice(-3));
+      setToastQueue((prev) => [...prev, notif].slice(-5));
     });
     return unsub;
   }, [on]);
@@ -132,6 +136,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       markAsRead,
       markAllRead,
       clearAll,
+      toastQueue,
       latestToast,
       clearToast,
     }}>

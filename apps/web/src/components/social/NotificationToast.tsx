@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useNotifications } from "@/hooks/useNotifications";
 
 const TYPE_ICONS: Record<string, string> = {
@@ -20,42 +20,51 @@ interface ToastItem {
 }
 
 export function NotificationToast() {
-  const { latestToast, clearToast } = useNotifications();
+  const { toastQueue, clearToast } = useNotifications();
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const processedIds = useRef(new Set<string>());
 
   useEffect(() => {
-    if (!latestToast) return;
-    const item: ToastItem = {
-      id: latestToast.id,
-      type: latestToast.type,
-      title: latestToast.title,
-      body: latestToast.body,
-      visible: true,
-    };
-    setToasts((prev) => [...prev.slice(-2), item]);
+    for (const notif of toastQueue) {
+      if (processedIds.current.has(notif.id)) continue;
+      processedIds.current.add(notif.id);
 
-    // Auto-dismiss after 5s
-    const fadeTimer = setTimeout(() => {
-      setToasts((prev) =>
-        prev.map((t) => (t.id === item.id ? { ...t, visible: false } : t))
-      );
-    }, 4500);
+      const item: ToastItem = {
+        id: notif.id,
+        type: notif.type,
+        title: notif.title,
+        body: notif.body,
+        visible: true,
+      };
 
-    const removeTimer = setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== item.id));
-      clearToast(item.id);
-    }, 5000);
+      setToasts((prev) => [...prev.slice(-2), item]);
 
-    return () => {
-      clearTimeout(fadeTimer);
-      clearTimeout(removeTimer);
-    };
-  }, [latestToast, clearToast]);
+      const id = notif.id;
 
-  const dismiss = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
-    clearToast(id);
-  }, [clearToast]);
+      // Fire-and-forget timers — not returned as cleanup so a new toast
+      // arriving doesn't cancel the dismiss timer of an existing one.
+      setTimeout(() => {
+        setToasts((prev) =>
+          prev.map((t) => (t.id === id ? { ...t, visible: false } : t))
+        );
+      }, 4500);
+
+      setTimeout(() => {
+        setToasts((prev) => prev.filter((t) => t.id !== id));
+        clearToast(id);
+        processedIds.current.delete(id);
+      }, 5000);
+    }
+  }, [toastQueue, clearToast]);
+
+  const dismiss = useCallback(
+    (id: string) => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+      clearToast(id);
+      processedIds.current.delete(id);
+    },
+    [clearToast]
+  );
 
   if (toasts.length === 0) return null;
 

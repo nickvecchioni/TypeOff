@@ -1126,15 +1126,22 @@ export class RaceManager {
         );
         if (newAchievements.length > 0) {
           achievementMap.set(entry.player.id, newAchievements);
-          // Notify for each new achievement
           if (this.notificationManager) {
-            for (const achId of newAchievements) {
-              const achDef = ACHIEVEMENT_MAP.get(achId);
+            const profileUrl = `/profile/${usernameMap.get(entry.player.id) ?? entry.player.name}`;
+            if (newAchievements.length === 1) {
+              const achDef = ACHIEVEMENT_MAP.get(newAchievements[0]);
               this.notificationManager.notify(entry.player.id, {
                 type: "achievement",
-                title: achDef ? achDef.name : "Achievement Unlocked!",
-                body: achDef ? achDef.description : achId,
-                actionUrl: `/profile/${usernameMap.get(entry.player.id) ?? entry.player.name}`,
+                title: achDef?.name ?? "Achievement Unlocked!",
+                body: achDef?.description ?? newAchievements[0],
+                actionUrl: profileUrl,
+              });
+            } else {
+              this.notificationManager.notify(entry.player.id, {
+                type: "achievement",
+                title: `${newAchievements.length} Achievements Unlocked!`,
+                body: newAchievements.map((id) => ACHIEVEMENT_MAP.get(id)?.name ?? id).join(", "),
+                actionUrl: profileUrl,
               });
             }
           }
@@ -1166,16 +1173,23 @@ export class RaceManager {
           );
           if (result.results.length > 0) {
             challengeMap.set(entry.player.id, result);
-            // Notify for completed challenges
+            // Notify for completed challenges (batched)
             if (this.notificationManager) {
-              for (const ch of result.results) {
-                if (ch.justCompleted) {
-                  this.notificationManager.notify(entry.player.id, {
-                    type: "challenge_complete",
-                    title: "Challenge Complete!",
-                    body: `${CHALLENGE_MAP.get(ch.challengeId)?.name ?? ch.challengeId} — earned ${ch.xpAwarded} XP`,
-                  });
-                }
+              const completed = result.results.filter((ch) => ch.justCompleted);
+              if (completed.length === 1) {
+                const ch = completed[0];
+                this.notificationManager.notify(entry.player.id, {
+                  type: "challenge_complete",
+                  title: "Challenge Complete!",
+                  body: `${CHALLENGE_MAP.get(ch.challengeId)?.name ?? ch.challengeId} — earned ${ch.xpAwarded} XP`,
+                });
+              } else if (completed.length > 1) {
+                const totalXp = completed.reduce((sum, ch) => sum + ch.xpAwarded, 0);
+                this.notificationManager.notify(entry.player.id, {
+                  type: "challenge_complete",
+                  title: `${completed.length} Challenges Complete!`,
+                  body: `Earned ${totalXp} XP`,
+                });
               }
             }
           }
