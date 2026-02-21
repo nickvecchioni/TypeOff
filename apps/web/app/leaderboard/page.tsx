@@ -9,7 +9,6 @@ import type { RankTier } from "@typeoff/shared";
 import { getRankInfo, getXpLevel, TITLE_TEXTS } from "@typeoff/shared";
 import { LeaderboardTabs } from "@/components/leaderboard/LeaderboardTabs";
 import { SoloModeSelector } from "@/components/leaderboard/SoloModeSelector";
-import { PPLeaderboard } from "@/components/leaderboard/PPLeaderboard";
 import { UniverseSelector } from "@/components/leaderboard/UniverseSelector";
 import { CosmeticName } from "@/components/CosmeticName";
 import { CosmeticBadge } from "@/components/CosmeticBadge";
@@ -37,22 +36,12 @@ export default async function LeaderboardPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const params = await searchParams;
-  const tab = params.tab === "solo" ? "solo" : params.tab === "pp" ? "pp" : "ranked";
+  const tab = params.tab === "solo" ? "solo" : "ranked";
 
   const db = getDb();
   const { auth } = await import("@/lib/auth");
   const session = await auth();
   const userId = session?.user?.id;
-
-  if (tab === "pp") {
-    return (
-      <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
-        <div className="max-w-3xl mx-auto">
-          <PPLeaderboardPage userId={userId} />
-        </div>
-      </main>
-    );
-  }
 
   if (tab === "solo") {
     return (
@@ -650,34 +639,6 @@ async function SoloLeaderboard({
           })()}
         </div>
       )}
-    </>
-  );
-}
-
-/* ── PP leaderboard ──────────────────────────────────────────── */
-
-function PPLeaderboardPage({ userId }: { userId?: string }) {
-  return (
-    <>
-      <div
-        className="flex items-baseline justify-between mb-6 opacity-0 animate-fade-in"
-        style={{ animationDelay: "0ms", animationFillMode: "both" }}
-      >
-        <div className="flex items-center gap-4">
-          <h1 className="text-lg font-black text-text uppercase tracking-wider">
-            Leaderboard
-          </h1>
-          <Suspense>
-            <LeaderboardTabs />
-          </Suspense>
-        </div>
-      </div>
-      <div
-        className="opacity-0 animate-fade-in"
-        style={{ animationDelay: "120ms", animationFillMode: "both" }}
-      >
-        <PPLeaderboard userId={userId} />
-      </div>
     </>
   );
 }

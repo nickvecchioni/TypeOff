@@ -2,20 +2,18 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 
-type Tab = "ranked" | "solo" | "pp";
+type Tab = "ranked" | "solo";
 
 export function LeaderboardTabs() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const rawTab = searchParams.get("tab");
-  const active: Tab = rawTab === "solo" ? "solo" : rawTab === "pp" ? "pp" : "ranked";
+  const active: Tab = rawTab === "solo" ? "solo" : "ranked";
 
   function switchTab(tab: Tab) {
     if (tab === active) return;
     if (tab === "solo") {
       router.replace("?tab=solo&mode=timed&duration=60");
-    } else if (tab === "pp") {
-      router.replace("?tab=pp");
     } else {
       router.replace("/leaderboard");
     }
@@ -28,9 +26,6 @@ export function LeaderboardTabs() {
       </Chip>
       <Chip active={active === "solo"} onClick={() => switchTab("solo")}>
         Solo
-      </Chip>
-      <Chip active={active === "pp"} onClick={() => switchTab("pp")}>
-        PP
       </Chip>
     </div>
   );
