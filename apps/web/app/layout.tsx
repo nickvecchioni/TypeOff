@@ -62,10 +62,10 @@ export default function RootLayout({
                 <NavLinks />
               </div>
               <div className="flex items-center gap-2 sm:gap-3">
-                <UserMenu />
                 <ReportIssueButton />
                 <NavNotifications />
                 <FriendsButton />
+                <UserMenu />
               </div>
             </nav>
             <div className="relative z-10 flex-1 flex flex-col min-h-0">
