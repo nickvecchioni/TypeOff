@@ -9,10 +9,10 @@ import type {
   WpmSample,
   EmoteKey,
 } from "@typeoff/shared";
-import { calculateRaceElo, getRankTier, generateWordsForMode, quotes, calculateClanElo, EMOTE_KEYS, scoreTextDifficulty, calculatePP, calculateTotalPP } from "@typeoff/shared";
+import { calculateRaceElo, getRankTier, generateWordsForMode, quotes, EMOTE_KEYS, scoreTextDifficulty, calculatePP, calculateTotalPP, CHALLENGE_MAP } from "@typeoff/shared";
 import type { RankTier, RaceMode, ModeCategory, ReplaySnapshot } from "@typeoff/shared";
 import type { NotificationManager } from "./notification-manager.js";
-import { createDb, races, raceParticipants, userStats, users, userActiveCosmetics, clans, clanMembers, textLeaderboards } from "@typeoff/db";
+import { createDb, races, raceParticipants, userStats, users, userActiveCosmetics, textLeaderboards } from "@typeoff/db";
 import { eq, inArray, and, sql, desc } from "drizzle-orm";
 import { checkAchievements } from "./achievement-checker.js";
 import { checkChallenges, type ChallengeCheckResult } from "./challenge-checker.js";
@@ -954,32 +954,6 @@ export class RaceManager {
           }
         }
 
-        // Update clan ELO for players whose ELO changed
-        try {
-          const updatedClanIds = new Set<string>();
-          for (const entry of authPlayers) {
-            if (entry.player.isGuest || !eloChanges.has(entry.player.id)) continue;
-            // Check if player has a clan
-            const [userRow] = await db
-              .select({ clanId: users.clanId })
-              .from(users)
-              .where(eq(users.id, entry.player.id))
-              .limit(1);
-            if (userRow?.clanId && !updatedClanIds.has(userRow.clanId)) {
-              updatedClanIds.add(userRow.clanId);
-              const memberRows = await db
-                .select({ eloRating: users.eloRating })
-                .from(clanMembers)
-                .innerJoin(users, eq(clanMembers.userId, users.id))
-                .where(eq(clanMembers.clanId, userRow.clanId));
-              const newClanElo = calculateClanElo(memberRows.map((m) => m.eloRating));
-              await db.update(clans).set({ eloRating: newClanElo }).where(eq(clans.id, userRow.clanId));
-            }
-          }
-        } catch (clanErr) {
-          console.error("[race-manager] clan ELO update error:", clanErr);
-        }
-
         // Update participant records with elo data
         for (const entry of authPlayers) {
           const user = userMap.get(entry.player.id);
@@ -1196,7 +1170,7 @@ export class RaceManager {
                   this.notificationManager.notify(entry.player.id, {
                     type: "challenge_complete",
                     title: "Challenge Complete!",
-                    body: `${ch.challengeId} — earned ${ch.xpAwarded} XP`,
+                    body: `${CHALLENGE_MAP.get(ch.challengeId)?.name ?? ch.challengeId} — earned ${ch.xpAwarded} XP`,
                   });
                 }
               }

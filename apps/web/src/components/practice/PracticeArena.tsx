@@ -77,10 +77,11 @@ export function PracticeArena() {
     if (!activeSpan) return;
 
     const wordTop = activeSpan.offsetTop;
-    // Scroll when active word reaches the 2nd visible line (0-indexed)
-    const threshold = scrollOffset + lineHeight;
-    if (wordTop > threshold) {
-      setScrollOffset(wordTop - lineHeight);
+    // Use line-based rounding to avoid sub-pixel shifts from fractional DPR rendering
+    const wordLine = Math.floor(wordTop / lineHeight);
+    const scrollLine = Math.round(scrollOffset / lineHeight);
+    if (wordLine > scrollLine + 1) {
+      setScrollOffset((wordLine - 1) * lineHeight);
     }
   }, [engine.currentWordIndex, engine.status, lineHeight, scrollOffset]);
 
