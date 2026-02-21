@@ -7,15 +7,37 @@ import { dailySeed } from "@typeoff/shared";
 
 export const dynamic = "force-dynamic";
 
-function todayUTC(): string {
-  return new Date().toISOString().slice(0, 10);
+/** "YYYY-MM-DD" in America/New_York — daily resets at midnight ET */
+function todayET(): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date());
+}
+
+/** UTC timestamp of the next midnight in America/New_York */
+function nextMidnightET(): number {
+  const now = new Date();
+  const todayStr = todayET();
+  const [y, m, d] = todayStr.split("-").map(Number);
+  // Try both possible UTC offsets for ET (UTC-4 DST, UTC-5 standard)
+  for (const offsetHours of [4, 5]) {
+    const candidate = new Date(Date.UTC(y, m - 1, d + 1, offsetHours, 0, 0, 0));
+    const check = new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(candidate);
+    const [cy, cm, cd] = check.split("-").map(Number);
+    // Confirm this UTC time lands on midnight ET (hour 0 in ET)
+    const etHour = parseInt(
+      new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", hour12: false }).format(candidate),
+      10,
+    );
+    if (etHour === 0 && cy === y && cm === m && cd === d + 1) return candidate.getTime();
+  }
+  // Fallback: midnight EST (UTC-5)
+  return Date.UTC(y, m - 1, d + 1, 5, 0, 0, 0);
 }
 
 // GET — returns today's challenge + leaderboard + user's result
 export async function GET() {
   const session = await auth();
   const db = getDb();
-  const today = todayUTC();
+  const today = todayET();
 
   // Auto-create today's challenge if not exists
   let [challenge] = await db
@@ -87,12 +109,7 @@ export async function GET() {
     }
   }
 
-  // Countdown to next day (UTC midnight)
-  const now = new Date();
-  const tomorrow = new Date(now);
-  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
-  tomorrow.setUTCHours(0, 0, 0, 0);
-  const nextDailyAt = tomorrow.getTime();
+  const nextDailyAt = nextMidnightET();
 
   return NextResponse.json({
     challenge: {
@@ -130,7 +147,7 @@ export async function POST(req: NextRequest) {
     .where(eq(dailyChallenges.id, challengeId))
     .limit(1);
 
-  if (!challenge || challenge.date !== todayUTC()) {
+  if (!challenge || challenge.date !== todayET()) {
     return NextResponse.json({ error: "Invalid or expired challenge" }, { status: 400 });
   }
 

@@ -189,8 +189,8 @@ export function DailyArena({ challenge, leaderboard: initialLeaderboard, myResul
       {myResult && !isFinished && (
         <div className="flex items-center gap-4 rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-4 py-2.5">
           <span className="text-xs text-muted/50">Your best:</span>
-          <span className="text-sm font-bold text-accent tabular-nums">{Math.floor(myResult.wpm)} wpm</span>
-          <span className="text-xs text-muted/40 tabular-nums">{Math.floor(myResult.accuracy)}%</span>
+          <span className="text-sm font-bold text-accent tabular-nums">{myResult.wpm.toFixed(1)} wpm</span>
+          <span className="text-xs text-muted/40 tabular-nums">{myResult.accuracy.toFixed(1)}%</span>
           <span className="text-xs text-muted/30 tabular-nums">{myResult.attempts} attempt{myResult.attempts !== 1 ? "s" : ""}</span>
         </div>
       )}
@@ -236,15 +236,21 @@ export function DailyArena({ challenge, leaderboard: initialLeaderboard, myResul
         <div className="animate-fade-in space-y-4">
           <div className="grid grid-cols-3 gap-3">
             <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3 text-center">
-              <div className="text-2xl font-black text-text tabular-nums">{Math.floor(engine.stats.wpm)}</div>
+              <div className="text-2xl font-black text-text tabular-nums">
+                {Math.floor(engine.stats.wpm)}<span className="text-lg opacity-50">.{(engine.stats.wpm % 1).toFixed(2).slice(2)}</span>
+              </div>
               <div className="text-[10px] text-muted/50 mt-0.5">WPM</div>
             </div>
             <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3 text-center">
-              <div className="text-2xl font-black text-text tabular-nums">{Math.floor(engine.stats.accuracy)}%</div>
+              <div className="text-2xl font-black text-text tabular-nums">
+                {Math.floor(engine.stats.accuracy)}<span className="text-lg opacity-50">.{(engine.stats.accuracy % 1).toFixed(2).slice(2)}%</span>
+              </div>
               <div className="text-[10px] text-muted/50 mt-0.5">Accuracy</div>
             </div>
             <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3 text-center">
-              <div className="text-2xl font-black text-text tabular-nums">{engine.stats.rawWpm}</div>
+              <div className="text-2xl font-black text-text tabular-nums">
+                {Math.floor(engine.stats.rawWpm)}<span className="text-lg opacity-50">.{(engine.stats.rawWpm % 1).toFixed(2).slice(2)}</span>
+              </div>
               <div className="text-[10px] text-muted/50 mt-0.5">Raw WPM</div>
             </div>
           </div>

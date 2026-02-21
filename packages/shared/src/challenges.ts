@@ -80,17 +80,22 @@ export const CHALLENGE_MAP = new Map<string, ChallengeDefinition>(
 
 // ─── Date Keys ────────────────────────────────────────────────────────
 
-/** "2026-02-17" */
-export function getDailyKey(date?: Date): string {
-  const d = date ?? new Date();
-  return d.toISOString().slice(0, 10);
+/** Returns "YYYY-MM-DD" in America/New_York (resets at midnight ET) */
+function etDateString(date: Date): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(date);
 }
 
-/** "2026-W08" */
+/** "2026-02-17" — keyed to Eastern Time midnight */
+export function getDailyKey(date?: Date): string {
+  return etDateString(date ?? new Date());
+}
+
+/** "2026-W08" — keyed to Eastern Time week boundary */
 export function getWeeklyKey(date?: Date): string {
   const d = date ?? new Date();
-  // ISO week number
-  const tmp = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  const etStr = etDateString(d);
+  const [y, m, day] = etStr.split("-").map(Number);
+  const tmp = new Date(Date.UTC(y, m - 1, day));
   tmp.setUTCDate(tmp.getUTCDate() + 4 - (tmp.getUTCDay() || 7));
   const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1));
   const weekNo = Math.ceil(((tmp.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
@@ -99,13 +104,15 @@ export function getWeeklyKey(date?: Date): string {
 
 // ─── Deterministic Rotation ───────────────────────────────────────────
 
-/** UTC day number since epoch */
+/** ET day number since epoch */
 function dayNumber(date?: Date): number {
   const d = date ?? new Date();
-  return Math.floor(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) / 86400000);
+  const etStr = etDateString(d);
+  const [y, m, day] = etStr.split("-").map(Number);
+  return Math.floor(Date.UTC(y, m - 1, day) / 86400000);
 }
 
-/** UTC week number since epoch */
+/** ET week number since epoch */
 function weekNumber(date?: Date): number {
   return Math.floor(dayNumber(date) / 7);
 }

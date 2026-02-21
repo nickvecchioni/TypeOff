@@ -62,10 +62,10 @@ export function DailyLeaderboard({ entries, myUserId }: DailyLeaderboardProps) {
                 {entry.username ?? "Unknown"}
               </span>
               <span className="text-sm font-bold text-text tabular-nums text-right">
-                {Math.floor(entry.wpm)}
+                {entry.wpm.toFixed(1)}
               </span>
               <span className="text-xs text-muted/50 tabular-nums text-right">
-                {Math.floor(entry.accuracy)}%
+                {entry.accuracy.toFixed(1)}%
               </span>
               <span className="text-xs text-muted/40 tabular-nums text-right">
                 {entry.attempts}
