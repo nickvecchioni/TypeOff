@@ -1,6 +1,12 @@
+"use client";
+
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 export function ReportIssueButton() {
+  const { data: session } = useSession();
+  if (!session) return null;
+
   return (
     <Link
       href="/report-issue"
