@@ -12,14 +12,43 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!session.user.isPro) {
-    return NextResponse.json({ error: "Pro subscription required" }, { status: 403 });
-  }
-
   const db = getDb();
   const userId = session.user.id;
+  const isPro = session.user.isPro ?? false;
 
-  // Fetch all races for the user
+  // Free users: return limited data (last 20 races, best records only)
+  if (!isPro) {
+    const freeRaces = await db
+      .select({
+        wpm: raceParticipants.wpm,
+        accuracy: raceParticipants.accuracy,
+        finishedAt: raceParticipants.finishedAt,
+      })
+      .from(raceParticipants)
+      .where(eq(raceParticipants.userId, userId))
+      .orderBy(desc(raceParticipants.finishedAt))
+      .limit(20);
+
+    const wpmTrend = freeRaces
+      .filter((r) => r.wpm != null && r.finishedAt)
+      .map((r) => ({ date: r.finishedAt!.toISOString(), wpm: r.wpm!, accuracy: r.accuracy ?? 0 }))
+      .reverse();
+
+    let bestWpm: { wpm: number; date: string } | null = null;
+    let bestAccuracy: { accuracy: number; date: string } | null = null;
+    for (const r of freeRaces) {
+      if (r.wpm != null && r.finishedAt) {
+        if (!bestWpm || r.wpm > bestWpm.wpm) bestWpm = { wpm: r.wpm, date: r.finishedAt.toISOString() };
+      }
+      if (r.accuracy != null && r.finishedAt) {
+        if (!bestAccuracy || r.accuracy > bestAccuracy.accuracy) bestAccuracy = { accuracy: r.accuracy, date: r.finishedAt.toISOString() };
+      }
+    }
+
+    return NextResponse.json({ wpmTrend, personalRecords: { bestWpm, bestAccuracy } });
+  }
+
+  // Pro users: fetch everything
   const allRaces = await db
     .select({
       raceId: raceParticipants.raceId,
