@@ -12,6 +12,10 @@ export default async function ReplayPage({
 }: {
   params: Promise<{ raceId: string }>;
 }) {
+  const { auth } = await import("@/lib/auth");
+  const session = await auth();
+  const isPro = session?.user?.isPro ?? false;
+
   const { raceId } = await params;
   const db = getDb();
 
@@ -57,7 +61,31 @@ export default async function ReplayPage({
 
   return (
     <main className="flex flex-col items-center px-4 py-8 sm:py-12 min-h-[60vh]">
-      {hasReplayData ? (
+      {hasReplayData && !isPro ? (
+        <div className="flex flex-col items-center gap-6 text-center max-w-sm py-4">
+          <div className="w-14 h-14 rounded-2xl bg-amber-400/10 ring-1 ring-amber-400/20 flex items-center justify-center text-2xl">
+            ▶
+          </div>
+          <div>
+            <h1 className="text-lg font-bold text-text">Replay is Pro Only</h1>
+            <p className="text-sm text-muted/50 mt-2 leading-relaxed">
+              Upgrade to TypeOff Pro to watch full race replays with keystroke-by-keystroke playback and WPM graphs.
+            </p>
+          </div>
+          <Link
+            href="/pro"
+            className="px-5 py-2.5 rounded-xl bg-accent text-white text-sm font-semibold hover:bg-accent/90 transition-colors"
+          >
+            Upgrade to Pro
+          </Link>
+          <Link
+            href="/"
+            className="text-xs text-muted/30 hover:text-muted/50 transition-colors"
+          >
+            Back to home
+          </Link>
+        </div>
+      ) : hasReplayData ? (
         <ReplayClient
           race={{
             id: race.id,

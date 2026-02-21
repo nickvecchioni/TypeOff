@@ -95,6 +95,27 @@ export async function GET() {
     consistencyScore = Math.round(Math.sqrt(variance) * 100) / 100;
   }
 
+  // Avg accuracy (last 50 races)
+  const recentAccuracies = allRaces.filter((r) => r.accuracy != null).slice(0, 50).map((r) => r.accuracy!);
+  const avgAccuracy =
+    recentAccuracies.length > 0
+      ? Math.round((recentAccuracies.reduce((s, v) => s + v, 0) / recentAccuracies.length) * 10) / 10
+      : null;
+
+  // Win rate (multiplayer races only, min 5 to be meaningful)
+  const multiplayerRaces = allRaces.filter((r) => r.playerCount > 1 && r.placement != null);
+  const wins = multiplayerRaces.filter((r) => r.placement === 1).length;
+  const winRate =
+    multiplayerRaces.length >= 5
+      ? Math.round((wins / multiplayerRaces.length) * 1000) / 10
+      : null;
+
+  // ELO trend (ranked races with ELO data)
+  const eloTrend = allRaces
+    .filter((r) => r.eloAfter != null && r.finishedAt)
+    .map((r) => ({ date: r.finishedAt!.toISOString(), elo: r.eloAfter! }))
+    .reverse();
+
   // Speed by placement
   const placementStats: Record<number, { totalWpm: number; count: number }> = {};
   for (const r of allRaces) {
@@ -113,6 +134,16 @@ export async function GET() {
       count: data.count,
     }))
     .sort((a, b) => a.placement - b.placement);
+
+  const placementDistribution = {
+    first: placementStats[1]?.count ?? 0,
+    second: placementStats[2]?.count ?? 0,
+    third: placementStats[3]?.count ?? 0,
+    other: Object.entries(placementStats)
+      .filter(([p]) => Number(p) >= 4)
+      .reduce((s, [, v]) => s + v.count, 0),
+    total: multiplayerRaces.length,
+  };
 
   // Session breakdown (races per day)
   const racesPerDay: Record<string, number> = {};
@@ -143,7 +174,11 @@ export async function GET() {
     totalRaces: allRaces.length,
     wpmTrend,
     consistencyScore,
+    avgAccuracy,
+    winRate,
+    eloTrend,
     speedByPlacement,
+    placementDistribution,
     racesPerDay,
     personalRecords: {
       bestWpm,

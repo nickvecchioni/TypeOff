@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { BigramAnalysis } from "@/components/practice/BigramAnalysis";
 import { BigramHeatmap } from "@/components/practice/BigramHeatmap";
+import { KeyboardHeatmap } from "@/components/typing/KeyboardHeatmap";
+import type { KeyStatsMap } from "@typeoff/shared";
 
 interface AnalyticsData {
   wpmTrend: Array<{ date: string; wpm: number; accuracy: number }>;
@@ -18,7 +20,11 @@ interface AnalyticsData {
   // Pro-only fields
   totalRaces?: number;
   consistencyScore?: number | null;
+  avgAccuracy?: number | null;
+  winRate?: number | null;
+  eloTrend?: Array<{ date: string; elo: number }>;
   speedByPlacement?: Array<{ placement: number; avgWpm: number; count: number }>;
+  placementDistribution?: { first: number; second: number; third: number; other: number; total: number };
   racesPerDay?: Record<string, number>;
 }
 
@@ -29,6 +35,7 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [bigrams, setBigrams] = useState<Array<{ bigram: string; correct: number; total: number; accuracy: number }>>([]);
+  const [keyStats, setKeyStats] = useState<KeyStatsMap | null>(null);
 
   const isPro = session?.user?.isPro ?? false;
 
@@ -49,12 +56,23 @@ export default function AnalyticsPage() {
       .finally(() => setLoading(false));
   }, [session?.user?.id]);
 
-  // Bigram data is Pro-only
+  // Bigram + key accuracy data is Pro-only
   useEffect(() => {
     if (!session?.user?.id || !isPro) return;
     fetch("/api/bigram-accuracy")
       .then((r) => r.json())
       .then((d) => { if (d.bigrams) setBigrams(d.bigrams); })
+      .catch(() => {});
+    fetch("/api/key-accuracy")
+      .then((r) => r.json())
+      .then((d: { all: Array<{ key: string; accuracy: number; total: number }> }) => {
+        if (!d.all) return;
+        const map: KeyStatsMap = {};
+        for (const k of d.all) {
+          map[k.key] = { correct: Math.round(k.accuracy * k.total), total: k.total };
+        }
+        setKeyStats(map);
+      })
       .catch(() => {});
   }, [session?.user?.id, isPro]);
 
@@ -159,17 +177,37 @@ export default function AnalyticsPage() {
         {/* ── Pro-only sections ────────────────────────────── */}
         {isPro ? (
           <>
-            {/* Streaks */}
-            <div className="grid grid-cols-2 gap-2 mb-6">
+            {/* Streaks + Win Rate + Avg Accuracy */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
+              <StatCard
+                label="Win Rate"
+                value={data.winRate != null ? `${data.winRate}%` : "—"}
+                sub={data.winRate != null ? "ranked races" : "need 5+ races"}
+              />
+              <StatCard
+                label="Avg Accuracy"
+                value={data.avgAccuracy != null ? `${data.avgAccuracy.toFixed(1)}%` : "—"}
+                sub="Last 50 races"
+              />
               <StatCard label="Best Win Streak" value={(data.personalRecords.maxStreak ?? 0).toString()} />
               <StatCard label="Best Day Streak" value={(data.personalRecords.maxRankedDayStreak ?? 0).toString()} />
             </div>
 
-            {/* Speed by Placement */}
+            {/* ELO Trend */}
+            {(data.eloTrend?.length ?? 0) >= 2 && (
+              <section className="mb-6">
+                <SectionHeader>ELO Trend</SectionHeader>
+                <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3">
+                  <MiniChart data={data.eloTrend!.map((r) => r.elo)} color="#eab308" height={100} />
+                </div>
+              </section>
+            )}
+
+            {/* Speed by Placement + Distribution */}
             {(data.speedByPlacement?.length ?? 0) > 0 && (
               <section className="mb-6">
                 <SectionHeader>Speed by Placement</SectionHeader>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
                   {data.speedByPlacement!.map((p) => {
                     const ord = p.placement === 1 ? "1st" : p.placement === 2 ? "2nd" : p.placement === 3 ? "3rd" : `${p.placement}th`;
                     const color = p.placement === 1 ? "text-rank-gold" : p.placement === 2 ? "text-rank-silver" : p.placement === 3 ? "text-rank-bronze" : "text-muted";
@@ -186,6 +224,9 @@ export default function AnalyticsPage() {
                     );
                   })}
                 </div>
+                {data.placementDistribution && data.placementDistribution.total >= 5 && (
+                  <PlacementBar dist={data.placementDistribution} />
+                )}
               </section>
             )}
 
@@ -216,6 +257,16 @@ export default function AnalyticsPage() {
               </section>
             )}
 
+            {/* Key Accuracy */}
+            {keyStats && Object.keys(keyStats).length > 0 && (
+              <section className="mb-6">
+                <SectionHeader>Key Accuracy</SectionHeader>
+                <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] px-4 py-5">
+                  <KeyboardHeatmap keyStats={keyStats} />
+                </div>
+              </section>
+            )}
+
             {/* Bigram Analysis */}
             {bigrams.length > 0 && (
               <section className="mb-6">
@@ -234,7 +285,7 @@ export default function AnalyticsPage() {
           <div className="rounded-xl ring-1 ring-amber-400/10 bg-amber-400/[0.02] px-5 py-4">
             <p className="text-xs font-bold text-amber-400/60 mb-1">Pro Analytics</p>
             <p className="text-[11px] text-muted/40 mb-3 leading-relaxed">
-              Upgrade to unlock consistency scores, win/day streaks, activity heatmap, speed by placement, and bigram analysis.
+              Upgrade to unlock win rate, ELO trend, consistency scores, key accuracy heatmap, placement distribution, and full bigram analysis.
             </p>
             <Link
               href="/pro"
@@ -270,11 +321,40 @@ function StatCard({ label, value, sub }: { label: string; value: string; sub?: s
   );
 }
 
-function PreviewStatCard({ label, value }: { label: string; value: string }) {
+function PlacementBar({ dist }: {
+  dist: { first: number; second: number; third: number; other: number; total: number };
+}) {
+  const { first, second, third, other, total } = dist;
+  if (total === 0) return null;
+  const pct = (n: number) => Math.round((n / total) * 100);
+  const segments = [
+    { label: "1st", count: first, pct: pct(first), color: "bg-rank-gold", textColor: "text-rank-gold" },
+    { label: "2nd", count: second, pct: pct(second), color: "bg-rank-silver", textColor: "text-rank-silver" },
+    { label: "3rd", count: third, pct: pct(third), color: "bg-rank-bronze", textColor: "text-rank-bronze" },
+    { label: "4th+", count: other, pct: pct(other), color: "bg-muted/30", textColor: "text-muted/50" },
+  ];
   return (
-    <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2.5">
-      <div className="text-base font-bold text-text tabular-nums leading-tight">{value}</div>
-      <div className="text-[10px] text-muted/60 mt-0.5">{label}</div>
+    <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3">
+      <div className="flex h-2 rounded-full overflow-hidden gap-px mb-3">
+        {segments.map((s) =>
+          s.count > 0 ? (
+            <div
+              key={s.label}
+              className={`${s.color} opacity-70 transition-all`}
+              style={{ width: `${s.pct}%` }}
+              title={`${s.label}: ${s.count} (${s.pct}%)`}
+            />
+          ) : null
+        )}
+      </div>
+      <div className="flex gap-4">
+        {segments.map((s) => (
+          <div key={s.label} className="flex items-center gap-1.5">
+            <span className={`text-xs font-bold tabular-nums ${s.textColor}`}>{s.pct}%</span>
+            <span className="text-[10px] text-muted/40">{s.label}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

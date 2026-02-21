@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import {
   COSMETIC_REWARDS,
   BADGE_EMOJIS,
@@ -394,6 +395,36 @@ function ItemCard({
 }) {
   const isProLocked = locked && item.proOnly && !isPro;
 
+  // Pro-locked: render as a link CTA to /pro
+  if (isProLocked) {
+    return (
+      <Link
+        href="/pro"
+        className="group relative text-left rounded-xl px-4 py-4 ring-1 transition-all ring-amber-400/15 bg-amber-400/[0.03] hover:ring-amber-400/30 hover:bg-amber-400/[0.06]"
+      >
+        {/* Star badge */}
+        <span className="absolute top-2.5 right-2.5 text-[10px] font-bold text-amber-400/50 bg-amber-400/[0.08] px-1.5 py-0.5 rounded uppercase tracking-wider">
+          Pro
+        </span>
+
+        {/* Visual (dimmed) */}
+        <div className="mb-3 h-8 flex items-center opacity-35">
+          <ItemVisual item={item} />
+        </div>
+
+        {/* Name */}
+        <p className="text-xs font-semibold truncate leading-tight text-muted/50">
+          {item.name}
+        </p>
+
+        {/* CTA */}
+        <p className="text-[10px] mt-0.5 leading-tight text-amber-400/50 group-hover:text-amber-400/70 transition-colors font-medium">
+          Get Pro →
+        </p>
+      </Link>
+    );
+  }
+
   return (
     <button
       onClick={onToggle}
@@ -411,7 +442,7 @@ function ItemCard({
         <span className="absolute top-3 right-3 w-1.5 h-1.5 rounded-full bg-accent shadow-[0_0_6px_rgba(77,158,255,0.6)]" />
       )}
 
-      {/* Lock icon */}
+      {/* Lock icon (level-gated only) */}
       {locked && (
         <span className="absolute top-3 right-3 text-muted/20">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -436,12 +467,7 @@ function ItemCard({
       {/* Sub-label */}
       <p className="text-[10px] mt-0.5 leading-tight">
         {locked ? (
-          <span className="flex items-center gap-1">
-            {isProLocked && (
-              <span className="text-amber-400/50 font-bold">PRO</span>
-            )}
-            <span className="text-muted/30">Level {item.level}</span>
-          </span>
+          <span className="text-muted/30">Level {item.level}</span>
         ) : active ? (
           <span className="text-accent/50">Equipped</span>
         ) : (
