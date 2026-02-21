@@ -29,17 +29,43 @@ function LandingPhase({ onStart }: { onStart: () => void }) {
 
       {/* Headline */}
       <div
-        className="flex flex-col items-center gap-3 mt-2 mb-10 opacity-0 animate-fade-in"
+        className="relative flex flex-col items-center gap-3 mt-2 mb-10 opacity-0 animate-fade-in"
         style={{ animationDelay: "0ms", animationFillMode: "both" }}
       >
-        <h1 className="text-4xl sm:text-5xl font-black text-text tracking-tight text-center leading-tight">
+        {/* Ambient hero glow */}
+        <div
+          className="absolute -inset-16 pointer-events-none"
+          style={{
+            background: "radial-gradient(ellipse 70% 50% at 50% 40%, rgba(77,158,255,0.07) 0%, transparent 70%)",
+          }}
+        />
+        <h1 className="relative text-4xl sm:text-5xl font-black text-text tracking-tight text-center leading-tight">
           Competitive typing,{" "}
-          <span className="text-accent text-glow-accent">ranked.</span>
+          <span
+            style={{
+              background: "linear-gradient(90deg, #4d9eff 0%, #93c5fd 45%, #4d9eff 65%, #93c5fd 100%)",
+              backgroundSize: "200% auto",
+              WebkitBackgroundClip: "text",
+              backgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              animation: "shimmer 4s linear infinite",
+            }}
+          >
+            ranked.
+          </span>
         </h1>
-        <p className="text-muted/60 text-sm sm:text-base text-center max-w-lg leading-relaxed">
+        <p className="relative text-muted/60 text-sm sm:text-base text-center max-w-lg leading-relaxed">
           Race real players in ELO-matched battles.
           <br className="hidden sm:block" />{" "}
-          Climb from Bronze to Grandmaster.
+          Climb from{" "}
+          <span style={{ color: "#d97706", textShadow: "0 0 12px rgba(217,119,6,0.55)" }}>
+            Bronze
+          </span>
+          {" "}to{" "}
+          <span className="glow-pulse" style={{ color: "#ef4444" }}>
+            Grandmaster
+          </span>
+          .
         </p>
       </div>
 
@@ -56,7 +82,10 @@ function LandingPhase({ onStart }: { onStart: () => void }) {
                 height: 12 + i * 7,
                 background: tier.color,
                 opacity: 0.85,
-                boxShadow: `0 0 8px ${tier.color}55`,
+                boxShadow: i === 6
+                  ? `0 0 10px ${tier.color}, 0 0 24px ${tier.color}88`
+                  : `0 0 8px ${tier.color}55`,
+                animation: i === 6 ? "cosmetic-pulse 2s ease-in-out infinite" : undefined,
               }}
             />
             <span
