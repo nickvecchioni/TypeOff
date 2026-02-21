@@ -9,7 +9,7 @@ import type {
   WpmSample,
   EmoteKey,
 } from "@typeoff/shared";
-import { calculateRaceElo, getRankTier, generateWordsForMode, quotes, EMOTE_KEYS, scoreTextDifficulty, calculatePP, calculateTotalPP, CHALLENGE_MAP } from "@typeoff/shared";
+import { calculateRaceElo, getRankTier, generateWordsForMode, quotes, EMOTE_KEYS, scoreTextDifficulty, calculatePP, calculateTotalPP, CHALLENGE_MAP, ACHIEVEMENT_MAP } from "@typeoff/shared";
 import type { RankTier, RaceMode, ModeCategory, ReplaySnapshot } from "@typeoff/shared";
 import type { NotificationManager } from "./notification-manager.js";
 import { createDb, races, raceParticipants, userStats, users, userActiveCosmetics, textLeaderboards } from "@typeoff/db";
@@ -1127,10 +1127,11 @@ export class RaceManager {
           // Notify for each new achievement
           if (this.notificationManager) {
             for (const achId of newAchievements) {
+              const achDef = ACHIEVEMENT_MAP.get(achId);
               this.notificationManager.notify(entry.player.id, {
                 type: "achievement",
-                title: "Achievement Unlocked!",
-                body: achId,
+                title: achDef ? achDef.name : "Achievement Unlocked!",
+                body: achDef ? achDef.description : achId,
                 actionUrl: `/profile/${usernameMap.get(entry.player.id) ?? entry.player.name}`,
               });
             }
