@@ -74,9 +74,9 @@ export class Matchmaker implements RaceOwner {
         socket.emit("error", { message: "Could not verify placement status. Please try again." });
         return;
       }
-      const racesPlayed = playerData.racesPlayed;
-      console.log(`[matchmaker] player ${player.id} racesPlayed=${racesPlayed}`);
-      if (racesPlayed < PLACEMENT_RACES) {
+      const { racesPlayed, placementsCompleted } = playerData;
+      console.log(`[matchmaker] player ${player.id} racesPlayed=${racesPlayed} placementsCompleted=${placementsCompleted}`);
+      if (!placementsCompleted && racesPlayed < PLACEMENT_RACES) {
         console.log(`[matchmaker] starting placement race ${racesPlayed + 1} for ${player.id}`);
         this.startPlacementRace(socket, player, racesPlayed + 1);
         return;
@@ -117,7 +117,7 @@ export class Matchmaker implements RaceOwner {
           });
           return;
         }
-        if (playerData.racesPlayed < PLACEMENT_RACES) {
+        if (!playerData.placementsCompleted && playerData.racesPlayed < PLACEMENT_RACES) {
           entries[0].socket.emit("error", {
             message: `${entry.player.name} needs to complete placement races first`,
           });
@@ -258,8 +258,9 @@ export class Matchmaker implements RaceOwner {
       const db = createDb(process.env.DATABASE_URL!);
       const result = await Promise.race([
         db
-          .select({ racesPlayed: userStats.racesPlayed })
+          .select({ racesPlayed: userStats.racesPlayed, placementsCompleted: users.placementsCompleted })
           .from(userStats)
+          .innerJoin(users, eq(users.id, userStats.userId))
           .where(eq(userStats.userId, userId))
           .limit(1),
         new Promise<undefined>((resolve) => setTimeout(() => resolve(undefined), 3000)),
@@ -269,7 +270,10 @@ export class Matchmaker implements RaceOwner {
         console.log(`[matchmaker] getPlayerData timed out for ${userId}`);
         return undefined;
       }
-      return { racesPlayed: result[0]?.racesPlayed ?? 0 };
+      return {
+        racesPlayed: result[0]?.racesPlayed ?? 0,
+        placementsCompleted: result[0]?.placementsCompleted ?? false,
+      };
     } catch (err) {
       console.error(`[matchmaker] getPlayerData error for ${userId} after ${Date.now() - start}ms:`, err);
       return undefined;
@@ -519,7 +523,7 @@ export class Matchmaker implements RaceOwner {
           });
           return;
         }
-        if (playerData.racesPlayed < PLACEMENT_RACES) {
+        if (!playerData.placementsCompleted && playerData.racesPlayed < PLACEMENT_RACES) {
           entries[0].socket.emit("error", {
             message: `${entry.player.name} needs to complete placement races first`,
           });
