@@ -97,7 +97,7 @@ function LevelWidget({
 
   return (
     <Link
-      href="/cosmetics"
+      href="/items"
       className="rounded-xl bg-surface/50 ring-1 ring-white/[0.04] overflow-hidden flex flex-col hover:ring-accent/20 transition-all group"
     >
       <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
@@ -399,7 +399,7 @@ export function QueueScreen({
                 {/* Level + mini XP bar */}
                 {xpInfo && (
                   <Link
-                    href="/cosmetics"
+                    href="/items"
                     className="hidden sm:flex flex-col items-end gap-1 shrink-0 group"
                   >
                     <div className="flex items-center gap-1.5">

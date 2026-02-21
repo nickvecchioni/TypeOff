@@ -43,7 +43,7 @@ export function XpProgressWidget() {
 
   return (
     <Link
-      href="/cosmetics"
+      href="/items"
       className="flex flex-col w-full h-full rounded-xl bg-surface/50 ring-1 ring-white/[0.04] overflow-hidden hover:ring-accent/20 transition-all group"
     >
       <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
