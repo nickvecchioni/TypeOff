@@ -15,7 +15,7 @@ interface PlayerEmotePillProps {
   event: EmoteEvent;
 }
 
-/** Renders a floating emote pill that animates up then disappears.
+/** Renders an emote pill that slides out to the left then fades.
  *  Must be placed inside a `relative` container. */
 export function PlayerEmotePill({ event }: PlayerEmotePillProps) {
   const [gone, setGone] = useState(false);
@@ -29,17 +29,18 @@ export function PlayerEmotePill({ event }: PlayerEmotePillProps) {
 
   return (
     <span
-      className="absolute right-2 top-0 z-20 pointer-events-none select-none flex items-center gap-1 text-[11px] font-bold text-accent whitespace-nowrap"
+      className="absolute z-20 pointer-events-none select-none text-[11px] font-bold text-accent whitespace-nowrap"
       style={{
-        animation: "emote-float 2.5s ease-out forwards",
+        left: "6px",
+        top: "50%",
+        animation: "emote-slide-left 2.5s ease-out forwards",
         background: "rgba(13,13,22,0.92)",
         border: "1px solid rgba(77,158,255,0.25)",
         borderRadius: "99px",
-        padding: "1px 8px",
+        padding: "2px 8px",
       }}
     >
-      <span className="text-muted/65 font-normal text-[10px]">{event.playerName}</span>
-      <span>{event.emote}</span>
+      {event.emote}
     </span>
   );
 }

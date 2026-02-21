@@ -11,7 +11,6 @@ import { RaceTypingArea } from "./RaceTypingArea";
 import { RaceResults } from "./RaceResults";
 import { PlacementReveal } from "./PlacementReveal";
 import { SpectatorIndicator } from "./SpectatorIndicator";
-import { RaceEmoteBar } from "./RaceEmoteBar";
 import type { EmoteEvent } from "./FloatingEmote";
 import { useSocket } from "@/hooks/useSocket";
 import { getRankInfo } from "@typeoff/shared";
@@ -169,19 +168,10 @@ export function RaceArena() {
     }
   }, [race.phase, race.results, session?.user?.id, updateSession]);
 
-  // Track whether the local player has finished typing (to show emote bar)
-  const [localFinished, setLocalFinished] = React.useState(false);
-  React.useEffect(() => {
-    if (race.phase === "idle" || race.phase === "queuing" || race.phase === "countdown") {
-      setLocalFinished(false);
-    }
-  }, [race.phase]);
-
   // Capture wpmHistory locally (not sent to server, only used for chart)
   const wpmHistoryRef = React.useRef<WpmSample[]>([]);
   const handleFinish = React.useCallback(
     (data: { wpm: number; rawWpm: number; accuracy: number; misstypedChars: number; wpmHistory?: WpmSample[] }) => {
-      setLocalFinished(true);
       wpmHistoryRef.current = data.wpmHistory ?? [];
       race.sendFinish(data);
     },
@@ -310,21 +300,8 @@ export function RaceArena() {
               progress={race.progress}
               myPlayerId={myPlayerId}
               isPlacement={isInPlacement}
-              emotes={emotes}
             />
           </div>
-          {/* Emote bar — always in DOM when not a placement race (prevents layout shift on start) */}
-          {!isInPlacement && (
-            <div
-              className="transition-opacity duration-500"
-              style={{
-                opacity: race.phase === "racing" && localFinished ? 1 : 0,
-                pointerEvents: race.phase === "racing" && localFinished ? "auto" : "none",
-              }}
-            >
-              <RaceEmoteBar />
-            </div>
-          )}
           <div className="relative w-full">
             {/* Countdown overlay — absolutely positioned, no layout shift */}
             <div
