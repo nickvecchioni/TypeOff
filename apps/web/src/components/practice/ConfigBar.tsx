@@ -67,24 +67,8 @@ export function ConfigBar({
     >
       {/* ── Primary row: mode / content type ── */}
       <div className="flex items-center gap-0.5">
-        {/* Difficulty group */}
-        <Chip
-          active={ct === "words" && config.difficulty === "easy"}
-          onClick={() => set({ contentType: "words", difficulty: "easy" })}
-        >
-          easy
-        </Chip>
-        <Chip
-          active={ct === "words" && config.difficulty === "medium"}
-          onClick={() => set({ contentType: "words", difficulty: "medium" })}
-        >
-          medium
-        </Chip>
-        <Chip
-          active={ct === "words" && config.difficulty === "hard"}
-          onClick={() => set({ contentType: "words", difficulty: "hard" })}
-        >
-          hard
+        <Chip active={ct === "words"} onClick={() => setContentType("words")}>
+          words
         </Chip>
 
         <Divider />
@@ -111,6 +95,30 @@ export function ConfigBar({
           </Chip>
         ) : null}
       </div>
+
+      {/* ── Difficulty sub-row (words mode only) ── */}
+      {ct === "words" && (
+        <div className="flex items-center gap-0.5">
+          <Sub
+            active={config.difficulty === "easy"}
+            onClick={() => set({ difficulty: "easy" })}
+          >
+            easy
+          </Sub>
+          <Sub
+            active={config.difficulty === "medium"}
+            onClick={() => set({ difficulty: "medium" })}
+          >
+            medium
+          </Sub>
+          <Sub
+            active={config.difficulty === "hard"}
+            onClick={() => set({ difficulty: "hard" })}
+          >
+            hard
+          </Sub>
+        </div>
+      )}
 
       {/* ── Secondary row: timing + accessories ── */}
       <div className="flex items-center gap-1.5">
