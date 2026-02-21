@@ -39,10 +39,10 @@ export function FriendsButton() {
   if (!session?.user) return null;
 
   return (
-    <div className="relative">
+    <div className="relative flex items-center">
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="relative text-muted hover:text-text transition-colors"
+        className="relative p-1.5 text-muted hover:text-text transition-colors"
         title="Friends"
       >
         {/* People icon */}

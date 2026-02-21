@@ -12,7 +12,7 @@ export function NavNotifications() {
   if (!session?.user) return null;
 
   return (
-    <div className="relative">
+    <div className="relative flex items-center">
       <NotificationBell onClick={() => setOpen((prev) => !prev)} />
       <NotificationDrawer open={open} onClose={() => setOpen(false)} />
     </div>
