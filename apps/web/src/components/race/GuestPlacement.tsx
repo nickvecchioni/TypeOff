@@ -450,6 +450,12 @@ export function GuestPlacement() {
         >
           No pressure — your first 30 races use boosted ELO adjustments to get you to your true rank fast.
         </p>
+        <p
+          className="text-muted/25 text-xs text-center leading-relaxed opacity-0 animate-fade-in"
+          style={{ animationDelay: "100ms", animationFillMode: "both" }}
+        >
+          Note: each word must be typed correctly before you can advance.
+        </p>
       </div>
 
       {/* Typing area with scroll clipping */}
