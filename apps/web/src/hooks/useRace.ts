@@ -163,7 +163,7 @@ export function useRace() {
   const queueTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const joinQueue = useCallback(
-    async (opts?: { privateRace?: boolean; modeCategory?: ModeCategory }) => {
+    async (opts?: { privateRace?: boolean; modeCategories?: ModeCategory[] }) => {
       setError(null);
       setPhase("queuing");
 
@@ -180,7 +180,7 @@ export function useRace() {
 
       if (token) {
         myPlayerIdRef.current = null; // Will be set from race state
-        emit("joinQueue", { token, privateRace: opts?.privateRace, modeCategory: opts?.modeCategory });
+        emit("joinQueue", { token, privateRace: opts?.privateRace, modeCategories: opts?.modeCategories ?? ["words"] });
 
         // Safety timeout: must exceed server BOT_WAIT_MS (20s)
         if (queueTimeoutRef.current) clearTimeout(queueTimeoutRef.current);
@@ -249,7 +249,7 @@ export function useRace() {
   }, []);
 
   const raceAgain = useCallback(
-    (opts?: { privateRace?: boolean; modeCategory?: ModeCategory }) => {
+    (opts?: { privateRace?: boolean; modeCategories?: ModeCategory[] }) => {
       setRaceState(null);
       setProgress({});
       setResults([]);
