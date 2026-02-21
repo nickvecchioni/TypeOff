@@ -131,7 +131,7 @@ export function PlacementReveal({ elo, wpm, accuracy, onContinue, subtitle, ctaL
 
       {/* CTA */}
       <div
-        className="relative transition-all duration-500 delay-500 ease-out"
+        className="relative flex flex-col items-center gap-2 transition-all duration-500 delay-500 ease-out"
         style={{
           opacity: phase === "reveal" ? 1 : 0,
           transform: phase === "reveal" ? "translateY(0)" : "translateY(8px)",
@@ -149,6 +149,9 @@ export function PlacementReveal({ elo, wpm, accuracy, onContinue, subtitle, ctaL
             {ctaLabel ?? "Start Ranked"}
           </button>
         )}
+        <p className="text-[11px] text-muted/30 text-center">
+          Sign in to save your rank and start climbing.
+        </p>
       </div>
     </div>
   );
