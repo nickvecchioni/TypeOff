@@ -21,7 +21,14 @@ const WORD_OPTIONS = [10, 25, 50, 100];
 /** Content types that use a fixed word set (no time/words toggle or duration picker) */
 const FIXED_CONTENT_TYPES: ContentType[] = ["quotes", "custom", "practice", "code", "zen"];
 
-export function ConfigBar({ config, status, onConfigChange, onAfterChange, onCustomTextChange, practiceWeakKeys }: ConfigBarProps) {
+export function ConfigBar({
+  config,
+  status,
+  onConfigChange,
+  onAfterChange,
+  onCustomTextChange,
+  practiceWeakKeys,
+}: ConfigBarProps) {
   const [customInput, setCustomInput] = React.useState("");
   const isTyping = status === "typing";
   const ct = config.contentType ?? "words";
@@ -36,14 +43,17 @@ export function ConfigBar({ config, status, onConfigChange, onAfterChange, onCus
 
   const setContentType = (newCt: ContentType) => {
     if (FIXED_CONTENT_TYPES.includes(newCt)) {
-      // Fixed modes — keep existing mode/duration selection visible
       set({ contentType: newCt });
     } else {
-      // Switching back to "words" — restore sane defaults if needed
       const needsDefaults = FIXED_CONTENT_TYPES.includes(ct);
       set({
         contentType: newCt,
-        mode: !needsDefaults && config.mode === "wordcount" && config.duration > 0 ? "wordcount" : config.mode === "wordcount" ? "wordcount" : "timed",
+        mode:
+          !needsDefaults && config.mode === "wordcount" && config.duration > 0
+            ? "wordcount"
+            : config.mode === "wordcount"
+            ? "wordcount"
+            : "timed",
         duration: config.duration > 0 ? config.duration : TIME_OPTIONS[0],
       });
     }
@@ -51,85 +61,131 @@ export function ConfigBar({ config, status, onConfigChange, onAfterChange, onCus
 
   return (
     <div
-      className={`focus-fade flex items-center justify-center gap-3 sm:gap-4 flex-wrap transition-opacity ${
+      className={`focus-fade flex flex-col items-center gap-2 transition-opacity ${
         isTyping ? "pointer-events-none opacity-40" : ""
       }`}
     >
-      {/* Punctuation toggle (faded for quotes — they have inherent punctuation) */}
-      <div className={`flex items-center gap-1 transition-opacity ${ct === "quotes" ? "opacity-30 pointer-events-none" : ""}`}>
+      {/* ── Primary row: mode / content type ── */}
+      <div className="flex items-center gap-0.5">
+        {/* Difficulty group */}
         <Chip
-          active={config.punctuation ?? false}
-          onClick={() => set({ punctuation: !config.punctuation })}
+          active={ct === "words" && config.difficulty === "easy"}
+          onClick={() => set({ contentType: "words", difficulty: "easy" })}
         >
-          @ punctuation
-        </Chip>
-      </div>
-      <Divider />
-
-      {/* Content type / difficulty selector */}
-      <div className="flex items-center gap-1">
-        <Chip active={ct === "words" && config.difficulty === "easy"} onClick={() => set({ contentType: "words", difficulty: "easy" })}>
           easy
         </Chip>
-        <Chip active={ct === "words" && config.difficulty === "medium"} onClick={() => set({ contentType: "words", difficulty: "medium" })}>
+        <Chip
+          active={ct === "words" && config.difficulty === "medium"}
+          onClick={() => set({ contentType: "words", difficulty: "medium" })}
+        >
           medium
         </Chip>
-        <Chip active={ct === "words" && config.difficulty === "hard"} onClick={() => set({ contentType: "words", difficulty: "hard" })}>
+        <Chip
+          active={ct === "words" && config.difficulty === "hard"}
+          onClick={() => set({ contentType: "words", difficulty: "hard" })}
+        >
           hard
         </Chip>
+
+        <Divider />
+
+        {/* Special modes */}
         <Chip active={ct === "quotes"} onClick={() => setContentType("quotes")}>
           quotes
         </Chip>
         <Chip active={ct === "custom"} onClick={() => setContentType("custom")}>
           custom
         </Chip>
-        <span className={!practiceWeakKeys?.length ? "invisible pointer-events-none" : ""}>
-          <Chip active={ct === "practice"} onClick={() => setContentType("practice")}>
-            practice
-          </Chip>
-        </span>
         <Chip active={ct === "code"} onClick={() => setContentType("code")}>
           code
         </Chip>
         <Chip active={ct === "zen"} onClick={() => setContentType("zen")}>
           zen
         </Chip>
-      </div>
-
-      {/* Time/words toggle + duration (faded for fixed content types) */}
-      <Divider />
-      <div className={`flex items-center gap-1 transition-opacity ${isFixed ? "opacity-30 pointer-events-none" : ""}`}>
-        <Chip
-          active={mode === "time"}
-          onClick={() => set({ mode: "timed", duration: TIME_OPTIONS[0] })}
-        >
-          time
-        </Chip>
-        <Chip
-          active={mode === "words"}
-          onClick={() => set({ mode: "wordcount", duration: WORD_OPTIONS[0] })}
-        >
-          words
-        </Chip>
-      </div>
-
-      <Divider />
-
-      <div className={`flex items-center gap-1 transition-opacity ${isFixed ? "opacity-30 pointer-events-none" : ""}`}>
-        {durations.map((d) => (
+        {practiceWeakKeys?.length ? (
           <Chip
-            key={d}
-            active={config.duration === d}
-            onClick={() => set({ duration: d })}
+            active={ct === "practice"}
+            onClick={() => setContentType("practice")}
           >
-            {d}
+            practice
           </Chip>
-        ))}
+        ) : null}
       </div>
 
-      {/* Custom text input */}
+      {/* ── Secondary row: timing + accessories ── */}
+      <div className="flex items-center gap-1.5">
+        {/* Time / words toggle + duration (faded for fixed modes) */}
+        <div
+          className={`flex items-center gap-0.5 transition-opacity ${
+            isFixed ? "opacity-20 pointer-events-none" : ""
+          }`}
+        >
+          <Sub
+            active={mode === "time"}
+            onClick={() => set({ mode: "timed", duration: TIME_OPTIONS[0] })}
+          >
+            time
+          </Sub>
+          <Sub
+            active={mode === "words"}
+            onClick={() => set({ mode: "wordcount", duration: WORD_OPTIONS[0] })}
+          >
+            words
+          </Sub>
+          <MicroDivider />
+          {durations.map((d) => (
+            <Sub
+              key={d}
+              active={config.duration === d}
+              onClick={() => set({ duration: d })}
+            >
+              {d}
+            </Sub>
+          ))}
+        </div>
+
+        <MicroDivider />
+
+        {/* Punctuation toggle (faded for quotes) */}
+        <div
+          className={`transition-opacity ${
+            ct === "quotes" ? "opacity-20 pointer-events-none" : ""
+          }`}
+        >
+          <Sub
+            active={config.punctuation ?? false}
+            onClick={() => set({ punctuation: !config.punctuation })}
+          >
+            @ punct
+          </Sub>
+        </div>
+
+        {/* Strict mode (hidden for zen + code) */}
+        {ct !== "zen" && ct !== "code" && (
+          <>
+            <MicroDivider />
+            <StrictModeSelector
+              value={config.strictMode ?? "normal"}
+              onChange={(m: StrictMode) => set({ strictMode: m })}
+            />
+          </>
+        )}
+
+        {/* Code language picker */}
+        {ct === "code" && (
+          <>
+            <MicroDivider />
+            <CodeLanguagePicker
+              value={config.codeLanguage}
+              onChange={(lang) => set({ codeLanguage: lang })}
+            />
+          </>
+        )}
+      </div>
+
+      {/* ── Contextual: custom text input ── */}
       {ct === "custom" && !isTyping && (
-        <div className="w-full max-w-lg">
+        <div className="w-full max-w-lg mt-1">
           <textarea
             value={customInput}
             onChange={(e) => {
@@ -143,9 +199,9 @@ export function ConfigBar({ config, status, onConfigChange, onAfterChange, onCus
         </div>
       )}
 
-      {/* Practice mode weak keys info */}
+      {/* ── Practice weak keys info ── */}
       {ct === "practice" && !isTyping && practiceWeakKeys && practiceWeakKeys.length > 0 && (
-        <div className="text-xs text-muted/50">
+        <div className="text-[11px] text-muted/40">
           practicing:{" "}
           {practiceWeakKeys.map((k, i) => (
             <span key={k}>
@@ -155,36 +211,21 @@ export function ConfigBar({ config, status, onConfigChange, onAfterChange, onCus
           ))}
         </div>
       )}
-
-      {/* Code language picker (visible when code mode active) */}
-      {ct === "code" && (
-        <>
-          <Divider />
-          <CodeLanguagePicker
-            value={config.codeLanguage}
-            onChange={(lang) => set({ codeLanguage: lang })}
-          />
-        </>
-      )}
-
-      {/* Strict mode selector (visible for non-zen, non-code modes) */}
-      {ct !== "zen" && ct !== "code" && (
-        <>
-          <Divider />
-          <StrictModeSelector
-            value={config.strictMode ?? "normal"}
-            onChange={(mode: StrictMode) => set({ strictMode: mode })}
-          />
-        </>
-      )}
     </div>
   );
 }
 
+/* ── Sub-components ────────────────────────────────────── */
+
 function Divider() {
-  return <div className="w-px h-4 bg-white/[0.08]" />;
+  return <div className="w-px h-3.5 bg-white/[0.07] mx-1" />;
 }
 
+function MicroDivider() {
+  return <div className="w-px h-3 bg-white/[0.06] mx-0.5" />;
+}
+
+/** Primary chip — used for the main mode/content selector */
 function Chip({
   active,
   onClick,
@@ -197,10 +238,34 @@ function Chip({
   return (
     <button
       onClick={onClick}
-      className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+      className={`px-2.5 py-1.5 rounded-md text-xs font-medium transition-all ${
         active
           ? "bg-accent/15 text-accent ring-1 ring-accent/20"
-          : "text-muted/60 hover:text-text hover:bg-white/[0.04]"
+          : "text-muted/50 hover:text-text hover:bg-white/[0.04]"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+/** Sub chip — used for secondary controls (time/words, duration, punctuation) */
+function Sub({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-2 py-1 rounded text-[11px] font-medium transition-all ${
+        active
+          ? "text-accent/80 bg-accent/10"
+          : "text-muted/35 hover:text-muted/70 hover:bg-white/[0.03]"
       }`}
     >
       {children}

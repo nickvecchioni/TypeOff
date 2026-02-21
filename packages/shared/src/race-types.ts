@@ -63,7 +63,7 @@ export interface PartyState {
 
 /** Client → Server events */
 export interface ClientToServerEvents {
-  joinQueue: (data: { token?: string; privateRace?: boolean; modeCategory?: ModeCategory }) => void;
+  joinQueue: (data: { token?: string; privateRace?: boolean; modeCategories?: ModeCategory[] }) => void;
   leaveQueue: () => void;
   leaveRace: () => void;
   raceProgress: (data: {

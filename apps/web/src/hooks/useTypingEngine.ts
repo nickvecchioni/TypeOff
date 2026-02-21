@@ -496,9 +496,26 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
           // In code mode, Tab auto-advances through the current word if it's all spaces (indent token)
           const word = words[currentWordIndex];
           if (word && word.chars.every(c => c.expected === " ")) {
-            // Auto-type all space chars in the indent token
-            for (let i = currentCharIndex; i < word.chars.length; i++) {
-              handleCharacter(" ");
+            // Atomically mark all remaining chars correct and advance to next word
+            const remaining = word.chars.length - currentCharIndex;
+            correctCharsRef.current += remaining;
+            totalCharsRef.current += remaining;
+            setWords(prev => {
+              const newWords = [...prev];
+              newWords[currentWordIndex] = {
+                chars: prev[currentWordIndex].chars.map((c, ci) =>
+                  ci >= currentCharIndex ? { ...c, actual: c.expected, status: "correct" as const } : c
+                ),
+                extraChars: [],
+              };
+              return newWords;
+            });
+            const nextWord = currentWordIndex + 1;
+            if (nextWord >= words.length) {
+              finishTest();
+            } else {
+              setCurrentWordIndex(nextWord);
+              setCurrentCharIndex(0);
             }
           }
           return;
@@ -519,11 +536,27 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
           e.preventDefault();
           const word = words[currentWordIndex];
           if (word && word.chars.length === 2 && word.chars[0].expected === "\\" && word.chars[1].expected === "n") {
-            // Auto-type the \n token
-            if (currentCharIndex === 0) handleCharacter("\\");
-            if (currentCharIndex <= 1) handleCharacter("n");
-            // Then advance via space logic
-            handleSpace();
+            // Atomically mark both chars correct and advance to next word
+            const remaining = word.chars.length - currentCharIndex;
+            correctCharsRef.current += remaining;
+            totalCharsRef.current += remaining;
+            setWords(prev => {
+              const newWords = [...prev];
+              newWords[currentWordIndex] = {
+                chars: prev[currentWordIndex].chars.map((c, ci) =>
+                  ci >= currentCharIndex ? { ...c, actual: c.expected, status: "correct" as const } : c
+                ),
+                extraChars: [],
+              };
+              return newWords;
+            });
+            const nextWord = currentWordIndex + 1;
+            if (nextWord >= words.length) {
+              finishTest();
+            } else {
+              setCurrentWordIndex(nextWord);
+              setCurrentCharIndex(0);
+            }
           }
           return;
         }

@@ -8,7 +8,7 @@ import { WordDisplay } from "@/components/typing/WordDisplay";
 import { ConfigBar } from "./ConfigBar";
 import { PracticeResults } from "./PracticeResults";
 import { FailScreen } from "./FailScreen";
-import { ZenArena } from "./ZenArena";
+import { ZenFreeformArena } from "./ZenFreeformArena";
 
 function getVisibleLines(): number {
   return 3;
@@ -201,11 +201,32 @@ export function PracticeArena() {
   const showStopwatch = ct === "quotes" || ct === "custom" || ct === "practice" || ct === "code" || ct === "zen" ||
     (ct === "words" && engine.config.mode === "wordcount");
 
-  // Route zen mode to dedicated ZenArena
-  if (ct === "zen" && engine.status !== "idle") {
+  // Route zen mode to freeform arena (no predefined words)
+  if (ct === "zen") {
     return (
       <div className="flex flex-col items-center gap-6 w-full max-w-4xl mx-auto">
-        <ZenArena engine={engine} />
+        {/* Config bar — always accessible for mode switching */}
+        <div className="focus-fade flex flex-col items-center gap-2">
+          <ConfigBar
+            config={engine.config}
+            status={engine.status}
+            onConfigChange={(c) => {
+              if (c.contentType === "practice") {
+                engine.setConfig({ ...c, weakKeys });
+              } else {
+                engine.setConfig(c);
+              }
+            }}
+            onAfterChange={handleAfterConfigChange}
+            onCustomTextChange={(words) => {
+              setCustomWords(words);
+              engine.setConfig({ ...engine.config, contentType: "custom", customText: words.join(" "), mode: "wordcount", duration: 0 });
+              handleAfterConfigChange();
+            }}
+            practiceWeakKeys={weakKeys}
+          />
+        </div>
+        <ZenFreeformArena />
       </div>
     );
   }
@@ -220,9 +241,7 @@ export function PracticeArena() {
       {/* PB + Config bar */}
       {!isFinished && (
         <div
-          key={`config-${cascadeKey}`}
-          className="flex flex-col items-center gap-2 animate-fade-in"
-          style={{ animationFillMode: "both" }}
+          className="flex flex-col items-center gap-2"
         >
           {session?.user?.id && (
             <div className="focus-fade text-sm text-muted/50 tabular-nums">
@@ -255,6 +274,7 @@ export function PracticeArena() {
             onCustomTextChange={(words) => {
               setCustomWords(words);
               engine.setConfig({ ...engine.config, contentType: "custom", customText: words.join(" "), mode: "wordcount", duration: 0 });
+              handleAfterConfigChange();
             }}
             practiceWeakKeys={weakKeys}
           />
@@ -264,12 +284,11 @@ export function PracticeArena() {
       {/* Typing area with scroll clipping */}
       {!isFinished && (
         <div
-          key={`words-${cascadeKey}`}
           ref={containerRef}
           tabIndex={0}
           onKeyDown={engine.handleKeyDown}
-          className="w-full outline-none cursor-default select-none overflow-hidden animate-fade-in"
-          style={{ height: containerHeight, animationDelay: "50ms", animationFillMode: "both" }}
+          className="w-full outline-none cursor-default select-none overflow-hidden"
+          style={{ height: containerHeight }}
           role="textbox"
           aria-label="Solo typing area"
         >
@@ -278,13 +297,19 @@ export function PracticeArena() {
             className={suppressTransitionRef.current ? "" : "transition-transform duration-150 ease-out"}
             style={{ transform: `translateY(-${scrollOffset}px)` }}
           >
-            <WordDisplay
-              words={engine.words}
-              currentWordIndex={engine.currentWordIndex}
-              currentCharIndex={engine.currentCharIndex}
-              isTyping={isTyping}
-              contentType={engine.config.contentType}
-            />
+            {ct === "custom" && !engine.config.customText ? (
+              <div className="text-muted/25 text-xl sm:text-2xl leading-[2rem] sm:leading-[2.5rem]">
+                paste or type text above to begin
+              </div>
+            ) : (
+              <WordDisplay
+                words={engine.words}
+                currentWordIndex={engine.currentWordIndex}
+                currentCharIndex={engine.currentCharIndex}
+                isTyping={isTyping}
+                contentType={engine.config.contentType}
+              />
+            )}
           </div>
         </div>
       )}

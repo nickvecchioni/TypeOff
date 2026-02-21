@@ -22,7 +22,7 @@ interface QueueEntry {
   player: RacePlayer;
   joinedAt: number;
   partyId?: string;
-  modeCategory: ModeCategory;
+  modeCategories: ModeCategory[];
 }
 
 const MAX_PLAYERS = 4;
@@ -55,7 +55,7 @@ export class Matchmaker implements RaceOwner {
     this.onRaceStarted = cb;
   }
 
-  async addToQueue(socket: TypedSocket, player: RacePlayer, modeCategory: ModeCategory = "words") {
+  async addToQueue(socket: TypedSocket, player: RacePlayer, modeCategories: ModeCategory[] = ["words"]) {
     // Remove if already in queue
     this.removeFromQueue(socket.id);
 
@@ -84,7 +84,7 @@ export class Matchmaker implements RaceOwner {
     }
 
     // Normal ranked queue
-    this.queue.push({ socket, player, joinedAt: Date.now(), modeCategory });
+    this.queue.push({ socket, player, joinedAt: Date.now(), modeCategories });
     this.broadcastQueueCount();
 
     // Try to match immediately (solo players get bots, groups get matched)
@@ -94,7 +94,7 @@ export class Matchmaker implements RaceOwner {
   async addPartyToQueue(
     entries: Array<{ socket: TypedSocket; player: RacePlayer }>,
     partyId: string,
-    modeCategory: ModeCategory = "words",
+    modeCategories: ModeCategory[] = ["words"],
   ) {
     // Remove all party members from any existing queue
     for (const entry of entries) {
@@ -136,7 +136,7 @@ export class Matchmaker implements RaceOwner {
         player: entry.player,
         joinedAt: now,
         partyId,
-        modeCategory,
+        modeCategories,
       });
     }
 
@@ -333,7 +333,8 @@ export class Matchmaker implements RaceOwner {
         if (group.length >= MAX_PLAYERS) break;
 
         const candidate = this.queue[j];
-        if (candidate.modeCategory !== entry.modeCategory) continue;
+        const shared = candidate.modeCategories.filter(m => entry.modeCategories.includes(m));
+        if (shared.length === 0) continue;
         const dist = Math.abs(entry.player.elo - candidate.player.elo);
         if (dist <= window) {
           addWithParty(j);
@@ -351,7 +352,7 @@ export class Matchmaker implements RaceOwner {
         for (const idx of group) matched.add(idx);
         const entries = group.map((idx) => this.queue[idx]);
         const botCount = MAX_PLAYERS - entries.length;
-        this.startRaceWithBots(entries, botCount, entry.modeCategory);
+        this.startRaceWithBots(entries, botCount);
       }
     }
 
@@ -366,7 +367,11 @@ export class Matchmaker implements RaceOwner {
   }
 
   private startRace(entries: QueueEntry[]) {
-    const modeCategory = entries[0]?.modeCategory ?? "words";
+    const shared = entries.reduce<ModeCategory[]>(
+      (acc, e) => acc.filter(m => e.modeCategories.includes(m)),
+      entries[0]?.modeCategories ?? ["words"],
+    );
+    const modeCategory = shared[Math.floor(Math.random() * shared.length)] ?? "words";
     const race = new RaceManager(
       this.io, entries, this, [], undefined, undefined, this.notificationManager, modeCategory,
     );
@@ -414,7 +419,12 @@ export class Matchmaker implements RaceOwner {
     console.log(`[matchmaker] placement race ${race.raceId} start() completed`);
   }
 
-  private startRaceWithBots(entries: QueueEntry[], botCount: number, modeCategory?: ModeCategory) {
+  private startRaceWithBots(entries: QueueEntry[], botCount: number) {
+    const shared = entries.reduce<ModeCategory[]>(
+      (acc, e) => acc.filter(m => e.modeCategories.includes(m)),
+      entries[0]?.modeCategories ?? ["words"],
+    );
+    const modeCategory = shared[Math.floor(Math.random() * shared.length)] ?? "words";
     const elos = entries.map((e) => e.player.elo);
     const minElo = Math.min(...elos);
     const maxElo = Math.max(...elos);
@@ -461,7 +471,7 @@ export class Matchmaker implements RaceOwner {
       { botWpmMin, botWpmMax, perBotWpm },
       undefined,
       this.notificationManager,
-      modeCategory ?? entries[0]?.modeCategory ?? "words",
+      modeCategory,
     );
     this.races.set(race.raceId, race);
     const userIds: string[] = [];
