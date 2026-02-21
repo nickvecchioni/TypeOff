@@ -56,9 +56,10 @@ export function GuestPlacement() {
     if (!activeSpan) return;
 
     const wordTop = activeSpan.offsetTop;
-    const threshold = scrollOffset + lineHeight;
-    if (wordTop > threshold) {
-      setScrollOffset(wordTop - lineHeight);
+    const wordLine = Math.floor(wordTop / lineHeight);
+    const scrollLine = Math.round(scrollOffset / lineHeight);
+    if (wordLine > scrollLine + 1) {
+      setScrollOffset((wordLine - 1) * lineHeight);
     }
   }, [engine.currentWordIndex, engine.status, lineHeight, scrollOffset]);
 
@@ -222,15 +223,15 @@ export function GuestPlacement() {
       key={cascadeKey}
       onClick={() => containerRef.current?.focus()}
     >
-      {/* Hero section — smoothly collapses when typing starts */}
+      {/* Hero section — fades out when typing starts, space preserved so text doesn't shift */}
       <div
-        className="grid w-full transition-[grid-template-rows,opacity] duration-500 ease-out overflow-hidden"
+        className="w-full transition-opacity duration-500 ease-out"
         style={{
-          gridTemplateRows: phase === "idle" ? "1fr" : "0fr",
           opacity: phase === "idle" ? 1 : 0,
+          pointerEvents: phase === "idle" ? undefined : "none",
         }}
       >
-        <div className="min-h-0 flex flex-col items-center">
+        <div className="flex flex-col items-center">
           <div className="flex flex-col items-center w-full mb-8">
             {/* Headline */}
             <div
