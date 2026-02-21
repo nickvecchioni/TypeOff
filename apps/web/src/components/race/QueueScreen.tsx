@@ -216,7 +216,7 @@ export function QueueScreen({
 
   // Enter key shortcut to join queue (or mark ready for non-leaders)
   React.useEffect(() => {
-    if (isQueuing || !session?.user || !connected) return;
+    if (isQueuing || !session?.user || !session.user.placementsCompleted || !connected) return;
 
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Enter" && !e.metaKey && !e.ctrlKey && !e.altKey) {
