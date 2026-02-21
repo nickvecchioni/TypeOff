@@ -66,7 +66,7 @@ export default function GhostPage() {
           <h1 className="text-lg font-black text-text uppercase tracking-wider">
             Ghost Race
           </h1>
-          <p className="text-xs text-muted/50 mt-0.5">
+          <p className="text-xs text-muted/65 mt-0.5">
             Race against a replay of a past performance
           </p>
         </div>

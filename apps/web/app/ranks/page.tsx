@@ -193,7 +193,7 @@ function GrandmasterCard({ tier }: { tier: (typeof RANK_TIERS)[number] }) {
             <span className="text-sm text-muted tabular-nums font-bold">
               {tier.range}
             </span>
-            <span className="block text-[10px] text-muted/40 tabular-nums mt-0.5">
+            <span className="block text-[10px] text-muted/60 tabular-nums mt-0.5">
               {tier.wpm} wpm
             </span>
           </div>
@@ -240,12 +240,12 @@ function RankCard({ tier }: { tier: (typeof RANK_TIERS)[number] }) {
             <span className="text-xs text-muted tabular-nums font-medium">
               {tier.range}
             </span>
-            <span className="block text-[10px] text-muted/40 tabular-nums">
+            <span className="block text-[10px] text-muted/60 tabular-nums">
               {tier.wpm} wpm
             </span>
           </div>
         </div>
-        <p className="text-xs text-muted/50 mt-1.5">{tier.flavor}</p>
+        <p className="text-xs text-muted/65 mt-1.5">{tier.flavor}</p>
       </div>
     </div>
   );
@@ -262,7 +262,7 @@ function InfoCard({
 }) {
   return (
     <div className="rounded-lg bg-surface/25 ring-1 ring-white/[0.04] px-4 py-3.5">
-      <h3 className="text-[11px] font-bold text-muted/50 uppercase tracking-widest mb-2">
+      <h3 className="text-[11px] font-bold text-muted/65 uppercase tracking-widest mb-2">
         {title}
       </h3>
       <p className="text-xs text-text/60 leading-relaxed">{children}</p>

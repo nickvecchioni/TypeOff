@@ -125,7 +125,7 @@ export default function AnalyticsPage() {
         <div className="mb-5">
           <h1 className="text-lg font-bold text-text tracking-tight">Analytics</h1>
           {isPro && data.totalRaces != null && (
-            <p className="text-xs text-muted/50 mt-0.5">{data.totalRaces} total races analyzed</p>
+            <p className="text-xs text-muted/65 mt-0.5">{data.totalRaces} total races analyzed</p>
           )}
         </div>
 
@@ -163,7 +163,7 @@ export default function AnalyticsPage() {
             <SectionHeader>
               WPM Trend
               {!isPro && (
-                <span className="text-[10px] font-normal text-muted/30 normal-case tracking-normal ml-1">
+                <span className="text-[10px] font-normal text-muted/65 normal-case tracking-normal ml-1">
                   (last 20 races)
                 </span>
               )}
@@ -217,9 +217,9 @@ export default function AnalyticsPage() {
                         <div className="text-base font-bold text-text tabular-nums">
                           {Math.floor(p.avgWpm)}
                           <span className="text-[0.7em] opacity-50">.{(p.avgWpm % 1).toFixed(2).slice(2)}</span>
-                          <span className="text-[0.6em] text-muted/40 ml-1">wpm</span>
+                          <span className="text-[0.6em] text-muted/60 ml-1">wpm</span>
                         </div>
-                        <div className="text-[10px] text-muted/40 tabular-nums">{p.count} races</div>
+                        <div className="text-[10px] text-muted/60 tabular-nums">{p.count} races</div>
                       </div>
                     );
                   })}
@@ -249,7 +249,7 @@ export default function AnalyticsPage() {
                       );
                     })}
                   </div>
-                  <div className="flex justify-between mt-1.5 text-[9px] text-muted/30">
+                  <div className="flex justify-between mt-1.5 text-[9px] text-muted/65">
                     <span>{last30Days[0]?.date.slice(5)}</span>
                     <span>Today</span>
                   </div>
@@ -292,7 +292,7 @@ export default function AnalyticsPage() {
           /* ── Pro upsell for free users ─────────────────── */
           <div className="rounded-xl ring-1 ring-amber-400/10 bg-amber-400/[0.02] px-5 py-4">
             <p className="text-xs font-bold text-amber-400/60 mb-1">Pro Analytics</p>
-            <p className="text-[11px] text-muted/40 mb-3 leading-relaxed">
+            <p className="text-[11px] text-muted/60 mb-3 leading-relaxed">
               Upgrade to unlock win rate, ELO trend, consistency scores, key accuracy heatmap, placement distribution, and full bigram analysis.
             </p>
             <Link
@@ -324,7 +324,7 @@ function StatCard({ label, value, sub }: { label: string; value: string; sub?: s
     <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2.5">
       <div className="text-base font-bold text-text tabular-nums leading-tight">{value}</div>
       <div className="text-[10px] text-muted/60 mt-0.5">{label}</div>
-      {sub && <div className="text-[9px] text-muted/30 mt-0.5">{sub}</div>}
+      {sub && <div className="text-[9px] text-muted/65 mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -339,7 +339,7 @@ function PlacementBar({ dist }: {
     { label: "1st", count: first, pct: pct(first), color: "bg-rank-gold", textColor: "text-rank-gold" },
     { label: "2nd", count: second, pct: pct(second), color: "bg-rank-silver", textColor: "text-rank-silver" },
     { label: "3rd", count: third, pct: pct(third), color: "bg-rank-bronze", textColor: "text-rank-bronze" },
-    { label: "4th+", count: other, pct: pct(other), color: "bg-muted/30", textColor: "text-muted/50" },
+    { label: "4th+", count: other, pct: pct(other), color: "bg-muted/30", textColor: "text-muted/65" },
   ];
   return (
     <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3">
@@ -359,7 +359,7 @@ function PlacementBar({ dist }: {
         {segments.map((s) => (
           <div key={s.label} className="flex items-center gap-1.5">
             <span className={`text-xs font-bold tabular-nums ${s.textColor}`}>{s.pct}%</span>
-            <span className="text-[10px] text-muted/40">{s.label}</span>
+            <span className="text-[10px] text-muted/60">{s.label}</span>
           </div>
         ))}
       </div>

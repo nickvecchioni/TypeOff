@@ -12,7 +12,7 @@ export function SpectatorIndicator({ count, spectators }: SpectatorIndicatorProp
 
   return (
     <div className="relative group cursor-default select-none">
-      <div className="flex items-center gap-1.5 text-muted/50 text-xs px-2 py-1 rounded-md bg-white/[0.03] ring-1 ring-white/[0.06]">
+      <div className="flex items-center gap-1.5 text-muted/65 text-xs px-2 py-1 rounded-md bg-white/[0.03] ring-1 ring-white/[0.06]">
         <svg
           width="14"
           height="14"
@@ -31,7 +31,7 @@ export function SpectatorIndicator({ count, spectators }: SpectatorIndicatorProp
       </div>
       {/* Hover tooltip with spectator names */}
       <div className="absolute right-0 top-full mt-1 z-20 hidden group-hover:block bg-surface border border-white/[0.08] rounded-md py-1.5 px-2.5 min-w-[120px] shadow-xl">
-        <div className="text-[10px] text-muted/40 uppercase tracking-wider font-bold mb-1">
+        <div className="text-[10px] text-muted/60 uppercase tracking-wider font-bold mb-1">
           Watching
         </div>
         {spectators.map((s) => (

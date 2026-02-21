@@ -85,7 +85,7 @@ export function AchievementsGrid({ achievements, unlocked }: AchievementsGridPro
                     {achievement.description}
                   </div>
                   {isUnlocked && unlockedAt && (
-                    <div className="text-[10px] text-muted/40 mt-1 tabular-nums">
+                    <div className="text-[10px] text-muted/60 mt-1 tabular-nums">
                       {new Date(unlockedAt).toLocaleDateString()}
                     </div>
                   )}

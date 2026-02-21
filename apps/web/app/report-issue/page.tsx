@@ -126,7 +126,7 @@ export default function ReportIssuePage() {
               placeholder="Brief summary of the issue"
               maxLength={100}
               autoFocus
-              className="w-full bg-surface rounded-lg px-4 py-3 text-text outline-none focus:ring-2 focus:ring-accent/50 placeholder:text-muted/50"
+              className="w-full bg-surface rounded-lg px-4 py-3 text-text outline-none focus:ring-2 focus:ring-accent/50 placeholder:text-muted/65"
             />
             <p className="text-xs text-muted mt-1">
               {title.trim().length}/100 characters (min 5)
@@ -191,7 +191,7 @@ export default function ReportIssuePage() {
               placeholder="What happened? What did you expect?"
               maxLength={2000}
               rows={3}
-              className="w-full bg-surface rounded-lg px-4 py-3 text-text outline-none focus:ring-2 focus:ring-accent/50 placeholder:text-muted/50 resize-none"
+              className="w-full bg-surface rounded-lg px-4 py-3 text-text outline-none focus:ring-2 focus:ring-accent/50 placeholder:text-muted/65 resize-none"
             />
             <p className="text-xs text-muted mt-1">
               {description.trim().length}/2000 characters (min 10)
@@ -201,14 +201,14 @@ export default function ReportIssuePage() {
           <div>
             <label className="text-xs text-muted mb-1 block">
               Steps to Reproduce{" "}
-              <span className="text-muted/40">(optional)</span>
+              <span className="text-muted/60">(optional)</span>
             </label>
             <textarea
               value={steps}
               onChange={(e) => setSteps(e.target.value)}
               placeholder="1. Go to...&#10;2. Click on...&#10;3. See error"
               rows={2}
-              className="w-full bg-surface rounded-lg px-4 py-3 text-text outline-none focus:ring-2 focus:ring-accent/50 placeholder:text-muted/50 resize-none"
+              className="w-full bg-surface rounded-lg px-4 py-3 text-text outline-none focus:ring-2 focus:ring-accent/50 placeholder:text-muted/65 resize-none"
             />
           </div>
 

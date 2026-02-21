@@ -269,7 +269,7 @@ export function PracticeArena({ initialDrill = false }: { initialDrill?: boolean
           style={{ animationDelay: "0ms", animationFillMode: "both" }}
         >
           {session?.user?.id && (
-            <div className="focus-fade text-sm text-muted/50 tabular-nums">
+            <div className="focus-fade text-sm text-muted/65 tabular-nums">
               pb{" "}
               {currentPb !== null ? (
                 <span className="text-muted font-medium">
@@ -280,7 +280,7 @@ export function PracticeArena({ initialDrill = false }: { initialDrill?: boolean
                   wpm
                 </span>
               ) : (
-                <span className="text-muted/40 font-medium">n/a</span>
+                <span className="text-muted/60 font-medium">n/a</span>
               )}
             </div>
           )}
@@ -325,7 +325,7 @@ export function PracticeArena({ initialDrill = false }: { initialDrill?: boolean
             style={{ transform: `translateY(-${scrollOffset}px)` }}
           >
             {ct === "custom" && !engine.config.customText ? (
-              <div className="text-muted/25 text-xl sm:text-2xl leading-[2rem] sm:leading-[2.5rem]">
+              <div className="text-muted/45 text-xl sm:text-2xl leading-[2rem] sm:leading-[2.5rem]">
                 paste or type text above to begin
               </div>
             ) : (
@@ -365,15 +365,15 @@ export function PracticeArena({ initialDrill = false }: { initialDrill?: boolean
           {/* Tab+Enter hint (fades out when typing starts) */}
           <p
             key={`hint-${cascadeKey}`}
-            className={`absolute text-muted/30 text-xs transition-opacity duration-300 ${
+            className={`absolute text-muted/65 text-xs transition-opacity duration-300 ${
               engine.status === "idle" ? "opacity-0 animate-fade-in" : "opacity-0"
             }`}
             style={engine.status === "idle" ? { animationDelay: "100ms", animationFillMode: "both" } : undefined}
           >
             press{" "}
-            <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/50 text-[10px]">Tab</kbd>
+            <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/65 text-[10px]">Tab</kbd>
             {" "}+{" "}
-            <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/50 text-[10px]">Enter</kbd>
+            <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/65 text-[10px]">Enter</kbd>
             {" "}to restart
           </p>
         </div>

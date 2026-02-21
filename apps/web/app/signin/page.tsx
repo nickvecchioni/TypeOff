@@ -54,7 +54,7 @@ function SignInContent() {
           Continue with Google
         </button>
 
-        <p className="text-center text-xs text-muted/40">
+        <p className="text-center text-xs text-muted/60">
           No account? One will be created automatically.
         </p>
       </div>

@@ -68,7 +68,7 @@ export default async function ReplayPage({
           </div>
           <div>
             <h1 className="text-lg font-bold text-text">Replay is Pro Only</h1>
-            <p className="text-sm text-muted/50 mt-2 leading-relaxed">
+            <p className="text-sm text-muted/65 mt-2 leading-relaxed">
               Upgrade to TypeOff Pro to watch full race replays with keystroke-by-keystroke playback and WPM graphs.
             </p>
           </div>
@@ -80,7 +80,7 @@ export default async function ReplayPage({
           </Link>
           <Link
             href="/"
-            className="text-xs text-muted/30 hover:text-muted/50 transition-colors"
+            className="text-xs text-muted/65 hover:text-muted/65 transition-colors"
           >
             Back to home
           </Link>

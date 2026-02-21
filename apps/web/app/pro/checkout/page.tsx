@@ -73,7 +73,7 @@ export default function ProCheckoutPage() {
         <div className="mb-6">
           <a
             href="/pro"
-            className="text-xs text-muted/50 hover:text-text transition-colors"
+            className="text-xs text-muted/65 hover:text-text transition-colors"
           >
             &larr; Back to Pro
           </a>

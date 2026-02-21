@@ -38,7 +38,7 @@ export function PlayerEmotePill({ event }: PlayerEmotePillProps) {
         padding: "1px 8px",
       }}
     >
-      <span className="text-muted/50 font-normal text-[10px]">{event.playerName}</span>
+      <span className="text-muted/65 font-normal text-[10px]">{event.playerName}</span>
       <span>{event.emote}</span>
     </span>
   );

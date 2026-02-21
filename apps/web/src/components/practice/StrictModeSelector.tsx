@@ -29,7 +29,7 @@ export function StrictModeSelector({ value, onChange }: StrictModeSelectorProps)
                 : mode.value === "expert"
                 ? "text-amber-400/80 bg-amber-500/10"
                 : "text-accent/80 bg-accent/10"
-              : "text-muted/35 hover:text-muted/70 hover:bg-white/[0.03]"
+              : "text-muted/55 hover:text-muted/70 hover:bg-white/[0.03]"
           }`}
         >
           {mode.label}

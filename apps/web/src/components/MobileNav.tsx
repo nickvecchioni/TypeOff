@@ -108,7 +108,7 @@ export function MobileNav() {
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
                 pathname === "/bug-report"
                   ? "bg-accent/10 text-accent font-medium"
-                  : "text-muted/50 hover:text-muted hover:bg-white/[0.04]"
+                  : "text-muted/65 hover:text-muted hover:bg-white/[0.04]"
               }`}
             >
               Report a Bug

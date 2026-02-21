@@ -4,7 +4,7 @@ export function ReportIssueButton() {
   return (
     <Link
       href="/report-issue"
-      className="text-muted/30 hover:text-muted transition-colors"
+      className="text-muted/65 hover:text-muted transition-colors"
     >
       Report an Issue
     </Link>

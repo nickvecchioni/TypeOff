@@ -82,11 +82,11 @@ export function ZenArena({ engine }: ZenArenaProps) {
     >
       {/* Minimal header */}
       {!isFinished && (
-        <div className="focus-fade flex items-center gap-4 text-sm text-muted/40">
+        <div className="focus-fade flex items-center gap-4 text-sm text-muted/60">
           <span className="text-accent/60 font-medium">zen mode</span>
           {isTyping && (
-            <span className="text-xs text-muted/30">
-              press <kbd className="px-1 py-0.5 rounded bg-white/[0.05] text-muted/50 text-[10px]">Esc</kbd> to stop
+            <span className="text-xs text-muted/65">
+              press <kbd className="px-1 py-0.5 rounded bg-white/[0.05] text-muted/65 text-[10px]">Esc</kbd> to stop
             </span>
           )}
         </div>
@@ -131,7 +131,7 @@ export function ZenArena({ engine }: ZenArenaProps) {
 
       {/* Hint */}
       {!isFinished && engine.status === "idle" && (
-        <p className="text-muted/30 text-xs opacity-0 animate-fade-in" style={{ animationDelay: "100ms", animationFillMode: "both" }}>
+        <p className="text-muted/65 text-xs opacity-0 animate-fade-in" style={{ animationDelay: "100ms", animationFillMode: "both" }}>
           start typing — no time limit, no word count
         </p>
       )}

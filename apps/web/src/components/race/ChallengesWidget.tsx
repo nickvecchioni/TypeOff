@@ -145,7 +145,7 @@ function ChallengeRow({
             {clamped}/{challenge.target}
           </span>
         </div>
-        <p className="text-[10px] text-muted/50 truncate mb-1">{challenge.description}</p>
+        <p className="text-[10px] text-muted/65 truncate mb-1">{challenge.description}</p>
         <div className="h-1 rounded-full bg-surface overflow-hidden">
           <div
             className={`h-full rounded-full transition-all ${

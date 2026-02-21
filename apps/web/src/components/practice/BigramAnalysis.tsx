@@ -22,7 +22,7 @@ export function BigramAnalysis({ bigrams, onPractice }: BigramAnalysisProps) {
 
   if (worstBigrams.length === 0) {
     return (
-      <div className="text-sm text-muted/40 text-center py-8">
+      <div className="text-sm text-muted/60 text-center py-8">
         Not enough data yet. Complete more typing tests to see your bigram accuracy.
       </div>
     );
@@ -58,7 +58,7 @@ export function BigramAnalysis({ bigrams, onPractice }: BigramAnalysisProps) {
                 <span className={`text-sm font-bold tabular-nums ${color}`}>
                   {b.accuracy.toFixed(1)}%
                 </span>
-                <span className="text-[10px] text-muted/40 tabular-nums">
+                <span className="text-[10px] text-muted/60 tabular-nums">
                   {b.total} typed
                 </span>
               </div>

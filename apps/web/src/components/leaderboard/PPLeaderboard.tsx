@@ -79,7 +79,7 @@ export function PPLeaderboard({ userId }: PPLeaderboardProps) {
             rank === 1 ? "text-rank-gold" :
             rank === 2 ? "text-rank-silver" :
             rank === 3 ? "text-rank-bronze" :
-            "text-muted/40";
+            "text-muted/60";
 
           const rowBg = isMe
             ? "bg-accent/[0.05] ring-1 ring-accent/10"
@@ -112,7 +112,7 @@ export function PPLeaderboard({ userId }: PPLeaderboardProps) {
                     <span className="text-[10px] font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded ml-1.5">{getXpLevel(entry.totalXp ?? 0).level}</span>
                   </span>
                   {entry.activeTitle && (
-                    <span className="text-[10px] text-muted/40 leading-tight">{TITLE_TEXTS[entry.activeTitle] ?? entry.activeTitle}</span>
+                    <span className="text-[10px] text-muted/60 leading-tight">{TITLE_TEXTS[entry.activeTitle] ?? entry.activeTitle}</span>
                   )}
                 </div>
               </div>
@@ -125,7 +125,7 @@ export function PPLeaderboard({ userId }: PPLeaderboardProps) {
               <span className="text-sm text-muted/70 tabular-nums text-right hidden sm:block">
                 {entry.avgWpm != null ? entry.avgWpm.toFixed(2) : "-"}
               </span>
-              <span className="text-sm text-muted/50 tabular-nums text-right hidden sm:block">
+              <span className="text-sm text-muted/65 tabular-nums text-right hidden sm:block">
                 {entry.racesPlayed ?? 0}
               </span>
             </Link>

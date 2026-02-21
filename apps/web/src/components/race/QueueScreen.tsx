@@ -106,16 +106,16 @@ function LevelWidget({
         {/* Level number + XP bar */}
         <div className="flex items-center gap-4">
           <div className="shrink-0 w-12 text-center">
-            <div className="text-[9px] font-black text-muted/40 uppercase tracking-widest leading-none mb-0.5">LV.</div>
+            <div className="text-[9px] font-black text-muted/60 uppercase tracking-widest leading-none mb-0.5">LV.</div>
             <div className="text-4xl font-black text-text tabular-nums leading-none">{level}</div>
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-baseline justify-between mb-1.5">
               <span className="text-[11px] font-bold text-accent tabular-nums">
                 {currentXp.toLocaleString()}
-                <span className="text-muted/40 font-normal"> / {nextLevelXp.toLocaleString()} XP</span>
+                <span className="text-muted/60 font-normal"> / {nextLevelXp.toLocaleString()} XP</span>
               </span>
-              <span className="text-[10px] text-muted/40 tabular-nums">{xpPct}%</span>
+              <span className="text-[10px] text-muted/60 tabular-nums">{xpPct}%</span>
             </div>
             <div className="h-2 rounded-full bg-white/[0.04] overflow-hidden">
               <div
@@ -126,7 +126,7 @@ function LevelWidget({
                 }}
               />
             </div>
-            <div className="text-[10px] text-muted/35 mt-1 tabular-nums">
+            <div className="text-[10px] text-muted/55 mt-1 tabular-nums">
               {xpRemaining.toLocaleString()} XP to level {level + 1}
             </div>
           </div>
@@ -142,7 +142,7 @@ function LevelWidget({
               <div className="text-[11px] font-semibold text-text/80 truncate leading-none mb-0.5">
                 {nextReward.name}
               </div>
-              <div className="text-[10px] text-muted/40 leading-none">
+              <div className="text-[10px] text-muted/60 leading-none">
                 unlocks at level {nextReward.level}
               </div>
             </div>
@@ -365,7 +365,7 @@ export function QueueScreen({
                     showElo={false}
                   />
                   <div className="hidden sm:block">
-                    <div className="text-[9px] text-muted/40 uppercase tracking-widest leading-none mb-0.5">
+                    <div className="text-[9px] text-muted/60 uppercase tracking-widest leading-none mb-0.5">
                       rank
                     </div>
                     <div
@@ -381,7 +381,7 @@ export function QueueScreen({
 
                 {/* ELO */}
                 <div className="shrink-0">
-                  <div className="text-[9px] text-muted/40 uppercase tracking-widest leading-none mb-0.5">
+                  <div className="text-[9px] text-muted/60 uppercase tracking-widest leading-none mb-0.5">
                     elo
                   </div>
                   <div
@@ -401,7 +401,7 @@ export function QueueScreen({
                   <>
                     <div className="w-px h-8 bg-white/[0.05] shrink-0" />
                     <div className="shrink-0">
-                      <div className="text-[9px] text-muted/40 uppercase tracking-widest leading-none mb-0.5">
+                      <div className="text-[9px] text-muted/60 uppercase tracking-widest leading-none mb-0.5">
                         streak
                       </div>
                       <div className="text-sm font-bold text-amber-400 tabular-nums leading-none">
@@ -420,7 +420,7 @@ export function QueueScreen({
                     className="hidden sm:flex flex-col items-end gap-1 shrink-0 group"
                   >
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[9px] text-muted/40 uppercase tracking-widest">lv.</span>
+                      <span className="text-[9px] text-muted/60 uppercase tracking-widest">lv.</span>
                       <span className="text-sm font-black text-accent tabular-nums">
                         {xpInfo.level}
                       </span>
@@ -433,7 +433,7 @@ export function QueueScreen({
                         }}
                       />
                     </div>
-                    <div className="text-[9px] text-muted/30 group-hover:text-muted/50 transition-colors tabular-nums">
+                    <div className="text-[9px] text-muted/65 group-hover:text-muted/65 transition-colors tabular-nums">
                       {xpInfo.currentXp}/{xpInfo.nextLevelXp} xp
                     </div>
                   </Link>
@@ -462,7 +462,7 @@ export function QueueScreen({
                   <span className="inline-block w-[2px] h-[1.1em] bg-current animate-blink ml-0.5 translate-y-[2px]" />
                 )}
               </button>
-              <span className="text-[11px] text-muted/40">
+              <span className="text-[11px] text-muted/60">
                 {amReady ? (
                   "Waiting for party leader to start..."
                 ) : (
@@ -517,7 +517,7 @@ export function QueueScreen({
                         </span>
                         <span className="text-[11px] font-semibold leading-none">{label}</span>
                         <span
-                          className={`text-[9px] leading-tight hidden sm:block ${active ? "text-accent/70" : "text-muted/40"}`}
+                          className={`text-[9px] leading-tight hidden sm:block ${active ? "text-accent/70" : "text-muted/60"}`}
                         >
                           {desc}
                         </span>
@@ -543,7 +543,7 @@ export function QueueScreen({
 
               {/* Hint row + secondary actions */}
               <div className="relative flex items-center justify-between w-full mt-3">
-                <span className="text-[11px] text-muted/40">
+                <span className="text-[11px] text-muted/60">
                   {inParty && !allMembersReady ? (
                     "waiting for party to ready up..."
                   ) : (
@@ -615,14 +615,14 @@ export function QueueScreen({
                         }`}
                       />
                     </button>
-                    <span className="text-[11px] text-muted/50 group-hover:text-muted transition-colors">
+                    <span className="text-[11px] text-muted/65 group-hover:text-muted transition-colors">
                       Private race
                     </span>
                   </label>
                 )}
 
               {!session.user.placementsCompleted && (
-                <p className="relative text-[11px] text-muted/30 mt-1">
+                <p className="relative text-[11px] text-muted/65 mt-1">
                   complete a placement test to unlock ranked
                 </p>
               )}

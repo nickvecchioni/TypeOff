@@ -121,7 +121,7 @@ export function PartyPanel({
             {showInvite ? (
               <div className="flex items-center gap-2 flex-wrap justify-center">
                 {invitableFriends.length === 0 ? (
-                  <span className="text-xs text-muted/50">No online friends</span>
+                  <span className="text-xs text-muted/65">No online friends</span>
                 ) : (
                   invitableFriends.map((friend) => (
                     <button
@@ -155,7 +155,7 @@ export function PartyPanel({
         )}
         <button
           onClick={onLeave}
-          className="text-xs text-muted/40 hover:text-error transition-colors"
+          className="text-xs text-muted/60 hover:text-error transition-colors"
         >
           Leave Party
         </button>
@@ -166,7 +166,7 @@ export function PartyPanel({
         {/* Message list */}
         <div className="h-28 overflow-y-auto px-3 py-2 flex flex-col gap-1 scroll-smooth">
           {messages.length === 0 ? (
-            <p className="text-[11px] text-muted/25 italic m-auto select-none">
+            <p className="text-[11px] text-muted/45 italic m-auto select-none">
               Say something to your party!
             </p>
           ) : (
@@ -203,7 +203,7 @@ export function PartyPanel({
             value={draft}
             onChange={(e) => setDraft(e.target.value.slice(0, 150))}
             placeholder="Message..."
-            className="flex-1 bg-transparent text-[12px] text-text placeholder:text-muted/25 px-3 py-2 outline-none"
+            className="flex-1 bg-transparent text-[12px] text-text placeholder:text-muted/45 px-3 py-2 outline-none"
           />
           <button
             type="submit"

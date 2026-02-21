@@ -24,7 +24,7 @@ export function CodeLanguagePicker({ value, onChange }: CodeLanguagePickerProps)
         className={`px-2 py-1 rounded text-[11px] font-medium transition-all ${
           value === undefined
             ? "text-accent/80 bg-accent/10"
-            : "text-muted/35 hover:text-muted/70 hover:bg-white/[0.03]"
+            : "text-muted/55 hover:text-muted/70 hover:bg-white/[0.03]"
         }`}
       >
         any
@@ -36,7 +36,7 @@ export function CodeLanguagePicker({ value, onChange }: CodeLanguagePickerProps)
           className={`px-2 py-1 rounded text-[11px] font-medium transition-all ${
             value === lang
               ? "text-accent/80 bg-accent/10"
-              : "text-muted/35 hover:text-muted/70 hover:bg-white/[0.03]"
+              : "text-muted/55 hover:text-muted/70 hover:bg-white/[0.03]"
           }`}
         >
           {LANGUAGE_LABELS[lang] ?? lang}

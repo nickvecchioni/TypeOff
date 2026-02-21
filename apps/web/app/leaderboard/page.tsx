@@ -220,7 +220,7 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
                 ? "text-rank-silver"
                 : rank === 3
                 ? "text-rank-bronze"
-                : "text-muted/40";
+                : "text-muted/60";
 
               const rowBg = isMe
                 ? "bg-accent/[0.05] ring-1 ring-accent/10"
@@ -264,7 +264,7 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
                                 {info.label}
                               </span>
                               {cosmetic?.activeTitle && (
-                                <span className="text-[10px] text-muted/40 leading-tight">{TITLE_TEXTS[cosmetic.activeTitle] ?? cosmetic.activeTitle}</span>
+                                <span className="text-[10px] text-muted/60 leading-tight">{TITLE_TEXTS[cosmetic.activeTitle] ?? cosmetic.activeTitle}</span>
                               )}
                             </span>
                           </div>
@@ -281,13 +281,13 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
                   <span className="text-sm text-muted/70 tabular-nums text-right hidden sm:block">
                     {fmtWpm(row.avgWpm)}
                   </span>
-                  <span className="text-sm text-muted/50 tabular-nums text-right hidden sm:block">
+                  <span className="text-sm text-muted/65 tabular-nums text-right hidden sm:block">
                     {row.avgAccuracy != null ? (<>{Math.floor(row.avgAccuracy)}<span className="text-[0.8em] opacity-50">.{((row.avgAccuracy % 1) * 10).toFixed(0)}%</span></>) : "-"}
                   </span>
-                  <span className="text-sm text-muted/50 tabular-nums text-right hidden sm:block">
+                  <span className="text-sm text-muted/65 tabular-nums text-right hidden sm:block">
                     {racesPlayed}
                   </span>
-                  <span className="text-sm text-muted/50 tabular-nums text-right">
+                  <span className="text-sm text-muted/65 tabular-nums text-right">
                     {racesWon}
                   </span>
                 </Link>
@@ -310,14 +310,14 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
                 className="mt-3 border-t border-white/[0.04] pt-3 opacity-0 animate-fade-in"
                 style={{ animationDelay: "200ms", animationFillMode: "both" }}
               >
-                <p className="text-center text-muted/30 text-sm select-none leading-none mb-3">
+                <p className="text-center text-muted/65 text-sm select-none leading-none mb-3">
                   &middot;&middot;&middot;
                 </p>
                 <Link
                   href={`/profile/${row.username}`}
                   className={`grid ${gridCols} items-center gap-3 px-4 py-2.5 rounded-lg transition-colors bg-accent/[0.05] ring-1 ring-accent/10`}
                 >
-                  <span className="text-sm font-bold tabular-nums text-muted/40">
+                  <span className="text-sm font-bold tabular-nums text-muted/60">
                     {rank}
                   </span>
                   <div className="flex items-center gap-2.5 min-w-0">
@@ -333,7 +333,7 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
                           {info.label}
                         </span>
                         {myCosmetic?.activeTitle && (
-                          <span className="text-[10px] text-muted/40 leading-tight">{TITLE_TEXTS[myCosmetic.activeTitle] ?? myCosmetic.activeTitle}</span>
+                          <span className="text-[10px] text-muted/60 leading-tight">{TITLE_TEXTS[myCosmetic.activeTitle] ?? myCosmetic.activeTitle}</span>
                         )}
                       </span>
                     </div>
@@ -347,13 +347,13 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
                   <span className="text-sm text-muted/70 tabular-nums text-right hidden sm:block">
                     {fmtWpm(row.avgWpm)}
                   </span>
-                  <span className="text-sm text-muted/50 tabular-nums text-right hidden sm:block">
+                  <span className="text-sm text-muted/65 tabular-nums text-right hidden sm:block">
                     {row.avgAccuracy != null ? (<>{Math.floor(row.avgAccuracy)}<span className="text-[0.8em] opacity-50">.{((row.avgAccuracy % 1) * 10).toFixed(0)}%</span></>) : "-"}
                   </span>
-                  <span className="text-sm text-muted/50 tabular-nums text-right hidden sm:block">
+                  <span className="text-sm text-muted/65 tabular-nums text-right hidden sm:block">
                     {racesPlayed}
                   </span>
-                  <span className="text-sm text-muted/50 tabular-nums text-right">
+                  <span className="text-sm text-muted/65 tabular-nums text-right">
                     {racesWon}
                   </span>
                 </Link>
@@ -539,7 +539,7 @@ async function SoloLeaderboard({
                 ? "text-rank-silver"
                 : rank === 3
                 ? "text-rank-bronze"
-                : "text-muted/40";
+                : "text-muted/60";
 
               const rowBg = isMe
                 ? "bg-accent/[0.05] ring-1 ring-accent/10"
@@ -574,17 +574,17 @@ async function SoloLeaderboard({
                         <span className="text-[10px] font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded ml-1.5">{getXpLevel(row.totalXp ?? 0).level}</span>
                       </span>
                       {soloCosmetic?.activeTitle && (
-                        <span className="text-[10px] text-muted/40 leading-tight">{TITLE_TEXTS[soloCosmetic.activeTitle] ?? soloCosmetic.activeTitle}</span>
+                        <span className="text-[10px] text-muted/60 leading-tight">{TITLE_TEXTS[soloCosmetic.activeTitle] ?? soloCosmetic.activeTitle}</span>
                       )}
                     </div>
                   </div>
                   <span className="text-sm tabular-nums text-right font-semibold text-text">
                     {fmtWpm(row.bestWpm)}
                   </span>
-                  <span className="text-sm text-muted/50 tabular-nums text-right hidden sm:block">
+                  <span className="text-sm text-muted/65 tabular-nums text-right hidden sm:block">
                     {row.bestAccuracy != null ? (<>{Math.floor(row.bestAccuracy)}<span className="text-[0.8em] opacity-50">.{((row.bestAccuracy % 1) * 10).toFixed(0)}%</span></>) : "-"}
                   </span>
-                  <span className="text-sm text-muted/50 tabular-nums text-right hidden sm:block">
+                  <span className="text-sm text-muted/65 tabular-nums text-right hidden sm:block">
                     {row.testCount}
                   </span>
                 </Link>
@@ -602,14 +602,14 @@ async function SoloLeaderboard({
                 className="mt-3 border-t border-white/[0.04] pt-3 opacity-0 animate-fade-in"
                 style={{ animationDelay: "200ms", animationFillMode: "both" }}
               >
-                <p className="text-center text-muted/30 text-sm select-none leading-none mb-3">
+                <p className="text-center text-muted/65 text-sm select-none leading-none mb-3">
                   &middot;&middot;&middot;
                 </p>
                 <Link
                   href={`/profile/${row.username}`}
                   className={`grid ${soloGridCols} items-center gap-3 px-4 py-2.5 rounded-lg transition-colors bg-accent/[0.05] ring-1 ring-accent/10`}
                 >
-                  <span className="text-sm font-bold tabular-nums text-muted/40">
+                  <span className="text-sm font-bold tabular-nums text-muted/60">
                     {rank}
                   </span>
                   <div className="flex items-center gap-2.5 min-w-0">
@@ -620,17 +620,17 @@ async function SoloLeaderboard({
                         <span className="text-[10px] font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded ml-1.5">{getXpLevel(row.totalXp ?? 0).level}</span>
                       </span>
                       {mySoloCosmetic?.activeTitle && (
-                        <span className="text-[10px] text-muted/40 leading-tight">{TITLE_TEXTS[mySoloCosmetic.activeTitle] ?? mySoloCosmetic.activeTitle}</span>
+                        <span className="text-[10px] text-muted/60 leading-tight">{TITLE_TEXTS[mySoloCosmetic.activeTitle] ?? mySoloCosmetic.activeTitle}</span>
                       )}
                     </div>
                   </div>
                   <span className="text-sm tabular-nums text-right font-semibold text-text">
                     {fmtWpm(row.bestWpm)}
                   </span>
-                  <span className="text-sm text-muted/50 tabular-nums text-right hidden sm:block">
+                  <span className="text-sm text-muted/65 tabular-nums text-right hidden sm:block">
                     {row.bestAccuracy != null ? (<>{Math.floor(row.bestAccuracy)}<span className="text-[0.8em] opacity-50">.{((row.bestAccuracy % 1) * 10).toFixed(0)}%</span></>) : "-"}
                   </span>
-                  <span className="text-sm text-muted/50 tabular-nums text-right hidden sm:block">
+                  <span className="text-sm text-muted/65 tabular-nums text-right hidden sm:block">
                     {row.testCount}
                   </span>
                 </Link>
@@ -761,7 +761,7 @@ async function UniverseLeaderboard({
                 rank === 1 ? "text-rank-gold" :
                 rank === 2 ? "text-rank-silver" :
                 rank === 3 ? "text-rank-bronze" :
-                "text-muted/40";
+                "text-muted/60";
 
               const rowBg = isMe
                 ? "bg-accent/[0.05] ring-1 ring-accent/10"
@@ -794,17 +794,17 @@ async function UniverseLeaderboard({
                         <span className="text-[10px] font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded ml-1.5">{getXpLevel(row.totalXp ?? 0).level}</span>
                       </span>
                       {cosmetic?.activeTitle && (
-                        <span className="text-[10px] text-muted/40 leading-tight">{TITLE_TEXTS[cosmetic.activeTitle] ?? cosmetic.activeTitle}</span>
+                        <span className="text-[10px] text-muted/60 leading-tight">{TITLE_TEXTS[cosmetic.activeTitle] ?? cosmetic.activeTitle}</span>
                       )}
                     </div>
                   </div>
                   <span className="text-sm tabular-nums text-right font-semibold text-text">
                     {fmtWpm(row.bestWpm)}
                   </span>
-                  <span className="text-sm text-muted/50 tabular-nums text-right hidden sm:block">
+                  <span className="text-sm text-muted/65 tabular-nums text-right hidden sm:block">
                     {row.bestAccuracy != null ? `${Math.floor(row.bestAccuracy)}%` : "-"}
                   </span>
-                  <span className="text-sm text-muted/50 tabular-nums text-right hidden sm:block">
+                  <span className="text-sm text-muted/65 tabular-nums text-right hidden sm:block">
                     {row.raceCount}
                   </span>
                 </Link>

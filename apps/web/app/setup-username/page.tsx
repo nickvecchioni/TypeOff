@@ -83,7 +83,7 @@ export default function SetupUsernamePage() {
             placeholder="your-username"
             maxLength={20}
             autoFocus
-            className="w-full bg-surface rounded-lg px-4 py-3 text-text outline-none focus:ring-2 focus:ring-accent/50 placeholder:text-muted/50"
+            className="w-full bg-surface rounded-lg px-4 py-3 text-text outline-none focus:ring-2 focus:ring-accent/50 placeholder:text-muted/65"
           />
           <p className="text-xs text-muted mt-2">
             3-20 characters. Lowercase letters, numbers, and hyphens only.

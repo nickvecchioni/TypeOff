@@ -66,7 +66,7 @@ export function ReportBlockButton({ targetUserId, targetUsername, isBlocked, onB
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1 text-xs text-muted/50 hover:text-muted rounded px-2 py-1 hover:bg-white/[0.04] transition-all"
+        className="flex items-center gap-1 text-xs text-muted/65 hover:text-muted rounded px-2 py-1 hover:bg-white/[0.04] transition-all"
         aria-label="More options"
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
@@ -124,7 +124,7 @@ export function ReportBlockButton({ targetUserId, targetUsername, isBlocked, onB
                 </button>
                 <button
                   onClick={() => setReportOpen(false)}
-                  className="text-xs text-muted/50 hover:text-muted px-2"
+                  className="text-xs text-muted/65 hover:text-muted px-2"
                 >
                   Cancel
                 </button>

@@ -98,7 +98,7 @@ export function XpProgressWidget() {
           )}
         </div>
 
-        <p className="text-[11px] text-muted/50 mt-1.5 group-hover:text-muted/70 transition-colors">
+        <p className="text-[11px] text-muted/65 mt-1.5 group-hover:text-muted/70 transition-colors">
           {xpToNext} XP to next level
         </p>
       </div>

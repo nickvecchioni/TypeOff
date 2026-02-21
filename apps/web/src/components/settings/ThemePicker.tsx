@@ -24,7 +24,7 @@ export function ThemePicker({ activeThemeId, unlockedThemeIds, onSelect }: Theme
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
         placeholder="Search themes..."
-        className="w-full max-w-xs rounded-lg bg-surface/60 ring-1 ring-white/[0.08] px-3 py-2 text-sm text-text placeholder:text-muted/30 focus:outline-none focus:ring-accent/30"
+        className="w-full max-w-xs rounded-lg bg-surface/60 ring-1 ring-white/[0.08] px-3 py-2 text-sm text-text placeholder:text-muted/65 focus:outline-none focus:ring-accent/30"
       />
 
       {/* Default (no theme) */}
@@ -103,7 +103,7 @@ function ThemeCard({
 
       {/* Label */}
       <span className={`text-xs font-medium truncate ${
-        active ? "text-accent" : locked ? "text-muted/40" : "text-text"
+        active ? "text-accent" : locked ? "text-muted/60" : "text-text"
       }`}>
         {def.label}
       </span>

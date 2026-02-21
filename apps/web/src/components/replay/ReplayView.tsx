@@ -150,7 +150,7 @@ export function ReplayView({
 
       {/* Results summary */}
       <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden">
-        <div className="grid grid-cols-[2rem_1fr_4rem_4rem] text-xs text-muted/50 uppercase tracking-wider px-4 py-1.5 border-b border-white/[0.06]">
+        <div className="grid grid-cols-[2rem_1fr_4rem_4rem] text-xs text-muted/65 uppercase tracking-wider px-4 py-1.5 border-b border-white/[0.06]">
           <span>#</span>
           <span>Player</span>
           <span className="text-right">WPM</span>

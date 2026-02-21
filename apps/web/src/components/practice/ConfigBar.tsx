@@ -197,7 +197,7 @@ export function ConfigBar({
               if (words.length > 0) onCustomTextChange?.(words);
             }}
             placeholder="Paste or type your custom text here..."
-            className="w-full h-20 rounded-lg bg-surface/60 ring-1 ring-white/[0.08] px-3 py-2 text-sm text-text placeholder:text-muted/30 resize-none focus:outline-none focus:ring-accent/30"
+            className="w-full h-20 rounded-lg bg-surface/60 ring-1 ring-white/[0.08] px-3 py-2 text-sm text-text placeholder:text-muted/65 resize-none focus:outline-none focus:ring-accent/30"
           />
         </div>
       )}
@@ -254,7 +254,7 @@ function Chip({
           ? "text-amber-400/40 hover:text-amber-400/60 hover:bg-amber-400/[0.04]"
           : active
             ? "bg-accent/15 text-accent ring-1 ring-accent/20"
-            : "text-muted/50 hover:text-text hover:bg-white/[0.04]"
+            : "text-muted/65 hover:text-text hover:bg-white/[0.04]"
       }`}
     >
       {children}
@@ -279,7 +279,7 @@ function Sub({
       className={`px-2 py-1 rounded text-[11px] font-medium transition-all ${
         active
           ? "text-accent/80 bg-accent/10"
-          : "text-muted/35 hover:text-muted/70 hover:bg-white/[0.03]"
+          : "text-muted/55 hover:text-muted/70 hover:bg-white/[0.03]"
       }`}
     >
       {children}

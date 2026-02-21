@@ -342,7 +342,7 @@ export function RaceArena() {
               {race.phase === "countdown" && (
                 <button
                   onClick={race.leaveRace}
-                  className="absolute bottom-2 text-[10px] text-muted/20 hover:text-muted/50 transition-colors pointer-events-auto"
+                  className="absolute bottom-2 text-[10px] text-muted/20 hover:text-muted/65 transition-colors pointer-events-auto"
                 >
                   press Esc to leave
                 </button>

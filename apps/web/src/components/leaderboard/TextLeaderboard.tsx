@@ -34,7 +34,7 @@ export function TextLeaderboard({ seed, mode, limit = 10 }: TextLeaderboardProps
 
   if (entries.length === 0) {
     return (
-      <div className="text-xs text-muted/40 text-center py-3">
+      <div className="text-xs text-muted/60 text-center py-3">
         No records for this text yet
       </div>
     );
@@ -43,7 +43,7 @@ export function TextLeaderboard({ seed, mode, limit = 10 }: TextLeaderboardProps
   return (
     <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] overflow-hidden">
       <div className="px-3 py-2 border-b border-white/[0.04]">
-        <span className="text-[10px] uppercase tracking-wider text-muted/50 font-bold">
+        <span className="text-[10px] uppercase tracking-wider text-muted/65 font-bold">
           Text Leaderboard
         </span>
       </div>
@@ -53,7 +53,7 @@ export function TextLeaderboard({ seed, mode, limit = 10 }: TextLeaderboardProps
             i === 0 ? "text-rank-gold" :
             i === 1 ? "text-rank-silver" :
             i === 2 ? "text-rank-bronze" :
-            "text-muted/40";
+            "text-muted/60";
 
           return (
             <div key={entry.userId} className="flex items-center gap-3 px-3 py-1.5">
@@ -66,7 +66,7 @@ export function TextLeaderboard({ seed, mode, limit = 10 }: TextLeaderboardProps
               <span className="text-xs font-bold text-text tabular-nums">
                 {Math.floor(entry.bestWpm)}
               </span>
-              <span className="text-[10px] text-muted/40 tabular-nums w-10 text-right">
+              <span className="text-[10px] text-muted/60 tabular-nums w-10 text-right">
                 {Math.floor(entry.bestAccuracy)}%
               </span>
             </div>

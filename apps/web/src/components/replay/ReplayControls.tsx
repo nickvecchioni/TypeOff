@@ -66,7 +66,7 @@ export function ReplayControls({
       />
 
       {/* Duration */}
-      <span className="text-xs text-muted/40 tabular-nums shrink-0 w-12">
+      <span className="text-xs text-muted/60 tabular-nums shrink-0 w-12">
         {formatTime(duration)}
       </span>
 
@@ -79,7 +79,7 @@ export function ReplayControls({
             className={`text-[10px] font-bold px-1.5 py-0.5 rounded transition-colors tabular-nums ${
               speed === s
                 ? "bg-accent/20 text-accent"
-                : "text-muted/40 hover:text-muted"
+                : "text-muted/60 hover:text-muted"
             }`}
           >
             {s}x

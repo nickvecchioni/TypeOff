@@ -88,7 +88,7 @@ export default function HistoryPage() {
         <div className="flex items-start justify-between gap-4 mb-5">
           <div>
             <h1 className="text-lg font-bold text-text tracking-tight">Race History</h1>
-            <p className="text-xs text-muted/50 mt-0.5">
+            <p className="text-xs text-muted/65 mt-0.5">
               {total} total races
               {!isPro && " — showing last 5"}
             </p>
@@ -121,7 +121,7 @@ export default function HistoryPage() {
               placeholder="Min WPM"
               value={minWpm}
               onChange={(e) => setMinWpm(e.target.value)}
-              className="text-xs bg-surface/60 text-text rounded-lg px-3 py-1.5 ring-1 ring-white/[0.06] outline-none w-24 placeholder:text-muted/30"
+              className="text-xs bg-surface/60 text-text rounded-lg px-3 py-1.5 ring-1 ring-white/[0.06] outline-none w-24 placeholder:text-muted/65"
             />
           </div>
         )}
@@ -223,7 +223,7 @@ export default function HistoryPage() {
                       <td className="px-3 sm:px-4 py-2.5 text-right">
                         <Link
                           href={`/races/${race.raceId}`}
-                          className="text-muted/30 hover:text-accent transition-colors"
+                          className="text-muted/65 hover:text-accent transition-colors"
                           title="Watch replay"
                         >
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
@@ -239,7 +239,7 @@ export default function HistoryPage() {
           </div>
         ) : (
           <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] px-8 py-12 text-center">
-            <p className="text-sm text-muted/50">No races found.</p>
+            <p className="text-sm text-muted/65">No races found.</p>
           </div>
         )}
 
@@ -262,7 +262,7 @@ export default function HistoryPage() {
             <p className="text-sm text-text font-medium mb-1">
               Want to see your full race history?
             </p>
-            <p className="text-xs text-muted/50 mb-3">
+            <p className="text-xs text-muted/65 mb-3">
               Upgrade to Pro for unlimited history, filters, and sorting.
             </p>
             <Link

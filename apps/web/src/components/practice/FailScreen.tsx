@@ -90,11 +90,11 @@ export function FailScreen({ stats, config, onRestart }: FailScreenProps) {
           Try Again
           <span className="inline-block w-[2px] h-[1em] bg-current animate-blink ml-0.5 translate-y-px" />
         </button>
-        <p className="text-muted/30 text-xs">
+        <p className="text-muted/65 text-xs">
           press{" "}
-          <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/50 text-[10px]">Tab</kbd>
+          <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/65 text-[10px]">Tab</kbd>
           {" "}+{" "}
-          <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/50 text-[10px]">Enter</kbd>
+          <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/65 text-[10px]">Enter</kbd>
           {" "}to restart
         </p>
       </div>

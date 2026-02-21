@@ -66,7 +66,7 @@ const RARITY_GLOW: Record<AchievementRarity, string> = {
 };
 
 const RARITY_LABEL: Record<AchievementRarity, string> = {
-  common: "text-muted/35",
+  common: "text-muted/55",
   rare: "text-sky-400/70",
   epic: "text-purple-400/70",
   legendary: "text-yellow-400/80",
@@ -328,7 +328,7 @@ function AnimatedXpPanel({
         >
           {/* Big level number */}
           <div className="shrink-0 w-10 text-center">
-            <div className="text-[9px] font-black text-muted/40 uppercase tracking-widest leading-none mb-0.5">LV.</div>
+            <div className="text-[9px] font-black text-muted/60 uppercase tracking-widest leading-none mb-0.5">LV.</div>
             <div
               className={`text-3xl font-black tabular-nums leading-none transition-colors duration-300 ${
                 levelUpGlow ? "text-accent" : "text-text"
@@ -348,7 +348,7 @@ function AnimatedXpPanel({
             <div className="flex items-baseline justify-between mb-1.5">
               <span className="text-[11px] font-bold text-accent tabular-nums">
                 {curInfo.currentXp.toLocaleString()}
-                <span className="text-muted/40 font-normal"> / {curInfo.nextLevelXp.toLocaleString()} XP</span>
+                <span className="text-muted/60 font-normal"> / {curInfo.nextLevelXp.toLocaleString()} XP</span>
               </span>
             </div>
             <div
@@ -361,7 +361,7 @@ function AnimatedXpPanel({
                 style={{ width: `${barPct}%` }}
               />
             </div>
-            <div className="text-[10px] text-muted/35 mt-1 tabular-nums">
+            <div className="text-[10px] text-muted/55 mt-1 tabular-nums">
               {(curInfo.nextLevelXp - curInfo.currentXp).toLocaleString()} XP to level {xp.level + 1}
             </div>
           </div>
@@ -390,7 +390,7 @@ function AnimatedXpPanel({
                   <div className="text-[11px] font-semibold text-text/80 truncate leading-none mb-0.5">
                     {nextReward.name}
                   </div>
-                  <div className="text-[10px] text-muted/40 leading-none">
+                  <div className="text-[10px] text-muted/60 leading-none">
                     unlocks at level {nextReward.level}
                   </div>
                 </>
@@ -399,7 +399,7 @@ function AnimatedXpPanel({
                   <div className="text-[11px] font-semibold text-amber-400/70 truncate leading-none mb-0.5">
                     {nextProReward.name}
                   </div>
-                  <div className="text-[10px] text-muted/40 leading-none">
+                  <div className="text-[10px] text-muted/60 leading-none">
                     Pro-locked · level {nextProReward.level}
                   </div>
                 </>
@@ -448,13 +448,13 @@ function ProPanel({ level }: { level: number }) {
                 <span className="text-sm mt-0.5 shrink-0">{icon}</span>
                 <div>
                   <div className="text-[11px] font-medium text-text/65">{label}</div>
-                  <div className="text-[10px] text-muted/40 leading-snug">{sub}</div>
+                  <div className="text-[10px] text-muted/60 leading-snug">{sub}</div>
                 </div>
               </div>
             ))}
           </div>
           {nextProReward && (
-            <div className="mt-2 text-[10px] text-muted/40 leading-none">
+            <div className="mt-2 text-[10px] text-muted/60 leading-none">
               🔒 Your next Pro reward:{" "}
               <span className="text-amber-400/65 font-semibold">{nextProReward.name}</span>
               {" "}at Level {nextProReward.level}
@@ -579,7 +579,7 @@ export function RaceResults({
               <div className={`text-3xl sm:text-4xl font-black tabular-nums leading-none ${pStyle!.text}`}>
                 {ordinal(myResult.placement)}
               </div>
-              <div className="text-[10px] text-muted/50 mt-1 uppercase tracking-wide">
+              <div className="text-[10px] text-muted/65 mt-1 uppercase tracking-wide">
                 of {results.length}
               </div>
             </div>
@@ -595,7 +595,7 @@ export function RaceResults({
               <div className="flex items-center gap-2 mt-1">
                 <div className="text-[10px] text-muted/60 uppercase tracking-wide">wpm</div>
                 {myResult.rawWpm > 0 && Math.floor(myResult.rawWpm) !== Math.floor(myResult.wpm) && (
-                  <div className="text-[10px] text-muted/30 tabular-nums">
+                  <div className="text-[10px] text-muted/65 tabular-nums">
                     {Math.floor(myResult.rawWpm)} raw
                   </div>
                 )}
@@ -666,7 +666,7 @@ export function RaceResults({
         <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden">
           {/* Header */}
           <div
-            className={`grid text-muted/40 text-[10px] uppercase tracking-widest px-3 sm:px-4 py-1.5 border-b border-white/[0.05] ${tableCols}`}
+            className={`grid text-muted/60 text-[10px] uppercase tracking-widest px-3 sm:px-4 py-1.5 border-b border-white/[0.05] ${tableCols}`}
           >
             <span className="font-medium">#</span>
             <span className="font-medium">Name</span>
@@ -741,7 +741,7 @@ export function RaceResults({
                     {rInfo ? (
                       <RankBadge tier={rInfo.tier} elo={result.elo!} showElo={false} size="xs" />
                     ) : (
-                      <span className="text-muted/40 text-sm">—</span>
+                      <span className="text-muted/60 text-sm">—</span>
                     )}
                   </span>
                 )}
@@ -770,7 +770,7 @@ export function RaceResults({
                         {result.eloChange}
                       </span>
                     ) : (
-                      <span className="text-muted/40">—</span>
+                      <span className="text-muted/60">—</span>
                     )}
                   </span>
                 )}
@@ -781,7 +781,7 @@ export function RaceResults({
           {/* Emote bar in results */}
           {!isPlacement && (
             <div className="flex items-center gap-2 px-3 sm:px-4 py-2 border-t border-white/[0.04]">
-              <span className="text-[10px] text-muted/35 uppercase tracking-widest shrink-0">React</span>
+              <span className="text-[10px] text-muted/55 uppercase tracking-widest shrink-0">React</span>
               <RaceEmoteBar />
             </div>
           )}
@@ -801,7 +801,7 @@ export function RaceResults({
           className="flex flex-col gap-1 w-full"
           style={{ animation: "slide-up 0.5s ease-out 0.08s both" }}
         >
-          <h3 className="text-[10px] font-bold text-muted/50 uppercase tracking-widest px-0.5">
+          <h3 className="text-[10px] font-bold text-muted/65 uppercase tracking-widest px-0.5">
             Achievements Unlocked
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
@@ -841,7 +841,7 @@ export function RaceResults({
           {hasChallenges && (
             <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden px-3 py-2 sm:px-4 sm:py-2.5">
               <div className="flex items-center justify-between mb-1">
-                <h3 className="text-[10px] font-bold text-muted/50 uppercase tracking-widest">
+                <h3 className="text-[10px] font-bold text-muted/65 uppercase tracking-widest">
                   Challenges
                 </h3>
                 {myResult!.xpEarned != null && myResult!.xpEarned > 0 && (
@@ -864,7 +864,7 @@ export function RaceResults({
                           {def.name}
                           {cp.completed && <span className="text-correct ml-1.5">✓</span>}
                         </span>
-                        <span className="text-[10px] text-muted/50 truncate block">{def.description}</span>
+                        <span className="text-[10px] text-muted/65 truncate block">{def.description}</span>
                       </div>
                       <span className="text-[11px] text-muted tabular-nums shrink-0">
                         {progress}/{cp.target}
@@ -957,14 +957,14 @@ export function RaceResults({
               <span className="inline-block w-[2px] h-[1em] bg-current animate-blink ml-0.5 translate-y-px" />
             </button>
             {inParty && !allMembersReady ? (
-              <span className="text-[10px] text-muted/40">
+              <span className="text-[10px] text-muted/60">
                 waiting for party to ready up...
               </span>
             ) : (
-              <span className="text-[10px] text-muted/30">
-                <kbd className="inline-flex items-center px-1 py-px rounded bg-white/[0.04] ring-1 ring-white/[0.07] text-muted/50 text-[9px] font-medium">Tab</kbd>
+              <span className="text-[10px] text-muted/65">
+                <kbd className="inline-flex items-center px-1 py-px rounded bg-white/[0.04] ring-1 ring-white/[0.07] text-muted/65 text-[9px] font-medium">Tab</kbd>
                 {" + "}
-                <kbd className="inline-flex items-center px-1 py-px rounded bg-white/[0.04] ring-1 ring-white/[0.07] text-muted/50 text-[9px] font-medium">Enter ↵</kbd>
+                <kbd className="inline-flex items-center px-1 py-px rounded bg-white/[0.04] ring-1 ring-white/[0.07] text-muted/65 text-[9px] font-medium">Enter ↵</kbd>
               </span>
             )}
           </>
@@ -974,14 +974,14 @@ export function RaceResults({
         <div className="flex items-center gap-3 mt-0.5">
           <button
             onClick={onGoHome}
-            className="text-xs text-muted/40 hover:text-muted transition-colors"
+            className="text-xs text-muted/60 hover:text-muted transition-colors"
           >
             go home
           </button>
           {raceId && (
             <Link
               href={`/races/${raceId}`}
-              className="text-xs text-muted/40 hover:text-muted transition-colors"
+              className="text-xs text-muted/60 hover:text-muted transition-colors"
             >
               watch replay
             </Link>
@@ -989,7 +989,7 @@ export function RaceResults({
           {raceId && (
             <Link
               href="/ghost"
-              className="text-xs text-muted/40 hover:text-muted transition-colors"
+              className="text-xs text-muted/60 hover:text-muted transition-colors"
             >
               ghost race
             </Link>
@@ -997,7 +997,7 @@ export function RaceResults({
           {!isPlacement && (
             <Link
               href="/analytics"
-              className="text-xs text-muted/40 hover:text-muted transition-colors"
+              className="text-xs text-muted/60 hover:text-muted transition-colors"
             >
               analytics
             </Link>

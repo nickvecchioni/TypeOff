@@ -49,7 +49,7 @@ export function GhostRacePicker({ onSelect, onRacePB }: GhostRacePickerProps) {
           ))}
         </div>
       ) : races.length === 0 ? (
-        <p className="text-sm text-muted/40 text-center py-8">
+        <p className="text-sm text-muted/60 text-center py-8">
           No past races with replay data found.
         </p>
       ) : (
@@ -64,14 +64,14 @@ export function GhostRacePicker({ onSelect, onRacePB }: GhostRacePickerProps) {
                 <span className="text-sm font-bold text-accent tabular-nums">
                   {Math.floor(race.wpm)} wpm
                 </span>
-                <span className="text-xs text-muted/40">
+                <span className="text-xs text-muted/60">
                   {Math.floor(race.accuracy)}%
                 </span>
-                <span className="text-xs text-muted/30 capitalize">
+                <span className="text-xs text-muted/65 capitalize">
                   {race.mode}
                 </span>
               </div>
-              <span className="text-[10px] text-muted/30">
+              <span className="text-[10px] text-muted/65">
                 {new Date(race.date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
               </span>
             </button>

@@ -155,11 +155,11 @@ export function ZenFreeformArena() {
       {/* Idle hint */}
       {!isFinished && status === "idle" && (
         <p
-          className="text-muted/30 text-xs opacity-0 animate-fade-in"
+          className="text-muted/65 text-xs opacity-0 animate-fade-in"
           style={{ animationDelay: "100ms", animationFillMode: "both" }}
         >
           start typing anything —{" "}
-          <kbd className="px-1 py-0.5 rounded bg-white/[0.05] text-muted/50 text-[10px]">
+          <kbd className="px-1 py-0.5 rounded bg-white/[0.05] text-muted/65 text-[10px]">
             Esc
           </kbd>{" "}
           to stop
@@ -172,24 +172,24 @@ export function ZenFreeformArena() {
           <div className="flex gap-10 tabular-nums">
             <div className="flex flex-col items-center gap-1">
               <span className="text-accent font-black text-5xl">{finalWpm}</span>
-              <span className="text-muted/50 text-sm">wpm</span>
+              <span className="text-muted/65 text-sm">wpm</span>
             </div>
             <div className="flex flex-col items-center gap-1">
               <span className="text-text font-black text-5xl">{elapsed}</span>
-              <span className="text-muted/50 text-sm">seconds</span>
+              <span className="text-muted/65 text-sm">seconds</span>
             </div>
             <div className="flex flex-col items-center gap-1">
               <span className="text-text font-black text-5xl">{finalWordCount}</span>
-              <span className="text-muted/50 text-sm">words</span>
+              <span className="text-muted/65 text-sm">words</span>
             </div>
           </div>
-          <p className="text-muted/30 text-xs">
+          <p className="text-muted/65 text-xs">
             press{" "}
-            <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/50 text-[10px]">
+            <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/65 text-[10px]">
               Tab
             </kbd>{" "}
             +{" "}
-            <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/50 text-[10px]">
+            <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/65 text-[10px]">
               Enter
             </kbd>{" "}
             to restart

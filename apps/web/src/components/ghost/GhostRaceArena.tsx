@@ -135,7 +135,7 @@ export function GhostRaceArena({
               style={{ width: `${Math.min(100, playerProgress * 100)}%` }}
             />
           </div>
-          <span className="text-[10px] text-muted/40 tabular-nums w-12">
+          <span className="text-[10px] text-muted/60 tabular-nums w-12">
             {engine.liveWpm} wpm
           </span>
         </div>
@@ -150,7 +150,7 @@ export function GhostRaceArena({
               style={{ width: `${Math.min(100, ghost.ghostCursor.progress * 100)}%` }}
             />
           </div>
-          <span className="text-[10px] text-muted/40 tabular-nums w-12">
+          <span className="text-[10px] text-muted/60 tabular-nums w-12">
             {Math.floor(ghostWpm)} wpm
           </span>
         </div>
@@ -189,12 +189,12 @@ export function GhostRaceArena({
         }`}>
           <div className="text-center">
             <span className="text-accent font-black text-3xl">{engine.liveWpm}</span>
-            <span className="text-muted/40 text-xs ml-1">you</span>
+            <span className="text-muted/60 text-xs ml-1">you</span>
           </div>
           <span className="text-muted/20">vs</span>
           <div className="text-center">
             <span className="text-purple-400 font-black text-3xl">{Math.floor(ghostWpm)}</span>
-            <span className="text-muted/40 text-xs ml-1">ghost</span>
+            <span className="text-muted/60 text-xs ml-1">ghost</span>
           </div>
         </div>
       )}
@@ -208,22 +208,22 @@ export function GhostRaceArena({
           <div className="grid grid-cols-3 gap-3">
             <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3 text-center">
               <div className="text-2xl font-black text-text tabular-nums">{Math.floor(engine.stats.wpm)}</div>
-              <div className="text-[10px] text-muted/50 mt-0.5">Your WPM</div>
+              <div className="text-[10px] text-muted/65 mt-0.5">Your WPM</div>
             </div>
             <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3 text-center">
               <div className="text-2xl font-black text-text tabular-nums">{Math.floor(engine.stats.accuracy)}%</div>
-              <div className="text-[10px] text-muted/50 mt-0.5">Accuracy</div>
+              <div className="text-[10px] text-muted/65 mt-0.5">Accuracy</div>
             </div>
             <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3 text-center">
               <div className="text-2xl font-black text-purple-400 tabular-nums">{Math.floor(ghostWpm)}</div>
-              <div className="text-[10px] text-muted/50 mt-0.5">Ghost WPM</div>
+              <div className="text-[10px] text-muted/65 mt-0.5">Ghost WPM</div>
             </div>
           </div>
 
           <div className="flex items-center justify-center gap-4">
             <button
               onClick={onBack}
-              className="text-xs text-muted/40 hover:text-muted transition-colors"
+              className="text-xs text-muted/60 hover:text-muted transition-colors"
             >
               pick another
             </button>

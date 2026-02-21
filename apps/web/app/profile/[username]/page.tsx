@@ -258,7 +258,7 @@ export default async function ProfilePage({
                   <RankBadge tier={rankInfo.tier} elo={user.eloRating} />
                   <div className="space-y-1.5">
                     {user.peakEloRating > user.eloRating && (
-                      <div className="text-[11px] text-muted/40 tabular-nums">
+                      <div className="text-[11px] text-muted/60 tabular-nums">
                         Peak {user.peakEloRating} ELO
                       </div>
                     )}
@@ -266,7 +266,7 @@ export default async function ProfilePage({
                   </div>
                 </div>
               ) : (
-                <div className="flex-1 text-xs text-muted/30 italic">
+                <div className="flex-1 text-xs text-muted/65 italic">
                   Placement matches in progress
                 </div>
               )}
@@ -301,7 +301,7 @@ export default async function ProfilePage({
                     style={{ width: `${Math.round((xpInfo.currentXp / xpInfo.nextLevelXp) * 100)}%` }}
                   />
                 </div>
-                <span className="text-[10px] text-muted/30 tabular-nums shrink-0">
+                <span className="text-[10px] text-muted/65 tabular-nums shrink-0">
                   {xpInfo.currentXp}/{xpInfo.nextLevelXp} xp
                 </span>
               </div>
@@ -326,12 +326,12 @@ export default async function ProfilePage({
             style={{ animationDelay: "100ms" }}
           >
             <div className="flex items-center gap-3">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted/30 group-hover:text-accent transition-colors">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted/65 group-hover:text-accent transition-colors">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
               </svg>
               <div>
                 <span className="text-xs font-semibold text-text/70 group-hover:text-text transition-colors">Items &amp; Loadout</span>
-                <p className="text-[10px] text-muted/30 mt-0.5">Equip badges, titles, cursors, themes and more</p>
+                <p className="text-[10px] text-muted/65 mt-0.5">Equip badges, titles, cursors, themes and more</p>
               </div>
             </div>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted/20 group-hover:text-accent/50 transition-colors shrink-0">
@@ -357,14 +357,14 @@ export default async function ProfilePage({
                       key={`${pb.mode}:${pb.duration}`}
                       className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-3 hover:ring-accent/10 hover:bg-surface/60 transition-all"
                     >
-                      <div className="text-[10px] text-muted/40 uppercase tracking-widest mb-1.5">{label}</div>
+                      <div className="text-[10px] text-muted/60 uppercase tracking-widest mb-1.5">{label}</div>
                       <div className="text-xl font-black text-accent tabular-nums leading-none">
                         {Math.floor(pb.bestWpm)}
                         <span className="text-[0.6em] opacity-40">
                           .{(pb.bestWpm % 1).toFixed(2).slice(2)}
                         </span>
                       </div>
-                      <div className="text-[10px] text-muted/25 mt-1.5 tabular-nums">{pb.totalTests} tests</div>
+                      <div className="text-[10px] text-muted/45 mt-1.5 tabular-nums">{pb.totalTests} tests</div>
                     </div>
                   );
                 })}
@@ -397,7 +397,7 @@ export default async function ProfilePage({
         <section className="animate-slide-up" style={{ animationDelay: "180ms" }}>
           <SectionHeader>
             Achievements
-            <span className="text-muted/25 normal-case tracking-normal font-medium ml-0.5">
+            <span className="text-muted/45 normal-case tracking-normal font-medium ml-0.5">
               {unlockedAchievements.length}/{ACHIEVEMENTS.length}
             </span>
           </SectionHeader>
@@ -414,7 +414,7 @@ export default async function ProfilePage({
             <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] overflow-hidden">
               <table className="w-full text-left text-sm">
                 <thead>
-                  <tr className="text-[10px] text-muted/35 uppercase tracking-widest border-b border-white/[0.03]">
+                  <tr className="text-[10px] text-muted/55 uppercase tracking-widest border-b border-white/[0.03]">
                     <th className="w-1 py-3 pl-4"></th>
                     <th className="px-3 py-3 font-medium">Date</th>
                     <th className="px-3 py-3 font-medium">Place</th>
@@ -448,7 +448,7 @@ export default async function ProfilePage({
                         <td className="py-3 pl-4 pr-1">
                           <div className={`w-0.5 h-3.5 rounded-full ${placementMeta.barColor} opacity-50`} />
                         </td>
-                        <td className="px-3 py-3 text-muted/40 tabular-nums text-xs" suppressHydrationWarning>
+                        <td className="px-3 py-3 text-muted/60 tabular-nums text-xs" suppressHydrationWarning>
                           {race.finishedAt
                             ? <LocalDateTime date={race.finishedAt.toISOString()} />
                             : "—"}
@@ -468,7 +468,7 @@ export default async function ProfilePage({
                             </>
                           ) : "—"}
                         </td>
-                        <td className="hidden sm:table-cell px-3 py-3 text-right tabular-nums text-muted/40 text-xs">
+                        <td className="hidden sm:table-cell px-3 py-3 text-right tabular-nums text-muted/60 text-xs">
                           {race.accuracy != null ? (
                             <>
                               {Math.floor(race.accuracy)}
@@ -486,7 +486,7 @@ export default async function ProfilePage({
                                   ? "text-correct"
                                   : eloChange < 0
                                   ? "text-error"
-                                  : "text-muted/40"
+                                  : "text-muted/60"
                               }`}
                             >
                               {eloChange > 0 ? "+" : ""}
@@ -523,10 +523,10 @@ export default async function ProfilePage({
               href="/history"
               className="flex items-center gap-2.5 rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3 hover:ring-accent/20 hover:bg-surface/60 transition-all group flex-1"
             >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted/30 group-hover:text-accent transition-colors shrink-0">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted/65 group-hover:text-accent transition-colors shrink-0">
                 <path d="M12 8v4l3 3" /><circle cx="12" cy="12" r="10" />
               </svg>
-              <span className="text-xs font-medium text-muted/50 group-hover:text-text transition-colors">Full History</span>
+              <span className="text-xs font-medium text-muted/65 group-hover:text-text transition-colors">Full History</span>
               {!session?.user?.isPro && (
                 <span className="text-[9px] font-bold text-amber-400/50 bg-amber-400/[0.06] px-1.5 py-0.5 rounded uppercase tracking-wider ml-auto">Pro</span>
               )}
@@ -535,10 +535,10 @@ export default async function ProfilePage({
               href="/analytics"
               className="flex items-center gap-2.5 rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3 hover:ring-accent/20 hover:bg-surface/60 transition-all group flex-1"
             >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted/30 group-hover:text-accent transition-colors shrink-0">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted/65 group-hover:text-accent transition-colors shrink-0">
                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
               </svg>
-              <span className="text-xs font-medium text-muted/50 group-hover:text-text transition-colors">Analytics</span>
+              <span className="text-xs font-medium text-muted/65 group-hover:text-text transition-colors">Analytics</span>
               {!session?.user?.isPro && (
                 <span className="text-[9px] font-bold text-amber-400/50 bg-amber-400/[0.06] px-1.5 py-0.5 rounded uppercase tracking-wider ml-auto">Pro</span>
               )}
@@ -579,7 +579,7 @@ function StatCard({
   return (
     <div className="bg-surface/40 px-3 py-3 text-center">
       <div className="text-sm font-bold text-text tabular-nums leading-tight">{value}</div>
-      <div className="text-[9px] text-muted/35 mt-1 uppercase tracking-wider">{label}</div>
+      <div className="text-[9px] text-muted/55 mt-1 uppercase tracking-wider">{label}</div>
     </div>
   );
 }
@@ -605,7 +605,7 @@ function WpmStat({
           .{(value % 1).toFixed(2).slice(2)}
         </span>
       </div>
-      <div className="text-[9px] text-muted/35 mt-1.5 uppercase tracking-widest">{label}</div>
+      <div className="text-[9px] text-muted/55 mt-1.5 uppercase tracking-widest">{label}</div>
     </div>
   );
 }
@@ -632,7 +632,7 @@ function RankProgressBar({ elo }: { elo: number }) {
   return (
     <div className="flex-1 min-w-0 space-y-1">
       {nextElo != null && (
-        <div className="text-[11px] text-muted/35 text-right tabular-nums">
+        <div className="text-[11px] text-muted/55 text-right tabular-nums">
           {nextElo - elo} ELO to next division
         </div>
       )}

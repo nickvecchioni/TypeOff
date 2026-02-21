@@ -160,7 +160,7 @@ export default function ProPage() {
                   </span>
                 </h1>
 
-                <p className="text-sm text-muted/50 max-w-md mx-auto leading-relaxed">
+                <p className="text-sm text-muted/65 max-w-md mx-auto leading-relaxed">
                   1.5× XP on every race. 22 exclusive cosmetics. Full archive,
                   advanced analytics, and keystroke replays.
                 </p>
@@ -184,7 +184,7 @@ export default function ProPage() {
                       >
                         {s.value}
                       </div>
-                      <div className="text-[10px] text-muted/35 uppercase tracking-wider mt-0.5">
+                      <div className="text-[10px] text-muted/55 uppercase tracking-wider mt-0.5">
                         {s.label}
                       </div>
                     </div>
@@ -208,34 +208,34 @@ export default function ProPage() {
                     className={`mb-3 transition-colors ${
                       "amber" in f && f.amber
                         ? "text-amber-400/60 group-hover:text-amber-400/90"
-                        : "text-muted/30 group-hover:text-muted/55"
+                        : "text-muted/65 group-hover:text-muted/55"
                     }`}
                   >
                     {f.icon}
                   </div>
                   <p className="text-sm font-bold text-text mb-1.5">{f.title}</p>
-                  <p className="text-[11px] text-muted/40 leading-relaxed">{f.description}</p>
+                  <p className="text-[11px] text-muted/60 leading-relaxed">{f.description}</p>
                 </div>
               ))}
             </div>
 
             {/* ── Pricing ── */}
             <div className="animate-slide-up" style={{ animationDelay: "40ms" }}>
-              <p className="text-[9px] font-bold text-muted/30 uppercase tracking-widest mb-4 text-center">
+              <p className="text-[9px] font-bold text-muted/65 uppercase tracking-widest mb-4 text-center">
                 Choose your plan
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
 
                 {/* Monthly */}
                 <div className="rounded-xl px-5 py-5 ring-1 ring-white/[0.06] bg-surface/30 flex flex-col">
-                  <div className="text-[10px] font-bold text-muted/40 uppercase tracking-wider mb-3">
+                  <div className="text-[10px] font-bold text-muted/60 uppercase tracking-wider mb-3">
                     Monthly
                   </div>
                   <div className="text-3xl font-black text-text tabular-nums leading-none mb-0.5">
                     ${PRO_MONTHLY_PRICE.toFixed(2)}
-                    <span className="text-sm font-normal text-muted/40">/mo</span>
+                    <span className="text-sm font-normal text-muted/60">/mo</span>
                   </div>
-                  <div className="text-[10px] text-muted/25 mb-6">Billed monthly, cancel anytime</div>
+                  <div className="text-[10px] text-muted/45 mb-6">Billed monthly, cancel anytime</div>
                   <button
                     onClick={() => router.push("/pro/checkout?plan=monthly")}
                     className="mt-auto w-full rounded-lg py-2.5 text-[13px] font-bold ring-1 ring-white/[0.10] bg-white/[0.04] text-text/70 hover:ring-amber-400/30 hover:bg-amber-400/[0.05] hover:text-amber-400/80 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
@@ -259,7 +259,7 @@ export default function ProPage() {
                   </div>
                   <div className="text-3xl font-black text-text tabular-nums leading-none mb-0.5">
                     ${PRO_YEARLY_PRICE.toFixed(2)}
-                    <span className="text-sm font-normal text-muted/40">/yr</span>
+                    <span className="text-sm font-normal text-muted/60">/yr</span>
                   </div>
                   <div className="text-[10px] text-amber-400/40 mb-6">
                     ${(PRO_YEARLY_PRICE / 12).toFixed(2)}/mo billed annually
@@ -288,18 +288,18 @@ export default function ProPage() {
                 {/* Lifetime */}
                 <div className="rounded-xl px-5 py-5 ring-1 ring-white/[0.06] bg-surface/30 flex flex-col">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="text-[10px] font-bold text-muted/40 uppercase tracking-wider">
+                    <div className="text-[10px] font-bold text-muted/60 uppercase tracking-wider">
                       Lifetime
                     </div>
-                    <span className="text-[9px] font-bold text-muted/35 ring-1 ring-white/[0.08] px-2 py-0.5 rounded-full uppercase tracking-wider">
+                    <span className="text-[9px] font-bold text-muted/55 ring-1 ring-white/[0.08] px-2 py-0.5 rounded-full uppercase tracking-wider">
                       Forever
                     </span>
                   </div>
                   <div className="text-3xl font-black text-text tabular-nums leading-none mb-0.5">
                     ${PRO_LIFETIME_PRICE.toFixed(2)}
-                    <span className="text-sm font-normal text-muted/40"> one-time</span>
+                    <span className="text-sm font-normal text-muted/60"> one-time</span>
                   </div>
-                  <div className="text-[10px] text-muted/25 mb-6">Pay once, Pro forever</div>
+                  <div className="text-[10px] text-muted/45 mb-6">Pay once, Pro forever</div>
                   <button
                     onClick={() => router.push("/pro/checkout?plan=lifetime")}
                     className="mt-auto w-full rounded-lg py-2.5 text-[13px] font-bold ring-1 ring-white/[0.10] bg-white/[0.04] text-text/70 hover:ring-amber-400/30 hover:bg-amber-400/[0.05] hover:text-amber-400/80 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
@@ -318,7 +318,7 @@ export default function ProPage() {
             {/* ── Cosmetics teaser ── */}
             <div className="animate-slide-up" style={{ animationDelay: "60ms" }}>
               <div className="flex items-center justify-between mb-3">
-                <p className="text-[9px] font-bold text-muted/30 uppercase tracking-widest">
+                <p className="text-[9px] font-bold text-muted/65 uppercase tracking-widest">
                   22 Pro Cosmetics
                 </p>
                 <p className="text-[9px] text-muted/20">yours to keep on cancel</p>
@@ -333,7 +333,7 @@ export default function ProPage() {
                       <div className="opacity-60 group-hover:opacity-100 transition-opacity">
                         <TeaserVisual item={item} />
                       </div>
-                      <span className="text-[9px] text-muted/25 group-hover:text-muted/45 transition-colors capitalize">
+                      <span className="text-[9px] text-muted/45 group-hover:text-muted/45 transition-colors capitalize">
                         {item.type}
                       </span>
                     </div>
@@ -344,11 +344,11 @@ export default function ProPage() {
 
             {/* ── Comparison table ── */}
             <div className="animate-slide-up" style={{ animationDelay: "80ms" }}>
-              <p className="text-[9px] font-bold text-muted/30 uppercase tracking-widest mb-3">
+              <p className="text-[9px] font-bold text-muted/65 uppercase tracking-widest mb-3">
                 Free vs Pro
               </p>
               <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden">
-                <div className="grid grid-cols-[1fr_5rem_5rem] text-[9px] font-bold text-muted/40 uppercase tracking-wider px-4 py-2.5 border-b border-white/[0.06]">
+                <div className="grid grid-cols-[1fr_5rem_5rem] text-[9px] font-bold text-muted/60 uppercase tracking-wider px-4 py-2.5 border-b border-white/[0.06]">
                   <span />
                   <span className="text-center">Free</span>
                   <span className="text-center text-amber-400/60">Pro</span>
@@ -361,7 +361,7 @@ export default function ProPage() {
                     }`}
                   >
                     <span className="text-[11px] text-text/60">{row.feature}</span>
-                    <span className="text-center text-[11px] text-muted/30">
+                    <span className="text-center text-[11px] text-muted/65">
                       {row.free === true ? "✓" : row.free === false ? "—" : row.free}
                     </span>
                     <span className="text-center text-[11px] text-amber-400/70">
@@ -413,7 +413,7 @@ function SubscriberView({
             Active
           </span>
         </h1>
-        <p className="text-xs text-muted/50 mt-0.5">Manage your subscription</p>
+        <p className="text-xs text-muted/65 mt-0.5">Manage your subscription</p>
       </div>
 
       {/* Status card */}
@@ -455,7 +455,7 @@ function SubscriberView({
       >
         <div className="flex items-center justify-between mb-1.5">
           <span className="text-xs font-bold text-accent tabular-nums">Level {level}</span>
-          <span className="text-[11px] text-muted/40 tabular-nums">
+          <span className="text-[11px] text-muted/60 tabular-nums">
             {currentXp} / {nextLevelXp} XP
           </span>
         </div>
@@ -468,25 +468,25 @@ function SubscriberView({
         {nextProReward ? (
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[11px] text-muted/50">Next Pro cosmetic</p>
+              <p className="text-[11px] text-muted/65">Next Pro cosmetic</p>
               <p className="text-xs font-bold text-amber-400/80 mt-0.5">
                 {nextProReward.name}
-                <span className="text-[10px] font-normal text-muted/40 ml-1">
+                <span className="text-[10px] font-normal text-muted/60 ml-1">
                   at level {nextProReward.level}
                 </span>
               </p>
             </div>
             <div className="text-right">
-              <p className="text-[11px] text-muted/40 tabular-nums">
+              <p className="text-[11px] text-muted/60 tabular-nums">
                 {xpToNextPro?.toLocaleString()} XP away
               </p>
-              <p className="text-[10px] text-muted/30 mt-0.5">
+              <p className="text-[10px] text-muted/65 mt-0.5">
                 {xpToNext} to level {level + 1}
               </p>
             </div>
           </div>
         ) : (
-          <p className="text-[11px] text-muted/40">
+          <p className="text-[11px] text-muted/60">
             You&apos;ve unlocked all Pro cosmetics. Impressive.
           </p>
         )}
@@ -511,7 +511,7 @@ function SubscriberView({
             <div className="text-sm font-bold text-text group-hover:text-accent transition-colors">
               {link.title}
             </div>
-            <p className="text-[11px] text-muted/50 mt-0.5">{link.desc}</p>
+            <p className="text-[11px] text-muted/65 mt-0.5">{link.desc}</p>
           </Link>
         ))}
       </div>

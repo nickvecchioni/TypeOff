@@ -128,7 +128,7 @@ export function ItemsBrowser({ totalXp, isPro }: { totalXp: number; isPro: boole
       <div className="flex items-end justify-between gap-4">
         <div>
           <h1 className="text-lg font-bold text-text tracking-tight">Cosmetics</h1>
-          <p className="text-xs text-muted/40 mt-0.5">Earn cosmetics by levelling up through gameplay</p>
+          <p className="text-xs text-muted/60 mt-0.5">Earn cosmetics by levelling up through gameplay</p>
         </div>
         <div className="flex items-center gap-2">
           {saving && (
@@ -147,11 +147,11 @@ export function ItemsBrowser({ totalXp, isPro }: { totalXp: number; isPro: boole
         <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center gap-3">
             <span className="text-sm font-black text-accent tabular-nums">Level {xpInfo.level}</span>
-            <span className="text-[11px] text-muted/35 tabular-nums">
+            <span className="text-[11px] text-muted/55 tabular-nums">
               {xpInfo.currentXp.toLocaleString()} / {xpInfo.nextLevelXp.toLocaleString()} XP
             </span>
           </div>
-          <span className="text-[11px] text-muted/30 tabular-nums">
+          <span className="text-[11px] text-muted/65 tabular-nums">
             {(xpInfo.nextLevelXp - xpInfo.currentXp).toLocaleString()} to next level
           </span>
         </div>
@@ -162,7 +162,7 @@ export function ItemsBrowser({ totalXp, isPro }: { totalXp: number; isPro: boole
           />
         </div>
         {!isPro && (
-          <p className="text-[10px] text-muted/25 mt-2">
+          <p className="text-[10px] text-muted/45 mt-2">
             Pro subscribers earn 1.5× XP and unlock 22 exclusive items
           </p>
         )}
@@ -170,7 +170,7 @@ export function ItemsBrowser({ totalXp, isPro }: { totalXp: number; isPro: boole
 
       {/* ── Equipped Loadout Strip ────────────────────────── */}
       <div>
-        <h2 className="text-[10px] font-bold text-muted/40 uppercase tracking-widest mb-3 flex items-center gap-2.5">
+        <h2 className="text-[10px] font-bold text-muted/60 uppercase tracking-widest mb-3 flex items-center gap-2.5">
           <span className="text-accent/35 text-[8px]">◆</span>
           Equipped Loadout
           <span className="flex-1 h-px bg-white/[0.03]" />
@@ -193,7 +193,7 @@ export function ItemsBrowser({ totalXp, isPro }: { totalXp: number; isPro: boole
                     : "ring-white/[0.05] bg-surface/40 hover:ring-white/[0.1] hover:bg-surface/60"
                 }`}
               >
-                <div className="text-[8px] uppercase tracking-widest text-muted/30 leading-none">
+                <div className="text-[8px] uppercase tracking-widest text-muted/65 leading-none">
                   {cat.slotLabel}
                 </div>
                 <div className="h-7 flex items-center justify-center">
@@ -229,13 +229,13 @@ export function ItemsBrowser({ totalXp, isPro }: { totalXp: number; isPro: boole
                 className={`px-3 py-1.5 rounded-lg text-xs transition-all ${
                   isSelected
                     ? "bg-accent/15 text-accent ring-1 ring-accent/20"
-                    : "text-muted/50 hover:text-text hover:bg-white/[0.04]"
+                    : "text-muted/65 hover:text-text hover:bg-white/[0.04]"
                 }`}
               >
                 {cat.label}
                 <span
                   className={`ml-1.5 tabular-nums text-[10px] ${
-                    isSelected ? "text-accent/40" : "text-muted/25"
+                    isSelected ? "text-accent/40" : "text-muted/45"
                   }`}
                 >
                   {owned}/{total}
@@ -287,7 +287,7 @@ export function ItemsBrowser({ totalXp, isPro }: { totalXp: number; isPro: boole
             {/* Locked items */}
             {lockedItems.length > 0 && (
               <div>
-                <h3 className="text-[10px] font-bold text-muted/30 uppercase tracking-widest mb-2.5 flex items-center gap-2">
+                <h3 className="text-[10px] font-bold text-muted/65 uppercase tracking-widest mb-2.5 flex items-center gap-2">
                   Locked
                   <span className="text-muted/20 font-normal normal-case tracking-normal">
                     {lockedItems.length} {lockedItems.length === 1 ? "item" : "items"}
@@ -309,7 +309,7 @@ export function ItemsBrowser({ totalXp, isPro }: { totalXp: number; isPro: boole
             )}
 
             {allItems.length === 0 && (
-              <p className="text-sm text-muted/30 py-12 text-center">
+              <p className="text-sm text-muted/65 py-12 text-center">
                 No items in this category yet.
               </p>
             )}
@@ -343,7 +343,7 @@ function SlotPreview({ item }: { item: CosmeticReward }) {
     }
     case "cursorStyle": {
       const def = CURSOR_STYLES[item.id];
-      if (!def) return <span className="text-muted/30 text-xs">?</span>;
+      if (!def) return <span className="text-muted/65 text-xs">?</span>;
       return (
         <span
           className="rounded-sm"
@@ -413,7 +413,7 @@ function ItemCard({
         </div>
 
         {/* Name */}
-        <p className="text-xs font-semibold truncate leading-tight text-muted/50">
+        <p className="text-xs font-semibold truncate leading-tight text-muted/65">
           {item.name}
         </p>
 
@@ -459,7 +459,7 @@ function ItemCard({
 
       {/* Name */}
       <p className={`text-xs font-semibold truncate leading-tight ${
-        active ? "text-accent" : locked ? "text-muted/40" : "text-text/80"
+        active ? "text-accent" : locked ? "text-muted/60" : "text-text/80"
       }`}>
         {item.name}
       </p>
@@ -467,11 +467,11 @@ function ItemCard({
       {/* Sub-label */}
       <p className="text-[10px] mt-0.5 leading-tight">
         {locked ? (
-          <span className="text-muted/30">Level {item.level}</span>
+          <span className="text-muted/65">Level {item.level}</span>
         ) : active ? (
           <span className="text-accent/50">Equipped</span>
         ) : (
-          <span className="text-muted/25 group-hover:text-muted/50 transition-colors">Click to equip</span>
+          <span className="text-muted/45 group-hover:text-muted/65 transition-colors">Click to equip</span>
         )}
       </p>
     </button>
@@ -501,7 +501,7 @@ function ItemVisual({ item }: { item: CosmeticReward }) {
     }
     case "cursorStyle": {
       const def = CURSOR_STYLES[item.id];
-      if (!def) return <span className="text-muted/30 text-xs">?</span>;
+      if (!def) return <span className="text-muted/65 text-xs">?</span>;
       return (
         <div className="flex items-center gap-2.5">
           <span
@@ -515,7 +515,7 @@ function ItemVisual({ item }: { item: CosmeticReward }) {
               animation: def.animation ? `${def.animation} 2s ease-in-out infinite` : undefined,
             }}
           />
-          <span className="text-[10px] text-muted/40 capitalize">{def.shape}</span>
+          <span className="text-[10px] text-muted/60 capitalize">{def.shape}</span>
         </div>
       );
     }

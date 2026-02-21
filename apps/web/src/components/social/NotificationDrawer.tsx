@@ -128,14 +128,14 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
             {notifications.length > 0 && (
               <button
                 onClick={clearAll}
-                className="text-[10px] text-muted/40 hover:text-accent transition-colors uppercase tracking-wider"
+                className="text-[10px] text-muted/60 hover:text-accent transition-colors uppercase tracking-wider"
               >
                 Clear all
               </button>
             )}
             <button
               onClick={onClose}
-              className="text-muted/40 hover:text-text transition-colors w-5 h-5 flex items-center justify-center rounded hover:bg-white/[0.06]"
+              className="text-muted/60 hover:text-text transition-colors w-5 h-5 flex items-center justify-center rounded hover:bg-white/[0.06]"
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                 <path d="M18 6L6 18M6 6l12 12" />
@@ -152,7 +152,7 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                 <path d="M13.73 21a2 2 0 0 1-3.46 0" />
               </svg>
-              <span className="text-xs text-muted/30">No notifications</span>
+              <span className="text-xs text-muted/65">No notifications</span>
             </div>
           ) : (
             notifications.map((notif) => (
@@ -182,8 +182,8 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
                         <span className="w-1 h-1 rounded-full bg-accent shrink-0" />
                       )}
                     </div>
-                    <p className="text-[11px] text-muted/50 truncate mt-0.5">{notif.body}</p>
-                    <span className="text-[10px] text-muted/30 tabular-nums mt-0.5 block">
+                    <p className="text-[11px] text-muted/65 truncate mt-0.5">{notif.body}</p>
+                    <span className="text-[10px] text-muted/65 tabular-nums mt-0.5 block">
                       {timeAgo(notif.createdAt)}
                     </span>
                   </div>

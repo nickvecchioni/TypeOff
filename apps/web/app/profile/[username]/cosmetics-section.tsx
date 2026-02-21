@@ -147,7 +147,7 @@ export function CosmeticsSection({ totalXp }: { totalXp: number }) {
               <span className="text-xs font-bold text-accent tabular-nums">
                 Level {cosmeticLevel}
               </span>
-              <span className="text-[11px] text-muted/50 tabular-nums">
+              <span className="text-[11px] text-muted/65 tabular-nums">
                 {xpInLevel} / {nextLevelXp} XP
               </span>
             </div>
@@ -157,7 +157,7 @@ export function CosmeticsSection({ totalXp }: { totalXp: number }) {
                 style={{ width: `${Math.round(levelPct)}%` }}
               />
             </div>
-            <p className="text-[11px] text-muted/40 mt-2">
+            <p className="text-[11px] text-muted/60 mt-2">
               All cosmetics are free to earn through gameplay
             </p>
           </div>
@@ -195,7 +195,7 @@ export function CosmeticsSection({ totalXp }: { totalXp: number }) {
                       {cat.label}
                       <span
                         className={`ml-1.5 tabular-nums ${
-                          selectedCategory === cat.key ? "text-accent/50" : "text-muted/40"
+                          selectedCategory === cat.key ? "text-accent/50" : "text-muted/60"
                         }`}
                       >
                         {count}/{total}
@@ -228,7 +228,7 @@ export function CosmeticsSection({ totalXp }: { totalXp: number }) {
 
                 {lockedItems.length > 0 && (
                   <div>
-                    <h3 className="text-[11px] font-bold text-muted/50 uppercase tracking-widest mb-2">
+                    <h3 className="text-[11px] font-bold text-muted/65 uppercase tracking-widest mb-2">
                       Locked
                     </h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -246,7 +246,7 @@ export function CosmeticsSection({ totalXp }: { totalXp: number }) {
                 )}
 
                 {allItems.length === 0 && (
-                  <p className="text-sm text-muted/40 py-8 text-center">
+                  <p className="text-sm text-muted/60 py-8 text-center">
                     No items in this category yet.
                   </p>
                 )}
@@ -305,7 +305,7 @@ function ItemCard({
       }`}>
         {item.name}
       </p>
-      <p className="text-[10px] text-muted/40 mt-0.5">
+      <p className="text-[10px] text-muted/60 mt-0.5">
         {locked ? `Level ${item.level}` : active ? "Equipped" : "Click to equip"}
       </p>
     </button>

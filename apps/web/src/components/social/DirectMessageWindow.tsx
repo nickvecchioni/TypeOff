@@ -59,7 +59,7 @@ export function DirectMessageWindow() {
         </span>
         <button
           onClick={closeDm}
-          className="text-muted/40 hover:text-text w-5 h-5 flex items-center justify-center rounded hover:bg-white/[0.06] transition-colors ml-2 shrink-0"
+          className="text-muted/60 hover:text-text w-5 h-5 flex items-center justify-center rounded hover:bg-white/[0.06] transition-colors ml-2 shrink-0"
         >
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
             <path d="M18 6L6 18M6 6l12 12" />
@@ -75,10 +75,10 @@ export function DirectMessageWindow() {
         style={{ height: 280 }}
       >
         {openConversation.loading && openConversation.messages.length === 0 && (
-          <p className="text-[11px] text-muted/30 text-center py-6">Loading...</p>
+          <p className="text-[11px] text-muted/65 text-center py-6">Loading...</p>
         )}
         {!openConversation.loading && openConversation.messages.length === 0 && (
-          <p className="text-[11px] text-muted/25 text-center py-6 leading-relaxed">
+          <p className="text-[11px] text-muted/45 text-center py-6 leading-relaxed">
             No messages yet. Say hi!
           </p>
         )}
@@ -87,7 +87,7 @@ export function DirectMessageWindow() {
           return (
             <div key={msg.id} className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}>
               {!isMe && (
-                <span className="text-[10px] text-muted/40 mb-0.5 px-1">{msg.fromName}</span>
+                <span className="text-[10px] text-muted/60 mb-0.5 px-1">{msg.fromName}</span>
               )}
               <div
                 className={`max-w-[85%] rounded-lg px-2.5 py-1.5 text-xs break-words ${
@@ -112,7 +112,7 @@ export function DirectMessageWindow() {
           onChange={(e) => setDraft(e.target.value.slice(0, 500))}
           onKeyDown={handleKeyDown}
           placeholder="Message..."
-          className="flex-1 bg-white/[0.04] text-text text-xs rounded px-2.5 py-1.5 outline-none ring-1 ring-white/[0.06] focus:ring-accent/25 transition-all placeholder:text-muted/30 min-w-0"
+          className="flex-1 bg-white/[0.04] text-text text-xs rounded px-2.5 py-1.5 outline-none ring-1 ring-white/[0.06] focus:ring-accent/25 transition-all placeholder:text-muted/65 min-w-0"
         />
         <button
           onClick={handleSend}

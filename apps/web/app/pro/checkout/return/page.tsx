@@ -44,7 +44,7 @@ export default function ProCheckoutReturnPage() {
         {!status && !error && (
           <div className="space-y-3">
             <div className="w-8 h-8 mx-auto rounded-full bg-surface/40 animate-pulse" />
-            <p className="text-sm text-muted/50">Confirming subscription...</p>
+            <p className="text-sm text-muted/65">Confirming subscription...</p>
           </div>
         )}
 
@@ -70,12 +70,12 @@ export default function ProCheckoutReturnPage() {
                 TypeOff Pro activated!
               </p>
               {customerEmail && (
-                <p className="text-xs text-muted/50 mt-1">
+                <p className="text-xs text-muted/65 mt-1">
                   Confirmation sent to {customerEmail}
                 </p>
               )}
             </div>
-            <p className="text-[11px] text-muted/40">
+            <p className="text-[11px] text-muted/60">
               Redirecting...
             </p>
           </>

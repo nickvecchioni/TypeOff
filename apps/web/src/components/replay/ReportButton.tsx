@@ -30,7 +30,7 @@ export function ReportButton({ raceId, reportedUserId }: ReportButtonProps) {
 
   if (reported) {
     return (
-      <span className="text-xs text-muted/40">
+      <span className="text-xs text-muted/60">
         Reported
       </span>
     );
@@ -40,7 +40,7 @@ export function ReportButton({ raceId, reportedUserId }: ReportButtonProps) {
     <button
       onClick={handleReport}
       disabled={loading}
-      className="text-xs text-muted/40 hover:text-error/60 transition-colors"
+      className="text-xs text-muted/60 hover:text-error/60 transition-colors"
     >
       {loading ? "Reporting..." : "Report suspicious"}
     </button>

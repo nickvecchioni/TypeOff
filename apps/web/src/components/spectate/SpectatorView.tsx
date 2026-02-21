@@ -52,7 +52,7 @@ function PlayerTab({
       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all whitespace-nowrap ${
         isActive
           ? "bg-accent/[0.12] text-accent ring-1 ring-accent/25"
-          : "text-muted/50 hover:text-muted hover:bg-white/[0.04]"
+          : "text-muted/65 hover:text-muted hover:bg-white/[0.04]"
       }`}
     >
       {!isBot && <RankBadge tier={getRankTier(player.elo)} />}
@@ -65,7 +65,7 @@ function PlayerTab({
         )}
       </span>
       {progress && (
-        <span className="tabular-nums text-[10px] text-muted/30 ml-0.5">
+        <span className="tabular-nums text-[10px] text-muted/65 ml-0.5">
           {Math.floor(progress.wpm)}
         </span>
       )}
@@ -103,7 +103,7 @@ export function SpectatorView({
           {/* LIVE badge */}
           <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest ${
             finished
-              ? "bg-muted/10 text-muted/40 ring-1 ring-white/[0.06]"
+              ? "bg-muted/10 text-muted/60 ring-1 ring-white/[0.06]"
               : "bg-red-500/[0.12] text-red-400 ring-1 ring-red-500/25"
           }`}>
             {!finished && <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />}
@@ -112,7 +112,7 @@ export function SpectatorView({
 
           {/* Spectator count */}
           {spectatorCount > 0 && (
-            <div className="flex items-center gap-1.5 text-xs text-muted/30">
+            <div className="flex items-center gap-1.5 text-xs text-muted/65">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                 <circle cx="12" cy="12" r="3" />
@@ -122,14 +122,14 @@ export function SpectatorView({
           )}
 
           {/* Mode badge */}
-          <span className="text-[10px] text-muted/25 uppercase tracking-wider font-medium">
+          <span className="text-[10px] text-muted/45 uppercase tracking-wider font-medium">
             {raceState.mode}
           </span>
         </div>
 
         <button
           onClick={onStop}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted/50 hover:text-text bg-white/[0.03] ring-1 ring-white/[0.06] hover:ring-white/[0.12] transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted/65 hover:text-text bg-white/[0.03] ring-1 ring-white/[0.06] hover:ring-white/[0.12] transition-all"
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="18" y1="6" x2="6" y2="18" />
@@ -160,7 +160,7 @@ export function SpectatorView({
         >
           <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
           <div className="p-4">
-            <h3 className="text-[10px] font-bold text-muted/40 uppercase tracking-widest mb-3">
+            <h3 className="text-[10px] font-bold text-muted/60 uppercase tracking-widest mb-3">
               Results
             </h3>
             <div className="space-y-2">
@@ -174,13 +174,13 @@ export function SpectatorView({
                       className="flex items-center justify-between text-sm"
                     >
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="w-5 text-right text-muted/30 tabular-nums text-xs font-bold">
+                        <span className="w-5 text-right text-muted/65 tabular-nums text-xs font-bold">
                           #{r.placement}
                         </span>
                         {!isBot && <CosmeticBadge badge={r.activeBadge} />}
                         <span className="truncate">
                           {isBot ? (
-                            <span className="text-muted/40">{r.name}</span>
+                            <span className="text-muted/60">{r.name}</span>
                           ) : (
                             <CosmeticName nameColor={r.activeNameColor} nameEffect={r.activeNameEffect}>
                               {r.name}
@@ -188,14 +188,14 @@ export function SpectatorView({
                           )}
                         </span>
                       </div>
-                      <div className="flex items-center gap-4 text-xs text-muted/50 tabular-nums shrink-0">
+                      <div className="flex items-center gap-4 text-xs text-muted/65 tabular-nums shrink-0">
                         <span>{r.accuracy.toFixed(1)}%</span>
                         <span className="text-text font-bold w-[5ch] text-right">
                           {r.wpm.toFixed(1)}
                         </span>
                         {r.eloChange != null && (
                           <span className={`w-[4ch] text-right ${
-                            r.eloChange > 0 ? "text-correct/70" : r.eloChange < 0 ? "text-error/70" : "text-muted/30"
+                            r.eloChange > 0 ? "text-correct/70" : r.eloChange < 0 ? "text-error/70" : "text-muted/65"
                           }`}>
                             {r.eloChange > 0 ? "+" : ""}{r.eloChange}
                           </span>
@@ -215,7 +215,7 @@ export function SpectatorView({
             className="flex items-center gap-1.5 overflow-x-auto pb-1 opacity-0 animate-fade-in"
             style={{ animationDelay: "150ms", animationFillMode: "both" }}
           >
-            <span className="text-[10px] text-muted/25 uppercase tracking-wider font-bold shrink-0 mr-1">
+            <span className="text-[10px] text-muted/45 uppercase tracking-wider font-bold shrink-0 mr-1">
               Watching
             </span>
             {raceState.players.map((player) => (
@@ -269,7 +269,7 @@ export function SpectatorView({
               </div>
               <button
                 onClick={onStop}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-muted/50 bg-white/[0.03] ring-1 ring-white/[0.06] hover:ring-white/[0.12] hover:text-text transition-all"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-muted/65 bg-white/[0.03] ring-1 ring-white/[0.06] hover:ring-white/[0.12] hover:text-text transition-all"
               >
                 Stop Following
               </button>
