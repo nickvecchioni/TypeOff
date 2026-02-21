@@ -2,7 +2,6 @@
 
 import React from "react";
 import type { WordState } from "@typeoff/shared";
-import { Cursor } from "./Cursor";
 
 interface CodeWordDisplayProps {
   words: WordState[];
@@ -63,7 +62,6 @@ export function CodeWordDisplay({
                   data-wordindex={globalIdx}
                   className="relative inline-block w-0"
                 >
-                  {isActive && <Cursor charIndex={currentCharIndex} isTyping={isTyping} />}
                 </span>
               );
             }
@@ -91,7 +89,6 @@ export function CodeWordDisplay({
                       {"\u00B7"}
                     </span>
                   ))}
-                  {isActive && <Cursor charIndex={currentCharIndex} isTyping={isTyping} />}
                 </span>
               );
             }
@@ -122,7 +119,6 @@ export function CodeWordDisplay({
                     </span>
                   );
                 })}
-                {isActive && <Cursor charIndex={currentCharIndex} isTyping={isTyping} />}
               </span>
             );
           })}

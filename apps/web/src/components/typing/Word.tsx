@@ -3,7 +3,6 @@
 import React, { forwardRef } from "react";
 import type { WordState } from "@typeoff/shared";
 import { Character } from "./Character";
-import { Cursor } from "./Cursor";
 
 interface WordProps {
   word: WordState;
@@ -37,7 +36,6 @@ const WordInner = forwardRef<HTMLSpanElement, WordProps>(
         {word.extraChars.map((char, i) => (
           <Character key={`extra-${i}`} char={char} isExtra />
         ))}
-        {isActive && <Cursor charIndex={charIndex} isTyping={isTyping} />}
       </span>
     );
   }
