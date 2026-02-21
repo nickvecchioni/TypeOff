@@ -195,7 +195,6 @@ export function GuestPlacement() {
         wpm={finishedWpm}
         accuracy={finishedAccuracy}
         onContinue={() => signIn("google", { callbackUrl: "/" })}
-        subtitle="Sign in to save your rank"
         ctaContent={
           <button
             onClick={() => signIn("google", { callbackUrl: "/" })}

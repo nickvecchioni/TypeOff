@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { getRankTier, getRankInfo } from "@typeoff/shared";
+import { getRankTier } from "@typeoff/shared";
 import type { RankTier } from "@typeoff/shared";
+import { RankBadge } from "@/components/RankBadge";
 
 interface PlacementRevealProps {
   elo: number;
@@ -27,7 +28,6 @@ const TIER_GLOW: Record<RankTier, string> = {
 export function PlacementReveal({ elo, wpm, accuracy, onContinue, subtitle, ctaLabel, ctaContent }: PlacementRevealProps) {
   const [phase, setPhase] = useState<"intro" | "reveal">("intro");
   const tier = getRankTier(elo) as RankTier;
-  const rankInfo = getRankInfo(elo);
 
   useEffect(() => {
     const timer = setTimeout(() => setPhase("reveal"), 800);
@@ -55,12 +55,7 @@ export function PlacementReveal({ elo, wpm, accuracy, onContinue, subtitle, ctaL
           transitionProperty: "opacity, transform, filter",
         }}
       >
-        <div className={`text-5xl sm:text-6xl font-black text-rank-${tier} tracking-tight`}>
-          {rankInfo.label}
-        </div>
-        <div className="text-2xl font-bold text-text tabular-nums">
-          {elo} <span className="text-muted text-base font-normal">ELO</span>
-        </div>
+        <RankBadge tier={tier} elo={elo} size="md" />
       </div>
 
       {/* Stats */}
@@ -82,9 +77,11 @@ export function PlacementReveal({ elo, wpm, accuracy, onContinue, subtitle, ctaL
       )}
 
       {/* Subtitle */}
-      <p className="text-muted text-sm text-center whitespace-nowrap">
-        {subtitle ?? "Win ranked matches to climb the ladder."}
-      </p>
+      {subtitle && (
+        <p className="text-muted text-sm text-center whitespace-nowrap">
+          {subtitle}
+        </p>
+      )}
 
       {/* CTA */}
       <div className={`${phase === "reveal" ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}>
