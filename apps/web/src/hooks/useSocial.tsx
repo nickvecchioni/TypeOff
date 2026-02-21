@@ -86,26 +86,49 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     return unsub;
   }, [on]);
 
+  // Helper: fetch a ws-token and emit requestFriendStatuses
+  const requestStatuses = useCallback(async () => {
+    try {
+      const res = await fetch("/api/ws-token");
+      if (!res.ok) return;
+      const { token } = await res.json();
+      if (token) emit("requestFriendStatuses", { token });
+    } catch {
+      // ignore — statuses will arrive via individual friendStatus events
+    }
+  }, [emit]);
+
   // Request friend statuses when socket connects
   useEffect(() => {
     if (!connected) return;
-
     let cancelled = false;
     (async () => {
       try {
         const res = await fetch("/api/ws-token");
         if (!res.ok || cancelled) return;
         const { token } = await res.json();
-        if (!cancelled && token) {
-          emit("requestFriendStatuses", { token });
-        }
-      } catch {
-        // ignore — statuses will arrive via individual friendStatus events
-      }
+        if (!cancelled && token) emit("requestFriendStatuses", { token });
+      } catch {}
     })();
-
     return () => { cancelled = true; };
   }, [connected, emit]);
+
+  // Re-request statuses when user returns to the tab (catches missed events)
+  useEffect(() => {
+    if (!connected) return;
+    function handleVisibility() {
+      if (document.visibilityState === "visible") requestStatuses();
+    }
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [connected, requestStatuses]);
+
+  // Periodic refresh every 60s to self-correct any missed status events
+  useEffect(() => {
+    if (!connected) return;
+    const interval = setInterval(() => requestStatuses(), 60_000);
+    return () => clearInterval(interval);
+  }, [connected, requestStatuses]);
 
   const fetchFriends = useCallback(async () => {
     setLoading(true);
@@ -113,15 +136,17 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       const res = await fetch("/api/friends");
       if (res.ok) {
         const data = await res.json();
-        // Merge API response with existing online statuses from socket
+        // Merge API response with existing socket-derived online statuses.
+        // Use `existing != null` (not ??) so that null lastSeen (= friend is online)
+        // is preserved and doesn't fall back to the stale HTTP lastSeen value.
         setFriends((prev) => {
           const prevMap = new Map(prev.map((f) => [f.userId, f]));
           return data.friends.map((f: Friend) => {
             const existing = prevMap.get(f.userId);
             return {
               ...f,
-              online: existing?.online ?? f.online ?? false,
-              lastSeen: existing?.lastSeen ?? f.lastSeen ?? null,
+              online: existing?.online ?? false,
+              lastSeen: existing != null ? existing.lastSeen : (f.lastSeen ?? null),
             };
           });
         });
