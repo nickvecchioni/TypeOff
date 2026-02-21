@@ -29,7 +29,6 @@ export interface TestConfig {
   strictMode?: StrictMode;
   codeLanguage?: string;
   weakBigrams?: string[];
-  ghostReplayData?: ReplaySnapshot[];
 }
 
 /** Build a key for the word-pool column: "words:easy:false" */
@@ -82,14 +81,6 @@ export interface TextDifficultyInfo {
   bigramRarity: number;
   avgWordLength: number;
   specialCharDensity: number;
-}
-
-export interface GhostCursor {
-  wordIndex: number;
-  charIndex: number;
-  progress: number;
-  name: string;
-  wpm: number;
 }
 
 export interface ReplaySnapshot {

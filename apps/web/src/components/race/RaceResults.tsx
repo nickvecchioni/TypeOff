@@ -986,14 +986,6 @@ export function RaceResults({
               watch replay
             </Link>
           )}
-          {raceId && (
-            <Link
-              href="/ghost"
-              className="text-xs text-muted/60 hover:text-muted transition-colors"
-            >
-              ghost race
-            </Link>
-          )}
           {!isPlacement && (
             <Link
               href="/analytics"

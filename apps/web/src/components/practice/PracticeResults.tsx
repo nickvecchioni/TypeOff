@@ -177,14 +177,6 @@ export function PracticeResults({ stats, config, isPb, onRestart }: PracticeResu
           <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/65 text-[10px]">Enter</kbd>
           {" "}to restart
         </p>
-        {session?.user && (
-          <Link
-            href="/ghost"
-            className="text-xs text-purple-400/60 hover:text-purple-400 transition-colors mt-1"
-          >
-            Race your PB
-          </Link>
-        )}
       </div>
     </div>
   );
