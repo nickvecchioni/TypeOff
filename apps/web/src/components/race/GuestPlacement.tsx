@@ -207,8 +207,14 @@ export function LandingPhase({ onStart, hideSignIn }: { onStart: () => void; hid
   );
 }
 
-export function GuestPlacement() {
-  const [phase, setPhase] = useState<Phase>("landing");
+export function GuestPlacement({
+  startFromIdle,
+  onPlacementComplete,
+}: {
+  startFromIdle?: boolean;
+  onPlacementComplete?: (wpm: number) => void;
+} = {}) {
+  const [phase, setPhase] = useState<Phase>(startFromIdle ? "idle" : "landing");
   const [finishedWpm, setFinishedWpm] = useState(0);
   const [finishedAccuracy, setFinishedAccuracy] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -394,6 +400,24 @@ export function GuestPlacement() {
 
   /* ── Reveal phase (combined stats + rank) ────────────── */
   if (phase === "reveal") {
+    if (onPlacementComplete) {
+      return (
+        <PlacementReveal
+          elo={elo}
+          wpm={finishedWpm}
+          accuracy={finishedAccuracy}
+          onContinue={() => onPlacementComplete(finishedWpm)}
+          ctaContent={
+            <button
+              onClick={() => onPlacementComplete(finishedWpm)}
+              className="group flex items-center gap-3 rounded-lg bg-accent/[0.08] ring-1 ring-accent/25 px-6 py-3.5 text-sm font-medium text-accent hover:bg-accent hover:text-bg hover:ring-accent transition-all"
+            >
+              Activate Rank
+            </button>
+          }
+        />
+      );
+    }
     return (
       <PlacementReveal
         elo={elo}

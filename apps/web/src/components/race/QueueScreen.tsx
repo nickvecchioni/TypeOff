@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import { PartyPanel } from "@/components/social/PartyPanel";
 import { RankBadge } from "@/components/RankBadge";
 import { ChallengesWidget } from "@/components/race/ChallengesWidget";
@@ -179,8 +179,19 @@ export function QueueScreen({
   privateRace,
   onSetPrivateRace,
 }: QueueScreenProps) {
-  const { data: session, status } = useSession();
+  const { data: session, status, update: updateSession } = useSession();
   const [modeCategories, setModeCategories] = useState<ModeCategory[]>(["words"]);
+
+  async function handlePlacementClaim(wpm: number) {
+    try {
+      await fetch("/api/claim-placement", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ wpm }),
+      });
+      await updateSession({});
+    } catch {}
+  }
 
   function toggleMode(id: ModeCategory) {
     setModeCategories(prev =>
@@ -324,7 +335,7 @@ export function QueueScreen({
     <div className="flex flex-col items-center w-full max-w-4xl gap-5">
       {session?.user ? (
         !session.user.placementsCompleted ? (
-          <LandingPhase onStart={() => onJoin()} hideSignIn />
+          <GuestPlacement startFromIdle onPlacementComplete={handlePlacementClaim} />
         ) : (
         <>
           {/* ── Player identity card ──────────────────────────────────── */}
@@ -651,10 +662,8 @@ export function QueueScreen({
         </>
         )
       ) : (
-        /* ── Signed-out: Guest Placement ───────────────────────────── */
-        <div className="w-full max-w-4xl">
-          <GuestPlacement />
-        </div>
+        /* ── Signed-out: Hero landing ───────────────────────────────── */
+        <LandingPhase onStart={() => signIn("google")} />
       )}
     </div>
   );
