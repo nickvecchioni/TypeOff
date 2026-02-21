@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { DailyArena } from "@/components/daily/DailyArena";
 
 interface DailyData {
@@ -26,18 +25,13 @@ interface DailyData {
 }
 
 export default function DailyPage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
+  const { status } = useSession();
   const [data, setData] = useState<DailyData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/");
-      return;
-    }
-    if (status !== "authenticated") return;
+    if (status === "loading") return;
 
     fetch("/api/daily")
       .then((r) => {
@@ -47,7 +41,7 @@ export default function DailyPage() {
       .then(setData)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [status, router]);
+  }, [status]);
 
   if (status === "loading" || loading) {
     return (

@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { useTypingEngine } from "@/hooks/useTypingEngine";
 import { WordDisplay } from "@/components/typing/WordDisplay";
 import { generateWordsForMode } from "@typeoff/shared";
@@ -91,10 +92,10 @@ export function DailyArena({ challenge, leaderboard: initialLeaderboard, myResul
     if (!activeSpan) return;
 
     const wordTop = activeSpan.offsetTop;
-    // Scroll when active word reaches the 2nd visible line (0-indexed)
-    const threshold = scrollOffset + lineHeight;
-    if (wordTop > threshold) {
-      setScrollOffset(wordTop - lineHeight);
+    const wordLine = Math.floor(wordTop / lineHeight);
+    const scrollLine = Math.round(scrollOffset / lineHeight);
+    if (wordLine > scrollLine + 1) {
+      setScrollOffset((wordLine - 1) * lineHeight);
     }
   }, [engine.currentWordIndex, engine.status, lineHeight, scrollOffset]);
 
@@ -261,6 +262,18 @@ export function DailyArena({ challenge, leaderboard: initialLeaderboard, myResul
           >
             Try Again
           </button>
+
+          {!session?.user?.id && (
+            <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3 text-center">
+              <p className="text-xs text-muted/50 mb-2">Sign in to save your result and appear on the leaderboard</p>
+              <Link
+                href="/api/auth/signin"
+                className="inline-block text-xs font-bold text-bg bg-accent hover:bg-accent/80 px-4 py-1.5 rounded-lg transition-colors"
+              >
+                Sign in
+              </Link>
+            </div>
+          )}
         </div>
       )}
 

@@ -86,10 +86,6 @@ export default function ProPage() {
 
   const [portalLoading, setPortalLoading] = useState(false);
 
-  useEffect(() => {
-    if (status === "unauthenticated") router.push("/");
-  }, [status, router]);
-
   async function handleManageSubscription() {
     setPortalLoading(true);
     try {
