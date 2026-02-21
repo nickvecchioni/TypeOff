@@ -395,9 +395,9 @@ function SubscriberView({
           <div className="text-sm font-bold text-text group-hover:text-accent transition-colors">Profile</div>
           <p className="text-[11px] text-muted/50 mt-0.5">View your profile with Pro badge</p>
         </Link>
-        <Link href="/cosmetics" className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3 hover:ring-accent/20 transition-all group">
-          <div className="text-sm font-bold text-text group-hover:text-accent transition-colors">Cosmetics</div>
-          <p className="text-[11px] text-muted/50 mt-0.5">Browse and equip cosmetics</p>
+        <Link href="/items" className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3 hover:ring-accent/20 transition-all group">
+          <div className="text-sm font-bold text-text group-hover:text-accent transition-colors">Items</div>
+          <p className="text-[11px] text-muted/50 mt-0.5">Browse and equip your cosmetics</p>
         </Link>
       </div>
     </div>
