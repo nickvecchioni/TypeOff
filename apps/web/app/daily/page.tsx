@@ -45,8 +45,8 @@ export default function DailyPage() {
 
   if (status === "loading" || loading) {
     return (
-      <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
-        <div className="max-w-3xl mx-auto space-y-4">
+      <main className="flex-1 flex flex-col items-center overflow-y-auto px-4 sm:px-6">
+        <div className="w-full max-w-4xl pt-[8vh] space-y-4">
           <div className="h-8 w-48 rounded bg-surface/40 animate-pulse" />
           <div className="h-32 rounded-xl bg-surface/30 animate-pulse" />
           <div className="h-48 rounded-xl bg-surface/30 animate-pulse" />
@@ -64,8 +64,8 @@ export default function DailyPage() {
   }
 
   return (
-    <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
-      <div className="max-w-3xl mx-auto animate-fade-in">
+    <main className="flex-1 flex flex-col items-center overflow-y-auto px-4 sm:px-6">
+      <div className="w-full max-w-4xl pt-[8vh] pb-16 animate-fade-in">
         <DailyArena
           challenge={data.challenge}
           leaderboard={data.leaderboard}
