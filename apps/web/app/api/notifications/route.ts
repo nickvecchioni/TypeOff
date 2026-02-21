@@ -74,3 +74,33 @@ export async function PATCH(request: Request) {
 
   return NextResponse.json({ success: true });
 }
+
+// DELETE — remove notifications
+export async function DELETE(request: Request) {
+  const { auth } = await import("@/lib/auth");
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const url = new URL(request.url);
+  const all = url.searchParams.get("all") === "true";
+  const ids = url.searchParams.get("ids")?.split(",").filter(Boolean) ?? [];
+
+  const db = getDb();
+
+  if (all) {
+    await db
+      .delete(notifications)
+      .where(eq(notifications.userId, session.user.id));
+  } else if (ids.length > 0) {
+    const { inArray } = await import("drizzle-orm");
+    await db
+      .delete(notifications)
+      .where(and(eq(notifications.userId, session.user.id), inArray(notifications.id, ids)));
+  } else {
+    return NextResponse.json({ error: "Provide ids or all=true" }, { status: 400 });
+  }
+
+  return NextResponse.json({ success: true });
+}

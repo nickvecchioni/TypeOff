@@ -81,7 +81,7 @@ interface NotificationDrawerProps {
 }
 
 export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
-  const { notifications, fetchNotifications, markAsRead, markAllRead, unreadCount } = useNotifications();
+  const { notifications, fetchNotifications, markAsRead, clearAll, unreadCount } = useNotifications();
   const router = useRouter();
 
   useEffect(() => {
@@ -125,9 +125,9 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
             )}
           </div>
           <div className="flex items-center gap-2">
-            {unreadCount > 0 && (
+            {notifications.length > 0 && (
               <button
-                onClick={markAllRead}
+                onClick={clearAll}
                 className="text-[10px] text-muted/40 hover:text-accent transition-colors uppercase tracking-wider"
               >
                 Clear all

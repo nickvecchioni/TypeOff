@@ -29,6 +29,7 @@ interface NotificationContextValue {
   fetchNotifications: () => Promise<void>;
   markAsRead: (ids: string[]) => Promise<void>;
   markAllRead: () => Promise<void>;
+  clearAll: () => Promise<void>;
   latestToast: Notification | null;
   clearToast: (id: string) => void;
 }
@@ -109,6 +110,14 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     } catch {}
   }, []);
 
+  const clearAll = useCallback(async () => {
+    try {
+      await fetch("/api/notifications?all=true", { method: "DELETE" });
+      setNotifications([]);
+      setUnreadCount(0);
+    } catch {}
+  }, []);
+
   const clearToast = useCallback((id: string) => {
     setToastQueue((prev) => prev.filter((n) => n.id !== id));
   }, []);
@@ -122,6 +131,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       fetchNotifications,
       markAsRead,
       markAllRead,
+      clearAll,
       latestToast,
       clearToast,
     }}>
