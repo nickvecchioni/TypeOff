@@ -81,7 +81,10 @@ export function getWeeklyKey(date?: Date): string {
 
 /** ET week number since epoch */
 function weekNumber(date?: Date): number {
-  return Math.floor(dayNumber(date) / 7);
+  const d = date ?? new Date();
+  const etStr = etDateString(d);
+  const [y, m, day] = etStr.split("-").map(Number);
+  return Math.floor(Date.UTC(y, m - 1, day) / 86400000 / 7);
 }
 
 /** Pick `count` items from `pool` using seeded shuffle */
