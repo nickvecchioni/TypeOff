@@ -22,6 +22,7 @@ export function PartyPanel({
   onKick,
   onLeave,
 }: PartyPanelProps) {
+  const { data: session } = useSession();
   const { friends, fetchFriends } = useSocial();
   const [showInvite, setShowInvite] = useState(false);
 
@@ -76,7 +77,7 @@ export function PartyPanel({
                 Lead
               </span>
             )}
-            {isLeader && member.userId !== myUserId && (
+            {isLeader && member.userId !== session?.user?.id && (
               <button
                 onClick={() => onKick(member.userId)}
                 className="text-muted/0 group-hover:text-muted hover:!text-error transition-colors text-sm ml-0.5"
