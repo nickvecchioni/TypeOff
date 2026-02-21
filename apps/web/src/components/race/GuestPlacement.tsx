@@ -24,6 +24,8 @@ const RANK_TIERS = [
 
 /* ── Landing phase component ─────────────────────────── */
 function LandingPhase({ onStart }: { onStart: () => void }) {
+  const [hoveredBar, setHoveredBar] = useState<number | null>(null);
+
   return (
     <div className="flex flex-col items-center w-full max-w-4xl mx-auto px-4">
 
@@ -41,28 +43,17 @@ function LandingPhase({ onStart }: { onStart: () => void }) {
         />
         <h1 className="relative text-4xl sm:text-5xl font-black text-text tracking-tight text-center leading-tight">
           Competitive typing,{" "}
-          <span
-            style={{
-              background: "linear-gradient(90deg, #4d9eff 0%, #93c5fd 45%, #4d9eff 65%, #93c5fd 100%)",
-              backgroundSize: "200% auto",
-              WebkitBackgroundClip: "text",
-              backgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              animation: "shimmer 4s linear infinite",
-            }}
-          >
-            ranked.
-          </span>
+          <span className="text-accent text-glow-accent">ranked.</span>
         </h1>
         <p className="relative text-muted/60 text-sm sm:text-base text-center max-w-lg leading-relaxed">
           Race real players in ELO-matched battles.
           <br className="hidden sm:block" />{" "}
           Climb from{" "}
-          <span style={{ color: "#d97706", textShadow: "0 0 12px rgba(217,119,6,0.55)" }}>
+          <span style={{ color: "#d97706", textShadow: "0 0 10px rgba(217,119,6,0.45)" }}>
             Bronze
           </span>
           {" "}to{" "}
-          <span className="glow-pulse" style={{ color: "#ef4444" }}>
+          <span style={{ color: "#ef4444", textShadow: "0 0 10px rgba(239,68,68,0.4)" }}>
             Grandmaster
           </span>
           .
@@ -74,28 +65,44 @@ function LandingPhase({ onStart }: { onStart: () => void }) {
         className="flex items-end justify-center gap-0 mb-10 opacity-0 animate-fade-in"
         style={{ animationDelay: "80ms", animationFillMode: "both" }}
       >
-        {RANK_TIERS.map((tier, i) => (
-          <div key={tier.label} className="flex flex-col items-center">
+        {RANK_TIERS.map((tier, i) => {
+          const isHovered = hoveredBar === i;
+          return (
             <div
-              className="w-8 sm:w-10 rounded-sm mx-px"
-              style={{
-                height: 12 + i * 7,
-                background: tier.color,
-                opacity: 0.85,
-                boxShadow: i === 6
-                  ? `0 0 10px ${tier.color}, 0 0 24px ${tier.color}88`
-                  : `0 0 8px ${tier.color}55`,
-                animation: i === 6 ? "cosmetic-pulse 2s ease-in-out infinite" : undefined,
-              }}
-            />
-            <span
-              className="mt-1.5 text-[9px] sm:text-[10px] font-bold tracking-wide uppercase"
-              style={{ color: tier.color }}
+              key={tier.label}
+              className="flex flex-col items-center cursor-default"
+              onMouseEnter={() => setHoveredBar(i)}
+              onMouseLeave={() => setHoveredBar(null)}
             >
-              {tier.label === "Grandmaster" ? "GM" : tier.label.slice(0, 2)}
-            </span>
-          </div>
-        ))}
+              <div
+                className="w-8 sm:w-10 rounded-sm mx-px"
+                style={{
+                  height: 12 + i * 7,
+                  background: tier.color,
+                  opacity: isHovered ? 1 : 0.75,
+                  transform: isHovered ? "scaleY(1.08)" : "scaleY(1)",
+                  transformOrigin: "bottom",
+                  boxShadow: isHovered
+                    ? `0 0 14px ${tier.color}cc, 0 0 28px ${tier.color}55`
+                    : i === 6
+                    ? `0 0 6px ${tier.color}66`
+                    : `0 0 4px ${tier.color}33`,
+                  transition: "all 0.15s ease",
+                }}
+              />
+              <span
+                className="mt-1.5 text-[9px] sm:text-[10px] font-bold tracking-wide uppercase transition-all duration-150"
+                style={{
+                  color: tier.color,
+                  opacity: isHovered ? 1 : 0.6,
+                  textShadow: isHovered ? `0 0 8px ${tier.color}99` : "none",
+                }}
+              >
+                {tier.label === "Grandmaster" ? "GM" : tier.label.slice(0, 2)}
+              </span>
+            </div>
+          );
+        })}
       </div>
 
       {/* Feature cards */}
@@ -108,37 +115,55 @@ function LandingPhase({ onStart }: { onStart: () => void }) {
             title: "Real Competition",
             body: "ELO matchmaking places you against players at your exact skill level. Every race counts.",
             icon: (
-              <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
-                <path d="M8 1L10.5 6H14L11 9.5L12.5 15L8 11.5L3.5 15L5 9.5L2 6H5.5L8 1Z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
+              /* Racing flag — crossed pattern pole + waving flag */
+              <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="2" x2="3" y2="14"/>
+                <path d="M3 2c2-1.2 3.5 1.2 5.5 0s3.5-1.2 5.5 0v5c-2-1.2-3.5 1.2-5.5 0S5 5.8 3 7V2z"/>
               </svg>
             ),
+            iconHoverClass: "group-hover:translate-x-0.5 group-hover:scale-110",
           },
           {
             title: "7 Rank Tiers",
             body: "Bronze through Grandmaster. Your ELO rating is recalculated after every race.",
             icon: (
-              <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
-                <path d="M1 12L4 4L8 9L11 5L15 12" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+              /* Trophy cup */
+              <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 2h6v5a3 3 0 01-6 0V2z"/>
+                <path d="M2 2h3M11 2h3M2 2c0 2.5 1.5 4 3 4.5M14 2c0 2.5-1.5 4-3 4.5"/>
+                <line x1="8" y1="9" x2="8" y2="12"/>
+                <line x1="5.5" y1="12" x2="10.5" y2="12"/>
+                <line x1="5.5" y1="14" x2="10.5" y2="14"/>
               </svg>
             ),
+            iconHoverClass: "group-hover:-translate-y-0.5 group-hover:scale-110",
           },
           {
             title: "Earn Cosmetics",
             body: "Unlock titles, cursor effects, name colors, and profile borders as you climb.",
             icon: (
-              <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
-                <path d="M8 2V14M4 6L8 2L12 6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+              /* Sparkle / wand with stars */
+              <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="13" x2="10" y2="6"/>
+                <path d="M10 6l1-3 1 3 3 1-3 1-1 3-1-3-3-1 3-1z"/>
+                <line x1="2" y1="5" x2="2" y2="7"/>
+                <line x1="1" y1="6" x2="3" y2="6"/>
+                <line x1="5" y1="2" x2="5" y2="4"/>
+                <line x1="4" y1="3" x2="6" y2="3"/>
               </svg>
             ),
+            iconHoverClass: "group-hover:rotate-12 group-hover:scale-110",
           },
         ].map((card) => (
           <div
             key={card.title}
-            className="flex flex-col gap-2 rounded-xl bg-white/[0.03] ring-1 ring-white/[0.07] px-5 py-4"
+            className="group flex flex-col gap-2 rounded-xl bg-white/[0.03] ring-1 ring-white/[0.07] px-5 py-4 hover:bg-white/[0.06] hover:ring-accent/25 transition-all duration-200 cursor-default"
           >
-            <span className="text-accent/70">{card.icon}</span>
-            <span className="text-text text-sm font-semibold">{card.title}</span>
-            <span className="text-muted/50 text-xs leading-relaxed">{card.body}</span>
+            <span className={`text-accent/70 group-hover:text-accent transition-all duration-200 ${card.iconHoverClass}`}>
+              {card.icon}
+            </span>
+            <span className="text-text/70 group-hover:text-text text-sm font-semibold transition-colors duration-200">{card.title}</span>
+            <span className="text-muted/50 group-hover:text-muted/70 text-xs leading-relaxed transition-colors duration-200">{card.body}</span>
           </div>
         ))}
       </div>
