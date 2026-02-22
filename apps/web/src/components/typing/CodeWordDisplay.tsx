@@ -55,12 +55,15 @@ export function CodeWordDisplay({
             const hasErrors = word.chars.some((c) => c.status === "incorrect");
 
             if (isNewlineToken) {
-              // Invisible — just anchor the cursor at end of line, no visible text
+              // Invisible — anchor the cursor at end of line.
+              // Explicit height so getBoundingClientRect().height is non-zero,
+              // which prevents the cursor from collapsing to 0px when the user
+              // is waiting to press Enter at the end of a code line.
               return (
                 <span
                   key={globalIdx}
                   data-wordindex={globalIdx}
-                  className="relative inline-block w-0"
+                  className="relative inline-block w-0 h-[2rem] sm:h-[2.5rem]"
                 >
                 </span>
               );

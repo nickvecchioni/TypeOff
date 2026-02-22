@@ -320,13 +320,6 @@ export function PracticeArena({ initialDrill = false }: { initialDrill?: boolean
           role="textbox"
           aria-label="Solo typing area"
         >
-          {capsLock && (
-            <div className="absolute top-1.5 right-0 z-10 pointer-events-none">
-              <span className="px-2 py-0.5 rounded text-xs font-medium bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/20">
-                Caps Lock
-              </span>
-            </div>
-          )}
           <div
             ref={wordsInnerRef}
             className={suppressTransitionRef.current ? "" : "transition-transform duration-150 ease-out"}
@@ -385,6 +378,15 @@ export function PracticeArena({ initialDrill = false }: { initialDrill?: boolean
             <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/65 text-[10px]">Enter</kbd>
             {" "}to restart
           </p>
+        </div>
+      )}
+
+      {/* Caps Lock warning — below typing area, never overlapping text */}
+      {!isFinished && capsLock && (
+        <div className="flex justify-center -mt-2 mb-2">
+          <span className="px-2 py-0.5 rounded text-xs font-medium bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/20">
+            Caps Lock
+          </span>
         </div>
       )}
 

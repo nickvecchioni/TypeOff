@@ -41,12 +41,13 @@ export function WordDisplay({
     const containerRect = container.getBoundingClientRect();
     const wordRect = wordEl.getBoundingClientRect();
 
-    setSmoothPos({
+    setSmoothPos((prev) => ({
       x: wordRect.left - containerRect.left + currentCharIndex * charW,
       y: wordRect.top - containerRect.top,
-      lineH: wordRect.height,
+      // Guard against empty/zero-height elements (e.g. \n tokens) collapsing the cursor
+      lineH: wordRect.height || prev.lineH,
       charW,
-    });
+    }));
   }, [currentWordIndex, currentCharIndex]);
 
   if (contentType === "code") {
