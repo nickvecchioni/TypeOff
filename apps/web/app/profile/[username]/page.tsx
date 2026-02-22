@@ -21,6 +21,19 @@ import { LocalDateTime } from "./local-date-time";
 import { PerformanceCharts } from "@/components/profile/PerformanceCharts";
 
 
+function formatLastSeen(lastSeen: Date | null): string | null {
+  if (!lastSeen) return null;
+  const diff = Date.now() - new Date(lastSeen).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 5) return null; // will show as Online
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 30) return `${days}d ago`;
+  return null;
+}
+
 export default async function ProfilePage({
   params,
 }: {
@@ -68,6 +81,7 @@ export default async function ProfilePage({
       eloAfter: raceParticipants.eloAfter,
       finishedAt: raceParticipants.finishedAt,
       playerCount: races.playerCount,
+      modeCategory: races.modeCategory,
     })
     .from(raceParticipants)
     .innerJoin(races, eq(raceParticipants.raceId, races.id))
@@ -248,12 +262,16 @@ export default async function ProfilePage({
                       Pro
                     </span>
                   )}
-                  {isOnline && (
+                  {isOnline ? (
                     <span className="flex items-center gap-1.5 text-[11px] text-emerald-400/80">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_5px_rgba(52,211,153,0.7)]" />
                       Online
                     </span>
-                  )}
+                  ) : formatLastSeen(user.lastSeen) ? (
+                    <span className="text-[11px] text-muted/45">
+                      {formatLastSeen(user.lastSeen)}
+                    </span>
+                  ) : null}
                 </div>
                 <CosmeticTitle title={activeCosmetics?.activeTitle} />
               </div>
@@ -275,9 +293,12 @@ export default async function ProfilePage({
                 <div className="flex flex-col gap-3 flex-1 min-w-0">
                   <RankBadge tier={rankInfo.tier} elo={user.eloRating} />
                   <div className="space-y-1.5">
-                    {user.peakEloRating > user.eloRating && (
-                      <div className="text-[11px] text-muted/60 tabular-nums">
-                        Peak {user.peakEloRating} ELO
+                    {user.peakEloRating > 0 && (
+                      <div className="text-[11px] text-muted/50 tabular-nums">
+                        Peak{" "}
+                        <span className={user.peakEloRating > user.eloRating ? "text-amber-400/70" : "text-muted/60"}>
+                          {user.peakEloRating}
+                        </span>
                       </div>
                     )}
                     <RankProgressBar elo={user.eloRating} />
@@ -329,10 +350,17 @@ export default async function ProfilePage({
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-px bg-white/[0.02] rounded-lg overflow-hidden">
             <StatCard label="Races" value={stats?.racesPlayed ?? 0} />
             <StatCard label="Wins" value={stats?.racesWon ?? 0} />
+            <StatCard
+              label="Win Rate"
+              value={
+                stats?.racesPlayed
+                  ? `${Math.round((stats.racesWon / stats.racesPlayed) * 100)}%`
+                  : "—"
+              }
+            />
             <StatCard label="Streak" value={stats?.currentStreak ?? 0} />
             <StatCard label="Best Streak" value={stats?.maxStreak ?? 0} />
-            <StatCard label="Day Streak" value={stats?.rankedDayStreak ?? 0} />
-            <StatCard label="Best Day" value={stats?.maxRankedDayStreak ?? 0} />
+            <StatCard label="Daily Streak" value={stats?.rankedDayStreak ?? 0} />
           </div>
         </div>
 
@@ -375,7 +403,18 @@ export default async function ProfilePage({
                       key={`${pb.mode}:${pb.duration}`}
                       className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-3 hover:ring-accent/10 hover:bg-surface/60 transition-all"
                     >
-                      <div className="text-[10px] text-muted/60 uppercase tracking-widest mb-1.5">{label}</div>
+                      <div className="flex items-center gap-1 mb-1.5">
+                        {pb.mode === "timed" ? (
+                          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted/40 shrink-0">
+                            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                          </svg>
+                        ) : (
+                          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted/40 shrink-0">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                          </svg>
+                        )}
+                        <span className="text-[10px] text-muted/60 uppercase tracking-widest">{label}</span>
+                      </div>
                       <div className="text-xl font-black text-accent tabular-nums leading-none">
                         {Math.floor(pb.bestWpm)}
                         <span className="text-[0.6em] opacity-40">
@@ -467,6 +506,7 @@ export default async function ProfilePage({
                   <tr className="text-[10px] text-muted/55 uppercase tracking-widest border-b border-white/[0.03]">
                     <th className="w-1 py-3 pl-4"></th>
                     <th className="px-3 py-3 font-medium">Date</th>
+                    <th className="hidden sm:table-cell px-3 py-3 font-medium">Mode</th>
                     <th className="px-3 py-3 font-medium">Place</th>
                     <th className="px-3 py-3 font-medium text-right">WPM</th>
                     <th className="hidden sm:table-cell px-3 py-3 font-medium text-right">Acc</th>
@@ -503,6 +543,15 @@ export default async function ProfilePage({
                             ? <LocalDateTime date={race.finishedAt.toISOString()} />
                             : "—"}
                         </td>
+                        <td className="hidden sm:table-cell px-3 py-3">
+                          {race.modeCategory ? (
+                            <span className="text-[9px] font-bold text-muted/40 font-mono [font-variant-ligatures:none]">
+                              {race.modeCategory === "words" ? "aa" : race.modeCategory === "special" ? "A1!" : race.modeCategory === "quotes" ? '""' : race.modeCategory === "code" ? "</>" : ""}
+                            </span>
+                          ) : (
+                            <span className="text-muted/20">—</span>
+                          )}
+                        </td>
                         <td className="px-3 py-3">
                           <span className={`text-xs font-bold ${placementMeta.textColor}`}>
                             {placementMeta.ordinal}
@@ -519,14 +568,7 @@ export default async function ProfilePage({
                           ) : "—"}
                         </td>
                         <td className="hidden sm:table-cell px-3 py-3 text-right tabular-nums text-muted/60 text-xs">
-                          {race.accuracy != null ? (
-                            <>
-                              {Math.floor(race.accuracy)}
-                              <span className="text-[0.8em] opacity-35">
-                                .{((race.accuracy % 1) * 10).toFixed(0)}%
-                              </span>
-                            </>
-                          ) : "—"}
+                          {race.accuracy != null ? `${race.accuracy.toFixed(1)}%` : "—"}
                         </td>
                         <td className="px-3 py-3 text-right tabular-nums">
                           {eloChange != null ? (
