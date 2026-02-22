@@ -32,7 +32,11 @@ export default async function ItemsPage() {
 
   return (
     <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
-      <ItemsBrowser totalXp={stats?.totalXp ?? 0} isPro={isPro} />
+      <ItemsBrowser
+        totalXp={stats?.totalXp ?? 0}
+        isPro={isPro}
+        username={session.user.username ?? session.user.name ?? "You"}
+      />
     </main>
   );
 }
