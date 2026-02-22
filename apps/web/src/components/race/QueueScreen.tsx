@@ -217,7 +217,7 @@ function LevelWidget({
   isPro: boolean;
 }) {
   const xpPct = Math.round((currentXp / nextLevelXp) * 100);
-  const upcomingRewards = COSMETIC_REWARDS.filter((r) => r.level > level).slice(0, 9);
+  const upcomingRewards = COSMETIC_REWARDS.filter((r) => r.level > level).slice(0, 8);
   const xpRemaining = nextLevelXp - currentXp;
 
   return (
@@ -265,9 +265,9 @@ function LevelWidget({
               return (
                 <div
                   key={reward.id}
-                  className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/[0.02] ring-1 ring-white/[0.04] group-hover:ring-accent/10 transition-colors"
+                  className="flex items-center gap-3 px-2.5 py-1.5 rounded-lg bg-white/[0.02] ring-1 ring-white/[0.04] group-hover:ring-accent/10 transition-colors"
                 >
-                  <span className={`shrink-0 flex items-center justify-center w-8 ${proLocked ? "opacity-30" : ""}`}>
+                  <span className={`shrink-0 flex items-center justify-center w-10 ${proLocked ? "opacity-30" : ""}`}>
                     <RewardIcon reward={reward} />
                   </span>
                   <span className="text-[11px] font-semibold text-text/80 truncate leading-none flex-1">
@@ -724,7 +724,7 @@ export function QueueScreen({
           {session.user.placementsCompleted && xpInfo && (
             <div className="w-full border-t border-white/[0.05] pt-3 mt-1">
             <div
-              className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3 animate-fade-in"
+              className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3 items-start animate-fade-in"
               style={{ animationDelay: "120ms", animationFillMode: "both" }}
             >
               <ChallengesWidget />

@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getDb } from "@/lib/db";
 import { users, userStats, raceParticipants, races, userAchievements, userActiveCosmetics, soloResults, userSubscription } from "@typeoff/db";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, and, gt, isNotNull } from "drizzle-orm";
 import { getRankInfo, getRankProgress, getNextDivisionElo, ACHIEVEMENTS, getXpLevel, PROFILE_BORDERS } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
 import { AchievementsGrid } from "./achievements-grid";
@@ -98,13 +98,31 @@ export default async function ProfilePage({
       totalTests: sql<number>`count(*)`.as("total_tests"),
     })
     .from(soloResults)
-    .where(eq(soloResults.userId, user.id))
+    .where(and(eq(soloResults.userId, user.id), gt(soloResults.duration, 0)))
     .groupBy(soloResults.mode, soloResults.duration);
 
   // Overall solo best
   const soloBestWpm = soloPbs.length > 0
     ? Math.max(...soloPbs.map((r) => r.bestWpm))
     : null;
+
+  // Ranked personal bests — best WPM per mode category
+  const rankedPbs = await db
+    .select({
+      modeCategory: races.modeCategory,
+      bestWpm: sql<number>`max(${raceParticipants.wpm})`.as("best_wpm"),
+      totalRaces: sql<number>`count(*)`.as("total_races"),
+    })
+    .from(raceParticipants)
+    .innerJoin(races, eq(raceParticipants.raceId, races.id))
+    .where(
+      and(
+        eq(raceParticipants.userId, user.id),
+        isNotNull(raceParticipants.wpm),
+        isNotNull(races.modeCategory),
+      )
+    )
+    .groupBy(races.modeCategory);
 
   // Load active cosmetics
   const [activeCosmetics] = await db
@@ -364,7 +382,41 @@ export default async function ProfilePage({
                           .{(pb.bestWpm % 1).toFixed(2).slice(2)}
                         </span>
                       </div>
-                      <div className="text-[10px] text-muted/45 mt-1.5 tabular-nums">{pb.totalTests} tests</div>
+                      <div className="text-[10px] text-muted/45 mt-1.5 tabular-nums">{pb.totalTests} {pb.totalTests === 1 ? "test" : "tests"}</div>
+                    </div>
+                  );
+                })}
+            </div>
+          </section>
+        )}
+
+        {/* ── Ranked Personal Bests ─────────────────────────── */}
+        {rankedPbs.length > 0 && (
+          <section className="animate-slide-up" style={{ animationDelay: "130ms" }}>
+            <SectionHeader>Ranked Personal Bests</SectionHeader>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {(["words", "special", "quotes", "code"] as const)
+                .map((cat) => {
+                  const pb = rankedPbs.find((r) => r.modeCategory === cat);
+                  if (!pb) return null;
+                  const labels: Record<string, string> = { words: "Words", special: "Mixed", quotes: "Quotes", code: "Code" };
+                  const icons: Record<string, string> = { words: "aa", special: "A1!", quotes: "\u201C\u201D", code: "</>" };
+                  return (
+                    <div
+                      key={cat}
+                      className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-3 hover:ring-accent/10 hover:bg-surface/60 transition-all"
+                    >
+                      <div className="flex items-center gap-1.5 mb-1.5">
+                        <span className="text-[10px] font-bold font-mono text-muted/40 [font-variant-ligatures:none]">{icons[cat]}</span>
+                        <span className="text-[10px] text-muted/60 uppercase tracking-widest">{labels[cat]}</span>
+                      </div>
+                      <div className="text-xl font-black text-accent tabular-nums leading-none">
+                        {Math.floor(pb.bestWpm)}
+                        <span className="text-[0.6em] opacity-40">
+                          .{(pb.bestWpm % 1).toFixed(2).slice(2)}
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-muted/45 mt-1.5 tabular-nums">{pb.totalRaces} {pb.totalRaces === 1 ? "race" : "races"}</div>
                     </div>
                   );
                 })}
