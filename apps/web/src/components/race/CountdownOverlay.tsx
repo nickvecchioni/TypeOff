@@ -12,14 +12,14 @@ const MODE_LABELS: Record<RaceMode, string | null> = {
   numbers: "Numbers",
   difficult: "Difficult",
   code: "Code",
-  special: "Symbols",
+  special: "Mixed",
 };
 
 const MODE_DESCRIPTIONS: Record<RaceMode, string> = {
   standard: "Common English words",
   sprint: "One line — go fast",
   marathon: "Four lines — stay steady",
-  special: "Words mixed with numbers and punctuation",
+  special: "Capitalized words with punctuation & numbers",
   quotes: "A famous quote with natural punctuation",
   code: "Real code syntax — symbols, brackets, the works",
   punctuation: "Common words with commas, periods, and sentence breaks",

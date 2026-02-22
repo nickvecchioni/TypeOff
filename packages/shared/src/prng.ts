@@ -186,12 +186,28 @@ export function generateWordsForMode(mode: RaceMode, seed: number): string[] {
       return generateWordsForLines(allDifficultyPool, LINE_WIDTH_CH, TARGET_LINES, seed);
     case "code":
       return tokenizeCode(getCodeSnippet(seed).code);
-    case "special":
-      return applyPunctuation(
+    case "special": {
+      const base = applyPunctuation(
         generateNumbersModeWords(LINE_WIDTH_CH, TARGET_LINES, seed),
         seed + 1
       );
+      return applyRandomCaps(base, 0.25, seed + 2);
+    }
   }
+}
+
+/**
+ * Randomly capitalize ~`rate` fraction of word tokens (skips numbers and
+ * words already capitalized by applyPunctuation).
+ */
+function applyRandomCaps(words: string[], rate: number, seed: number): string[] {
+  const rng = mulberry32(seed);
+  return words.map((w) => {
+    const first = w.charAt(0);
+    // Skip tokens that start with a digit or are already uppercased
+    if (!first || first >= "0" && first <= "9" || first === first.toUpperCase()) return w;
+    return rng() < rate ? first.toUpperCase() + w.slice(1) : w;
+  });
 }
 
 /**
