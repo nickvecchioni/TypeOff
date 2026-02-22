@@ -87,7 +87,7 @@ export class RaceManager {
 
   private static readonly CATEGORY_MODES: Record<ModeCategory, RaceMode[]> = {
     words: ["standard", "sprint", "marathon"],
-    special: ["punctuation", "numbers", "difficult"],
+    special: ["punctuation", "numbers"],
     quotes: ["quotes"],
     code: ["code"],
   };
