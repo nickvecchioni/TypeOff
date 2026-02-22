@@ -84,6 +84,11 @@ export function ItemsBrowser({
   const [saving, setSaving] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<CategoryKey>("badge");
   const [hoverPreview, setHoverPreview] = useState<{ field: keyof ActiveState; id: string } | null>(null);
+  const [lockedPreview, setLockedPreview] = useState<{
+    item: CosmeticReward;
+    field: keyof ActiveState;
+    reason: "level" | "pro";
+  } | null>(null);
 
   useEffect(() => {
     fetch("/api/cosmetics")
@@ -93,6 +98,12 @@ export function ItemsBrowser({
         setActive(data.active);
       })
       .catch(() => {});
+  }, []);
+
+  // Clear locked preview when switching categories
+  const handleCategoryChange = useCallback((cat: CategoryKey) => {
+    setSelectedCategory(cat);
+    setLockedPreview(null);
   }, []);
 
   const save = useCallback(async (newActive: ActiveState) => {
@@ -111,6 +122,7 @@ export function ItemsBrowser({
 
   const toggleCosmetic = useCallback(
     (field: keyof ActiveState, id: string) => {
+      setLockedPreview(null);
       const newActive = {
         ...active,
         [field]: active[field] === id ? null : id,
@@ -118,6 +130,15 @@ export function ItemsBrowser({
       save(newActive);
     },
     [active, save],
+  );
+
+  const handleLockedClick = useCallback(
+    (item: CosmeticReward, field: keyof ActiveState, reason: "level" | "pro") => {
+      setLockedPreview((prev) =>
+        prev?.item.id === item.id ? null : { item, field, reason },
+      );
+    },
+    [],
   );
 
   const xpInfo = getXpLevel(totalXp);
@@ -134,9 +155,11 @@ export function ItemsBrowser({
   const levelLockedItems = lockedItems.filter((r) => !r.proOnly || isPro);
   const proExclusiveItems = lockedItems.filter((r) => r.proOnly && !isPro);
 
-  // Live preview: merge hovered item into active state
+  // Live preview: hoverPreview > lockedPreview > active
   const previewActive: ActiveState = hoverPreview
     ? { ...active, [hoverPreview.field]: hoverPreview.id }
+    : lockedPreview
+    ? { ...active, [lockedPreview.field]: lockedPreview.item.id }
     : active;
 
   // Derive preview display values
@@ -153,7 +176,16 @@ export function ItemsBrowser({
     ? (NAME_EFFECT_CLASSES[previewActive.activeNameEffect] ?? "")
     : "";
 
-  const isPreviewingNewItem = hoverPreview !== null;
+  // What's actually being previewed right now
+  const activePreviewItem: CosmeticReward | null = (() => {
+    if (hoverPreview) return COSMETIC_REWARDS.find((r) => r.id === hoverPreview.id) ?? null;
+    if (lockedPreview) return lockedPreview.item;
+    return null;
+  })();
+  const isPreviewingLocked = activePreviewItem != null && !ownedIds.has(activePreviewItem.id);
+  const isPreviewingPro = isPreviewingLocked && activePreviewItem?.proOnly && !isPro;
+  const isPreviewingNewItem = activePreviewItem != null;
+  const isLockedPinned = lockedPreview !== null && hoverPreview === null;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
@@ -203,40 +235,77 @@ export function ItemsBrowser({
       </div>
 
       {/* ── Name Preview ──────────────────────────────────── */}
-      <div className={`rounded-xl ring-1 px-5 py-4 transition-all duration-200 ${
-        isPreviewingNewItem
-          ? "bg-surface/60 ring-white/[0.08]"
-          : "bg-surface/40 ring-white/[0.04]"
-      }`}>
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-[10px] font-bold text-muted/50 uppercase tracking-widest">
-            {isPreviewingNewItem ? "Previewing" : "Your Look"}
-          </span>
-          {isPreviewingNewItem && (
-            <span className="text-[10px] text-accent/50 animate-pulse">live preview</span>
-          )}
-        </div>
-        <div className="flex items-center gap-3">
-          {previewBadge && (
-            <span className="text-2xl leading-none">{previewBadge}</span>
-          )}
-          <div className="min-w-0">
-            <span
-              className={`text-lg font-bold leading-tight block truncate ${previewEffect}`}
-              style={{ color: previewColor ?? undefined }}
-            >
-              {username}
+      <div className="space-y-2">
+        <div className={`rounded-xl ring-1 px-5 py-4 transition-all duration-200 ${
+          isPreviewingPro && isLockedPinned
+            ? "bg-amber-400/[0.03] ring-amber-400/15"
+            : isPreviewingLocked && isLockedPinned
+            ? "bg-surface/50 ring-white/[0.07]"
+            : isPreviewingNewItem
+            ? "bg-surface/60 ring-white/[0.08]"
+            : "bg-surface/40 ring-white/[0.04]"
+        }`}>
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[10px] font-bold text-muted/50 uppercase tracking-widest">
+              {isPreviewingLocked && isLockedPinned
+                ? isPreviewingPro
+                  ? "Previewing · Pro Exclusive"
+                  : "Previewing · Locked"
+                : isPreviewingNewItem
+                ? "Previewing"
+                : "Your Look"}
             </span>
-            {previewTitle && (
-              <span className="text-[11px] text-amber-400/65 leading-tight block mt-0.5">
-                {previewTitle}
+            <div className="flex items-center gap-2">
+              {isLockedPinned && (
+                <button
+                  onClick={() => setLockedPreview(null)}
+                  className="text-[10px] text-muted/40 hover:text-muted/70 transition-colors"
+                  aria-label="Dismiss preview"
+                >
+                  ✕
+                </button>
+              )}
+              {isPreviewingNewItem && !isLockedPinned && (
+                <span className="text-[10px] text-accent/50 animate-pulse">live preview</span>
+              )}
+              {isLockedPinned && (
+                <span className={`text-[10px] ${isPreviewingPro ? "text-amber-400/50" : "text-muted/40"}`}>
+                  click item to dismiss
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            {previewBadge && (
+              <span className="text-2xl leading-none">{previewBadge}</span>
+            )}
+            <div className="min-w-0">
+              <span
+                className={`text-lg font-bold leading-tight block truncate ${previewEffect}`}
+                style={{ color: previewColor ?? undefined }}
+              >
+                {username}
               </span>
+              {previewTitle && (
+                <span className="text-[11px] text-amber-400/65 leading-tight block mt-0.5">
+                  {previewTitle}
+                </span>
+              )}
+            </div>
+            {!previewBadge && !previewColor && !previewEffect && !previewTitle && (
+              <span className="text-xs text-muted/35 italic">Equip cosmetics to see your look</span>
             )}
           </div>
-          {!previewBadge && !previewColor && !previewEffect && !previewTitle && (
-            <span className="text-xs text-muted/35 italic">Equip cosmetics to see your look</span>
-          )}
         </div>
+
+        {/* Lock callout — shown when a locked item is pinned */}
+        {isLockedPinned && lockedPreview && (
+          <LockCallout
+            item={lockedPreview.item}
+            reason={lockedPreview.reason}
+            currentLevel={xpInfo.level}
+          />
+        )}
       </div>
 
       {/* ── Equipped Loadout Strip ────────────────────────── */}
@@ -260,7 +329,7 @@ export function ItemsBrowser({
             return (
               <button
                 key={cat.key}
-                onClick={() => setSelectedCategory(cat.key)}
+                onClick={() => handleCategoryChange(cat.key)}
                 className={`group relative rounded-lg px-1.5 py-2.5 ring-1 transition-all text-center flex flex-col items-center gap-1.5 ${
                   isPreviewing
                     ? "ring-accent/20 bg-accent/[0.04]"
@@ -301,7 +370,7 @@ export function ItemsBrowser({
             return (
               <button
                 key={cat.key}
-                onClick={() => setSelectedCategory(cat.key)}
+                onClick={() => handleCategoryChange(cat.key)}
                 className={`px-3 py-1.5 rounded-lg text-xs transition-all ${
                   isSelected
                     ? "bg-accent/15 text-accent ring-1 ring-accent/20"
@@ -349,9 +418,11 @@ export function ItemsBrowser({
                       active={active[selectedCat.field] === item.id}
                       locked={false}
                       isPro={isPro}
+                      isPinnedPreview={false}
                       onToggle={() => toggleCosmetic(selectedCat.field, item.id)}
                       onHoverIn={() => setHoverPreview({ field: selectedCat.field, id: item.id })}
                       onHoverOut={() => setHoverPreview(null)}
+                      onLockedClick={() => {}}
                     />
                   ))}
                 </div>
@@ -370,9 +441,11 @@ export function ItemsBrowser({
                       active={false}
                       locked={true}
                       isPro={isPro}
+                      isPinnedPreview={lockedPreview?.item.id === item.id}
                       onToggle={() => {}}
                       onHoverIn={() => setHoverPreview({ field: selectedCat.field, id: item.id })}
                       onHoverOut={() => setHoverPreview(null)}
+                      onLockedClick={() => handleLockedClick(item, selectedCat.field, "level")}
                     />
                   ))}
                 </div>
@@ -382,15 +455,7 @@ export function ItemsBrowser({
             {/* Pro-exclusive locked items */}
             {proExclusiveItems.length > 0 && (
               <div>
-                <div className="flex items-center justify-between mb-2.5">
-                  <SectionHeader variant="pro" count={proExclusiveItems.length} />
-                  <Link
-                    href="/pro"
-                    className="text-[10px] font-semibold text-amber-400/60 hover:text-amber-400/90 transition-colors"
-                  >
-                    Unlock with Pro →
-                  </Link>
-                </div>
+                <SectionHeader variant="pro" count={proExclusiveItems.length} />
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                   {proExclusiveItems.map((item) => (
                     <ItemCard
@@ -399,9 +464,11 @@ export function ItemsBrowser({
                       active={false}
                       locked={true}
                       isPro={isPro}
+                      isPinnedPreview={lockedPreview?.item.id === item.id}
                       onToggle={() => {}}
                       onHoverIn={() => setHoverPreview({ field: selectedCat.field, id: item.id })}
                       onHoverOut={() => setHoverPreview(null)}
+                      onLockedClick={() => handleLockedClick(item, selectedCat.field, "pro")}
                     />
                   ))}
                 </div>
@@ -415,6 +482,67 @@ export function ItemsBrowser({
             )}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+/* ── Lock Callout ───────────────────────────────────────── */
+
+function LockCallout({
+  item,
+  reason,
+  currentLevel,
+}: {
+  item: CosmeticReward;
+  reason: "level" | "pro";
+  currentLevel: number;
+}) {
+  const levelsNeeded = item.level - currentLevel;
+
+  if (reason === "pro") {
+    return (
+      <div className="rounded-xl bg-amber-400/[0.04] ring-1 ring-amber-400/20 px-4 py-3 flex items-start gap-3" style={{ animation: "slide-up 0.2s ease-out both" }}>
+        <span className="text-amber-400/60 mt-0.5 shrink-0 text-base leading-none">✦</span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs font-bold text-amber-400/80">{item.name}</span>
+            <span className="text-[9px] font-black text-amber-400 bg-amber-400/10 ring-1 ring-amber-400/25 px-1.5 py-0.5 rounded uppercase tracking-wider leading-none">
+              PRO
+            </span>
+          </div>
+          <p className="text-[11px] text-muted/60 mt-0.5 leading-snug">
+            Pro exclusive · requires{" "}
+            <span className="text-text/70 font-semibold">Level {item.level}</span>
+            {levelsNeeded > 0 && (
+              <span className="text-muted/45"> ({levelsNeeded} level{levelsNeeded !== 1 ? "s" : ""} away)</span>
+            )}
+          </p>
+        </div>
+        <Link
+          href="/pro"
+          className="shrink-0 self-center rounded-lg bg-amber-400/10 ring-1 ring-amber-400/25 text-amber-400 text-[11px] font-bold px-3 py-1.5 hover:bg-amber-400/20 transition-colors whitespace-nowrap leading-none"
+        >
+          Get Pro →
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.06] px-4 py-3 flex items-center gap-3" style={{ animation: "slide-up 0.2s ease-out both" }}>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted/40 shrink-0">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+      </svg>
+      <div className="flex-1 min-w-0">
+        <span className="text-xs font-semibold text-text/70">{item.name}</span>
+        <span className="text-[11px] text-muted/55 ml-2">
+          unlocks at <span className="text-text/60 font-semibold">Level {item.level}</span>
+          {levelsNeeded > 0 && (
+            <span className="text-muted/40"> · {levelsNeeded} level{levelsNeeded !== 1 ? "s" : ""} to go</span>
+          )}
+        </span>
       </div>
     </div>
   );
@@ -455,7 +583,7 @@ function SectionHeader({
   }
   // pro
   return (
-    <h3 className="text-[10px] font-bold text-amber-400/60 uppercase tracking-widest flex items-center gap-2">
+    <h3 className="text-[10px] font-bold text-amber-400/60 uppercase tracking-widest mb-2.5 flex items-center gap-2">
       <span className="text-amber-400/40">✦</span>
       Pro Exclusive
       <span className="text-amber-400/30 font-normal normal-case tracking-normal">
@@ -530,54 +658,64 @@ function ItemCard({
   active,
   locked,
   isPro,
+  isPinnedPreview,
   onToggle,
   onHoverIn,
   onHoverOut,
+  onLockedClick,
 }: {
   item: CosmeticReward;
   active: boolean;
   locked: boolean;
   isPro: boolean;
+  isPinnedPreview: boolean;
   onToggle: () => void;
   onHoverIn: () => void;
   onHoverOut: () => void;
+  onLockedClick: () => void;
 }) {
   const isProLocked = locked && item.proOnly && !isPro;
 
-  // Pro-locked: render as a Link CTA to /pro
+  // Pro-locked card: button style (no redirect), shows level + PRO badge
   if (isProLocked) {
     return (
-      <Link
-        href="/pro"
+      <button
+        onClick={onLockedClick}
         onMouseEnter={onHoverIn}
         onMouseLeave={onHoverOut}
-        className="group relative text-left rounded-xl px-4 py-4 ring-1 transition-all ring-amber-400/15 bg-amber-400/[0.03] hover:ring-amber-400/30 hover:bg-amber-400/[0.06]"
+        className={`group relative text-left rounded-xl px-4 py-4 ring-1 transition-all ${
+          isPinnedPreview
+            ? "ring-amber-400/35 bg-amber-400/[0.08]"
+            : "ring-amber-400/15 bg-amber-400/[0.03] hover:ring-amber-400/25 hover:bg-amber-400/[0.05]"
+        }`}
       >
-        <span className="absolute top-2.5 right-2.5 text-[10px] font-bold text-amber-400/50 bg-amber-400/[0.08] px-1.5 py-0.5 rounded uppercase tracking-wider">
-          Pro
+        <span className="absolute top-2.5 right-2.5 text-[9px] font-black text-amber-400/60 bg-amber-400/[0.08] px-1.5 py-0.5 rounded uppercase tracking-wider leading-none">
+          PRO
         </span>
-        <div className="mb-3 h-8 flex items-center opacity-40 group-hover:opacity-60 transition-opacity">
+        <div className="mb-3 h-8 flex items-center opacity-50 group-hover:opacity-70 transition-opacity">
           <ItemVisual item={item} />
         </div>
-        <p className="text-xs font-semibold truncate leading-tight text-muted/65">
+        <p className="text-xs font-semibold truncate leading-tight text-muted/65 group-hover:text-muted/80 transition-colors">
           {item.name}
         </p>
-        <p className="text-[10px] mt-0.5 leading-tight text-amber-400/45 group-hover:text-amber-400/70 transition-colors font-medium">
-          Get Pro →
+        <p className="text-[10px] mt-0.5 leading-tight text-amber-400/40 group-hover:text-amber-400/60 transition-colors tabular-nums">
+          Lv. {item.level} · Pro
         </p>
-      </Link>
+      </button>
     );
   }
 
+  // Level-locked or owned card
   return (
     <button
-      onClick={onToggle}
-      disabled={locked}
+      onClick={locked ? onLockedClick : onToggle}
       onMouseEnter={onHoverIn}
       onMouseLeave={onHoverOut}
       className={`group relative text-left rounded-xl px-4 py-4 ring-1 transition-all ${
         locked
-          ? "ring-white/[0.04] bg-surface/20 cursor-default opacity-50 grayscale"
+          ? isPinnedPreview
+            ? "ring-white/[0.12] bg-surface/40 opacity-70"
+            : "ring-white/[0.04] bg-surface/20 opacity-50 hover:opacity-65 hover:ring-white/[0.08] cursor-pointer grayscale hover:grayscale-[0.5]"
           : active
             ? "ring-accent/35 bg-accent/[0.07] shadow-[0_0_20px_rgba(77,158,255,0.06)]"
             : "ring-white/[0.05] bg-surface/40 hover:ring-white/[0.1] hover:bg-surface/60"
@@ -586,13 +724,16 @@ function ItemCard({
       {active && (
         <span className="absolute top-3 right-3 w-1.5 h-1.5 rounded-full bg-accent shadow-[0_0_6px_rgba(77,158,255,0.6)]" />
       )}
-      {locked && (
+      {locked && !isPinnedPreview && (
         <span className="absolute top-3 right-3 text-muted/20">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>
         </span>
+      )}
+      {locked && isPinnedPreview && (
+        <span className="absolute top-3 right-3 text-accent/40 text-[10px]">👁</span>
       )}
       <div className="mb-3 h-8 flex items-center">
         <ItemVisual item={item} />
@@ -604,7 +745,7 @@ function ItemCard({
       </p>
       <p className="text-[10px] mt-0.5 leading-tight">
         {locked ? (
-          <span className="text-muted/65">Level {item.level}</span>
+          <span className="text-muted/55 tabular-nums">Lv. {item.level}</span>
         ) : active ? (
           <span className="text-accent/50">Equipped</span>
         ) : (
