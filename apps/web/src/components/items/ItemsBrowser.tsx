@@ -14,6 +14,7 @@ import {
   getXpLevel,
   type CosmeticReward,
 } from "@typeoff/shared";
+import { useUpdateCosmetics } from "@/contexts/CosmeticContext";
 
 /* ── Types ─────────────────────────────────────────────── */
 
@@ -48,15 +49,22 @@ interface CategoryDef {
   field: keyof ActiveState;
 }
 
-const CATEGORIES: CategoryDef[] = [
-  { key: "badge",         label: "Badges",         slotLabel: "Badge",   field: "activeBadge" },
-  { key: "title",         label: "Titles",          slotLabel: "Title",   field: "activeTitle" },
-  { key: "nameColor",     label: "Name Colors",     slotLabel: "Color",   field: "activeNameColor" },
-  { key: "nameEffect",    label: "Name Effects",    slotLabel: "Effect",  field: "activeNameEffect" },
-  { key: "cursorStyle",   label: "Cursors",         slotLabel: "Cursor",  field: "activeCursorStyle" },
-  { key: "profileBorder", label: "Profile Borders", slotLabel: "Border",  field: "activeProfileBorder" },
-  { key: "typingTheme",   label: "Themes",          slotLabel: "Theme",   field: "activeTypingTheme" },
+/** Profile cosmetics — shown in the profile header card */
+const PROFILE_CATEGORIES: CategoryDef[] = [
+  { key: "badge",         label: "Badges",          slotLabel: "Badge",   field: "activeBadge" },
+  { key: "title",         label: "Titles",           slotLabel: "Title",   field: "activeTitle" },
+  { key: "nameColor",     label: "Name Colors",      slotLabel: "Color",   field: "activeNameColor" },
+  { key: "nameEffect",    label: "Name Effects",     slotLabel: "Effect",  field: "activeNameEffect" },
+  { key: "profileBorder", label: "Profile Borders",  slotLabel: "Border",  field: "activeProfileBorder" },
 ];
+
+/** Typing cosmetics — affect the typing experience */
+const TYPING_CATEGORIES: CategoryDef[] = [
+  { key: "cursorStyle",   label: "Cursors",          slotLabel: "Cursor",  field: "activeCursorStyle" },
+  { key: "typingTheme",   label: "Themes",           slotLabel: "Theme",   field: "activeTypingTheme" },
+];
+
+const CATEGORIES = [...PROFILE_CATEGORIES, ...TYPING_CATEGORIES];
 
 const EMPTY_ACTIVE: ActiveState = {
   activeBadge: null,
@@ -79,6 +87,8 @@ export function ItemsBrowser({
   isPro: boolean;
   username: string;
 }) {
+  const updateCosmeticsContext = useUpdateCosmetics();
+
   const [cosmeticsData, setCosmeticsData] = useState<CosmeticsData | null>(null);
   const [active, setActive] = useState<ActiveState>(EMPTY_ACTIVE);
   const [saving, setSaving] = useState(false);
@@ -109,6 +119,8 @@ export function ItemsBrowser({
   const save = useCallback(async (newActive: ActiveState) => {
     setSaving(true);
     setActive(newActive);
+    // Immediately sync nav bar and any other consumers of CosmeticContext
+    updateCosmeticsContext(newActive);
     try {
       await fetch("/api/cosmetics", {
         method: "PUT",
@@ -118,7 +130,7 @@ export function ItemsBrowser({
     } finally {
       setSaving(false);
     }
-  }, []);
+  }, [updateCosmeticsContext]);
 
   const toggleCosmetic = useCallback(
     (field: keyof ActiveState, id: string) => {
@@ -151,7 +163,6 @@ export function ItemsBrowser({
   const ownedItems = allItems.filter((r) => ownedIds.has(r.id));
   const lockedItems = allItems.filter((r) => !ownedIds.has(r.id));
 
-  // Split locked items: level-gated vs. Pro-exclusive
   const levelLockedItems = lockedItems.filter((r) => !r.proOnly || isPro);
   const proExclusiveItems = lockedItems.filter((r) => r.proOnly && !isPro);
 
@@ -162,28 +173,13 @@ export function ItemsBrowser({
     ? { ...active, [lockedPreview.field]: lockedPreview.item.id }
     : active;
 
-  // Derive preview display values
-  const previewBadge = previewActive.activeBadge
-    ? (BADGE_EMOJIS[previewActive.activeBadge] ?? null)
-    : null;
-  const previewTitle = previewActive.activeTitle
-    ? (TITLE_TEXTS[previewActive.activeTitle] ?? null)
-    : null;
-  const previewColor = previewActive.activeNameColor
-    ? (NAME_COLORS[previewActive.activeNameColor] ?? previewActive.activeNameColor)
-    : null;
-  const previewEffect = previewActive.activeNameEffect
-    ? (NAME_EFFECT_CLASSES[previewActive.activeNameEffect] ?? "")
-    : "";
-
-  // What's actually being previewed right now
   const activePreviewItem: CosmeticReward | null = (() => {
     if (hoverPreview) return COSMETIC_REWARDS.find((r) => r.id === hoverPreview.id) ?? null;
     if (lockedPreview) return lockedPreview.item;
     return null;
   })();
   const isPreviewingLocked = activePreviewItem != null && !ownedIds.has(activePreviewItem.id);
-  const isPreviewingPro = isPreviewingLocked && activePreviewItem?.proOnly && !isPro;
+  const isPreviewingPro = isPreviewingLocked && !!activePreviewItem?.proOnly && !isPro;
   const isPreviewingNewItem = activePreviewItem != null;
   const isLockedPinned = lockedPreview !== null && hoverPreview === null;
 
@@ -234,71 +230,17 @@ export function ItemsBrowser({
         )}
       </div>
 
-      {/* ── Name Preview ──────────────────────────────────── */}
+      {/* ── Profile Header Card Preview ───────────────────── */}
       <div className="space-y-2">
-        <div className={`rounded-xl ring-1 px-5 py-4 transition-all duration-200 ${
-          isPreviewingPro && isLockedPinned
-            ? "bg-amber-400/[0.03] ring-amber-400/15"
-            : isPreviewingLocked && isLockedPinned
-            ? "bg-surface/50 ring-white/[0.07]"
-            : isPreviewingNewItem
-            ? "bg-surface/60 ring-white/[0.08]"
-            : "bg-surface/40 ring-white/[0.04]"
-        }`}>
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-bold text-muted/50 uppercase tracking-widest">
-              {isPreviewingLocked && isLockedPinned
-                ? isPreviewingPro
-                  ? "Previewing · Pro Exclusive"
-                  : "Previewing · Locked"
-                : isPreviewingNewItem
-                ? "Previewing"
-                : "Your Look"}
-            </span>
-            <div className="flex items-center gap-2">
-              {isLockedPinned && (
-                <button
-                  onClick={() => setLockedPreview(null)}
-                  className="text-[10px] text-muted/40 hover:text-muted/70 transition-colors"
-                  aria-label="Dismiss preview"
-                >
-                  ✕
-                </button>
-              )}
-              {isPreviewingNewItem && !isLockedPinned && (
-                <span className="text-[10px] text-accent/50 animate-pulse">live preview</span>
-              )}
-              {isLockedPinned && (
-                <span className={`text-[10px] ${isPreviewingPro ? "text-amber-400/50" : "text-muted/40"}`}>
-                  click item to dismiss
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            {previewBadge && (
-              <span className="text-2xl leading-none">{previewBadge}</span>
-            )}
-            <div className="min-w-0">
-              <span
-                className={`text-lg font-bold leading-tight block truncate ${previewEffect}`}
-                style={{ color: previewColor ?? undefined }}
-              >
-                {username}
-              </span>
-              {previewTitle && (
-                <span className="text-[11px] text-amber-400/65 leading-tight block mt-0.5">
-                  {previewTitle}
-                </span>
-              )}
-            </div>
-            {!previewBadge && !previewColor && !previewEffect && !previewTitle && (
-              <span className="text-xs text-muted/35 italic">Equip cosmetics to see your look</span>
-            )}
-          </div>
-        </div>
-
-        {/* Lock callout — shown when a locked item is pinned */}
+        <ProfileHeaderCard
+          username={username}
+          previewActive={previewActive}
+          isPreviewingNewItem={isPreviewingNewItem}
+          isPreviewingLocked={isPreviewingLocked}
+          isLockedPinned={isLockedPinned}
+          isPreviewingPro={isPreviewingPro}
+          onDismiss={() => setLockedPreview(null)}
+        />
         {isLockedPinned && lockedPreview && (
           <LockCallout
             item={lockedPreview.item}
@@ -315,79 +257,72 @@ export function ItemsBrowser({
           Equipped Loadout
           <span className="flex-1 h-px bg-white/[0.03]" />
         </h2>
-        <div className="grid grid-cols-7 gap-1.5">
-          {CATEGORIES.map((cat) => {
-            const previewId = previewActive[cat.field];
-            const activeId = active[cat.field];
-            const displayId = previewId;
-            const displayItem = displayId
-              ? COSMETIC_REWARDS.find((r) => r.id === displayId)
-              : null;
-            const isSelected = selectedCategory === cat.key;
-            const isPreviewing = hoverPreview?.field === cat.field && hoverPreview.id !== activeId;
-
-            return (
-              <button
-                key={cat.key}
-                onClick={() => handleCategoryChange(cat.key)}
-                className={`group relative rounded-lg px-1.5 py-2.5 ring-1 transition-all text-center flex flex-col items-center gap-1.5 ${
-                  isPreviewing
-                    ? "ring-accent/20 bg-accent/[0.04]"
-                    : isSelected
-                      ? "ring-accent/30 bg-accent/[0.06]"
-                      : "ring-white/[0.05] bg-surface/40 hover:ring-white/[0.1] hover:bg-surface/60"
-                }`}
-              >
-                <div className="text-[8px] uppercase tracking-widest text-muted/65 leading-none">
-                  {cat.slotLabel}
-                </div>
-                <div className="h-7 flex items-center justify-center">
-                  {displayItem ? (
-                    <SlotPreview item={displayItem} />
-                  ) : (
-                    <span className="text-muted/15 text-lg">—</span>
-                  )}
-                </div>
-                {isSelected && (
-                  <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-accent" />
-                )}
-              </button>
-            );
-          })}
+        <div className="space-y-2.5">
+          {/* Profile cosmetics row */}
+          <div>
+            <div className="text-[9px] text-muted/35 uppercase tracking-widest mb-1.5">Profile</div>
+            <div className="grid grid-cols-5 gap-1.5">
+              {PROFILE_CATEGORIES.map((cat) => (
+                <LoadoutSlot
+                  key={cat.key}
+                  cat={cat}
+                  previewActive={previewActive}
+                  active={active}
+                  selectedCategory={selectedCategory}
+                  hoverPreview={hoverPreview}
+                  onSelect={handleCategoryChange}
+                />
+              ))}
+            </div>
+          </div>
+          {/* Typing cosmetics row */}
+          <div>
+            <div className="text-[9px] text-muted/35 uppercase tracking-widest mb-1.5">Typing</div>
+            <div className="grid grid-cols-5 gap-1.5">
+              {TYPING_CATEGORIES.map((cat) => (
+                <LoadoutSlot
+                  key={cat.key}
+                  cat={cat}
+                  previewActive={previewActive}
+                  active={active}
+                  selectedCategory={selectedCategory}
+                  hoverPreview={hoverPreview}
+                  onSelect={handleCategoryChange}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* ── Category Tabs ─────────────────────────────────── */}
       <div className="space-y-4">
-        <div className="flex flex-wrap gap-1">
-          {CATEGORIES.map((cat) => {
-            const owned = COSMETIC_REWARDS.filter(
-              (r) => r.type === cat.key && ownedIds.has(r.id),
-            ).length;
-            const total = COSMETIC_REWARDS.filter((r) => r.type === cat.key).length;
-            const isSelected = selectedCategory === cat.key;
-
-            return (
-              <button
-                key={cat.key}
-                onClick={() => handleCategoryChange(cat.key)}
-                className={`px-3 py-1.5 rounded-lg text-xs transition-all ${
-                  isSelected
-                    ? "bg-accent/15 text-accent ring-1 ring-accent/20"
-                    : "text-muted/65 hover:text-text hover:bg-white/[0.04]"
-                }`}
-              >
-                {cat.label}
-                <span
-                  className={`ml-1.5 tabular-nums text-[10px] ${
-                    isSelected ? "text-accent/40" : "text-muted/45"
-                  }`}
-                >
-                  {owned}/{total}
-                </span>
-              </button>
-            );
-          })}
+        <div className="flex flex-wrap gap-1 items-center">
+          {/* Profile cosmetics tabs */}
+          {PROFILE_CATEGORIES.map((cat) => (
+            <CategoryTab
+              key={cat.key}
+              cat={cat}
+              selectedCategory={selectedCategory}
+              ownedIds={ownedIds}
+              onSelect={handleCategoryChange}
+            />
+          ))}
+          {/* Typing section separator */}
+          <div className="flex items-center gap-1.5 mx-1">
+            <div className="w-px h-4 bg-white/[0.06]" />
+            <span className="text-[9px] text-muted/35 uppercase tracking-widest">Typing</span>
+          </div>
+          {/* Typing cosmetics tabs */}
+          {TYPING_CATEGORIES.map((cat) => (
+            <CategoryTab
+              key={cat.key}
+              cat={cat}
+              selectedCategory={selectedCategory}
+              ownedIds={ownedIds}
+              onSelect={handleCategoryChange}
+            />
+          ))}
         </div>
 
         {/* Loading skeleton */}
@@ -405,8 +340,6 @@ export function ItemsBrowser({
 
         {cosmeticsData && (
           <div className="space-y-6">
-
-            {/* Unlocked items */}
             {ownedItems.length > 0 && (
               <div>
                 <SectionHeader variant="owned" count={ownedItems.length} />
@@ -429,7 +362,6 @@ export function ItemsBrowser({
               </div>
             )}
 
-            {/* Level-gated locked items */}
             {levelLockedItems.length > 0 && (
               <div>
                 <SectionHeader variant="level" count={levelLockedItems.length} />
@@ -452,7 +384,6 @@ export function ItemsBrowser({
               </div>
             )}
 
-            {/* Pro-exclusive locked items */}
             {proExclusiveItems.length > 0 && (
               <div>
                 <SectionHeader variant="pro" count={proExclusiveItems.length} />
@@ -484,6 +415,217 @@ export function ItemsBrowser({
         )}
       </div>
     </div>
+  );
+}
+
+/* ── Profile Header Card (preview) ─────────────────────── */
+
+function ProfileHeaderCard({
+  username,
+  previewActive,
+  isPreviewingNewItem,
+  isPreviewingLocked,
+  isLockedPinned,
+  isPreviewingPro,
+  onDismiss,
+}: {
+  username: string;
+  previewActive: ActiveState;
+  isPreviewingNewItem: boolean;
+  isPreviewingLocked: boolean;
+  isLockedPinned: boolean;
+  isPreviewingPro: boolean;
+  onDismiss: () => void;
+}) {
+  const badge = previewActive.activeBadge ? (BADGE_EMOJIS[previewActive.activeBadge] ?? null) : null;
+  const title = previewActive.activeTitle ? (TITLE_TEXTS[previewActive.activeTitle] ?? null) : null;
+  const colorHex = previewActive.activeNameColor
+    ? (NAME_COLORS[previewActive.activeNameColor] ?? null)
+    : null;
+  const effectClass = previewActive.activeNameEffect
+    ? (NAME_EFFECT_CLASSES[previewActive.activeNameEffect] ?? "")
+    : "";
+  const borderDef = previewActive.activeProfileBorder
+    ? PROFILE_BORDERS[previewActive.activeProfileBorder]
+    : null;
+
+  const headerLabel =
+    isPreviewingLocked && isLockedPinned
+      ? isPreviewingPro
+        ? "Previewing · Pro Exclusive"
+        : "Previewing · Locked"
+      : isPreviewingNewItem
+      ? "Previewing"
+      : "Your Profile";
+
+  const hasAnyProfileCosmetic = badge || title || colorHex || effectClass || borderDef;
+
+  return (
+    <div
+      className={`rounded-xl overflow-hidden ring-1 ring-white/[0.06] transition-all duration-200 ${
+        borderDef ? borderDef.className : ""
+      }`}
+    >
+      <div
+        className={`px-5 py-4 transition-all duration-200 ${
+          isPreviewingPro && isLockedPinned
+            ? "bg-amber-400/[0.03]"
+            : isPreviewingNewItem
+            ? "bg-surface/60"
+            : "bg-surface/40"
+        }`}
+      >
+        {/* Header row */}
+        <div className="flex items-center justify-between mb-4">
+          <span
+            className={`text-[10px] font-bold uppercase tracking-widest ${
+              isPreviewingPro && isLockedPinned
+                ? "text-amber-400/50"
+                : isPreviewingNewItem
+                ? "text-accent/50"
+                : "text-muted/45"
+            }`}
+          >
+            {headerLabel}
+          </span>
+          <div className="flex items-center gap-2">
+            {isPreviewingNewItem && !isLockedPinned && (
+              <span className="text-[10px] text-accent/45 animate-pulse">live</span>
+            )}
+            {isLockedPinned && (
+              <>
+                <span className={`text-[10px] ${isPreviewingPro ? "text-amber-400/40" : "text-muted/35"}`}>
+                  click item to dismiss
+                </span>
+                <button
+                  onClick={onDismiss}
+                  className="text-[10px] text-muted/35 hover:text-muted/65 transition-colors"
+                  aria-label="Dismiss preview"
+                >
+                  ✕
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Profile card content */}
+        <div className="flex items-center gap-3.5">
+          {badge && (
+            <span className="text-3xl leading-none shrink-0">{badge}</span>
+          )}
+          <div className="min-w-0 flex-1">
+            <p
+              className={`text-xl font-bold leading-tight truncate ${effectClass}`}
+              style={{ color: colorHex ?? undefined }}
+            >
+              {username}
+            </p>
+            {title && (
+              <p className="text-xs text-amber-400/65 leading-tight mt-1">{title}</p>
+            )}
+          </div>
+          {!hasAnyProfileCosmetic && (
+            <span className="text-xs text-muted/30 italic shrink-0">
+              Equip cosmetics to customize your look
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Loadout Slot ───────────────────────────────────────── */
+
+function LoadoutSlot({
+  cat,
+  previewActive,
+  active,
+  selectedCategory,
+  hoverPreview,
+  onSelect,
+}: {
+  cat: CategoryDef;
+  previewActive: ActiveState;
+  active: ActiveState;
+  selectedCategory: CategoryKey;
+  hoverPreview: { field: keyof ActiveState; id: string } | null;
+  onSelect: (key: CategoryKey) => void;
+}) {
+  const previewId = previewActive[cat.field];
+  const activeId = active[cat.field];
+  const displayItem = previewId
+    ? COSMETIC_REWARDS.find((r) => r.id === previewId)
+    : null;
+  const isSelected = selectedCategory === cat.key;
+  const isPreviewing = hoverPreview?.field === cat.field && hoverPreview.id !== activeId;
+
+  return (
+    <button
+      onClick={() => onSelect(cat.key)}
+      className={`group relative rounded-lg px-1.5 py-2.5 ring-1 transition-all text-center flex flex-col items-center gap-1.5 ${
+        isPreviewing
+          ? "ring-accent/20 bg-accent/[0.04]"
+          : isSelected
+            ? "ring-accent/30 bg-accent/[0.06]"
+            : "ring-white/[0.05] bg-surface/40 hover:ring-white/[0.1] hover:bg-surface/60"
+      }`}
+    >
+      <div className="text-[8px] uppercase tracking-widest text-muted/65 leading-none">
+        {cat.slotLabel}
+      </div>
+      <div className="h-7 flex items-center justify-center">
+        {displayItem ? (
+          <SlotPreview item={displayItem} />
+        ) : (
+          <span className="text-muted/15 text-lg">—</span>
+        )}
+      </div>
+      {isSelected && (
+        <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-accent" />
+      )}
+    </button>
+  );
+}
+
+/* ── Category Tab ───────────────────────────────────────── */
+
+function CategoryTab({
+  cat,
+  selectedCategory,
+  ownedIds,
+  onSelect,
+}: {
+  cat: CategoryDef;
+  selectedCategory: CategoryKey;
+  ownedIds: Set<string>;
+  onSelect: (key: CategoryKey) => void;
+}) {
+  const owned = COSMETIC_REWARDS.filter(
+    (r) => r.type === cat.key && ownedIds.has(r.id),
+  ).length;
+  const total = COSMETIC_REWARDS.filter((r) => r.type === cat.key).length;
+  const isSelected = selectedCategory === cat.key;
+
+  return (
+    <button
+      onClick={() => onSelect(cat.key)}
+      className={`px-3 py-1.5 rounded-lg text-xs transition-all ${
+        isSelected
+          ? "bg-accent/15 text-accent ring-1 ring-accent/20"
+          : "text-muted/65 hover:text-text hover:bg-white/[0.04]"
+      }`}
+    >
+      {cat.label}
+      <span
+        className={`ml-1.5 tabular-nums text-[10px] ${
+          isSelected ? "text-accent/40" : "text-muted/45"
+        }`}
+      >
+        {owned}/{total}
+      </span>
+    </button>
   );
 }
 
@@ -581,7 +723,6 @@ function SectionHeader({
       </h3>
     );
   }
-  // pro
   return (
     <h3 className="text-[10px] font-bold text-amber-400/60 uppercase tracking-widest mb-2.5 flex items-center gap-2">
       <span className="text-amber-400/40">✦</span>
@@ -676,7 +817,6 @@ function ItemCard({
 }) {
   const isProLocked = locked && item.proOnly && !isPro;
 
-  // Pro-locked card: button style (no redirect), shows level + PRO badge
   if (isProLocked) {
     return (
       <button
@@ -705,7 +845,6 @@ function ItemCard({
     );
   }
 
-  // Level-locked or owned card
   return (
     <button
       onClick={locked ? onLockedClick : onToggle}

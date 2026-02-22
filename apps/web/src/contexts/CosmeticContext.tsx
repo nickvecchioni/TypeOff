@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 
 interface ActiveCosmetics {
@@ -13,6 +13,11 @@ interface ActiveCosmetics {
   activeTypingTheme: string | null;
 }
 
+interface CosmeticContextValue {
+  cosmetics: ActiveCosmetics;
+  updateCosmetics: (c: ActiveCosmetics) => void;
+}
+
 const DEFAULT: ActiveCosmetics = {
   activeBadge: null,
   activeTitle: null,
@@ -23,7 +28,10 @@ const DEFAULT: ActiveCosmetics = {
   activeTypingTheme: null,
 };
 
-const CosmeticContext = createContext<ActiveCosmetics>(DEFAULT);
+const CosmeticContext = createContext<CosmeticContextValue>({
+  cosmetics: DEFAULT,
+  updateCosmetics: () => {},
+});
 
 export function CosmeticProvider({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
@@ -53,13 +61,23 @@ export function CosmeticProvider({ children }: { children: React.ReactNode }) {
       .catch(() => {});
   }, [session?.user?.id]);
 
+  const updateCosmetics = useCallback((c: ActiveCosmetics) => {
+    setCosmetics(c);
+  }, []);
+
   return (
-    <CosmeticContext.Provider value={cosmetics}>
+    <CosmeticContext.Provider value={{ cosmetics, updateCosmetics }}>
       {children}
     </CosmeticContext.Provider>
   );
 }
 
+/** Read active cosmetics (e.g. for nav bar, race results) */
 export function useActiveCosmetics(): ActiveCosmetics {
-  return useContext(CosmeticContext);
+  return useContext(CosmeticContext).cosmetics;
+}
+
+/** Push a cosmetics update into the global context (e.g. after equipping) */
+export function useUpdateCosmetics(): (c: ActiveCosmetics) => void {
+  return useContext(CosmeticContext).updateCosmetics;
 }
