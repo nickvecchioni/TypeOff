@@ -136,16 +136,6 @@ export function WpmChart({ samples, compact = false }: WpmChartProps) {
         strokeWidth={1}
       />
 
-      {/* Raw WPM line */}
-      <path
-        d={toPath("raw")}
-        fill="none"
-        stroke="var(--color-muted)"
-        strokeWidth={1.5}
-        strokeOpacity={0.5}
-        strokeDasharray="4 4"
-      />
-
       {/* WPM line */}
       <path
         d={toPath("wpm")}
@@ -167,9 +157,12 @@ export function WpmChart({ samples, compact = false }: WpmChartProps) {
         />
       ))}
 
-      {/* Error dots — red markers where raw > wpm (errors occurred that second) */}
-      {samples.map((s, i) =>
-        s.raw > s.wpm ? (
+      {/* Error dots — red markers where errors occurred that second */}
+      {samples.map((s, i) => {
+        const cumErr = (x: WpmSample) => Math.max(0, (x.raw - x.wpm) * x.elapsed / 12);
+        const prev = i > 0 ? samples[i - 1] : null;
+        const errCount = Math.max(0, Math.round(cumErr(s) - (prev ? cumErr(prev) : 0)));
+        return errCount > 0 ? (
           <circle
             key={`err-${i}`}
             cx={scaleX(s.elapsed)}
@@ -178,8 +171,8 @@ export function WpmChart({ samples, compact = false }: WpmChartProps) {
             fill="#f87171"
             fillOpacity={0.85}
           />
-        ) : null
-      )}
+        ) : null;
+      })}
 
       {/* Hover crosshair + tooltip */}
       {hovered !== null && hoveredIdx !== null && (() => {
@@ -188,7 +181,12 @@ export function WpmChart({ samples, compact = false }: WpmChartProps) {
         const timeSec = hovered.elapsed;
         const wpmVal = Math.round(hovered.wpm);
 
-        const hasErrors = hovered.raw > hovered.wpm;
+        // Cumulative error chars = (raw - wpm) * elapsed / 12
+        const cumErrors = (s: WpmSample) => Math.max(0, (s.raw - s.wpm) * s.elapsed / 12);
+        const prevSample = hoveredIdx > 0 ? samples[hoveredIdx - 1] : null;
+        const errorsThisSecond = Math.max(0, Math.round(cumErrors(hovered) - (prevSample ? cumErrors(prevSample) : 0)));
+
+        const hasErrors = errorsThisSecond > 0;
         const TOOLTIP_W = 100;
         const TOOLTIP_H = hasErrors ? 42 : 30;
         const flipLeft = x + TOOLTIP_W + 14 > CHART_WIDTH - PADDING.right;
@@ -221,10 +219,10 @@ export function WpmChart({ samples, compact = false }: WpmChartProps) {
             <text x={tx + 8} y={ty + 12} fill="var(--color-accent)" fontSize={12} fontWeight="700">
               {wpmVal} wpm
             </text>
-            {/* Errors (raw wpm) */}
+            {/* Error count */}
             {hasErrors && (
               <text x={tx + 8} y={ty + 24} fill="#f87171" fontSize={10} fillOpacity={0.85}>
-                {Math.round(hovered.raw)} raw · errors
+                {errorsThisSecond} {errorsThisSecond === 1 ? "error" : "errors"}
               </text>
             )}
             {/* Time */}
