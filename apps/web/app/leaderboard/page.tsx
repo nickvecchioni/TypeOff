@@ -670,7 +670,7 @@ async function UniverseLeaderboard({
     .leftJoin(userStats, eq(raceParticipants.userId, userStats.userId))
     .where(
       and(
-        eq(races.wordPool, universe),
+        eq(races.modeCategory, universe),
         isNotNull(raceParticipants.userId),
         isNotNull(users.username),
         eq(raceParticipants.flagged, false),

@@ -4,11 +4,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 const UNIVERSES = [
   { value: "all", label: "All" },
-  { value: "standard", label: "Words" },
+  { value: "words", label: "Words" },
   { value: "quotes", label: "Quotes" },
   { value: "code", label: "Code" },
-  { value: "numbers", label: "Numbers" },
-  { value: "punctuation", label: "Punctuation" },
+  { value: "special", label: "Special" },
 ] as const;
 
 export function UniverseSelector() {

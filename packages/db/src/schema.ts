@@ -77,6 +77,7 @@ export const races = pgTable("races", {
   seed: integer("seed").notNull(),
   wordCount: integer("word_count").notNull(),
   wordPool: text("word_pool"),
+  modeCategory: text("mode_category"), // "words" | "special" | "quotes" | "code"
   playerCount: integer("player_count").notNull(),
   startedAt: timestamp("started_at", { mode: "date" }).notNull(),
   finishedAt: timestamp("finished_at", { mode: "date" }),
@@ -248,6 +249,27 @@ export const userStats = pgTable("user_stats", {
     .notNull()
     .$defaultFn(() => new Date()),
 });
+
+// ─── Per-Mode Stats ─────────────────────────────────────────────────
+
+export const userModeStats = pgTable(
+  "user_mode_stats",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    modeCategory: text("mode_category").notNull(), // "words" | "special" | "quotes" | "code"
+    racesPlayed: integer("races_played").notNull().default(0),
+    racesWon: integer("races_won").notNull().default(0),
+    avgWpm: real("avg_wpm").notNull().default(0),
+    bestWpm: real("best_wpm").notNull().default(0),
+    avgAccuracy: real("avg_accuracy").notNull().default(0),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.modeCategory] })],
+);
 
 // ─── Challenge Progress ─────────────────────────────────────────────
 

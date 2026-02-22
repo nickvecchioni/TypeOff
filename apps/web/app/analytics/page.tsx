@@ -9,6 +9,15 @@ import { BigramHeatmap } from "@/components/practice/BigramHeatmap";
 import { KeyboardHeatmap } from "@/components/typing/KeyboardHeatmap";
 import type { KeyStatsMap } from "@typeoff/shared";
 
+interface ModeStat {
+  modeCategory: string;
+  racesPlayed: number;
+  racesWon: number;
+  avgWpm: number;
+  bestWpm: number;
+  avgAccuracy: number;
+}
+
 interface AnalyticsData {
   wpmTrend: Array<{ date: string; wpm: number; accuracy: number }>;
   personalRecords: {
@@ -17,6 +26,7 @@ interface AnalyticsData {
     maxStreak?: number;
     maxRankedDayStreak?: number;
   };
+  modeStats?: ModeStat[];
   // Pro-only fields
   totalRaces?: number;
   consistencyScore?: number | null;
@@ -28,6 +38,21 @@ interface AnalyticsData {
   racesPerDay?: Record<string, number>;
 }
 
+const MODE_FILTERS = [
+  { value: "all", label: "All" },
+  { value: "words", label: "Words" },
+  { value: "quotes", label: "Quotes" },
+  { value: "code", label: "Code" },
+  { value: "special", label: "Special" },
+] as const;
+
+const MODE_LABELS: Record<string, string> = {
+  words: "Words",
+  quotes: "Quotes",
+  code: "Code",
+  special: "Special",
+};
+
 export default function AnalyticsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -36,6 +61,7 @@ export default function AnalyticsPage() {
   const [error, setError] = useState<string | null>(null);
   const [bigrams, setBigrams] = useState<Array<{ bigram: string; correct: number; total: number; accuracy: number }>>([]);
   const [keyStats, setKeyStats] = useState<KeyStatsMap | null>(null);
+  const [modeFilter, setModeFilter] = useState<string>("all");
 
   const isPro = session?.user?.isPro ?? false;
 
@@ -46,7 +72,9 @@ export default function AnalyticsPage() {
   useEffect(() => {
     if (!session?.user?.id) return;
 
-    fetch("/api/analytics")
+    setLoading(true);
+    const url = modeFilter !== "all" ? `/api/analytics?mode=${modeFilter}` : "/api/analytics";
+    fetch(url)
       .then((r) => {
         if (!r.ok) throw new Error("Failed to load analytics");
         return r.json();
@@ -54,7 +82,7 @@ export default function AnalyticsPage() {
       .then(setData)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [session?.user?.id]);
+  }, [session?.user?.id, modeFilter]);
 
   // Bigram + key accuracy data is Pro-only
   useEffect(() => {
@@ -129,6 +157,23 @@ export default function AnalyticsPage() {
           )}
         </div>
 
+        {/* ── Mode Filter ─────────────────────────────────── */}
+        <div className="flex items-center gap-1 flex-wrap mb-5">
+          {MODE_FILTERS.map((f) => (
+            <button
+              key={f.value}
+              onClick={() => setModeFilter(f.value)}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                modeFilter === f.value
+                  ? "bg-accent/15 text-accent ring-1 ring-accent/20"
+                  : "text-muted/60 hover:text-text hover:bg-white/[0.04]"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+
         {/* ── Personal Records (free + pro) ───────────────── */}
         <div className={`grid gap-2 mb-4 ${isPro ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-2"}`}>
           <StatCard
@@ -192,6 +237,36 @@ export default function AnalyticsPage() {
               <StatCard label="Best Win Streak" value={(data.personalRecords.maxStreak ?? 0).toString()} />
               <StatCard label="Best Day Streak" value={(data.personalRecords.maxRankedDayStreak ?? 0).toString()} />
             </div>
+
+            {/* By Mode breakdown (visible in "All" view, hidden when filtered) */}
+            {modeFilter === "all" && (data.modeStats?.length ?? 0) > 0 && (
+              <section className="mb-6">
+                <SectionHeader>By Mode</SectionHeader>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {(data.modeStats ?? []).map((m) => (
+                    <button
+                      key={m.modeCategory}
+                      onClick={() => setModeFilter(m.modeCategory)}
+                      className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2.5 text-left hover:bg-white/[0.04] transition-colors"
+                    >
+                      <div className="text-[10px] text-muted/50 uppercase tracking-wider mb-1">
+                        {MODE_LABELS[m.modeCategory] ?? m.modeCategory}
+                      </div>
+                      <div className="text-base font-bold text-text tabular-nums leading-tight">
+                        {Math.floor(m.bestWpm)}
+                        <span className="text-[0.6em] text-muted/60 ml-1">best</span>
+                      </div>
+                      <div className="text-xs text-muted/60 tabular-nums">
+                        {Math.floor(m.avgWpm)} avg
+                      </div>
+                      <div className="text-[10px] text-muted/50 tabular-nums mt-0.5">
+                        {m.racesPlayed} races · {m.racesPlayed > 0 ? Math.round((m.racesWon / m.racesPlayed) * 100) : 0}% win
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* ELO Trend */}
             {(data.eloTrend?.length ?? 0) >= 2 && (
@@ -289,19 +364,48 @@ export default function AnalyticsPage() {
             )}
           </>
         ) : (
-          /* ── Pro upsell for free users ─────────────────── */
-          <div className="rounded-xl ring-1 ring-amber-400/10 bg-amber-400/[0.02] px-5 py-4">
-            <p className="text-xs font-bold text-amber-400/60 mb-1">Pro Analytics</p>
-            <p className="text-[11px] text-muted/60 mb-3 leading-relaxed">
-              Upgrade to unlock win rate, ELO trend, consistency scores, key accuracy heatmap, placement distribution, and full bigram analysis.
-            </p>
-            <Link
-              href="/pro"
-              className="inline-block text-xs font-bold text-bg bg-amber-400 hover:bg-amber-300 px-4 py-2 rounded-lg transition-colors"
-            >
-              Upgrade to Pro →
-            </Link>
-          </div>
+          /* ── Free user sections ─────────────────────────── */
+          <>
+            {/* By Mode (free users get read-only summary) */}
+            {modeFilter === "all" && (data.modeStats?.length ?? 0) > 0 && (
+              <section className="mb-4">
+                <SectionHeader>By Mode</SectionHeader>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {(data.modeStats ?? []).map((m) => (
+                    <div
+                      key={m.modeCategory}
+                      className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2.5"
+                    >
+                      <div className="text-[10px] text-muted/50 uppercase tracking-wider mb-1">
+                        {MODE_LABELS[m.modeCategory] ?? m.modeCategory}
+                      </div>
+                      <div className="text-base font-bold text-text tabular-nums leading-tight">
+                        {Math.floor(m.bestWpm)}
+                        <span className="text-[0.6em] text-muted/60 ml-1">best</span>
+                      </div>
+                      <div className="text-[10px] text-muted/50 tabular-nums mt-0.5">
+                        {m.racesPlayed} races
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Pro upsell */}
+            <div className="rounded-xl ring-1 ring-amber-400/10 bg-amber-400/[0.02] px-5 py-4">
+              <p className="text-xs font-bold text-amber-400/60 mb-1">Pro Analytics</p>
+              <p className="text-[11px] text-muted/60 mb-3 leading-relaxed">
+                Upgrade to unlock win rate, ELO trend, consistency scores, key accuracy heatmap, placement distribution, and full bigram analysis.
+              </p>
+              <Link
+                href="/pro"
+                className="inline-block text-xs font-bold text-bg bg-amber-400 hover:bg-amber-300 px-4 py-2 rounded-lg transition-colors"
+              >
+                Upgrade to Pro →
+              </Link>
+            </div>
+          </>
         )}
       </div>
     </main>

@@ -1,23 +1,50 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { raceParticipants, races, userStats } from "@typeoff/db";
-import { eq, desc, sql } from "drizzle-orm";
+import { raceParticipants, races, userStats, userModeStats } from "@typeoff/db";
+import { eq, desc, sql, and } from "drizzle-orm";
+import type { ModeCategory } from "@typeoff/shared";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+const VALID_MODES = new Set<string>(["words", "special", "quotes", "code"]);
+
+export async function GET(request: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const { searchParams } = new URL(request.url);
+  const rawMode = searchParams.get("mode");
+  const modeFilter: ModeCategory | null =
+    rawMode && VALID_MODES.has(rawMode) ? (rawMode as ModeCategory) : null;
+
   const db = getDb();
   const userId = session.user.id;
   const isPro = session.user.isPro ?? false;
 
+  // Per-mode stats (always returned, all tiers)
+  const modeStatsRows = await db
+    .select()
+    .from(userModeStats)
+    .where(eq(userModeStats.userId, userId));
+
+  const modeStats = modeStatsRows.map((r) => ({
+    modeCategory: r.modeCategory,
+    racesPlayed: r.racesPlayed,
+    racesWon: r.racesWon,
+    avgWpm: r.avgWpm,
+    bestWpm: r.bestWpm,
+    avgAccuracy: r.avgAccuracy,
+  }));
+
   // Free users: return limited data (last 20 races, best records only)
   if (!isPro) {
+    const whereClause = modeFilter
+      ? and(eq(raceParticipants.userId, userId), eq(races.modeCategory, modeFilter))
+      : eq(raceParticipants.userId, userId);
+
     const freeRaces = await db
       .select({
         wpm: raceParticipants.wpm,
@@ -25,7 +52,8 @@ export async function GET() {
         finishedAt: raceParticipants.finishedAt,
       })
       .from(raceParticipants)
-      .where(eq(raceParticipants.userId, userId))
+      .innerJoin(races, eq(raceParticipants.raceId, races.id))
+      .where(whereClause)
       .orderBy(desc(raceParticipants.finishedAt))
       .limit(20);
 
@@ -45,10 +73,14 @@ export async function GET() {
       }
     }
 
-    return NextResponse.json({ wpmTrend, personalRecords: { bestWpm, bestAccuracy } });
+    return NextResponse.json({ wpmTrend, personalRecords: { bestWpm, bestAccuracy }, modeStats });
   }
 
   // Pro users: fetch everything
+  const whereClause = modeFilter
+    ? and(eq(raceParticipants.userId, userId), eq(races.modeCategory, modeFilter))
+    : eq(raceParticipants.userId, userId);
+
   const allRaces = await db
     .select({
       raceId: raceParticipants.raceId,
@@ -63,7 +95,7 @@ export async function GET() {
     })
     .from(raceParticipants)
     .innerJoin(races, eq(raceParticipants.raceId, races.id))
-    .where(eq(raceParticipants.userId, userId))
+    .where(whereClause)
     .orderBy(desc(raceParticipants.finishedAt));
 
   // Fetch user stats
@@ -180,6 +212,7 @@ export async function GET() {
     speedByPlacement,
     placementDistribution,
     racesPerDay,
+    modeStats,
     personalRecords: {
       bestWpm,
       bestAccuracy,

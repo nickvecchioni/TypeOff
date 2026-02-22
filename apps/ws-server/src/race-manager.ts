@@ -12,7 +12,7 @@ import type {
 import { calculateRaceElo, getRankTier, generateWordsForMode, quotes, EMOTE_KEYS, scoreTextDifficulty, calculatePP, calculateTotalPP, CHALLENGE_MAP, ACHIEVEMENT_MAP, getXpLevel } from "@typeoff/shared";
 import type { RankTier, RaceMode, ModeCategory, ReplaySnapshot } from "@typeoff/shared";
 import type { NotificationManager } from "./notification-manager.js";
-import { createDb, races, raceParticipants, userStats, users, userActiveCosmetics, textLeaderboards } from "@typeoff/db";
+import { createDb, races, raceParticipants, userStats, userModeStats, users, userActiveCosmetics, textLeaderboards } from "@typeoff/db";
 import { eq, inArray, and, sql, desc } from "drizzle-orm";
 import { checkAchievements } from "./achievement-checker.js";
 import { checkChallenges, type ChallengeCheckResult } from "./challenge-checker.js";
@@ -81,6 +81,7 @@ export class RaceManager {
   private expectedWords: string[] = [];
   private playerFlags = new Map<string, string[]>();
   private mode: RaceMode;
+  private modeCategory: ModeCategory;
   private disconnectGraceTimer: ReturnType<typeof setTimeout> | null = null;
   private resultsCleanupTimer: ReturnType<typeof setTimeout> | null = null;
   private spectatorInfo = new Map<string, { userId: string; name: string }>();
@@ -104,12 +105,13 @@ export class RaceManager {
   ) {
     this.placementRace = placementRace;
     this.raceId = crypto.randomUUID();
+    this.modeCategory = placementRace !== undefined ? "words" : (modeCategory ?? "words");
 
     // Select race mode (placement races always use standard)
     if (placementRace) {
       this.mode = "standard";
     } else {
-      const pool = RaceManager.CATEGORY_MODES[modeCategory ?? "words"];
+      const pool = RaceManager.CATEGORY_MODES[this.modeCategory];
       this.mode = pool[Math.floor(Math.random() * pool.length)];
     }
 
@@ -758,6 +760,7 @@ export class RaceManager {
         seed: this.seed,
         wordCount: this.wordCount,
         wordPool: this.mode,
+        modeCategory: this.modeCategory,
         playerCount: entries.length,
         startedAt: this.startedAt ?? new Date(),
         finishedAt: new Date(),
@@ -857,6 +860,32 @@ export class RaceManager {
               })
               .where(eq(userStats.userId, entry.player.id));
           }
+
+          // Upsert per-mode stats
+          const modeWon = placement === 1 ? 1 : 0;
+          await db
+            .insert(userModeStats)
+            .values({
+              userId: entry.player.id,
+              modeCategory: this.modeCategory,
+              racesPlayed: 1,
+              racesWon: modeWon,
+              avgWpm: stats.wpm,
+              bestWpm: stats.wpm,
+              avgAccuracy: stats.accuracy,
+              updatedAt: new Date(),
+            })
+            .onConflictDoUpdate({
+              target: [userModeStats.userId, userModeStats.modeCategory],
+              set: {
+                racesPlayed: sql`${userModeStats.racesPlayed} + 1`,
+                racesWon: sql`${userModeStats.racesWon} + ${modeWon}`,
+                avgWpm: sql`(${userModeStats.avgWpm} * ${userModeStats.racesPlayed} + excluded.avg_wpm) / (${userModeStats.racesPlayed} + 1)`,
+                bestWpm: sql`CASE WHEN excluded.best_wpm > ${userModeStats.bestWpm} THEN excluded.best_wpm ELSE ${userModeStats.bestWpm} END`,
+                avgAccuracy: sql`(${userModeStats.avgAccuracy} * ${userModeStats.racesPlayed} + excluded.avg_accuracy) / (${userModeStats.racesPlayed} + 1)`,
+                updatedAt: new Date(),
+              },
+            });
 
           // Calibrate initial ELO after final placement race
           if (this.placementRace === PLACEMENT_RACE_COUNT) {
