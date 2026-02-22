@@ -239,18 +239,6 @@ export function RaceArena() {
     };
   }, [race.phase]);
 
-  // Escape during countdown = leave race without penalty
-  React.useEffect(() => {
-    if (race.phase !== "countdown") return;
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        race.leaveRace();
-      }
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [race.phase, race.leaveRace]);
 
   const isInPlacement = race.raceState?.placementRace != null
     || race.phase === "placed"
@@ -320,14 +308,6 @@ export function RaceArena() {
                 placementRace={race.raceState.placementRace}
                 mode={race.raceState.mode}
               />
-              {race.phase === "countdown" && (
-                <button
-                  onClick={race.leaveRace}
-                  className="absolute bottom-2 text-[10px] text-muted/20 hover:text-muted/65 transition-colors pointer-events-auto"
-                >
-                  press Esc to leave
-                </button>
-              )}
             </div>
             {/* Words — hidden during countdown, fades in on GO */}
             <div
