@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { getDb } from "@/lib/db";
 import { users, userStats, userActiveCosmetics, soloResults, raceParticipants, races } from "@typeoff/db";
-import { and, desc, eq, gt, isNotNull, sql, inArray } from "drizzle-orm";
+import { and, desc, eq, gt, isNotNull, isNull, like, or, sql, inArray } from "drizzle-orm";
 import type { RankTier } from "@typeoff/shared";
 import { getRankInfo, getXpLevel, TITLE_TEXTS } from "@typeoff/shared";
 import { LeaderboardTabs } from "@/components/leaderboard/LeaderboardTabs";
@@ -378,7 +378,16 @@ async function SoloLeaderboard({
   db: ReturnType<typeof getDb>;
 }) {
   const mode = params.mode === "wordcount" ? "wordcount" : "timed";
-  const duration = Number(params.duration) || (mode === "timed" ? 60 : 25);
+  const duration = Number(params.duration) || (mode === "timed" ? 15 : 25);
+  const category = ["words", "quotes", "code"].includes(params.category as string) ? (params.category as string) : "words";
+  const difficulty = ["easy", "medium", "hard"].includes(params.difficulty as string) ? (params.difficulty as string) : "easy";
+
+  // word_pool format is "category:difficulty:punctuation" (e.g. "words:easy:false")
+  // Legacy rows (null) are treated as words:easy
+  const wordPoolPattern = `${category}:${difficulty}:%`;
+  const wordPoolFilter = category === "words" && difficulty === "easy"
+    ? or(like(soloResults.wordPool, wordPoolPattern), isNull(soloResults.wordPool))
+    : like(soloResults.wordPool, wordPoolPattern);
 
   const rows = await db
     .select({
@@ -388,6 +397,7 @@ async function SoloLeaderboard({
       eloRating: users.eloRating,
       rankTier: users.rankTier,
       bestWpm: sql<number>`max(${soloResults.wpm})`.as("best_wpm"),
+      bestRawWpm: sql<number>`max(${soloResults.rawWpm})`.as("best_raw_wpm"),
       bestAccuracy: sql<number>`max(${soloResults.accuracy})`.as("best_accuracy"),
       testCount: sql<number>`count(*)`.as("test_count"),
       totalXp: userStats.totalXp,
@@ -399,6 +409,7 @@ async function SoloLeaderboard({
       and(
         eq(soloResults.mode, mode),
         eq(soloResults.duration, duration),
+        wordPoolFilter,
         isNotNull(users.username),
       ),
     )
@@ -417,6 +428,7 @@ async function SoloLeaderboard({
         eloRating: users.eloRating,
         rankTier: users.rankTier,
         bestWpm: sql<number>`max(${soloResults.wpm})`.as("best_wpm"),
+        bestRawWpm: sql<number>`max(${soloResults.rawWpm})`.as("best_raw_wpm"),
         bestAccuracy: sql<number>`max(${soloResults.accuracy})`.as("best_accuracy"),
         testCount: sql<number>`count(*)`.as("test_count"),
         totalXp: userStats.totalXp,
@@ -429,6 +441,7 @@ async function SoloLeaderboard({
           eq(soloResults.userId, userId),
           eq(soloResults.mode, mode),
           eq(soloResults.duration, duration),
+          wordPoolFilter,
         ),
       )
       .groupBy(soloResults.userId, users.username, users.lastSeen, users.eloRating, users.rankTier, userStats.totalXp)
@@ -448,6 +461,7 @@ async function SoloLeaderboard({
               and(
                 eq(soloResults.mode, mode),
                 eq(soloResults.duration, duration),
+                wordPoolFilter,
               ),
             )
             .groupBy(soloResults.userId)
@@ -476,7 +490,7 @@ async function SoloLeaderboard({
   const soloCosmeticMap = new Map(soloCosmeticRows.map((r) => [r.userId, r]));
 
   const modeLabel = mode === "timed" ? `${duration}s` : `${duration} words`;
-  const soloGridCols = "grid-cols-[2rem_1fr_4rem] sm:grid-cols-[2rem_1fr_5rem_4rem_3.5rem]";
+  const soloGridCols = "grid-cols-[2rem_1fr_4rem] sm:grid-cols-[2rem_1fr_5rem_4.5rem_4rem_3.5rem]";
 
   return (
     <>
@@ -525,6 +539,7 @@ async function SoloLeaderboard({
             <span></span>
             <span>Player</span>
             <span className="text-right">WPM</span>
+            <span className="text-right hidden sm:block">Raw</span>
             <span className="text-right hidden sm:block">Acc</span>
             <span className="text-right hidden sm:block">Tests</span>
           </div>
@@ -599,6 +614,9 @@ async function SoloLeaderboard({
                   <span className="text-sm tabular-nums text-right font-semibold text-text">
                     {fmtWpm(row.bestWpm)}
                   </span>
+                  <span className="text-sm text-muted/55 tabular-nums text-right hidden sm:block">
+                    {fmtWpm(row.bestRawWpm)}
+                  </span>
                   <span className="text-sm text-muted/65 tabular-nums text-right hidden sm:block">
                     {row.bestAccuracy != null ? (<>{Math.floor(row.bestAccuracy)}<span className="text-[0.8em] opacity-50">.{((row.bestAccuracy % 1) * 10).toFixed(0)}%</span></>) : "-"}
                   </span>
@@ -655,6 +673,9 @@ async function SoloLeaderboard({
                   </div>
                   <span className="text-sm tabular-nums text-right font-semibold text-text">
                     {fmtWpm(row.bestWpm)}
+                  </span>
+                  <span className="text-sm text-muted/55 tabular-nums text-right hidden sm:block">
+                    {fmtWpm(row.bestRawWpm)}
                   </span>
                   <span className="text-sm text-muted/65 tabular-nums text-right hidden sm:block">
                     {row.bestAccuracy != null ? (<>{Math.floor(row.bestAccuracy)}<span className="text-[0.8em] opacity-50">.{((row.bestAccuracy % 1) * 10).toFixed(0)}%</span></>) : "-"}
