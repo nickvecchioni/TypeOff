@@ -245,7 +245,6 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
                       const lvl = getXpLevel(row.totalXp ?? 0).level;
                       return (
                         <div className="flex items-center gap-1.5 min-w-0">
-                          <CosmeticBadge badge={cosmetic?.activeBadge} />
                           <div className="flex flex-col min-w-0">
                             <span className={`truncate text-sm leading-tight ${isMe ? "font-bold" : ""}`}>
                               {isMe ? (
@@ -268,6 +267,7 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
                               )}
                             </span>
                           </div>
+                          <CosmeticBadge badge={cosmetic?.activeBadge} />
                         </div>
                       );
                     })()}
@@ -322,7 +322,6 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
                   </span>
                   <div className="flex items-center gap-2.5 min-w-0">
                     <span className="w-2 h-2 rounded-full shrink-0 bg-emerald-400" />
-                    <CosmeticBadge badge={myCosmetic?.activeBadge} />
                     <div className="flex flex-col min-w-0">
                       <span className="truncate text-sm leading-tight text-accent font-bold">
                         {row.username}
@@ -337,6 +336,7 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
                         )}
                       </span>
                     </div>
+                    <CosmeticBadge badge={myCosmetic?.activeBadge} />
                   </div>
                   <span className={`text-sm tabular-nums text-right font-semibold ${tierColor}`}>
                     {row.eloRating}
@@ -557,7 +557,6 @@ async function SoloLeaderboard({
                     {rank}
                   </span>
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <CosmeticBadge badge={soloCosmetic?.activeBadge} />
                     <div className="flex flex-col min-w-0">
                       <span
                         className={`truncate text-sm leading-tight ${isMe ? "font-bold" : ""}`}
@@ -577,6 +576,7 @@ async function SoloLeaderboard({
                         <span className="text-[10px] text-muted/60 leading-tight">{TITLE_TEXTS[soloCosmetic.activeTitle] ?? soloCosmetic.activeTitle}</span>
                       )}
                     </div>
+                    <CosmeticBadge badge={soloCosmetic?.activeBadge} />
                   </div>
                   <span className="text-sm tabular-nums text-right font-semibold text-text">
                     {fmtWpm(row.bestWpm)}
@@ -613,7 +613,6 @@ async function SoloLeaderboard({
                     {rank}
                   </span>
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <CosmeticBadge badge={mySoloCosmetic?.activeBadge} />
                     <div className="flex flex-col min-w-0">
                       <span className="truncate text-sm leading-tight text-accent font-bold">
                         {row.username}
@@ -623,6 +622,7 @@ async function SoloLeaderboard({
                         <span className="text-[10px] text-muted/60 leading-tight">{TITLE_TEXTS[mySoloCosmetic.activeTitle] ?? mySoloCosmetic.activeTitle}</span>
                       )}
                     </div>
+                    <CosmeticBadge badge={mySoloCosmetic?.activeBadge} />
                   </div>
                   <span className="text-sm tabular-nums text-right font-semibold text-text">
                     {fmtWpm(row.bestWpm)}
@@ -779,7 +779,6 @@ async function UniverseLeaderboard({
                     {rank}
                   </span>
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <CosmeticBadge badge={cosmetic?.activeBadge} />
                     <div className="flex flex-col min-w-0">
                       <span className={`truncate text-sm leading-tight ${isMe ? "font-bold" : ""}`}>
                         {isMe ? (
@@ -797,6 +796,7 @@ async function UniverseLeaderboard({
                         <span className="text-[10px] text-muted/60 leading-tight">{TITLE_TEXTS[cosmetic.activeTitle] ?? cosmetic.activeTitle}</span>
                       )}
                     </div>
+                    <CosmeticBadge badge={cosmetic?.activeBadge} />
                   </div>
                   <span className="text-sm tabular-nums text-right font-semibold text-text">
                     {fmtWpm(row.bestWpm)}

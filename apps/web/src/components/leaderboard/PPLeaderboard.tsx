@@ -97,7 +97,6 @@ export function PPLeaderboard({ userId }: PPLeaderboardProps) {
                 {rank}
               </span>
               <div className="flex items-center gap-2.5 min-w-0">
-                <CosmeticBadge badge={entry.activeBadge} />
                 <div className="flex flex-col min-w-0">
                   <span className={`truncate text-sm leading-tight ${isMe ? "font-bold" : ""}`}>
                     {isMe ? (
@@ -115,6 +114,7 @@ export function PPLeaderboard({ userId }: PPLeaderboardProps) {
                     <span className="text-[10px] text-muted/60 leading-tight">{TITLE_TEXTS[entry.activeTitle] ?? entry.activeTitle}</span>
                   )}
                 </div>
+                <CosmeticBadge badge={entry.activeBadge} />
               </div>
               <span className="text-sm tabular-nums text-right font-semibold text-purple-400">
                 {Math.floor(entry.totalPp)}
