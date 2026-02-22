@@ -17,6 +17,18 @@ import {
 } from "@typeoff/shared";
 import { useUpdateCosmetics } from "@/contexts/CosmeticContext";
 
+/* ── Border color map ───────────────────────────────────── */
+
+const BORDER_COLORS: Record<string, string> = {
+  s1_border_ember:     "#f97316",
+  s1_border_ice:       "#67e8f9",
+  s1_border_diamond:   "#3b82f6",
+  s1_border_void:      "#818cf8",
+  pro_border_inferno:  "#ef4444",
+  pro_border_aurora:   "#34d399",
+  pro_border_obsidian: "#a78bfa",
+};
+
 /* ── Types ─────────────────────────────────────────────── */
 
 interface CosmeticsData {
@@ -881,9 +893,13 @@ function SlotPreview({ item }: { item: CosmeticReward }) {
       );
     }
     case "profileBorder": {
-      const def = PROFILE_BORDERS[item.id];
-      if (!def) return null;
-      return <div className={`w-8 h-5 rounded bg-surface/60 ring-1 ring-white/[0.06] ${def.className}`} />;
+      const color = BORDER_COLORS[item.id] ?? "#4d9eff";
+      return (
+        <div
+          className="w-6 h-6 rounded-full bg-surface/60 border-2 shrink-0"
+          style={{ borderColor: color, boxShadow: `0 0 6px ${color}55` }}
+        />
+      );
     }
     case "typingTheme": {
       const def = TYPING_THEMES[item.id];
@@ -891,7 +907,7 @@ function SlotPreview({ item }: { item: CosmeticReward }) {
       return (
         <span className="flex gap-0.5">
           {def.palette.slice(0, 3).map((c, i) => (
-            <span key={i} className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: c }} />
+            <span key={i} className="w-2.5 h-2.5 rounded-[2px]" style={{ backgroundColor: c }} />
           ))}
         </span>
       );
@@ -981,7 +997,12 @@ function ItemCard({
         </span>
       )}
       {locked && isPinnedPreview && (
-        <span className="absolute top-3 right-3 text-accent/40 text-[10px]">👁</span>
+        <span className="absolute top-3 right-3 text-accent/40">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        </span>
       )}
       <div className="mb-3 h-8 flex items-center">
         <ItemVisual item={item} />
@@ -1046,9 +1067,16 @@ function ItemVisual({ item }: { item: CosmeticReward }) {
       );
     }
     case "profileBorder": {
-      const def = PROFILE_BORDERS[item.id];
-      if (!def) return null;
-      return <div className={`w-12 h-8 rounded-md bg-surface/60 ring-1 ring-white/[0.06] ${def.className}`} />;
+      const color = BORDER_COLORS[item.id] ?? "#4d9eff";
+      return (
+        <div className="flex items-center gap-2.5">
+          <div
+            className="w-8 h-8 rounded-full bg-surface/60 shrink-0 border-2"
+            style={{ borderColor: color, boxShadow: `0 0 8px ${color}55` }}
+          />
+          <span className="text-[10px] text-muted/60">{PROFILE_BORDERS[item.id]?.label ?? item.name}</span>
+        </div>
+      );
     }
     case "typingTheme": {
       const def = TYPING_THEMES[item.id];
@@ -1056,7 +1084,7 @@ function ItemVisual({ item }: { item: CosmeticReward }) {
       return (
         <span className="flex gap-1">
           {def.palette.map((c, i) => (
-            <span key={i} className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: c }} />
+            <span key={i} className="w-4 h-4 rounded-[3px]" style={{ backgroundColor: c }} />
           ))}
         </span>
       );
