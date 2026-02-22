@@ -27,19 +27,31 @@ const MODE_DESCRIPTIONS: Record<RaceMode, string> = {
   difficult: "Uncommon and challenging vocabulary",
 };
 
+const LANGUAGE_LABELS: Record<string, string> = {
+  javascript: "JavaScript",
+  python: "Python",
+  go: "Go",
+  rust: "Rust",
+  java: "Java",
+};
+
 interface CountdownOverlayProps {
   countdown: number;
   placementRace?: number;
   mode?: RaceMode;
+  codeLanguage?: string;
 }
 
 export function CountdownOverlay({
   countdown,
   placementRace,
   mode,
+  codeLanguage,
 }: CountdownOverlayProps) {
   const modeLabel = mode ? MODE_LABELS[mode] : null;
-  const modeDesc = mode ? MODE_DESCRIPTIONS[mode] : null;
+  const modeDesc = mode === "code" && codeLanguage
+    ? (LANGUAGE_LABELS[codeLanguage] ?? codeLanguage)
+    : mode ? MODE_DESCRIPTIONS[mode] : null;
 
   return (
     <div className="flex flex-col items-center gap-2">
