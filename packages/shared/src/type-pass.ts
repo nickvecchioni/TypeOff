@@ -218,7 +218,7 @@ export const BADGE_EMOJIS: Record<string, string> = {
   s1_badge_lightning: "⚡",
   pro_badge: "⭐",
   // ─── Pro badges ─────────────────────────────────────────
-  pro_badge_diamond: "💎",
+  pro_badge_diamond: "💠",   // changed from 💎 to avoid duplicate with s1_badge_gem
   pro_badge_comet: "☄️",
   pro_badge_fire_god: "🌋",
   pro_badge_ghost: "👻",
@@ -229,6 +229,12 @@ export const BADGE_EMOJIS: Record<string, string> = {
   s2_badge_target: "🎯",
   s2_badge_moon: "🌙",
   s2_badge_snowflake: "❄️",
+  s2_badge_star: "🌟",
+  s2_badge_sword: "⚔️",
+  s2_badge_dragon: "🐉",
+  s2_badge_medal: "🎖️",
+  s2_badge_nova: "🌠",
+  s2_badge_legend: "💫",
 };
 
 /** Title text map — keyed by cosmetic ID */
@@ -247,6 +253,11 @@ export const TITLE_TEXTS: Record<string, string> = {
   s2_title_wordsmith: "Wordsmith",
   s2_title_legend: "Legend",
   s2_title_champion: "Champion",
+  s2_title_keymaster: "Keymaster",
+  s2_title_ascendant: "Ascendant",
+  s2_title_transcendent: "Transcendent",
+  s2_title_immortal: "Immortal",
+  s2_title_prestige: "Prestige",
 };
 
 /** Name color hex map — keyed by cosmetic ID */
@@ -267,6 +278,8 @@ export const NAME_COLORS: Record<string, string> = {
   s2_color_orange: "#fb923c",
   s2_color_pink: "#f472b6",
   s2_color_indigo: "#6366f1",
+  s2_color_coral: "#f87171",
+  s2_color_mint: "#6ee7b7",
 };
 
 /** Name effect CSS class map — keyed by cosmetic ID */
@@ -277,6 +290,9 @@ export const NAME_EFFECT_CLASSES: Record<string, string> = {
   // ─── Pro effects ────────────────────────────────────────
   pro_effect_fire: "name-effect-fire",
   pro_effect_ice: "name-effect-ice",
+  // ─── Season 2 pro effects ────────────────────────────────
+  s2_effect_storm: "name-effect-storm",
+  s2_effect_void: "name-effect-void",
 };
 
 // ─── Cosmetic Rewards (50 levels) ──────────────────────────────────────
@@ -315,19 +331,19 @@ export const COSMETIC_REWARDS: CosmeticReward[] = [
   { level: 29, type: "typingTheme",   id: "s1_theme_midnight",     name: "Midnight",       value: "midnight" },
   { level: 30, type: "cursorStyle",   id: "s1_cursor_rainbow",     name: "Rainbow",        value: "rainbow" },
   // Level 31–50: dense Pro rewards
-  { level: 31, type: "badge",         id: "pro_badge_diamond",     name: "Diamond",        value: "💎",            proOnly: true },
+  { level: 31, type: "badge",         id: "pro_badge_diamond",     name: "Diamond",        value: "💠",            proOnly: true },  // was "💎" — changed to avoid duplicate with s1_badge_gem
   { level: 32, type: "nameColor",     id: "pro_color_ember",       name: "Ember",          value: "#f97316",       proOnly: true },
-  { level: 33, type: "title",         id: "pro_title_velocity",    name: "Velocity",       value: "Velocity" },
+  { level: 33, type: "title",         id: "pro_title_velocity",    name: "Velocity",       value: "Velocity",      proOnly: true },  // bug fix: pro_ prefix, should be proOnly
   { level: 34, type: "typingTheme",   id: "pro_theme_aurora",      name: "Aurora",         value: "aurora",        proOnly: true },
   { level: 35, type: "profileBorder", id: "pro_border_inferno",    name: "Inferno Border", value: "inferno",       proOnly: true },
   { level: 36, type: "nameEffect",    id: "pro_effect_fire",       name: "Fire",           value: "name-effect-fire", proOnly: true },
-  { level: 37, type: "cursorStyle",   id: "pro_cursor_crystal",    name: "Crystal Cursor", value: "crystal" },
+  { level: 37, type: "cursorStyle",   id: "pro_cursor_crystal",    name: "Crystal Cursor", value: "crystal",       proOnly: true },  // bug fix: pro_ prefix, should be proOnly
   { level: 38, type: "badge",         id: "pro_badge_comet",       name: "Comet",          value: "☄️",            proOnly: true },
   { level: 39, type: "nameColor",     id: "pro_color_sapphire",    name: "Sapphire",       value: "#3b82f6" },
   { level: 40, type: "title",         id: "pro_title_ghost_typist", name: "Ghost Typist",  value: "Ghost Typist",  proOnly: true },
   { level: 41, type: "typingTheme",   id: "pro_theme_inferno",     name: "Inferno",        value: "inferno",       proOnly: true },
   { level: 42, type: "profileBorder", id: "pro_border_aurora",     name: "Aurora Border",  value: "aurora",        proOnly: true },
-  { level: 43, type: "nameEffect",    id: "pro_effect_ice",        name: "Ice",            value: "name-effect-ice" },
+  { level: 43, type: "nameEffect",    id: "pro_effect_ice",        name: "Ice",            value: "name-effect-ice",  proOnly: true },  // bug fix: pro_ prefix, should be proOnly
   { level: 44, type: "cursorStyle",   id: "pro_cursor_phantom",    name: "Phantom Cursor", value: "phantom",       proOnly: true },
   { level: 45, type: "nameColor",     id: "pro_color_amethyst",    name: "Amethyst",       value: "#8b5cf6",       proOnly: true },
   { level: 46, type: "badge",         id: "pro_badge_fire_god",    name: "Fire God",       value: "🌋",            proOnly: true },
@@ -338,29 +354,55 @@ export const COSMETIC_REWARDS: CosmeticReward[] = [
   // Level 51–75: season 2 — extended themes + new rewards
   { level: 51, type: "typingTheme",   id: "theme_dracula",          name: "Dracula",        value: "dracula" },
   { level: 52, type: "cursorStyle",   id: "s1_cursor_block_gold",   name: "Block Gold",     value: "block-gold" },
-  { level: 53, type: "badge",         id: "s2_badge_crown",         name: "Crown",          value: "👑" },
+  { level: 53, type: "badge",         id: "s2_badge_crown",         name: "Crown",          value: "👑",            proOnly: true },  // crown > comet (L38 PRO), should be PRO too
   { level: 54, type: "typingTheme",   id: "theme_nord",             name: "Nord",           value: "nord" },
   { level: 55, type: "title",         id: "s2_title_speed_demon",   name: "Speed Demon",    value: "Speed Demon" },
   { level: 56, type: "cursorStyle",   id: "s1_cursor_pulse_pink",   name: "Pulse Pink",     value: "pulse-pink" },
   { level: 57, type: "typingTheme",   id: "theme_gruvbox",          name: "Gruvbox",        value: "gruvbox" },
   { level: 58, type: "nameColor",     id: "s2_color_teal",          name: "Teal",           value: "#14b8a6" },
   { level: 59, type: "badge",         id: "s2_badge_rocket",        name: "Rocket",         value: "🚀" },
-  { level: 60, type: "typingTheme",   id: "theme_synthwave",        name: "Synthwave",      value: "synthwave" },
+  { level: 60, type: "typingTheme",   id: "theme_synthwave",        name: "Synthwave",      value: "synthwave",     proOnly: true },  // highly desired theme, good PRO hook
   { level: 61, type: "cursorStyle",   id: "s1_cursor_underline_cyan", name: "Underline Cyan", value: "underline-cyan" },
   { level: 62, type: "title",         id: "s2_title_wordsmith",     name: "Wordsmith",      value: "Wordsmith" },
   { level: 63, type: "typingTheme",   id: "theme_monokai",          name: "Monokai",        value: "monokai" },
   { level: 64, type: "nameColor",     id: "s2_color_orange",        name: "Orange",         value: "#fb923c" },
   { level: 65, type: "badge",         id: "s2_badge_trophy",        name: "Trophy",         value: "🏆",           proOnly: true },
-  { level: 66, type: "typingTheme",   id: "theme_tokyo_night",      name: "Tokyo Night",    value: "tokyo-night" },
+  { level: 66, type: "typingTheme",   id: "theme_tokyo_night",      name: "Tokyo Night",    value: "tokyo-night",   proOnly: true },
   { level: 67, type: "nameColor",     id: "s2_color_pink",          name: "Pink",           value: "#f472b6" },
-  { level: 68, type: "typingTheme",   id: "theme_cyberpunk",        name: "Cyberpunk",      value: "cyberpunk" },
+  { level: 68, type: "typingTheme",   id: "theme_cyberpunk",        name: "Cyberpunk",      value: "cyberpunk",     proOnly: true },
   { level: 69, type: "title",         id: "s2_title_legend",        name: "Legend",         value: "Legend",        proOnly: true },
   { level: 70, type: "badge",         id: "s2_badge_target",        name: "Target",         value: "🎯" },
   { level: 71, type: "typingTheme",   id: "theme_catppuccin",       name: "Catppuccin",     value: "catppuccin" },
   { level: 72, type: "nameColor",     id: "s2_color_indigo",        name: "Indigo",         value: "#6366f1" },
-  { level: 73, type: "typingTheme",   id: "theme_one_dark",         name: "One Dark",       value: "one-dark" },
+  { level: 73, type: "typingTheme",   id: "theme_one_dark",         name: "One Dark",       value: "one-dark",      proOnly: true },
   { level: 74, type: "badge",         id: "s2_badge_moon",          name: "Moon",           value: "🌙",            proOnly: true },
   { level: 75, type: "title",         id: "s2_title_champion",      name: "Champion",       value: "Champion",      proOnly: true },
+  // Level 76–100: master tier — prestige cosmetics, elite themes, animated effects
+  { level: 76, type: "typingTheme",   id: "theme_rose_pine",        name: "Rose Pine",      value: "rose-pine" },
+  { level: 77, type: "badge",         id: "s2_badge_star",          name: "Star",           value: "🌟" },
+  { level: 78, type: "typingTheme",   id: "theme_everforest",       name: "Everforest",     value: "everforest" },
+  { level: 79, type: "title",         id: "s2_title_keymaster",     name: "Keymaster",      value: "Keymaster",     proOnly: true },
+  { level: 80, type: "badge",         id: "pro_badge_ghost",        name: "Ghost",          value: "👻",            proOnly: true },  // places the previously-unused pro_badge_ghost
+  { level: 81, type: "typingTheme",   id: "theme_kanagawa",         name: "Kanagawa",       value: "kanagawa",      proOnly: true },
+  { level: 82, type: "nameColor",     id: "s2_color_coral",         name: "Coral",          value: "#f87171" },
+  { level: 83, type: "typingTheme",   id: "theme_arctic",           name: "Arctic",         value: "arctic" },
+  { level: 84, type: "badge",         id: "s2_badge_sword",         name: "Sword",          value: "⚔️",            proOnly: true },
+  { level: 85, type: "typingTheme",   id: "theme_ocean",            name: "Ocean",          value: "ocean" },
+  { level: 86, type: "title",         id: "s2_title_ascendant",     name: "Ascendant",      value: "Ascendant",     proOnly: true },
+  { level: 87, type: "nameEffect",    id: "s2_effect_storm",        name: "Storm",          value: "name-effect-storm", proOnly: true },  // new animated name effect
+  { level: 88, type: "typingTheme",   id: "theme_matrix",           name: "Matrix",         value: "matrix",        proOnly: true },
+  { level: 89, type: "nameColor",     id: "s2_color_mint",          name: "Mint",           value: "#6ee7b7" },
+  { level: 90, type: "badge",         id: "s2_badge_dragon",        name: "Dragon",         value: "🐉",            proOnly: true },  // milestone level — prestigious PRO badge
+  { level: 91, type: "typingTheme",   id: "theme_vaporwave",        name: "Vaporwave",      value: "vaporwave",     proOnly: true },
+  { level: 92, type: "title",         id: "s2_title_transcendent",  name: "Transcendent",   value: "Transcendent",  proOnly: true },
+  { level: 93, type: "typingTheme",   id: "theme_forest",           name: "Forest",         value: "forest" },
+  { level: 94, type: "badge",         id: "s2_badge_medal",         name: "Medal",          value: "🎖️" },
+  { level: 95, type: "title",         id: "s2_title_immortal",      name: "Immortal",       value: "Immortal",      proOnly: true },
+  { level: 96, type: "nameEffect",    id: "s2_effect_void",         name: "Void",           value: "name-effect-void", proOnly: true },  // second new animated name effect
+  { level: 97, type: "typingTheme",   id: "theme_lavender",         name: "Lavender",       value: "lavender" },
+  { level: 98, type: "badge",         id: "s2_badge_nova",          name: "Nova",           value: "🌠",            proOnly: true },
+  { level: 99, type: "title",         id: "s2_title_prestige",      name: "Prestige",       value: "Prestige",      proOnly: true },
+  { level: 100, type: "badge",        id: "s2_badge_legend",        name: "Legend",         value: "💫",            proOnly: true },  // ultimate reward
 ];
 
 // ─── Helpers ───────────────────────────────────────────────────────────
