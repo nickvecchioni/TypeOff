@@ -384,6 +384,9 @@ async function SoloLeaderboard({
     .select({
       usrId: soloResults.userId,
       username: users.username,
+      lastSeen: users.lastSeen,
+      eloRating: users.eloRating,
+      rankTier: users.rankTier,
       bestWpm: sql<number>`max(${soloResults.wpm})`.as("best_wpm"),
       bestAccuracy: sql<number>`max(${soloResults.accuracy})`.as("best_accuracy"),
       testCount: sql<number>`count(*)`.as("test_count"),
@@ -399,7 +402,7 @@ async function SoloLeaderboard({
         isNotNull(users.username),
       ),
     )
-    .groupBy(soloResults.userId, users.username, userStats.totalXp)
+    .groupBy(soloResults.userId, users.username, users.lastSeen, users.eloRating, users.rankTier, userStats.totalXp)
     .orderBy(sql`best_wpm desc`)
     .limit(100);
 
@@ -410,6 +413,9 @@ async function SoloLeaderboard({
       .select({
         usrId: soloResults.userId,
         username: users.username,
+        lastSeen: users.lastSeen,
+        eloRating: users.eloRating,
+        rankTier: users.rankTier,
         bestWpm: sql<number>`max(${soloResults.wpm})`.as("best_wpm"),
         bestAccuracy: sql<number>`max(${soloResults.accuracy})`.as("best_accuracy"),
         testCount: sql<number>`count(*)`.as("test_count"),
@@ -425,7 +431,7 @@ async function SoloLeaderboard({
           eq(soloResults.duration, duration),
         ),
       )
-      .groupBy(soloResults.userId, users.username, userStats.totalXp)
+      .groupBy(soloResults.userId, users.username, users.lastSeen, users.eloRating, users.rankTier, userStats.totalXp)
       .limit(1);
 
     if (myRow) {
@@ -532,6 +538,9 @@ async function SoloLeaderboard({
               const rank = i + 1;
               const isMe = userId === row.usrId;
               const soloCosmetic = soloCosmeticMap.get(row.usrId);
+              const isOnline = row.lastSeen != null && (Date.now() - new Date(row.lastSeen).getTime()) < 3 * 60 * 1000;
+              const info = getRankInfo(row.eloRating ?? 1000);
+              const tierColor = TIER_TEXT[info.tier];
 
               const rankDisplay = rank === 1
                 ? "text-rank-gold"
@@ -557,26 +566,35 @@ async function SoloLeaderboard({
                     {rank}
                   </span>
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="flex flex-col min-w-0">
-                      <span
-                        className={`truncate text-sm leading-tight ${isMe ? "font-bold" : ""}`}
-                      >
-                        {isMe ? (
-                          <CosmeticName nameColor={null} nameEffect={soloCosmetic?.activeNameEffect}>
-                            <span className="text-accent">{row.username}</span>
-                          </CosmeticName>
-                        ) : (
-                          <CosmeticName nameColor={soloCosmetic?.activeNameColor} nameEffect={soloCosmetic?.activeNameEffect}>
-                            {row.username}
-                          </CosmeticName>
-                        )}
-                        <span className="text-[10px] font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded ml-1.5">{getXpLevel(row.totalXp ?? 0).level}</span>
-                      </span>
-                      {soloCosmetic?.activeTitle && (
-                        <span className="text-[10px] text-muted/60 leading-tight">{TITLE_TEXTS[soloCosmetic.activeTitle] ?? soloCosmetic.activeTitle}</span>
-                      )}
+                    <span className={`w-2 h-2 rounded-full shrink-0 ${isOnline ? "bg-emerald-400" : "bg-white/10"}`} />
+                    <LiveBadge userId={row.usrId} />
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <div className="flex flex-col min-w-0">
+                        <span
+                          className={`truncate text-sm leading-tight ${isMe ? "font-bold" : ""}`}
+                        >
+                          {isMe ? (
+                            <CosmeticName nameColor={null} nameEffect={soloCosmetic?.activeNameEffect}>
+                              <span className="text-accent">{row.username}</span>
+                            </CosmeticName>
+                          ) : (
+                            <CosmeticName nameColor={soloCosmetic?.activeNameColor} nameEffect={soloCosmetic?.activeNameEffect}>
+                              {row.username}
+                            </CosmeticName>
+                          )}
+                          <span className="text-[10px] font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded ml-1.5">{getXpLevel(row.totalXp ?? 0).level}</span>
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <span className={`text-xs leading-tight ${tierColor}`}>
+                            {info.label}
+                          </span>
+                          {soloCosmetic?.activeTitle && (
+                            <span className="text-[10px] text-muted/60 leading-tight">{TITLE_TEXTS[soloCosmetic.activeTitle] ?? soloCosmetic.activeTitle}</span>
+                          )}
+                        </span>
+                      </div>
+                      <CosmeticBadge badge={soloCosmetic?.activeBadge} />
                     </div>
-                    <CosmeticBadge badge={soloCosmetic?.activeBadge} />
                   </div>
                   <span className="text-sm tabular-nums text-right font-semibold text-text">
                     {fmtWpm(row.bestWpm)}
@@ -596,6 +614,8 @@ async function SoloLeaderboard({
           {myRank && (() => {
             const { rank, row } = myRank;
             const mySoloCosmetic = soloCosmeticMap.get(row.usrId);
+            const myInfo = getRankInfo(row.eloRating ?? 1000);
+            const myTierColor = TIER_TEXT[myInfo.tier];
 
             return (
               <div
@@ -613,16 +633,25 @@ async function SoloLeaderboard({
                     {rank}
                   </span>
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="flex flex-col min-w-0">
-                      <span className="truncate text-sm leading-tight text-accent font-bold">
-                        {row.username}
-                        <span className="text-[10px] font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded ml-1.5">{getXpLevel(row.totalXp ?? 0).level}</span>
-                      </span>
-                      {mySoloCosmetic?.activeTitle && (
-                        <span className="text-[10px] text-muted/60 leading-tight">{TITLE_TEXTS[mySoloCosmetic.activeTitle] ?? mySoloCosmetic.activeTitle}</span>
-                      )}
+                    <span className="w-2 h-2 rounded-full shrink-0 bg-emerald-400" />
+                    <LiveBadge userId={row.usrId} />
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <div className="flex flex-col min-w-0">
+                        <span className="truncate text-sm leading-tight text-accent font-bold">
+                          {row.username}
+                          <span className="text-[10px] font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded ml-1.5">{getXpLevel(row.totalXp ?? 0).level}</span>
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <span className={`text-xs leading-tight ${myTierColor}`}>
+                            {myInfo.label}
+                          </span>
+                          {mySoloCosmetic?.activeTitle && (
+                            <span className="text-[10px] text-muted/60 leading-tight">{TITLE_TEXTS[mySoloCosmetic.activeTitle] ?? mySoloCosmetic.activeTitle}</span>
+                          )}
+                        </span>
+                      </div>
+                      <CosmeticBadge badge={mySoloCosmetic?.activeBadge} />
                     </div>
-                    <CosmeticBadge badge={mySoloCosmetic?.activeBadge} />
                   </div>
                   <span className="text-sm tabular-nums text-right font-semibold text-text">
                     {fmtWpm(row.bestWpm)}
@@ -659,9 +688,13 @@ async function UniverseLeaderboard({
     .select({
       usrId: raceParticipants.userId,
       username: users.username,
+      lastSeen: users.lastSeen,
+      eloRating: users.eloRating,
+      rankTier: users.rankTier,
       bestWpm: sql<number>`max(${raceParticipants.wpm})`.as("best_wpm"),
       bestAccuracy: sql<number>`max(${raceParticipants.accuracy})`.as("best_accuracy"),
       raceCount: sql<number>`count(*)`.as("race_count"),
+      racesWon: sql<number>`count(case when ${raceParticipants.placement} = 1 then 1 end)`.as("races_won"),
       totalXp: userStats.totalXp,
     })
     .from(raceParticipants)
@@ -676,7 +709,7 @@ async function UniverseLeaderboard({
         eq(raceParticipants.flagged, false),
       ),
     )
-    .groupBy(raceParticipants.userId, users.username, userStats.totalXp)
+    .groupBy(raceParticipants.userId, users.username, users.lastSeen, users.eloRating, users.rankTier, userStats.totalXp)
     .orderBy(sql`best_wpm desc`)
     .limit(100);
 
@@ -696,7 +729,7 @@ async function UniverseLeaderboard({
     : [];
   const cosmeticMap = new Map(cosmeticRows.map((r) => [r.userId, r]));
 
-  const gridCols = "grid-cols-[2rem_1fr_4.5rem] sm:grid-cols-[2rem_1fr_5rem_4rem_3.5rem]";
+  const gridCols = "grid-cols-[2rem_1fr_4.5rem] sm:grid-cols-[2rem_1fr_5rem_4rem_3.5rem_3.5rem]";
 
   return (
     <>
@@ -746,6 +779,7 @@ async function UniverseLeaderboard({
             <span className="text-right">Best WPM</span>
             <span className="text-right hidden sm:block">Acc</span>
             <span className="text-right hidden sm:block">Races</span>
+            <span className="text-right hidden sm:block">Wins</span>
           </div>
 
           <div
@@ -756,6 +790,9 @@ async function UniverseLeaderboard({
               const rank = i + 1;
               const isMe = userId === row.usrId;
               const cosmetic = cosmeticMap.get(row.usrId ?? "");
+              const isOnline = row.lastSeen != null && (Date.now() - new Date(row.lastSeen).getTime()) < 3 * 60 * 1000;
+              const info = getRankInfo(row.eloRating ?? 1000);
+              const tierColor = TIER_TEXT[info.tier];
 
               const rankDisplay =
                 rank === 1 ? "text-rank-gold" :
@@ -779,33 +816,45 @@ async function UniverseLeaderboard({
                     {rank}
                   </span>
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="flex flex-col min-w-0">
-                      <span className={`truncate text-sm leading-tight ${isMe ? "font-bold" : ""}`}>
-                        {isMe ? (
-                          <CosmeticName nameColor={null} nameEffect={cosmetic?.activeNameEffect}>
-                            <span className="text-accent">{row.username}</span>
-                          </CosmeticName>
-                        ) : (
-                          <CosmeticName nameColor={cosmetic?.activeNameColor} nameEffect={cosmetic?.activeNameEffect}>
-                            {row.username}
-                          </CosmeticName>
-                        )}
-                        <span className="text-[10px] font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded ml-1.5">{getXpLevel(row.totalXp ?? 0).level}</span>
-                      </span>
-                      {cosmetic?.activeTitle && (
-                        <span className="text-[10px] text-muted/60 leading-tight">{TITLE_TEXTS[cosmetic.activeTitle] ?? cosmetic.activeTitle}</span>
-                      )}
+                    <span className={`w-2 h-2 rounded-full shrink-0 ${isOnline ? "bg-emerald-400" : "bg-white/10"}`} />
+                    <LiveBadge userId={row.usrId ?? ""} />
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <div className="flex flex-col min-w-0">
+                        <span className={`truncate text-sm leading-tight ${isMe ? "font-bold" : ""}`}>
+                          {isMe ? (
+                            <CosmeticName nameColor={null} nameEffect={cosmetic?.activeNameEffect}>
+                              <span className="text-accent">{row.username}</span>
+                            </CosmeticName>
+                          ) : (
+                            <CosmeticName nameColor={cosmetic?.activeNameColor} nameEffect={cosmetic?.activeNameEffect}>
+                              {row.username}
+                            </CosmeticName>
+                          )}
+                          <span className="text-[10px] font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded ml-1.5">{getXpLevel(row.totalXp ?? 0).level}</span>
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <span className={`text-xs leading-tight ${tierColor}`}>
+                            {info.label}
+                          </span>
+                          {cosmetic?.activeTitle && (
+                            <span className="text-[10px] text-muted/60 leading-tight">{TITLE_TEXTS[cosmetic.activeTitle] ?? cosmetic.activeTitle}</span>
+                          )}
+                        </span>
+                      </div>
+                      <CosmeticBadge badge={cosmetic?.activeBadge} />
                     </div>
-                    <CosmeticBadge badge={cosmetic?.activeBadge} />
                   </div>
                   <span className="text-sm tabular-nums text-right font-semibold text-text">
                     {fmtWpm(row.bestWpm)}
                   </span>
                   <span className="text-sm text-muted/65 tabular-nums text-right hidden sm:block">
-                    {row.bestAccuracy != null ? `${Math.floor(row.bestAccuracy)}%` : "-"}
+                    {row.bestAccuracy != null ? (<>{Math.floor(row.bestAccuracy)}<span className="text-[0.8em] opacity-50">.{((row.bestAccuracy % 1) * 10).toFixed(0)}%</span></>) : "-"}
                   </span>
                   <span className="text-sm text-muted/65 tabular-nums text-right hidden sm:block">
                     {row.raceCount}
+                  </span>
+                  <span className="text-sm text-muted/65 tabular-nums text-right hidden sm:block">
+                    {row.racesWon}
                   </span>
                 </Link>
               );
