@@ -499,9 +499,6 @@ export function QueueScreen({
               {/* Mode selector */}
               {session.user.placementsCompleted && (
                 <div className="relative w-full mb-4">
-                  <p className="text-[11px] text-muted/50 mb-2.5 leading-relaxed">
-                    Pick one or more modes — each race draws from your selection, matched with players sharing at least one.
-                  </p>
                 <div className="grid grid-cols-4 gap-1.5">
                   {MODES.map(({ id, label, icon, desc }) => {
                     const active = modeCategories.includes(id);
@@ -531,6 +528,9 @@ export function QueueScreen({
                     );
                   })}
                 </div>
+                  <p className="text-[11px] text-muted/50 mt-2.5 leading-relaxed text-center">
+                    Pick one or more modes — each race draws from your selection, matched with players sharing at least one.
+                  </p>
                 </div>
               )}
 
