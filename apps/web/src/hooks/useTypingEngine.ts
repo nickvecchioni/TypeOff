@@ -77,9 +77,6 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
   const misstypedCharsRef = useRef(0);
   const totalCharsRef = useRef(0);
   const keyStatsRef = useRef<Map<string, { correct: number; total: number }>>(new Map());
-  // Strict mode failure tracking
-  const failedRef = useRef(false);
-  const failedAtRef = useRef<{ wordIndex: number; charIndex: number } | null>(null);
   // Bigram tracking (prevChar + currentChar)
   const bigramStatsRef = useRef<Map<string, { correct: number; total: number }>>(new Map());
   const prevTypedCharRef = useRef<string | null>(null);
@@ -186,8 +183,6 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
       wpmHistory: wpmHistoryRef.current,
       keyStats,
       consistency,
-      failed: failedRef.current,
-      failedAt: failedAtRef.current ?? undefined,
       bigramStats: Object.keys(bigramStats).length > 0 ? bigramStats : undefined,
     });
     setStatus("finished");
@@ -245,8 +240,6 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     totalCharsRef.current = 0;
     keyStatsRef.current = new Map();
     wpmHistoryRef.current = [];
-    failedRef.current = false;
-    failedAtRef.current = null;
     bigramStatsRef.current = new Map();
     prevTypedCharRef.current = null;
     zenBatchRef.current = 0;
@@ -260,19 +253,10 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
 
   const handleCharacter = useCallback(
     (char: string) => {
-      if (failedRef.current) return; // strict mode failed — block further input
       const word = words[currentWordIndex];
       if (!word || currentCharIndex >= word.chars.length) return;
 
       const isCorrect = char === word.chars[currentCharIndex].expected;
-
-      // Master mode: fail immediately on any wrong character
-      if (!isCorrect && config.strictMode === "master") {
-        failedRef.current = true;
-        failedAtRef.current = { wordIndex: currentWordIndex, charIndex: currentCharIndex };
-        finishTest();
-        return;
-      }
 
       setWords((prev) => {
         const newWords = [...prev];
@@ -418,18 +402,10 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
   }, [words, currentWordIndex, currentCharIndex]);
 
   const handleSpace = useCallback(() => {
-    if (failedRef.current) return;
     // Only allow space when the current word is fully and correctly typed
     const word = words[currentWordIndex];
     if (!word || currentCharIndex < word.chars.length) return;
     if (word.chars.some((c) => c.status !== "correct")) {
-      // Expert mode: fail when trying to advance a word with errors
-      if (config.strictMode === "expert" || config.strictMode === "master") {
-        failedRef.current = true;
-        failedAtRef.current = { wordIndex: currentWordIndex, charIndex: currentCharIndex };
-        finishTest();
-        return;
-      }
       return;
     }
 
@@ -488,7 +464,6 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent | KeyboardEvent) => {
       if (status === "finished") return;
-      if (failedRef.current) return;
 
       const isCodeMode = config.contentType === "code";
 

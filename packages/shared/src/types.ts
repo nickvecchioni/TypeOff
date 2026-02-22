@@ -16,7 +16,7 @@ export type TestMode = "timed" | "wordcount";
 export type ContentType = "words" | "quotes" | "marathon" | "sprint" | "custom" | "practice" | "code" | "zen";
 export type Difficulty = "easy" | "medium" | "hard";
 
-export type StrictMode = "normal" | "expert" | "master";
+export type StrictMode = "easy" | "medium" | "hard";
 
 export interface TestConfig {
   mode: TestMode;
@@ -71,8 +71,6 @@ export interface TestStats {
   wpmHistory: WpmSample[];
   keyStats: KeyStatsMap;
   consistency: number; // 0-100, higher = more consistent WPM
-  failed?: boolean;
-  failedAt?: { wordIndex: number; charIndex: number };
   bigramStats?: Record<string, { correct: number; total: number }>;
 }
 

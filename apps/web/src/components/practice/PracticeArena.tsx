@@ -8,7 +8,6 @@ import { useCapsLock } from "@/hooks/useCapsLock";
 import { WordDisplay } from "@/components/typing/WordDisplay";
 import { ConfigBar } from "./ConfigBar";
 import { PracticeResults } from "./PracticeResults";
-import { FailScreen } from "./FailScreen";
 import { ZenFreeformArena } from "./ZenFreeformArena";
 
 function getVisibleLines(): number {
@@ -390,14 +389,7 @@ export function PracticeArena({ initialDrill = false }: { initialDrill?: boolean
       )}
 
       {/* Results */}
-      {isFinished && engine.stats && engine.stats.failed && (
-        <FailScreen
-          stats={engine.stats}
-          config={engine.config}
-          onRestart={handleRestart}
-        />
-      )}
-      {isFinished && engine.stats && !engine.stats.failed && (
+      {isFinished && engine.stats && (
         <PracticeResults
           stats={engine.stats}
           config={engine.config}

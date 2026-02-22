@@ -9,9 +9,9 @@ interface StrictModeSelectorProps {
 }
 
 const MODES: { value: StrictMode; label: string; tooltip: string }[] = [
-  { value: "normal", label: "normal", tooltip: "Standard typing — errors are shown but don't stop you" },
-  { value: "expert", label: "expert", tooltip: "Must fix all errors before advancing to next word" },
-  { value: "master", label: "master", tooltip: "Test ends immediately on any wrong character" },
+  { value: "easy", label: "easy", tooltip: "Common everyday words" },
+  { value: "medium", label: "medium", tooltip: "Less common, moderately challenging words" },
+  { value: "hard", label: "hard", tooltip: "Uncommon and complex vocabulary" },
 ];
 
 export function StrictModeSelector({ value, onChange }: StrictModeSelectorProps) {
@@ -24,9 +24,9 @@ export function StrictModeSelector({ value, onChange }: StrictModeSelectorProps)
           title={mode.tooltip}
           className={`px-2 py-1 rounded text-[11px] font-medium transition-all ${
             value === mode.value
-              ? mode.value === "master"
+              ? mode.value === "hard"
                 ? "text-error/80 bg-error/10"
-                : mode.value === "expert"
+                : mode.value === "medium"
                 ? "text-amber-400/80 bg-amber-500/10"
                 : "text-accent/80 bg-accent/10"
               : "text-muted/55 hover:text-muted/70 hover:bg-white/[0.03]"

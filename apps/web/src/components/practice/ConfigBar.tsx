@@ -93,6 +93,12 @@ export function ConfigBar({
         <Chip active={ct === "quotes"} onClick={() => setContentType("quotes")}>
           quotes
         </Chip>
+        <Chip active={ct === "code"} onClick={() => setContentType("code")}>
+          code
+        </Chip>
+        <Chip active={ct === "zen"} onClick={() => setContentType("zen")}>
+          zen
+        </Chip>
         <Chip
           active={ct === "custom"}
           onClick={() => {
@@ -102,12 +108,6 @@ export function ConfigBar({
           proLocked={!isPro}
         >
           custom
-        </Chip>
-        <Chip active={ct === "code"} onClick={() => setContentType("code")}>
-          code
-        </Chip>
-        <Chip active={ct === "zen"} onClick={() => setContentType("zen")}>
-          zen
         </Chip>
         {isPro && practiceWeakKeys?.length ? (
           <Chip
@@ -156,12 +156,11 @@ export function ConfigBar({
           <div className={`flex items-center gap-1 transition-opacity ${ct === "quotes" ? "opacity-20 pointer-events-none" : ""}`}>
             <MicroDivider />
             <StrictModeSelector
-              value={config.strictMode ?? "normal"}
+              value={config.strictMode ?? "easy"}
               onChange={(m: StrictMode) =>
                 set({
                   strictMode: m,
-                  difficulty:
-                    m === "master" ? "hard" : m === "expert" ? "medium" : "easy",
+                  difficulty: m,
                 })
               }
             />
