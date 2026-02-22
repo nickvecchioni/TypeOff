@@ -141,28 +141,19 @@ export default function ProPage() {
                 className="absolute inset-0 pointer-events-none rounded-2xl"
                 style={{
                   background:
-                    "radial-gradient(ellipse 70% 50% at 50% -10%, rgba(245,158,11,0.10) 0%, transparent 70%)",
+                    "radial-gradient(ellipse 70% 50% at 50% -10%, rgba(77,158,255,0.08) 0%, transparent 70%)",
                 }}
               />
               <div className="relative text-center pt-8 pb-6 px-4">
-                <div className="inline-flex items-center gap-1.5 text-[9px] font-bold text-amber-400/70 ring-1 ring-amber-400/25 px-3 py-1 rounded-full uppercase tracking-widest mb-5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400/70" />
+                <div className="inline-flex items-center gap-1.5 text-[9px] font-bold text-accent/70 ring-1 ring-accent/20 px-3 py-1 rounded-full uppercase tracking-widest mb-5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent/70" />
                   TypeOff Pro
                 </div>
 
                 <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-tight mb-4">
                   <span className="text-text">Type at the top.</span>
                   <br />
-                  <span
-                    style={{
-                      background: "linear-gradient(135deg, #f59e0b 0%, #fde68a 55%, #f59e0b 100%)",
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      backgroundClip: "text",
-                    }}
-                  >
-                    Look the part.
-                  </span>
+                  <span className="text-accent">Look the part.</span>
                 </h1>
 
                 <p className="text-sm text-muted/65 max-w-md mx-auto leading-relaxed">
@@ -178,15 +169,7 @@ export default function ProPage() {
                     { value: "∞",                        label: "Race History"  },
                   ].map((s) => (
                     <div key={s.label} className="text-center">
-                      <div
-                        className="text-2xl font-black tabular-nums"
-                        style={{
-                          background: "linear-gradient(135deg, #f59e0b 0%, #fde68a 100%)",
-                          WebkitBackgroundClip: "text",
-                          WebkitTextFillColor: "transparent",
-                          backgroundClip: "text",
-                        }}
-                      >
+                      <div className={`text-2xl font-black tabular-nums text-accent ${s.value === "∞" ? "font-bold" : ""}`}>
                         {s.value}
                       </div>
                       <div className="text-[10px] text-muted/55 uppercase tracking-wider mt-0.5">
@@ -205,14 +188,14 @@ export default function ProPage() {
                   key={f.title}
                   className={`rounded-xl p-4 ring-1 transition-all group ${
                     "amber" in f && f.amber
-                      ? "bg-amber-400/[0.04] ring-amber-400/15 hover:bg-amber-400/[0.07] hover:ring-amber-400/25"
+                      ? "bg-accent/[0.04] ring-accent/15 hover:bg-accent/[0.07] hover:ring-accent/25"
                       : "bg-surface/40 ring-white/[0.05] hover:bg-surface/60 hover:ring-white/[0.08]"
                   }`}
                 >
                   <div
                     className={`mb-3 transition-colors ${
                       "amber" in f && f.amber
-                        ? "text-amber-400/60 group-hover:text-amber-400/90"
+                        ? "text-accent/60 group-hover:text-accent/90"
                         : "text-muted/65 group-hover:text-muted/55"
                     }`}
                   >
@@ -243,7 +226,7 @@ export default function ProPage() {
                   <div className="text-[10px] text-muted/45 mb-6">Billed monthly, cancel anytime</div>
                   <button
                     onClick={() => router.push("/pro/checkout?plan=monthly")}
-                    className="mt-auto w-full rounded-lg py-2.5 text-[13px] font-bold ring-1 ring-white/[0.10] bg-white/[0.04] text-text/70 hover:ring-amber-400/30 hover:bg-amber-400/[0.05] hover:text-amber-400/80 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
+                    className="mt-auto w-full rounded-lg py-2.5 text-[13px] font-bold ring-1 ring-white/[0.10] bg-white/[0.04] text-text/70 hover:ring-accent/30 hover:bg-accent/[0.05] hover:text-accent/80 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
                   >
                     Get Pro
                   </button>
@@ -307,7 +290,7 @@ export default function ProPage() {
                   <div className="text-[10px] text-muted/45 mb-6">Pay once, Pro forever</div>
                   <button
                     onClick={() => router.push("/pro/checkout?plan=lifetime")}
-                    className="mt-auto w-full rounded-lg py-2.5 text-[13px] font-bold ring-1 ring-white/[0.10] bg-white/[0.04] text-text/70 hover:ring-amber-400/30 hover:bg-amber-400/[0.05] hover:text-amber-400/80 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
+                    className="mt-auto w-full rounded-lg py-2.5 text-[13px] font-bold ring-1 ring-white/[0.10] bg-white/[0.04] text-text/70 hover:ring-accent/30 hover:bg-accent/[0.05] hover:text-accent/80 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
                   >
                     Get Pro
                   </button>
@@ -328,7 +311,7 @@ export default function ProPage() {
                 </p>
                 <p className="text-[9px] text-muted/20">yours to keep on cancel</p>
               </div>
-              <div className="rounded-xl ring-1 ring-amber-400/10 overflow-hidden bg-[#0c0c12]">
+              <div className="rounded-xl ring-1 ring-white/[0.06] overflow-hidden bg-[#0c0c12]">
                 {/* Live name preview */}
                 <NamePreview username={session?.user?.username ?? session?.user?.name ?? "TypeOff"} />
                 {/* Teaser items strip */}
@@ -336,7 +319,7 @@ export default function ProPage() {
                   {TEASER_REWARDS.map((item) => (
                     <div
                       key={item.id}
-                      className="flex-1 flex flex-col items-center justify-center py-5 gap-2 group hover:bg-amber-400/[0.03] transition-colors"
+                      className="flex-1 flex flex-col items-center justify-center py-5 gap-2 group hover:bg-accent/[0.03] transition-colors"
                     >
                       <div className="opacity-60 group-hover:opacity-100 transition-opacity">
                         <TeaserVisual item={item} />
@@ -359,7 +342,7 @@ export default function ProPage() {
                 <div className="grid grid-cols-[1fr_5rem_5rem] text-[9px] font-bold text-muted/60 uppercase tracking-wider px-4 py-2.5 border-b border-white/[0.06]">
                   <span />
                   <span className="text-center">Free</span>
-                  <span className="text-center text-amber-400/60">Pro</span>
+                  <span className="text-center text-accent/60">Pro</span>
                 </div>
                 {COMPARISON_ROWS.map((row, i) => (
                   <div
@@ -372,7 +355,7 @@ export default function ProPage() {
                     <span className="text-center text-[11px] text-muted/65">
                       {row.free === true ? "✓" : row.free === false ? "—" : row.free}
                     </span>
-                    <span className="text-center text-[11px] text-amber-400/70">
+                    <span className="text-center text-[11px] text-accent/70">
                       {row.pro === true ? "✓" : row.pro === false ? "—" : row.pro}
                     </span>
                   </div>
@@ -417,7 +400,7 @@ function SubscriberView({
       <div className="animate-fade-in">
         <h1 className="text-lg font-bold text-text tracking-tight flex items-center gap-2">
           TypeOff Pro
-          <span className="text-[9px] font-bold text-amber-400/70 bg-amber-400/[0.08] px-2 py-0.5 rounded uppercase tracking-wider">
+          <span className="text-[9px] font-bold text-accent/70 bg-accent/[0.08] px-2 py-0.5 rounded uppercase tracking-wider">
             Active
           </span>
         </h1>
@@ -425,10 +408,10 @@ function SubscriberView({
       </div>
 
       {/* Status card */}
-      <div className="rounded-xl bg-surface/50 ring-1 ring-amber-400/10 px-5 py-4 animate-slide-up">
+      <div className="rounded-xl bg-surface/50 ring-1 ring-white/[0.06] px-5 py-4 animate-slide-up">
         <div className="flex items-center justify-between gap-4">
           <div className="space-y-1.5">
-            <div className="text-xs font-bold text-amber-400 uppercase tracking-wider">
+            <div className="text-xs font-bold text-accent uppercase tracking-wider">
               Pro Subscription Active
             </div>
             <ul className="space-y-0.5">
@@ -440,7 +423,7 @@ function SubscriberView({
                 "Pro badge in every race",
               ].map((perk) => (
                 <li key={perk} className="flex items-center gap-2 text-[11px] text-muted/60">
-                  <span className="text-amber-400/60">✓</span>
+                  <span className="text-accent/60">✓</span>
                   {perk}
                 </li>
               ))}
@@ -477,7 +460,7 @@ function SubscriberView({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[11px] text-muted/65">Next Pro cosmetic</p>
-              <p className="text-xs font-bold text-amber-400/80 mt-0.5">
+              <p className="text-xs font-bold text-accent/80 mt-0.5">
                 {nextProReward.name}
                 <span className="text-[10px] font-normal text-muted/60 ml-1">
                   at level {nextProReward.level}
@@ -563,12 +546,12 @@ function NamePreview({ username }: { username: string }) {
             key={s.label}
             onClick={() => setIdx(i)}
             className={`h-1 rounded-full transition-all duration-300 ${
-              i === idx ? "w-4 bg-amber-400" : "w-1.5 bg-white/20 hover:bg-white/35"
+              i === idx ? "w-4 bg-accent" : "w-1.5 bg-white/20 hover:bg-white/35"
             }`}
           />
         ))}
       </div>
-      <p className="text-[9px] text-amber-400/45 uppercase tracking-wider mt-0.5">
+      <p className="text-[9px] text-accent/45 uppercase tracking-wider mt-0.5">
         {state.label} · Pro Only
       </p>
     </div>
@@ -583,7 +566,7 @@ function TeaserVisual({ item }: { item: (typeof COSMETIC_REWARDS)[number] }) {
       return <span className="text-xl">{BADGE_EMOJIS[item.id] ?? item.value}</span>;
     case "title":
       return (
-        <span className="text-[10px] text-amber-400/70 font-medium">
+        <span className="text-[10px] text-accent/70 font-medium">
           {TITLE_TEXTS[item.id] ?? item.value}
         </span>
       );
