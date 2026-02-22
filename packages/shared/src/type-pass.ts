@@ -222,6 +222,13 @@ export const BADGE_EMOJIS: Record<string, string> = {
   pro_badge_comet: "☄️",
   pro_badge_fire_god: "🌋",
   pro_badge_ghost: "👻",
+  // ─── Season 2 badges ────────────────────────────────────
+  s2_badge_crown: "👑",
+  s2_badge_rocket: "🚀",
+  s2_badge_trophy: "🏆",
+  s2_badge_target: "🎯",
+  s2_badge_moon: "🌙",
+  s2_badge_snowflake: "❄️",
 };
 
 /** Title text map — keyed by cosmetic ID */
@@ -235,6 +242,11 @@ export const TITLE_TEXTS: Record<string, string> = {
   pro_title_velocity: "Velocity",
   pro_title_ghost_typist: "Ghost Typist",
   pro_title_apex: "Apex",
+  // ─── Season 2 titles ────────────────────────────────────
+  s2_title_speed_demon: "Speed Demon",
+  s2_title_wordsmith: "Wordsmith",
+  s2_title_legend: "Legend",
+  s2_title_champion: "Champion",
 };
 
 /** Name color hex map — keyed by cosmetic ID */
@@ -250,6 +262,11 @@ export const NAME_COLORS: Record<string, string> = {
   pro_color_ember: "#f97316",
   pro_color_sapphire: "#3b82f6",
   pro_color_amethyst: "#8b5cf6",
+  // ─── Season 2 colors ────────────────────────────────────
+  s2_color_teal: "#14b8a6",
+  s2_color_orange: "#fb923c",
+  s2_color_pink: "#f472b6",
+  s2_color_indigo: "#6366f1",
 };
 
 /** Name effect CSS class map — keyed by cosmetic ID */
@@ -318,6 +335,32 @@ export const COSMETIC_REWARDS: CosmeticReward[] = [
   { level: 48, type: "profileBorder", id: "pro_border_obsidian",   name: "Obsidian Border", value: "obsidian",     proOnly: true },
   { level: 49, type: "title",         id: "pro_title_apex",        name: "Apex",           value: "Apex",          proOnly: true },
   { level: 50, type: "typingTheme",   id: "pro_theme_prism",       name: "Prism",          value: "prism",         proOnly: true },
+  // Level 51–75: season 2 — extended themes + new rewards
+  { level: 51, type: "typingTheme",   id: "theme_dracula",          name: "Dracula",        value: "dracula" },
+  { level: 52, type: "cursorStyle",   id: "s1_cursor_block_gold",   name: "Block Gold",     value: "block-gold" },
+  { level: 53, type: "badge",         id: "s2_badge_crown",         name: "Crown",          value: "👑" },
+  { level: 54, type: "typingTheme",   id: "theme_nord",             name: "Nord",           value: "nord" },
+  { level: 55, type: "title",         id: "s2_title_speed_demon",   name: "Speed Demon",    value: "Speed Demon" },
+  { level: 56, type: "cursorStyle",   id: "s1_cursor_pulse_pink",   name: "Pulse Pink",     value: "pulse-pink" },
+  { level: 57, type: "typingTheme",   id: "theme_gruvbox",          name: "Gruvbox",        value: "gruvbox" },
+  { level: 58, type: "nameColor",     id: "s2_color_teal",          name: "Teal",           value: "#14b8a6" },
+  { level: 59, type: "badge",         id: "s2_badge_rocket",        name: "Rocket",         value: "🚀" },
+  { level: 60, type: "typingTheme",   id: "theme_synthwave",        name: "Synthwave",      value: "synthwave" },
+  { level: 61, type: "cursorStyle",   id: "s1_cursor_underline_cyan", name: "Underline Cyan", value: "underline-cyan" },
+  { level: 62, type: "title",         id: "s2_title_wordsmith",     name: "Wordsmith",      value: "Wordsmith" },
+  { level: 63, type: "typingTheme",   id: "theme_monokai",          name: "Monokai",        value: "monokai" },
+  { level: 64, type: "nameColor",     id: "s2_color_orange",        name: "Orange",         value: "#fb923c" },
+  { level: 65, type: "badge",         id: "s2_badge_trophy",        name: "Trophy",         value: "🏆",           proOnly: true },
+  { level: 66, type: "typingTheme",   id: "theme_tokyo_night",      name: "Tokyo Night",    value: "tokyo-night" },
+  { level: 67, type: "nameColor",     id: "s2_color_pink",          name: "Pink",           value: "#f472b6" },
+  { level: 68, type: "typingTheme",   id: "theme_cyberpunk",        name: "Cyberpunk",      value: "cyberpunk" },
+  { level: 69, type: "title",         id: "s2_title_legend",        name: "Legend",         value: "Legend",        proOnly: true },
+  { level: 70, type: "badge",         id: "s2_badge_target",        name: "Target",         value: "🎯" },
+  { level: 71, type: "typingTheme",   id: "theme_catppuccin",       name: "Catppuccin",     value: "catppuccin" },
+  { level: 72, type: "nameColor",     id: "s2_color_indigo",        name: "Indigo",         value: "#6366f1" },
+  { level: 73, type: "typingTheme",   id: "theme_one_dark",         name: "One Dark",       value: "one-dark" },
+  { level: 74, type: "badge",         id: "s2_badge_moon",          name: "Moon",           value: "🌙",            proOnly: true },
+  { level: 75, type: "title",         id: "s2_title_champion",      name: "Champion",       value: "Champion",      proOnly: true },
 ];
 
 // ─── Helpers ───────────────────────────────────────────────────────────
