@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -12,21 +12,26 @@ import {
   BADGE_EMOJIS,
   TITLE_TEXTS,
   NAME_COLORS,
+  NAME_EFFECT_CLASSES,
   TYPING_THEMES,
   CURSOR_STYLES,
   getXpLevel,
 } from "@typeoff/shared";
 
+const PRO_REWARD_COUNT = COSMETIC_REWARDS.filter((r) => r.proOnly).length;
+const TOTAL_REWARD_COUNT = COSMETIC_REWARDS.length;
+const FREE_REWARD_COUNT = TOTAL_REWARD_COUNT - PRO_REWARD_COUNT;
+
 const COMPARISON_ROWS = [
-  { feature: "Ranked Racing",       free: true,            pro: true },
-  { feature: "Leaderboard",         free: true,            pro: true },
-  { feature: "Level Rewards",       free: "28 cosmetics",  pro: "All 50" },
-  { feature: "XP Multiplier",       free: "1×",            pro: "1.5×" },
-  { feature: "Race History",        free: "Last 20",       pro: "Full Archive" },
-  { feature: "Advanced Analytics",  free: false,           pro: true },
-  { feature: "Race Replays",        free: false,           pro: true },
-  { feature: "Custom Text Mode",    free: false,           pro: true },
-  { feature: "Focus Drill",         free: false,           pro: true },
+  { feature: "Ranked Racing",       free: true,                              pro: true },
+  { feature: "Leaderboard",         free: true,                              pro: true },
+  { feature: "Level Rewards",       free: `${FREE_REWARD_COUNT} cosmetics`,  pro: `All ${TOTAL_REWARD_COUNT}` },
+  { feature: "XP Multiplier",       free: "1×",                              pro: "1.5×" },
+  { feature: "Race History",        free: "Last 20",                         pro: "Full Archive" },
+  { feature: "Advanced Analytics",  free: false,                             pro: true },
+  { feature: "Race Replays",        free: false,                             pro: true },
+  { feature: "Custom Text Mode",    free: false,                             pro: true },
+  { feature: "Focus Drill",         free: false,                             pro: true },
 ];
 
 const TEASER_IDS = [
@@ -76,7 +81,7 @@ const FEATURES = [
       </svg>
     ),
     title: "Pro Cosmetics",
-    description: "22 exclusive rewards in the level track — yours to keep even if you cancel.",
+    description: `${PRO_REWARD_COUNT} exclusive rewards in the level track — yours to keep even if you cancel.`,
     amber: true,
   },
 ] as const;
@@ -161,16 +166,16 @@ export default function ProPage() {
                 </h1>
 
                 <p className="text-sm text-muted/65 max-w-md mx-auto leading-relaxed">
-                  1.5× XP on every race. 22 exclusive cosmetics. Full archive,
+                  1.5× XP on every race. {PRO_REWARD_COUNT} exclusive cosmetics. Full archive,
                   advanced analytics, and keystroke replays.
                 </p>
 
                 {/* Stat highlights */}
                 <div className="flex justify-center gap-10 mt-8">
                   {[
-                    { value: "1.5×", label: "XP Multiplier" },
-                    { value: "22",   label: "Pro Cosmetics" },
-                    { value: "∞",    label: "Race History"  },
+                    { value: "1.5×",                     label: "XP Multiplier" },
+                    { value: String(PRO_REWARD_COUNT),   label: "Pro Cosmetics" },
+                    { value: "∞",                        label: "Race History"  },
                   ].map((s) => (
                     <div key={s.label} className="text-center">
                       <div
@@ -315,16 +320,19 @@ export default function ProPage() {
               </p>
             </div>
 
-            {/* ── Cosmetics teaser ── */}
+            {/* ── Cosmetics showcase ── */}
             <div className="animate-slide-up" style={{ animationDelay: "60ms" }}>
               <div className="flex items-center justify-between mb-3">
                 <p className="text-[9px] font-bold text-muted/65 uppercase tracking-widest">
-                  22 Pro Cosmetics
+                  {PRO_REWARD_COUNT} Pro Cosmetics
                 </p>
                 <p className="text-[9px] text-muted/20">yours to keep on cancel</p>
               </div>
               <div className="rounded-xl ring-1 ring-amber-400/10 overflow-hidden bg-[#0c0c12]">
-                <div className="flex divide-x divide-white/[0.03]">
+                {/* Live name preview */}
+                <NamePreview username={session?.user?.username ?? session?.user?.name ?? "TypeOff"} />
+                {/* Teaser items strip */}
+                <div className="flex divide-x divide-white/[0.03] border-t border-white/[0.03]">
                   {TEASER_REWARDS.map((item) => (
                     <div
                       key={item.id}
@@ -333,8 +341,8 @@ export default function ProPage() {
                       <div className="opacity-60 group-hover:opacity-100 transition-opacity">
                         <TeaserVisual item={item} />
                       </div>
-                      <span className="text-[9px] text-muted/45 group-hover:text-muted/45 transition-colors capitalize">
-                        {item.type}
+                      <span className="text-[9px] text-muted/45 capitalize">
+                        {item.type === "nameColor" ? "color" : item.type === "cursorStyle" ? "cursor" : item.type === "typingTheme" ? "theme" : item.type}
                       </span>
                     </div>
                   ))}
@@ -519,6 +527,54 @@ function SubscriberView({
   );
 }
 
+/* ── Showcase ──────────────────────────────────────────── */
+
+const SHOWCASE_STATES = [
+  { effectId: "pro_effect_fire",  badgeId: "pro_badge_diamond",  titleId: "pro_title_typemaster", label: "Fire" },
+  { effectId: "pro_effect_ice",   badgeId: "pro_badge_comet",    titleId: "pro_title_velocity",   label: "Ice" },
+  { effectId: "s2_effect_storm",  badgeId: "pro_badge_fire_god", titleId: "s2_title_ascendant",   label: "Storm" },
+  { effectId: "s2_effect_void",   badgeId: "pro_badge_ghost",    titleId: "s2_title_immortal",    label: "Void" },
+];
+
+function NamePreview({ username }: { username: string }) {
+  const [idx, setIdx] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setIdx((i) => (i + 1) % SHOWCASE_STATES.length), 3000);
+    return () => clearInterval(id);
+  }, []);
+
+  const state = SHOWCASE_STATES[idx];
+  const effectClass = NAME_EFFECT_CLASSES[state.effectId] ?? "";
+  const badge = BADGE_EMOJIS[state.badgeId] ?? "";
+  const title = TITLE_TEXTS[state.titleId] ?? "";
+
+  return (
+    <div className="py-6 px-4 flex flex-col items-center gap-1.5">
+      <p className="text-[8px] font-bold text-muted/30 uppercase tracking-widest mb-1">preview</p>
+      <div className="flex items-center gap-2 text-base font-bold">
+        <span>{badge}</span>
+        <span className={effectClass}>{username}</span>
+      </div>
+      {title && <span className="text-[10px] text-muted/50">{title}</span>}
+      <div className="flex items-center gap-1.5 mt-2">
+        {SHOWCASE_STATES.map((s, i) => (
+          <button
+            key={s.label}
+            onClick={() => setIdx(i)}
+            className={`h-1 rounded-full transition-all duration-300 ${
+              i === idx ? "w-4 bg-amber-400" : "w-1.5 bg-white/20 hover:bg-white/35"
+            }`}
+          />
+        ))}
+      </div>
+      <p className="text-[9px] text-amber-400/45 uppercase tracking-wider mt-0.5">
+        {state.label} · Pro Only
+      </p>
+    </div>
+  );
+}
+
 /* ── Teaser Visual ─────────────────────────────────────── */
 
 function TeaserVisual({ item }: { item: (typeof COSMETIC_REWARDS)[number] }) {
@@ -539,6 +595,10 @@ function TeaserVisual({ item }: { item: (typeof COSMETIC_REWARDS)[number] }) {
           <span className="text-[10px] font-bold" style={{ color: hex }}>Aa</span>
         </div>
       );
+    }
+    case "nameEffect": {
+      const className = NAME_EFFECT_CLASSES[item.id] ?? "";
+      return <span className={`text-sm font-bold ${className}`}>TypeOff</span>;
     }
     case "typingTheme": {
       const def = TYPING_THEMES[item.id];

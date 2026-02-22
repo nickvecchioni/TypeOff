@@ -222,6 +222,58 @@ button, [role="button"], a {
   text-shadow: 0 0 8px currentColor;
 }
 
+@keyframes name-fire {
+  from { background-position: 0% 0; }
+  to { background-position: 200% 0; }
+}
+.name-effect-fire {
+  animation: name-fire 3s linear infinite;
+  background: linear-gradient(90deg, #fbbf24, #f97316, #ef4444, #dc2626, #f97316, #fbbf24);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@keyframes name-ice {
+  from { background-position: 0% 0; }
+  to { background-position: 200% 0; }
+}
+.name-effect-ice {
+  animation: name-ice 5s linear infinite;
+  background: linear-gradient(90deg, #bfdbfe, #7dd3fc, #f0f9ff, #93c5fd, #e0f2fe, #bfdbfe);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@keyframes name-storm {
+  from { background-position: 0% 0; }
+  to { background-position: 200% 0; }
+}
+.name-effect-storm {
+  animation: name-storm 2s linear infinite;
+  background: linear-gradient(90deg, #a78bfa, #818cf8, #e0f2fe, #7c3aed, #60a5fa, #a78bfa);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@keyframes name-void {
+  from { background-position: 0% 0; }
+  to { background-position: 200% 0; }
+}
+.name-effect-void {
+  animation: name-void 4s linear infinite;
+  background: linear-gradient(90deg, #6d28d9, #7c3aed, #a78bfa, #ddd6fe, #a78bfa, #6d28d9);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 .glow-pulse {
   animation: cosmetic-pulse 2s ease-in-out infinite;
 }
@@ -265,6 +317,21 @@ button, [role="button"], a {
   66% { background-color: #a78bfa; box-shadow: 0 0 8px rgba(167,139,250,0.6); }
   83% { background-color: #ec4899; box-shadow: 0 0 8px rgba(236,72,153,0.6); }
   100% { background-color: #f87171; box-shadow: 0 0 8px rgba(248,113,113,0.6); }
+}
+
+@keyframes void-pulse {
+  0%, 100% { box-shadow: 0 0 4px rgba(129,140,248,0.4), 0 0 8px rgba(129,140,248,0.2); }
+  50% { box-shadow: 0 0 12px rgba(129,140,248,0.8), 0 0 24px rgba(129,140,248,0.4); }
+}
+
+@keyframes lava {
+  0%, 100% { background-color: #f97316; box-shadow: 0 0 8px rgba(249,115,22,0.6); }
+  50% { background-color: #ef4444; box-shadow: 0 0 14px rgba(239,68,68,0.7); }
+}
+
+@keyframes phantom-fade {
+  0%, 100% { opacity: 1; box-shadow: 0 0 4px rgba(167,139,250,0.4); }
+  50% { opacity: 0.3; box-shadow: 0 0 12px rgba(167,139,250,0.8); }
 }
 
 /* ── Profile border classes ─────────────────────────────── */

@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
 import {
   COSMETIC_REWARDS,
   BADGE_EMOJIS,
@@ -67,6 +69,9 @@ const EMPTY_ACTIVE: ActiveState = {
 /* ── Cosmetics Section ─────────────────────────────────── */
 
 export function CosmeticsSection({ totalXp }: { totalXp: number }) {
+  const { data: session } = useSession();
+  const isPro = session?.user?.isPro ?? false;
+
   const [cosmeticsData, setCosmeticsData] = useState<CosmeticsData | null>(null);
   const [active, setActive] = useState<ActiveState>(EMPTY_ACTIVE);
   const [saving, setSaving] = useState(false);
@@ -116,6 +121,11 @@ export function CosmeticsSection({ totalXp }: { totalXp: number }) {
   const allItems = COSMETIC_REWARDS.filter((r) => r.type === selectedCategory);
   const ownedItems = allItems.filter((r) => ownedIds.has(r.id));
   const lockedItems = allItems.filter((r) => !ownedIds.has(r.id));
+
+  // Pro-locked: items that require Pro and the user doesn't have it
+  // Level-locked: items requiring only a level (or Pro items when user is already Pro)
+  const proLockedItems = lockedItems.filter((r) => r.proOnly && !isPro);
+  const levelLockedItems = lockedItems.filter((r) => !r.proOnly || isPro);
 
   return (
     <section>
@@ -226,18 +236,51 @@ export function CosmeticsSection({ totalXp }: { totalXp: number }) {
                   </div>
                 )}
 
-                {lockedItems.length > 0 && (
+                {levelLockedItems.length > 0 && (
                   <div>
-                    <h3 className="text-[11px] font-bold text-muted/65 uppercase tracking-widest mb-2">
-                      Locked
+                    <h3 className="text-[11px] font-bold text-muted/50 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                      </svg>
+                      Level Up to Unlock
                     </h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {lockedItems.map((item) => (
+                      {levelLockedItems.map((item) => (
                         <ItemCard
                           key={item.id}
                           item={item}
                           active={false}
                           locked
+                          onToggle={() => {}}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {proLockedItems.length > 0 && (
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-[11px] font-bold text-amber-400/55 uppercase tracking-widest flex items-center gap-1.5">
+                        <span>✦</span>
+                        Pro Exclusive
+                      </h3>
+                      <Link
+                        href="/pro"
+                        className="text-[9px] font-bold text-amber-400/50 hover:text-amber-400/80 transition-colors"
+                      >
+                        Unlock with Pro →
+                      </Link>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {proLockedItems.map((item) => (
+                        <ItemCard
+                          key={item.id}
+                          item={item}
+                          active={false}
+                          locked
+                          proLocked
                           onToggle={() => {}}
                         />
                       ))}
@@ -265,11 +308,13 @@ function ItemCard({
   item,
   active,
   locked,
+  proLocked,
   onToggle,
 }: {
   item: CosmeticReward;
   active: boolean;
   locked: boolean;
+  proLocked?: boolean;
   onToggle: () => void;
 }) {
   return (
@@ -278,7 +323,9 @@ function ItemCard({
       disabled={locked}
       className={`group relative text-left rounded-lg px-4 py-3.5 ring-1 transition-all ${
         locked
-          ? "ring-white/[0.05] bg-surface/30 cursor-default opacity-60"
+          ? proLocked
+            ? "ring-amber-400/15 bg-amber-400/[0.03] cursor-default opacity-70"
+            : "ring-white/[0.05] bg-surface/30 cursor-default opacity-60"
           : active
             ? "ring-accent/40 bg-accent/[0.08]"
             : "ring-white/[0.06] bg-surface/40 hover:ring-white/[0.12] hover:bg-white/[0.03]"
@@ -288,7 +335,7 @@ function ItemCard({
         <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-accent shadow-[0_0_6px_rgba(77,158,255,0.5)]" />
       )}
       {locked && (
-        <span className="absolute top-2.5 right-2.5 text-muted/20">
+        <span className={`absolute top-2.5 right-2.5 ${proLocked ? "text-amber-400/30" : "text-muted/20"}`}>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
@@ -296,17 +343,17 @@ function ItemCard({
         </span>
       )}
 
-      <div className={`mb-2 ${locked ? "saturate-[0.4]" : ""}`}>
+      <div className={`mb-2 ${locked && !proLocked ? "saturate-[0.4]" : locked && proLocked ? "saturate-[0.5] opacity-80" : ""}`}>
         <ItemVisual item={item} />
       </div>
 
       <p className={`text-xs font-medium truncate ${
-        active ? "text-accent" : locked ? "text-muted/60" : "text-text"
+        active ? "text-accent" : proLocked ? "text-amber-400/60" : locked ? "text-muted/60" : "text-text"
       }`}>
         {item.name}
       </p>
-      <p className="text-[10px] text-muted/60 mt-0.5">
-        {locked ? `Level ${item.level}` : active ? "Equipped" : "Click to equip"}
+      <p className={`text-[10px] mt-0.5 ${proLocked ? "text-amber-400/40" : "text-muted/60"}`}>
+        {proLocked ? "Pro" : locked ? `Level ${item.level}` : active ? "Equipped" : "Click to equip"}
       </p>
     </button>
   );
@@ -331,7 +378,7 @@ function ItemVisual({ item }: { item: CosmeticReward }) {
     }
     case "nameEffect": {
       const effectClass = NAME_EFFECT_CLASSES[item.id] ?? "";
-      return <span className={`text-sm font-medium text-text ${effectClass}`}>Effect</span>;
+      return <span className={`text-sm font-medium text-text ${effectClass}`}>TypeOff</span>;
     }
     case "cursorStyle": {
       const def = CURSOR_STYLES[item.id];

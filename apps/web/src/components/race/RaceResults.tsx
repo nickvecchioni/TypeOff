@@ -11,6 +11,12 @@ import {
   CHALLENGE_MAP,
   getXpLevel,
   COSMETIC_REWARDS,
+  BADGE_EMOJIS,
+  TITLE_TEXTS,
+  NAME_COLORS,
+  NAME_EFFECT_CLASSES,
+  TYPING_THEMES,
+  CURSOR_STYLES,
 } from "@typeoff/shared";
 import { WpmChart } from "@/components/typing/WpmChart";
 import type { AchievementRarity, PartyState } from "@typeoff/shared";
@@ -386,12 +392,21 @@ function AnimatedXpPanel({
 
         {/* New rewards */}
         {showRewards && xp.newRewards.length > 0 && (
-          <div className="flex flex-wrap gap-1.5" style={{ animation: "slide-up 0.4s ease-out" }}>
-            {xp.newRewards.map((r) => (
-              <span key={r.id} className="text-[10px] font-bold rounded px-2 py-1 bg-accent/[0.08] ring-1 ring-accent/20 text-accent">
-                {r.type === "badge" ? r.value : ""} {r.name}
-              </span>
-            ))}
+          <div style={{ animation: "slide-up 0.4s ease-out" }}>
+            <p className="text-[9px] font-bold text-accent/55 uppercase tracking-widest mb-1.5">
+              {xp.newRewards.length === 1 ? "Cosmetic Unlocked" : `${xp.newRewards.length} Cosmetics Unlocked`}
+            </p>
+            <div className={`grid gap-1.5 ${xp.newRewards.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+              {xp.newRewards.map((r, i) => (
+                <RewardUnlockCard key={r.id} reward={r} delay={i * 80} />
+              ))}
+            </div>
+            <Link
+              href="/cosmetics"
+              className="text-[9px] text-accent/40 hover:text-accent/70 transition-colors mt-2 block text-right"
+            >
+              Equip in Items →
+            </Link>
           </div>
         )}
 
@@ -435,6 +450,82 @@ function AnimatedXpPanel({
       </div>
     </div>
   );
+}
+
+/* ── Reward unlock cards ──────────────────────────────────── */
+
+type RawReward = { level: number; type: string; id: string; name: string; value: string };
+
+function RewardUnlockCard({ reward, delay }: { reward: RawReward; delay: number }) {
+  const fullReward = COSMETIC_REWARDS.find((r) => r.id === reward.id);
+  return (
+    <div
+      className="flex items-center gap-2.5 rounded-lg px-3 py-2 bg-accent/[0.06] ring-1 ring-accent/20"
+      style={{ animation: `slide-up 0.35s ease-out ${delay}ms both` }}
+    >
+      <div className="shrink-0 w-8 h-8 flex items-center justify-center bg-surface/50 rounded-md">
+        <RewardVisual reward={reward} />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-xs font-bold text-text leading-tight truncate">{reward.name}</span>
+          {fullReward?.proOnly && (
+            <span className="text-[8px] font-black text-amber-400 bg-amber-400/[0.08] ring-1 ring-amber-400/20 px-1 py-px rounded uppercase tracking-wider leading-none shrink-0">
+              PRO
+            </span>
+          )}
+        </div>
+        <span className="text-[9px] text-correct/70 font-bold uppercase tracking-wider">✦ Unlocked</span>
+      </div>
+    </div>
+  );
+}
+
+function RewardVisual({ reward }: { reward: RawReward }) {
+  switch (reward.type) {
+    case "badge":
+      return <span className="text-xl leading-none">{BADGE_EMOJIS[reward.id] ?? reward.value}</span>;
+    case "title":
+      return <span className="text-[10px] text-amber-400/80 font-bold leading-none">{TITLE_TEXTS[reward.id] ?? reward.value}</span>;
+    case "nameColor": {
+      const hex = NAME_COLORS[reward.id] ?? reward.value;
+      return <span className="w-4 h-4 rounded-full ring-1 ring-white/10" style={{ backgroundColor: hex }} />;
+    }
+    case "nameEffect": {
+      const cls = NAME_EFFECT_CLASSES[reward.id] ?? "";
+      return <span className={`text-xs font-bold ${cls || "text-text"}`}>Aa</span>;
+    }
+    case "typingTheme": {
+      const def = TYPING_THEMES[reward.id];
+      if (!def) return <span className="text-base">🎨</span>;
+      return (
+        <span className="flex flex-wrap gap-0.5 w-6">
+          {def.palette.slice(0, 4).map((c, i) => (
+            <span key={i} className="w-2 h-2 rounded-full" style={{ backgroundColor: c }} />
+          ))}
+        </span>
+      );
+    }
+    case "cursorStyle": {
+      const def = CURSOR_STYLES[reward.id];
+      if (!def) return <span className="text-base">🔲</span>;
+      return (
+        <span
+          className="rounded-sm"
+          style={{
+            width: 2,
+            height: 16,
+            backgroundColor: def.color,
+            boxShadow: def.glowColor ? `0 0 8px ${def.glowColor}` : undefined,
+          }}
+        />
+      );
+    }
+    case "profileBorder":
+      return <span className="text-base">🖼️</span>;
+    default:
+      return <span className="text-base">✨</span>;
+  }
 }
 
 /* ── Pro upsell panel ─────────────────────────────────────── */
