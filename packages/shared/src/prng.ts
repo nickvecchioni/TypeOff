@@ -186,6 +186,11 @@ export function generateWordsForMode(mode: RaceMode, seed: number): string[] {
       return generateWordsForLines(allDifficultyPool, LINE_WIDTH_CH, TARGET_LINES, seed);
     case "code":
       return tokenizeCode(getCodeSnippet(seed).code);
+    case "special":
+      return applyPunctuation(
+        generateNumbersModeWords(LINE_WIDTH_CH, TARGET_LINES, seed),
+        seed + 1
+      );
   }
 }
 

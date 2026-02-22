@@ -87,7 +87,7 @@ export class RaceManager {
 
   private static readonly CATEGORY_MODES: Record<ModeCategory, RaceMode[]> = {
     words: ["standard", "sprint", "marathon"],
-    special: ["punctuation", "numbers"],
+    special: ["special"],
     quotes: ["quotes"],
     code: ["code"],
   };
@@ -169,6 +169,7 @@ export class RaceManager {
       numbers: 0.82,
       difficult: 0.75,
       code: 0.65,
+      special: 0.78,
     };
     const modeMultiplier = modeDifficultyMultiplier[this.mode];
 
