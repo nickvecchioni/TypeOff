@@ -373,14 +373,12 @@ export default async function ProfilePage({
         )}
 
         {/* ── Activity Calendar ─────────────────────────────── */}
-        {activityData.length > 0 && (
-          <section className="animate-slide-up" style={{ animationDelay: "140ms" }}>
-            <SectionHeader>Activity</SectionHeader>
-            <div className="rounded-xl bg-surface/50 ring-1 ring-white/[0.04] px-5 py-4">
-              <ActivityCalendar activity={activityData} />
-            </div>
-          </section>
-        )}
+        <section className="animate-slide-up" style={{ animationDelay: "140ms" }}>
+          <SectionHeader>Activity</SectionHeader>
+          <div className="rounded-xl bg-surface/50 ring-1 ring-white/[0.04] px-5 py-4">
+            <ActivityCalendar activity={activityData} />
+          </div>
+        </section>
 
         {/* ── Performance Charts ─────────────────────────────── */}
         {chartData.length >= 2 && (

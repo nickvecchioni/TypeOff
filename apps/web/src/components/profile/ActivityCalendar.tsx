@@ -11,7 +11,10 @@ interface ActivityCalendarProps {
   activity: ActivityDay[];
 }
 
-function getColorClass(count: number, max: number): string {
+const LAUNCH_YEAR = 2026;
+const DAY_LABELS = ["", "Mon", "", "Wed", "", "Fri", ""];
+
+function getColor(count: number, max: number): string {
   if (count === 0) return "bg-white/[0.04]";
   const pct = count / max;
   if (pct < 0.25) return "bg-accent/20";
@@ -21,21 +24,27 @@ function getColorClass(count: number, max: number): string {
 }
 
 export function ActivityCalendar({ activity }: ActivityCalendarProps) {
-  const [tooltip, setTooltip] = useState<{ date: string; count: number; x: number; y: number } | null>(null);
+  const [tooltip, setTooltip] = useState<{
+    date: string;
+    count: number;
+    x: number;
+    y: number;
+  } | null>(null);
 
   const today = new Date();
-  const startDay = new Date(today);
-  startDay.setDate(startDay.getDate() - 364);
-  // Pad to Sunday
+
+  // Start from Jan 1 of launch year, padded back to Sunday
+  const startDay = new Date(LAUNCH_YEAR, 0, 1);
   startDay.setDate(startDay.getDate() - startDay.getDay());
 
   const activityMap = new Map(activity.map((a) => [a.date, a.count]));
   const maxCount = Math.max(1, ...activity.map((a) => a.count));
 
+  // Build week columns
   const weeks: Array<Array<{ date: string; count: number; future: boolean }>> = [];
   const cursor = new Date(startDay);
 
-  while (cursor <= today || weeks.length === 0 || weeks[weeks.length - 1].length < 7) {
+  while (cursor <= today) {
     if (weeks.length === 0 || weeks[weeks.length - 1].length === 7) {
       weeks.push([]);
     }
@@ -46,30 +55,88 @@ export function ActivityCalendar({ activity }: ActivityCalendarProps) {
       future: cursor > today,
     });
     cursor.setDate(cursor.getDate() + 1);
-    if (weeks.length > 55) break;
   }
+  // Pad last week to 7 rows
+  const lastWeek = weeks[weeks.length - 1];
+  if (lastWeek) {
+    while (lastWeek.length < 7) {
+      const dateStr = cursor.toISOString().slice(0, 10);
+      lastWeek.push({ date: dateStr, count: 0, future: true });
+      cursor.setDate(cursor.getDate() + 1);
+    }
+  }
+
+  // Month labels: show when the week column crosses into a new month
+  const monthLabels: Array<string | null> = weeks.map((week, wi) => {
+    if (!week[0]) return null;
+    const thisMonth = new Date(week[0].date + "T12:00:00").getMonth();
+    if (wi === 0) {
+      return new Date(week[0].date + "T12:00:00").toLocaleDateString("en-US", { month: "short" });
+    }
+    const prevWeek = weeks[wi - 1];
+    if (!prevWeek?.[0]) return null;
+    const prevMonth = new Date(prevWeek[0].date + "T12:00:00").getMonth();
+    if (thisMonth !== prevMonth) {
+      return new Date(week[0].date + "T12:00:00").toLocaleDateString("en-US", { month: "short" });
+    }
+    return null;
+  });
 
   return (
     <div className="relative">
-      <div className="flex gap-[3px] overflow-x-auto pb-1">
-        {weeks.map((week, wi) => (
-          <div key={wi} className="flex flex-col gap-[3px]">
-            {week.map((day) => (
+      <div className="flex gap-0">
+        {/* Day-of-week labels */}
+        <div className="flex flex-col gap-[3px] mr-2 shrink-0" style={{ marginTop: 18 }}>
+          {DAY_LABELS.map((label, i) => (
+            <div
+              key={i}
+              className="h-[11px] w-6 text-[9px] text-muted/35 text-right leading-[11px]"
+            >
+              {label}
+            </div>
+          ))}
+        </div>
+
+        <div className="flex flex-col min-w-0">
+          {/* Month labels */}
+          <div className="flex gap-[3px] mb-1 h-[14px]">
+            {weeks.map((_, wi) => (
               <div
-                key={day.date}
-                className={`w-[11px] h-[11px] rounded-[2px] cursor-default ${
-                  day.future ? "opacity-0" : getColorClass(day.count, maxCount)
-                }`}
-                onMouseEnter={(e) => {
-                  if (day.future) return;
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  setTooltip({ date: day.date, count: day.count, x: rect.left, y: rect.top });
-                }}
-                onMouseLeave={() => setTooltip(null)}
-              />
+                key={wi}
+                className="w-[11px] shrink-0 text-[9px] text-muted/40 leading-[14px] overflow-visible whitespace-nowrap"
+              >
+                {monthLabels[wi] ?? ""}
+              </div>
             ))}
           </div>
-        ))}
+
+          {/* Cell grid */}
+          <div className="flex gap-[3px] overflow-x-auto pb-1">
+            {weeks.map((week, wi) => (
+              <div key={wi} className="flex flex-col gap-[3px] shrink-0">
+                {week.map((day) => (
+                  <div
+                    key={day.date}
+                    className={`w-[11px] h-[11px] rounded-[2px] cursor-default ${
+                      day.future ? "opacity-0" : getColor(day.count, maxCount)
+                    }`}
+                    onMouseEnter={(e) => {
+                      if (day.future) return;
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      setTooltip({
+                        date: day.date,
+                        count: day.count,
+                        x: rect.left,
+                        y: rect.top,
+                      });
+                    }}
+                    onMouseLeave={() => setTooltip(null)}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {tooltip && (
@@ -77,11 +144,13 @@ export function ActivityCalendar({ activity }: ActivityCalendarProps) {
           className="fixed z-50 pointer-events-none bg-surface ring-1 ring-white/[0.08] rounded px-2 py-1 text-xs text-text shadow-lg"
           style={{ left: tooltip.x + 12, top: tooltip.y - 28 }}
         >
-          <span className="font-bold text-accent tabular-nums">{tooltip.count}</span>
-          {" "}
-          {tooltip.count === 1 ? "test" : "tests"}
-          {" — "}
-          {new Date(tooltip.date + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+          <span className="font-bold text-accent tabular-nums">{tooltip.count}</span>{" "}
+          {tooltip.count === 1 ? "race" : "races"} —{" "}
+          {new Date(tooltip.date + "T12:00:00").toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })}
         </div>
       )}
     </div>
