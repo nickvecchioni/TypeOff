@@ -77,6 +77,16 @@ export function ConfigBar({
           words
         </Chip>
 
+        {/* Symbols (punctuation) toggle — only shown for word-based modes */}
+        {ct !== "quotes" && ct !== "code" && ct !== "zen" && (
+          <Chip
+            active={config.punctuation ?? false}
+            onClick={() => set({ punctuation: !config.punctuation })}
+          >
+            symbols
+          </Chip>
+        )}
+
         <Divider />
 
         {/* Special modes */}
@@ -141,25 +151,9 @@ export function ConfigBar({
           ))}
         </div>
 
-        <MicroDivider />
-
-        {/* Punctuation toggle (faded for quotes) */}
-        <div
-          className={`transition-opacity ${
-            ct === "quotes" ? "opacity-20 pointer-events-none" : ""
-          }`}
-        >
-          <Sub
-            active={config.punctuation ?? false}
-            onClick={() => set({ punctuation: !config.punctuation })}
-          >
-            @ punct
-          </Sub>
-        </div>
-
         {/* Strict mode (hidden for zen + code) */}
         {ct !== "zen" && ct !== "code" && (
-          <>
+          <div className={`flex items-center gap-1 transition-opacity ${ct === "quotes" ? "opacity-20 pointer-events-none" : ""}`}>
             <MicroDivider />
             <StrictModeSelector
               value={config.strictMode ?? "normal"}
@@ -171,7 +165,7 @@ export function ConfigBar({
                 })
               }
             />
-          </>
+          </div>
         )}
 
         {/* Code language picker */}

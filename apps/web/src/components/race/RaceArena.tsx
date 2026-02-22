@@ -13,7 +13,7 @@ import { PlacementReveal } from "./PlacementReveal";
 import { SpectatorIndicator } from "./SpectatorIndicator";
 import type { EmoteEvent } from "./FloatingEmote";
 import { useSocket } from "@/hooks/useSocket";
-import { getRankInfo } from "@typeoff/shared";
+import { getRankInfo, getCodeSnippet } from "@typeoff/shared";
 import type { RankTier, WpmSample, ModeCategory } from "@typeoff/shared";
 
 const TIER_ORDER: RankTier[] = [
@@ -307,6 +307,7 @@ export function RaceArena() {
                 countdown={race.countdown}
                 placementRace={race.raceState.placementRace}
                 mode={race.raceState.mode}
+                codeLanguage={race.raceState.mode === "code" ? getCodeSnippet(race.raceState.seed).language : undefined}
               />
             </div>
             {/* Words — hidden during countdown, fades in on GO */}

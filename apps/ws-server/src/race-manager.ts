@@ -74,6 +74,8 @@ export class RaceManager {
   private progressTimer: ReturnType<typeof setInterval> | null = null;
   private startedAt: Date | null = null;
   private totalChars = 0;
+  private wordCharsTotal = 0;          // sum of token lengths only (no inter-word spaces)
+  private cumulativeWordChars: number[] = []; // cumulativeWordChars[i] = char offset of word i
   private placementRace?: number;
   private finishTimeoutEnd: number | null = null;
   private finishTimeoutTimer: ReturnType<typeof setTimeout> | null = null;
@@ -122,7 +124,16 @@ export class RaceManager {
 
     this.expectedWords = generateWordsForMode(this.mode, this.seed);
     this.wordCount = this.expectedWords.length;
-    this.totalChars = this.expectedWords.reduce((sum, w) => sum + w.length, 0) + (this.wordCount - 1);
+    this.wordCharsTotal = this.expectedWords.reduce((sum, w) => sum + w.length, 0);
+    this.totalChars = this.wordCharsTotal + (this.wordCount - 1);
+
+    // Precompute cumulative char offsets for accurate bot wordIndex mapping
+    let cumsum = 0;
+    this.cumulativeWordChars = this.expectedWords.map((w) => {
+      const offset = cumsum;
+      cumsum += w.length;
+      return offset;
+    });
 
     // Add real players first (Map insertion order matters for guest identification)
     const now = Date.now();
@@ -586,17 +597,25 @@ export class RaceManager {
 
       // WPM = (chars / 5) / minutes → chars/min = WPM * 5
       // At 100ms intervals: chars/tick = (WPM * 5) / (60 * 10)
+      // Use wordCharsTotal (no inter-word spaces) so progress matches the client formula
       const charsPerTick = (effectiveWpm * 5) / 600;
-      const progressPerTick = charsPerTick / this.totalChars;
+      const progressPerTick = charsPerTick / this.wordCharsTotal;
 
       // Track raw progress internally, cap broadcast at 97% until truly done
       entry.botRawProgress += progressPerTick;
       entry.progress.progress = Math.min(0.97, entry.botRawProgress);
-      entry.progress.wordIndex = Math.floor(entry.botRawProgress * this.wordCount);
+
+      // Derive wordIndex from cumulative char offsets for accurate per-token granularity
+      const charsTyped = entry.botRawProgress * this.wordCharsTotal;
+      let wordIndex = this.wordCount - 1;
+      for (let i = 0; i < this.cumulativeWordChars.length; i++) {
+        if (this.cumulativeWordChars[i] > charsTyped) { wordIndex = i - 1; break; }
+      }
+      entry.progress.wordIndex = Math.max(0, wordIndex);
 
       // Running average WPM based on actual progress and elapsed time
       const elapsedMinutes = (entry.botTypingTicks * PROGRESS_INTERVAL_MS) / 60_000;
-      const wordsTyped = (entry.botRawProgress * this.totalChars) / 5;
+      const wordsTyped = (entry.botRawProgress * this.wordCharsTotal) / 5;
       const runningWpm = elapsedMinutes > 0 ? Math.round(wordsTyped / elapsedMinutes) : 0;
       entry.progress.wpm = runningWpm;
 
