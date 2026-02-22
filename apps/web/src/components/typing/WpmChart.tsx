@@ -5,13 +5,16 @@ import type { WpmSample } from "@typeoff/shared";
 
 interface WpmChartProps {
   samples: WpmSample[];
+  compact?: boolean;
 }
 
 const CHART_WIDTH = 600;
-const CHART_HEIGHT = 140;
-const PADDING = { top: 12, right: 16, bottom: 24, left: 44 };
 
-export function WpmChart({ samples }: WpmChartProps) {
+export function WpmChart({ samples, compact = false }: WpmChartProps) {
+  const CHART_HEIGHT = compact ? 100 : 140;
+  const PADDING = compact
+    ? { top: 8, right: 16, bottom: 20, left: 40 }
+    : { top: 12, right: 16, bottom: 24, left: 44 };
   const svgRef = useRef<SVGSVGElement>(null);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 

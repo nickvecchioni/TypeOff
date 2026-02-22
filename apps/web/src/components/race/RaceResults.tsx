@@ -665,7 +665,7 @@ export function RaceResults({
           <div className={`grid gap-px ${statCols}`}>
 
             {/* Placement */}
-            <div className="bg-surface/40 px-4 py-3">
+            <div className="bg-surface/40 px-4 py-2.5">
               <div className={`text-3xl sm:text-4xl font-black tabular-nums leading-none ${pStyle!.text}`}>
                 {ordinal(myResult.placement)}
               </div>
@@ -675,7 +675,7 @@ export function RaceResults({
             </div>
 
             {/* WPM */}
-            <div className="bg-surface/40 px-3 py-3 sm:px-4 flex flex-col justify-end">
+            <div className="bg-surface/40 px-3 py-2.5 sm:px-4 flex flex-col justify-end">
               <div className="text-3xl sm:text-4xl font-black text-text tabular-nums leading-none">
                 {Math.floor(myResult.wpm)}
                 <span className="text-lg opacity-50">
@@ -694,7 +694,7 @@ export function RaceResults({
 
             {/* Accuracy */}
             {!isPlacement && (
-              <div className="bg-surface/40 px-3 py-3 sm:px-4 flex flex-col justify-end">
+              <div className="bg-surface/40 px-3 py-2.5 sm:px-4 flex flex-col justify-end">
                 <div className="text-3xl sm:text-4xl font-black text-text tabular-nums leading-none">
                   {Math.floor(myResult.accuracy)}
                   <span className="text-lg opacity-50">
@@ -729,7 +729,7 @@ export function RaceResults({
               </div>
             ) : (
               hasElo && (
-                <div className="bg-surface/40 px-3 py-3 sm:px-4">
+                <div className="bg-surface/40 px-3 py-2.5 sm:px-4">
                   <AnimatedElo
                     oldElo={myResult.elo! - myResult.eloChange!}
                     newElo={myResult.elo!}
@@ -802,7 +802,7 @@ export function RaceResults({
                       href={`/profile/${result.username}`}
                       className="hover:text-accent transition-colors truncate"
                     >
-                      <CosmeticName nameColor={isMe ? null : result.activeNameColor} nameEffect={result.activeNameEffect}>
+                      <CosmeticName nameColor={result.activeNameColor} nameEffect={result.activeNameEffect}>
                         {displayName}
                       </CosmeticName>
                     </Link>
@@ -882,9 +882,9 @@ export function RaceResults({
 
         {/* WPM Chart — full width below standings */}
         {myWpmHistory && myWpmHistory.length >= 2 && (
-          <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 pt-3 pb-2">
-            <div className="text-[10px] font-bold text-muted/50 uppercase tracking-widest mb-2">WPM over time</div>
-            <WpmChart samples={myWpmHistory} />
+          <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 pt-2.5 pb-1.5">
+            <div className="text-[10px] font-bold text-muted/50 uppercase tracking-widest mb-1.5">WPM over time</div>
+            <WpmChart samples={myWpmHistory} compact />
           </div>
         )}
       </div>

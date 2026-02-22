@@ -46,7 +46,7 @@ export function RankBadge({ tier, elo, size = "sm", placementsCompleted = true, 
 
   return (
     <span
-      className={`rounded-full font-bold inline-flex items-center gap-1 ${sizeClasses} ${TIER_CLASSES[colorTier]}`}
+      className={`rounded-full font-bold inline-flex items-center gap-1 whitespace-nowrap ${sizeClasses} ${TIER_CLASSES[colorTier]}`}
     >
       {displayLabel}
       {showElo && elo != null && <span className="tabular-nums opacity-60 font-semibold">{elo}</span>}
