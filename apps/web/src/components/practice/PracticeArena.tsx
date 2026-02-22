@@ -316,11 +316,18 @@ export function PracticeArena({ initialDrill = false }: { initialDrill?: boolean
           ref={containerRef}
           tabIndex={0}
           onKeyDown={engine.handleKeyDown}
-          className="w-full outline-none cursor-default select-none overflow-hidden opacity-0 animate-fade-in"
+          className="relative w-full outline-none cursor-default select-none overflow-hidden opacity-0 animate-fade-in"
           style={{ height: containerHeight, animationDelay: "40ms", animationFillMode: "both" }}
           role="textbox"
           aria-label="Solo typing area"
         >
+          {capsLock && (
+            <div className="absolute top-1.5 right-0 z-10 pointer-events-none">
+              <span className="px-2 py-0.5 rounded text-xs font-medium bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/20">
+                Caps Lock
+              </span>
+            </div>
+          )}
           <div
             ref={wordsInnerRef}
             className={suppressTransitionRef.current ? "" : "transition-transform duration-150 ease-out"}
@@ -364,12 +371,6 @@ export function PracticeArena({ initialDrill = false }: { initialDrill?: boolean
             ) : null}
           </div>
 
-          {/* Caps Lock warning */}
-          {capsLock && (
-            <span className="absolute top-0 px-2 py-0.5 rounded text-xs font-medium bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/20">
-              Caps Lock
-            </span>
-          )}
 
           {/* Tab+Enter hint (fades out when typing starts) */}
           <p

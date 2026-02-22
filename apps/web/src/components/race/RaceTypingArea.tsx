@@ -142,24 +142,26 @@ export function RaceTypingArea({
 
   return (
     <div className={`w-full relative ${themeClass}`}>
-      <div className="text-center text-sm text-muted mb-3 tabular-nums h-5 flex items-center justify-center gap-3">
-        {timeoutRemaining != null && timeoutRemaining > 0 && (
-          <>Time remaining: <span className="text-accent font-bold">{timeoutRemaining}s</span></>
-        )}
-        {capsLock && (
-          <span className="px-2 py-0.5 rounded text-xs font-medium bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/20">
-            Caps Lock
-          </span>
-        )}
-      </div>
+      {timeoutRemaining != null && timeoutRemaining > 0 && (
+        <div className="text-center text-sm text-muted mb-3 tabular-nums h-5 flex items-center justify-center">
+          Time remaining: <span className="text-accent font-bold ml-1">{timeoutRemaining}s</span>
+        </div>
+      )}
       <div
         ref={containerRef}
         tabIndex={0}
         onKeyDown={disabled ? undefined : handleKeyDown}
-        className="w-full outline-none cursor-default select-none"
+        className="relative w-full outline-none cursor-default select-none"
         role="textbox"
         aria-label="Race typing area"
       >
+        {capsLock && (
+          <div className="absolute top-1.5 right-0 z-10 pointer-events-none">
+            <span className="px-2 py-0.5 rounded text-xs font-medium bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/20">
+              Caps Lock
+            </span>
+          </div>
+        )}
         <WordDisplay
           words={engine.words}
           currentWordIndex={engine.currentWordIndex}
