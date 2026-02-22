@@ -11,9 +11,9 @@ interface WpmChartProps {
 const CHART_WIDTH = 600;
 
 export function WpmChart({ samples, compact = false }: WpmChartProps) {
-  const CHART_HEIGHT = compact ? 100 : 140;
+  const CHART_HEIGHT = compact ? 90 : 140;
   const PADDING = compact
-    ? { top: 8, right: 16, bottom: 20, left: 40 }
+    ? { top: 8, right: 16, bottom: 14, left: 36 }
     : { top: 12, right: 16, bottom: 24, left: 44 };
   const svgRef = useRef<SVGSVGElement>(null);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
@@ -107,11 +107,13 @@ export function WpmChart({ samples, compact = false }: WpmChartProps) {
             strokeWidth={1}
           />
           <text
-            x={PADDING.left - 10}
-            y={scaleY(tick) + 5}
+            x={PADDING.left - 6}
+            y={scaleY(tick)}
             fill="var(--color-muted)"
-            fontSize={12}
+            fontSize={compact ? 9 : 11}
             textAnchor="end"
+            dominantBaseline="middle"
+            fillOpacity={0.7}
           >
             {tick}
           </text>
@@ -236,7 +238,7 @@ export function WpmChart({ samples, compact = false }: WpmChartProps) {
       {/* X-axis label */}
       <text
         x={CHART_WIDTH / 2}
-        y={CHART_HEIGHT - 5}
+        y={PADDING.top + innerHeight + (compact ? 10 : 16)}
         fill="var(--color-muted)"
         fontSize={9}
         textAnchor="middle"

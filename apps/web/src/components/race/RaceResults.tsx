@@ -652,7 +652,7 @@ export function RaceResults({
   const showProPanel = !isPro && !isPlacement && myResult != null && session?.user != null;
 
   return (
-    <div className="flex flex-col gap-2 w-full">
+    <div className="flex flex-col gap-1.5 w-full">
 
       {/* ── Hero stats ─────────────────────────────────────── */}
       {myResult ? (
@@ -747,7 +747,7 @@ export function RaceResults({
 
       {/* ── Standings + WPM Chart ──────────────────────────── */}
       <div
-        className="flex flex-col gap-2 w-full"
+        className="flex flex-col gap-1.5 w-full"
         style={{ animation: "slide-up 0.5s ease-out 0.05s both" }}
       >
         {/* Standings table */}
