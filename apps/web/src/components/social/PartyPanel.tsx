@@ -132,7 +132,7 @@ export function PartyPanel({
                       }}
                       className="text-xs bg-surface/80 ring-1 ring-white/[0.06] rounded px-2.5 py-1 text-text hover:ring-accent/30 transition-colors"
                     >
-                      + {friend.username ?? friend.name ?? "Unknown"}
+                      + {friend.username ?? "Unknown"}
                     </button>
                   ))
                 )}

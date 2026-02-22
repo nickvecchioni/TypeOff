@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef, createContext, useContext } from "react";
+import type { ReactNode } from "react";
 import type { PartyState } from "@typeoff/shared";
 import { useSocket } from "./useSocket";
 
@@ -10,26 +11,38 @@ export interface PartyInvite {
   fromName: string;
 }
 
-export interface PartyMessage {
+interface PartyMessage {
   userId: string;
   name: string;
   message: string;
   timestamp: number;
 }
 
-type PartyHook = ReturnType<typeof usePartyInternal>;
+interface PartyContextValue {
+  party: PartyState | null;
+  pendingInvite: PartyInvite | null;
+  error: string | null;
+  messages: PartyMessage[];
+  createParty: () => Promise<void>;
+  inviteToParty: (userId: string) => void;
+  respondToInvite: (partyId: string, accept: boolean) => Promise<void>;
+  leaveParty: () => void;
+  kickMember: (userId: string) => void;
+  setPrivateRace: (privateRace: boolean) => void;
+  markReady: () => void;
+  sendMessage: (message: string) => void;
+}
 
-const PartyContext = createContext<PartyHook | null>(null);
+const PartyContext = createContext<PartyContextValue | null>(null);
 
-function usePartyInternal() {
-  const { emit, on, connected } = useSocket();
+function usePartyInternal(): PartyContextValue {
+  const { emit, on } = useSocket();
   const [party, setParty] = useState<PartyState | null>(null);
   const [pendingInvite, setPendingInvite] = useState<PartyInvite | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [messages, setMessages] = useState<PartyMessage[]>([]);
 
   const inviteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const prevConnectedRef = useRef(false);
 
   useEffect(() => {
     const unsubs = [
@@ -39,7 +52,6 @@ function usePartyInternal() {
       }),
       on("partyInvite", (data) => {
         setPendingInvite(data);
-        // Auto-dismiss after 30s
         if (inviteTimerRef.current) clearTimeout(inviteTimerRef.current);
         inviteTimerRef.current = setTimeout(() => {
           setPendingInvite(null);
@@ -56,7 +68,7 @@ function usePartyInternal() {
         setParty((prev) => prev ? { ...prev, readyState: {} } : prev);
       }),
       on("partyMessage", (data) => {
-        setMessages((prev) => [...prev.slice(-99), data]);
+        setMessages((prev) => [...prev, data]);
       }),
     ];
 
@@ -65,29 +77,6 @@ function usePartyInternal() {
       if (inviteTimerRef.current) clearTimeout(inviteTimerRef.current);
     };
   }, [on]);
-
-  // Re-create party on reconnect if client still thinks it's in one.
-  // The server clears party state on disconnect, so after a transparent
-  // Socket.io reconnect the new socket ID won't be in partyManager.socketToUser,
-  // causing every invite/action to fail with "Not in a party".
-  useEffect(() => {
-    const wasConnected = prevConnectedRef.current;
-    prevConnectedRef.current = connected;
-
-    // Only act on reconnects (false → true), not the initial mount connect
-    if (connected && wasConnected === false && party !== null) {
-      (async () => {
-        try {
-          const res = await fetch("/api/ws-token");
-          if (!res.ok) return;
-          const { token } = await res.json();
-          if (token) emit("createParty", { token });
-        } catch {
-          // ignore — party will be gone but UI will self-correct on next partyUpdate
-        }
-      })();
-    }
-  }, [connected, party, emit]);
 
   const createParty = useCallback(async () => {
     setError(null);
@@ -145,6 +134,7 @@ function usePartyInternal() {
     emit("leaveParty");
     setParty(null);
     setError(null);
+    setMessages([]);
   }, [emit]);
 
   const kickMember = useCallback(
@@ -165,10 +155,13 @@ function usePartyInternal() {
     emit("partyMarkReady");
   }, [emit]);
 
-  const sendMessage = useCallback((message: string) => {
-    if (!message.trim()) return;
-    emit("sendPartyMessage", { message });
-  }, [emit]);
+  const sendMessage = useCallback(
+    (message: string) => {
+      if (!message.trim()) return;
+      emit("sendPartyMessage", { message });
+    },
+    [emit],
+  );
 
   return {
     party,
@@ -186,13 +179,13 @@ function usePartyInternal() {
   };
 }
 
-export function PartyProvider({ children }: { children: React.ReactNode }) {
-  const party = usePartyInternal();
-  return <PartyContext.Provider value={party}>{children}</PartyContext.Provider>;
+export function PartyProvider({ children }: { children: ReactNode }) {
+  const value = usePartyInternal();
+  return <PartyContext value={value}>{children}</PartyContext>;
 }
 
 export function useParty() {
   const ctx = useContext(PartyContext);
-  if (!ctx) throw new Error("useParty must be used within PartyProvider");
+  if (!ctx) throw new Error("useParty must be used within a PartyProvider");
   return ctx;
 }

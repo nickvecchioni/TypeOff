@@ -32,7 +32,7 @@ export function FriendsList() {
               }`}
             />
             <span className="text-text text-sm">
-              {friend.username ?? friend.name ?? "Unknown"}
+              {friend.username ?? "Unknown"}
             </span>
           </div>
           <span className="text-xs text-muted">

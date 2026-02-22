@@ -30,11 +30,11 @@ export async function GET(request: Request) {
     or(
       and(
         eq(directMessages.senderId, userId),
-        eq(directMessages.recipientId, friendId),
+        eq(directMessages.receiverId, friendId),
       ),
       and(
         eq(directMessages.senderId, friendId),
-        eq(directMessages.recipientId, userId),
+        eq(directMessages.receiverId, userId),
       ),
     ),
     cursor ? lt(directMessages.createdAt, new Date(cursor)) : undefined,
@@ -51,10 +51,10 @@ export async function GET(request: Request) {
   const messages = rows.slice(0, limit).map((m) => ({
     id: m.id,
     senderId: m.senderId,
-    recipientId: m.recipientId,
+    recipientId: m.receiverId,
     content: m.content,
     createdAt: m.createdAt.toISOString(),
-    readAt: m.readAt?.toISOString() ?? null,
+    readAt: null,
   }));
 
   return NextResponse.json({

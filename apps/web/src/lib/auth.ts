@@ -9,7 +9,8 @@ import { eq } from "drizzle-orm";
 
 const adapter = process.env.DATABASE_URL
   ? DrizzleAdapter(getDb(), {
-      usersTable: users,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      usersTable: users as any,
       accountsTable: accounts,
       sessionsTable: sessions,
       verificationTokensTable: verificationTokens,

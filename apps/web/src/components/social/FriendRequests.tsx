@@ -21,7 +21,7 @@ export function FriendRequests() {
           className="flex items-center justify-between bg-surface rounded-lg px-4 py-2"
         >
           <span className="text-text text-sm">
-            {req.username ?? req.name ?? "Unknown"}
+            {req.username ?? "Unknown"}
           </span>
           <div className="flex gap-2">
             <button

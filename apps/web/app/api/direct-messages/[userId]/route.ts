@@ -71,7 +71,6 @@ export async function GET(
       senderId: directMessages.senderId,
       content: directMessages.content,
       createdAt: directMessages.createdAt,
-      senderName: users.name,
       senderUsername: users.username,
     })
     .from(directMessages)
@@ -92,7 +91,7 @@ export async function GET(
   const messages = rows.reverse().map((r) => ({
     id: r.id,
     fromUserId: r.senderId,
-    fromName: r.senderUsername ?? r.senderName ?? "Unknown",
+    fromName: r.senderUsername ?? "Unknown",
     message: r.content,
     timestamp: r.createdAt.getTime(),
   }));

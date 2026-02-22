@@ -102,8 +102,10 @@ export interface ClientToServerEvents {
   sendRaceEmote: (data: { emote: EmoteKey; token?: string }) => void;
   // Party chat
   sendPartyMessage: (data: { message: string }) => void;
-  // Direct messages
+  // Direct messages (legacy sendDm + newer sendDirectMessage)
   sendDm: (data: { toUserId: string; message: string; token?: string }) => void;
+  sendDirectMessage: (data: { token?: string; recipientId: string; content: string }) => void;
+  markMessagesRead: (data: { token?: string; friendId: string }) => void;
   // Reconnection events
   rejoinRace: (data: { token?: string }) => void;
 }
@@ -180,6 +182,8 @@ export interface ServerToClientEvents {
   raceEmote: (data: { playerId: string; playerName: string; emote: EmoteKey }) => void;
   // Party chat
   partyMessage: (data: { userId: string; name: string; message: string; timestamp: number }) => void;
-  // Direct messages
+  // Direct messages (legacy dmMessage + newer directMessage)
   dmMessage: (data: { id: string; fromUserId: string; fromName: string; toUserId: string; message: string; timestamp: number }) => void;
+  directMessage: (data: { messageId: string; senderId: string; recipientId: string; content: string; createdAt: string }) => void;
+  messagesMarkedRead: (data: { friendId: string; byUserId: string }) => void;
 }
