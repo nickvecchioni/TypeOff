@@ -162,15 +162,30 @@ export function WpmChart({ samples }: WpmChartProps) {
         />
       ))}
 
+      {/* Error dots — red markers where raw > wpm (errors occurred that second) */}
+      {samples.map((s, i) =>
+        s.raw > s.wpm ? (
+          <circle
+            key={`err-${i}`}
+            cx={scaleX(s.elapsed)}
+            cy={scaleY(s.wpm)}
+            r={hoveredIdx === i ? 5 : 3.5}
+            fill="#f87171"
+            fillOpacity={0.85}
+          />
+        ) : null
+      )}
+
       {/* Hover crosshair + tooltip */}
       {hovered !== null && hoveredIdx !== null && (() => {
         const x = scaleX(hovered.elapsed);
         const y = scaleY(hovered.wpm);
-        const timeSec = (hovered.elapsed / 1000).toFixed(1);
+        const timeSec = hovered.elapsed;
         const wpmVal = Math.round(hovered.wpm);
 
-        const TOOLTIP_W = 90;
-        const TOOLTIP_H = 30;
+        const hasErrors = hovered.raw > hovered.wpm;
+        const TOOLTIP_W = 100;
+        const TOOLTIP_H = hasErrors ? 42 : 30;
         const flipLeft = x + TOOLTIP_W + 14 > CHART_WIDTH - PADDING.right;
         const tx = flipLeft ? x - TOOLTIP_W - 8 : x + 8;
         const ty = Math.max(PADDING.top, Math.min(y - TOOLTIP_H / 2, PADDING.top + innerHeight - TOOLTIP_H));
@@ -187,7 +202,7 @@ export function WpmChart({ samples }: WpmChartProps) {
               strokeDasharray="3 3"
             />
             {/* Highlighted dot */}
-            <circle cx={x} cy={y} r={4} fill="var(--color-accent)" />
+            <circle cx={x} cy={y} r={4} fill={hasErrors ? "#f87171" : "var(--color-accent)"} />
             {/* Tooltip background */}
             <rect
               x={tx} y={ty}
@@ -201,8 +216,14 @@ export function WpmChart({ samples }: WpmChartProps) {
             <text x={tx + 8} y={ty + 12} fill="var(--color-accent)" fontSize={12} fontWeight="700">
               {wpmVal} wpm
             </text>
+            {/* Errors (raw wpm) */}
+            {hasErrors && (
+              <text x={tx + 8} y={ty + 24} fill="#f87171" fontSize={10} fillOpacity={0.85}>
+                {Math.round(hovered.raw)} raw · errors
+              </text>
+            )}
             {/* Time */}
-            <text x={tx + 8} y={ty + 24} fill="var(--color-muted)" fontSize={10} fillOpacity={0.7}>
+            <text x={tx + 8} y={ty + (hasErrors ? 36 : 24)} fill="var(--color-muted)" fontSize={10} fillOpacity={0.7}>
               at {timeSec}s
             </text>
           </g>
