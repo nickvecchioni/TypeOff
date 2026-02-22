@@ -199,14 +199,14 @@ function LevelWidget({
                   <span className="text-[11px] font-semibold text-text/80 truncate leading-none flex-1">
                     {reward.name}
                   </span>
-                  <span className="text-[10px] text-muted/50 leading-none shrink-0">
-                    Level {reward.level}
-                  </span>
                   {proLocked && (
                     <span className="text-[8px] font-black tracking-wider text-amber-400 bg-amber-400/10 ring-1 ring-amber-400/30 px-1.5 py-0.5 rounded shrink-0 leading-none">
                       PRO
                     </span>
                   )}
+                  <span className="text-[10px] text-muted/50 leading-none shrink-0">
+                    Level {reward.level}
+                  </span>
                 </div>
               );
             })}
