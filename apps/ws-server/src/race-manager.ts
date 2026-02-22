@@ -9,7 +9,7 @@ import type {
   WpmSample,
   EmoteKey,
 } from "@typeoff/shared";
-import { calculateRaceElo, getRankTier, generateWordsForMode, quotes, EMOTE_KEYS, scoreTextDifficulty, calculatePP, calculateTotalPP, CHALLENGE_MAP, ACHIEVEMENT_MAP } from "@typeoff/shared";
+import { calculateRaceElo, getRankTier, generateWordsForMode, quotes, EMOTE_KEYS, scoreTextDifficulty, calculatePP, calculateTotalPP, CHALLENGE_MAP, ACHIEVEMENT_MAP, getXpLevel } from "@typeoff/shared";
 import type { RankTier, RaceMode, ModeCategory, ReplaySnapshot } from "@typeoff/shared";
 import type { NotificationManager } from "./notification-manager.js";
 import { createDb, races, raceParticipants, userStats, users, userActiveCosmetics, textLeaderboards } from "@typeoff/db";
@@ -733,6 +733,7 @@ export class RaceManager {
       activeBadge?: string | null;
       activeNameColor?: string | null;
       activeNameEffect?: string | null;
+      level?: number;
     }> = [];
 
     // Track per-player data for results
@@ -740,6 +741,7 @@ export class RaceManager {
     const usernameMap = new Map<string, string>();
     const eloAfterMap = new Map<string, number>();
     const streakMap = new Map<string, number>();
+    const levelMap = new Map<string, number>();
     const achievementMap = new Map<string, string[]>();
     const challengeMap = new Map<string, ChallengeCheckResult>();
     const xpProgressMap = new Map<string, XpProgress>();
@@ -1089,11 +1091,12 @@ export class RaceManager {
         .map((e) => e.player.id);
       if (authPlayerIds.length > 0 && streakMap.size === 0) {
         const streakRows = await db
-          .select({ userId: userStats.userId, currentStreak: userStats.currentStreak })
+          .select({ userId: userStats.userId, currentStreak: userStats.currentStreak, totalXp: userStats.totalXp })
           .from(userStats)
           .where(inArray(userStats.userId, authPlayerIds));
         for (const row of streakRows) {
           streakMap.set(row.userId, row.currentStreak);
+          levelMap.set(row.userId, getXpLevel(row.totalXp ?? 0).level);
         }
       }
     } catch (streakErr) {
@@ -1247,6 +1250,7 @@ export class RaceManager {
         activeBadge: cosmetics?.activeBadge ?? entry.player.activeBadge,
         activeNameColor: cosmetics?.activeNameColor ?? entry.player.activeNameColor,
         activeNameEffect: cosmetics?.activeNameEffect ?? entry.player.activeNameEffect,
+        level: levelMap.get(entry.player.id),
       });
     }
 

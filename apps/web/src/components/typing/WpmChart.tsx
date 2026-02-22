@@ -8,7 +8,7 @@ interface WpmChartProps {
 }
 
 const CHART_WIDTH = 600;
-const CHART_HEIGHT = 180;
+const CHART_HEIGHT = 200;
 const PADDING = { top: 12, right: 16, bottom: 28, left: 44 };
 
 export function WpmChart({ samples }: WpmChartProps) {
@@ -38,11 +38,18 @@ export function WpmChart({ samples }: WpmChartProps) {
       .map((s, i) => `${i === 0 ? "M" : "L"} ${scaleX(s.elapsed)} ${scaleY(s[key])}`)
       .join(" ");
 
-  // Area fill path (close at bottom)
+  // Area fill path under WPM line (close at bottom)
   const areaPath =
     toPath("wpm") +
     ` L ${scaleX(samples[samples.length - 1].elapsed)} ${PADDING.top + innerHeight}` +
     ` L ${scaleX(samples[0].elapsed)} ${PADDING.top + innerHeight} Z`;
+
+  // Error area: fill between raw (top) and wpm (bottom) lines
+  const errorAreaPath =
+    samples.map((s, i) => `${i === 0 ? "M" : "L"} ${scaleX(s.elapsed)} ${scaleY(s.raw)}`).join(" ") +
+    " " +
+    samples.slice().reverse().map((s, i) => `${i === 0 ? "L" : "L"} ${scaleX(s.elapsed)} ${scaleY(s.wpm)}`).join(" ") +
+    " Z";
 
   return (
     <svg
@@ -55,6 +62,10 @@ export function WpmChart({ samples }: WpmChartProps) {
         <linearGradient id="wpmGradient" x1="0" x2="0" y1="0" y2="1">
           <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.35" />
           <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0.02" />
+        </linearGradient>
+        <linearGradient id="errorGradient" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor="#f87171" stopOpacity="0.35" />
+          <stop offset="100%" stopColor="#f87171" stopOpacity="0.05" />
         </linearGradient>
       </defs>
 
@@ -80,6 +91,9 @@ export function WpmChart({ samples }: WpmChartProps) {
           </text>
         </g>
       ))}
+
+      {/* Error area fill between raw and wpm */}
+      <path d={errorAreaPath} fill="url(#errorGradient)" />
 
       {/* Area fill under WPM line */}
       <path d={areaPath} fill="url(#wpmGradient)" />

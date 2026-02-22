@@ -173,26 +173,24 @@ function LevelWidget({
 
         {/* Upcoming unlocks */}
         {upcomingRewards.length > 0 && (
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             {upcomingRewards.map((reward) => {
               const proLocked = reward.proOnly && !isPro;
               const icon = rewardTypeIcon(reward.type, reward.value);
               return (
                 <div
                   key={reward.id}
-                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-white/[0.02] ring-1 ring-white/[0.04] group-hover:ring-accent/10 transition-colors"
+                  className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/[0.02] ring-1 ring-white/[0.04] group-hover:ring-accent/10 transition-colors"
                 >
                   <span className={`text-sm shrink-0 leading-none ${proLocked ? "opacity-30" : ""}`}>
                     {icon}
                   </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-[11px] font-semibold text-text/80 truncate leading-none mb-0.5">
-                      {reward.name}
-                    </div>
-                    <div className="text-[10px] text-muted/60 leading-none">
-                      unlocks at level {reward.level}
-                    </div>
-                  </div>
+                  <span className="text-[11px] font-semibold text-text/80 truncate leading-none flex-1">
+                    {reward.name}
+                  </span>
+                  <span className="text-[10px] text-muted/50 leading-none shrink-0">
+                    lv. {reward.level}
+                  </span>
                   {proLocked && (
                     <span className="text-[8px] font-black tracking-wider text-amber-400 bg-amber-400/10 ring-1 ring-amber-400/30 px-1.5 py-0.5 rounded shrink-0 leading-none">
                       PRO

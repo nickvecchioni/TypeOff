@@ -656,9 +656,7 @@ export function RaceResults({
 
       {/* ── Standings + WPM Chart ──────────────────────────── */}
       <div
-        className={`grid gap-2 w-full ${
-          myWpmHistory && myWpmHistory.length >= 2 ? "sm:grid-cols-[3fr_2fr]" : ""
-        }`}
+        className="flex flex-col gap-2 w-full"
         style={{ animation: "slide-up 0.5s ease-out 0.05s both" }}
       >
         {/* Standings table */}
@@ -719,6 +717,11 @@ export function RaceResults({
                     </Link>
                   ) : (
                     <span className="truncate">{displayName}</span>
+                  )}
+                  {result.level != null && !isBot && (
+                    <span className="text-[10px] font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded shrink-0">
+                      {result.level}
+                    </span>
                   )}
                   {isBot && (
                     <span className="text-[10px] text-muted/70 bg-white/[0.06] rounded px-1.5 py-0.5 shrink-0 uppercase tracking-wider font-semibold">
@@ -786,9 +789,10 @@ export function RaceResults({
           )}
         </div>
 
-        {/* WPM Chart */}
+        {/* WPM Chart — full width below standings */}
         {myWpmHistory && myWpmHistory.length >= 2 && (
-          <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] p-2 sm:p-3 flex items-center self-stretch min-h-[160px] sm:min-h-[180px]">
+          <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 pt-3 pb-2">
+            <div className="text-[10px] font-bold text-muted/50 uppercase tracking-widest mb-2">WPM over time</div>
             <WpmChart samples={myWpmHistory} />
           </div>
         )}
@@ -983,7 +987,7 @@ export function RaceResults({
                 <polyline points="9 22 9 12 15 12 15 22" />
               </svg>
             </button>
-            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-0.5 rounded bg-surface ring-1 ring-white/[0.08] text-[9px] text-muted/70 whitespace-nowrap opacity-0 group-hover/tt:opacity-100 pointer-events-none transition-opacity duration-150 z-50">
+            <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-0.5 rounded bg-surface ring-1 ring-white/[0.08] text-[9px] text-muted/70 whitespace-nowrap opacity-0 group-hover/tt:opacity-100 pointer-events-none transition-opacity duration-150 z-50">
               Go Home
             </span>
           </div>
@@ -1000,7 +1004,7 @@ export function RaceResults({
                   <polygon points="5 3 19 12 5 21 5 3" />
                 </svg>
               </Link>
-              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-0.5 rounded bg-surface ring-1 ring-white/[0.08] text-[9px] text-muted/70 whitespace-nowrap opacity-0 group-hover/tt:opacity-100 pointer-events-none transition-opacity duration-150 z-50">
+              <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-0.5 rounded bg-surface ring-1 ring-white/[0.08] text-[9px] text-muted/70 whitespace-nowrap opacity-0 group-hover/tt:opacity-100 pointer-events-none transition-opacity duration-150 z-50">
                 Watch Replay
               </span>
             </div>
@@ -1020,7 +1024,7 @@ export function RaceResults({
                   <line x1="6" y1="20" x2="6" y2="14" />
                 </svg>
               </Link>
-              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-0.5 rounded bg-surface ring-1 ring-white/[0.08] text-[9px] text-muted/70 whitespace-nowrap opacity-0 group-hover/tt:opacity-100 pointer-events-none transition-opacity duration-150 z-50">
+              <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-0.5 rounded bg-surface ring-1 ring-white/[0.08] text-[9px] text-muted/70 whitespace-nowrap opacity-0 group-hover/tt:opacity-100 pointer-events-none transition-opacity duration-150 z-50">
                 Analytics
               </span>
             </div>

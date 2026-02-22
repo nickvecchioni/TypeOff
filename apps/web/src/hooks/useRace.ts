@@ -50,6 +50,7 @@ export interface RaceResult {
   activeBadge?: string | null;
   activeNameColor?: string | null;
   activeNameEffect?: string | null;
+  level?: number;
 }
 
 export function useRace() {
