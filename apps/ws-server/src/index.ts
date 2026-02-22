@@ -275,8 +275,8 @@ io.on("connection", (socket) => {
 
   socket.on("sendRaceEmote", async (data) => {
     try {
-      await authenticateSocket(data, socket.id);
-      matchmaker.handleEmote(socket.id, data.emote);
+      const player = await authenticateSocket(data, socket.id);
+      matchmaker.handleEmoteByUserId(player.id, data.emote);
     } catch {
       // silently ignore auth failures for emotes
     }

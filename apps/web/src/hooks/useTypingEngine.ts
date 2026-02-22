@@ -32,6 +32,7 @@ export interface TypingEngine extends EngineAPI {
   timeElapsed: number;
   stopZen: () => void;
   replaySnapshots: React.MutableRefObject<ReplaySnapshot[]>;
+  startRaceTimer: () => void;
 }
 
 export interface ExternalConfig {
@@ -623,7 +624,10 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
       // Start typing on first valid input
       if (status === "idle" && e.key.length === 1) {
         setStatus("typing");
-        startTimer();
+        // Only start the timer if it hasn't been pre-started (e.g. by startRaceTimer)
+        if (!timerRef.current) {
+          startTimer();
+        }
       }
 
       if (status === "idle" && e.key !== "Backspace" && e.key.length !== 1) return;
@@ -645,6 +649,12 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
   const keyDownRef = useRef(handleKeyDown);
   keyDownRef.current = handleKeyDown;
 
+  const startRaceTimer = useCallback(() => {
+    if (!timerRef.current) {
+      startTimer();
+    }
+  }, [startTimer]);
+
   return {
     words,
     currentWordIndex,
@@ -660,5 +670,6 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     stopZen,
     replaySnapshots: replaySnapshotsRef,
     handleKeyDown: (e: React.KeyboardEvent) => keyDownRef.current(e),
+    startRaceTimer,
   };
 }

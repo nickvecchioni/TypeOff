@@ -201,6 +201,13 @@ export class Matchmaker implements RaceOwner {
     race?.handleEmote(socketId, emote);
   }
 
+  handleEmoteByUserId(userId: string, emote: EmoteKey) {
+    const raceId = this.userIdToRace.get(userId);
+    if (!raceId) return;
+    const race = this.races.get(raceId);
+    race?.handleEmoteByUserId(userId, emote);
+  }
+
   /** Voluntary leave during countdown — no penalty */
   handleLeaveRace(socketId: string): boolean {
     const raceId = this.socketToRace.get(socketId);

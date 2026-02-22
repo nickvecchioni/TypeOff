@@ -57,12 +57,13 @@ export function RaceTypingArea({
   const containerRef = useRef<HTMLDivElement>(null);
   const sentFinish = useRef(false);
 
-  // Auto-focus
+  // Auto-focus and start race timer when the race begins
   useEffect(() => {
     if (!disabled) {
       requestAnimationFrame(() => containerRef.current?.focus());
+      engine.startRaceTimer();
     }
-  }, [disabled]);
+  }, [disabled]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Report progress
   const prevReport = useRef({ wordIndex: 0, charIndex: 0 });

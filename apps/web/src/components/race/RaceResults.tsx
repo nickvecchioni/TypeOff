@@ -873,8 +873,7 @@ export function RaceResults({
 
           {/* Emote bar in results */}
           {!isPlacement && (
-            <div className="flex items-center gap-2 px-3 sm:px-4 py-2 border-t border-white/[0.04]">
-              <span className="text-[10px] text-muted/55 uppercase tracking-widest shrink-0">React</span>
+            <div className="flex justify-center px-3 sm:px-4 py-2 border-t border-white/[0.04]">
               <RaceEmoteBar />
             </div>
           )}

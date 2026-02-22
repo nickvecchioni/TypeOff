@@ -1363,6 +1363,29 @@ export class RaceManager {
     });
   }
 
+  handleEmoteByUserId(userId: string, emote: EmoteKey) {
+    if (!EMOTE_KEYS.includes(emote)) return;
+    if (this.status !== "racing" && this.status !== "finished") return;
+
+    // Find entry by userId (survives socket reconnects)
+    let entry: PlayerEntry | undefined;
+    for (const e of this.players.values()) {
+      if (e.player.id === userId) { entry = e; break; }
+    }
+    if (!entry) return;
+
+    // Rate limit: 2s cooldown per player
+    const now = Date.now();
+    if (now - entry.lastEmoteAt < 2000) return;
+    entry.lastEmoteAt = now;
+
+    this.io.to(this.raceId).emit("raceEmote", {
+      playerId: entry.player.id,
+      playerName: entry.player.name,
+      emote,
+    });
+  }
+
   getSpectatorState(): RaceState {
     return this.getState();
   }
