@@ -36,7 +36,7 @@ const RANK_GLOW: Record<RankTier, string> = {
 const MODES = [
   { id: "words" as const, label: "Words", icon: "Aa", desc: "everyday vocabulary" },
   { id: "special" as const, label: "Symbols", icon: "#!", desc: "punctuation & numbers" },
-  { id: "quotes" as const, label: "Quotes", icon: "\u201C\u201D", desc: "from books & film" },
+  { id: "quotes" as const, label: "Quotes", icon: "\u201C\u201D", desc: "famous quotations" },
   { id: "code" as const, label: "Code", icon: "</>", desc: "real syntax, real pain" },
 ] as const;
 
@@ -142,7 +142,7 @@ function LevelWidget({
   isPro: boolean;
 }) {
   const xpPct = Math.round((currentXp / nextLevelXp) * 100);
-  const upcomingRewards = COSMETIC_REWARDS.filter((r) => r.level > level).slice(0, 5);
+  const upcomingRewards = COSMETIC_REWARDS.filter((r) => r.level > level).slice(0, 7);
   const xpRemaining = nextLevelXp - currentXp;
 
   return (

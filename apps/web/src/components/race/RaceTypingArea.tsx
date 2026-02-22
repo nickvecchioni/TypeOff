@@ -29,6 +29,8 @@ interface RaceTypingAreaProps {
   disabled: boolean;
 }
 
+const VISIBLE_LINES = 3;
+
 export function RaceTypingArea({
   seed,
   wordCount,
@@ -55,7 +57,55 @@ export function RaceTypingArea({
   });
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const wordsInnerRef = useRef<HTMLDivElement>(null);
   const sentFinish = useRef(false);
+
+  // Word scrolling state (mirrors PracticeArena pattern)
+  const [scrollOffset, setScrollOffset] = useState(0);
+  const [lineHeight, setLineHeight] = useState(40);
+  const suppressTransitionRef = useRef(false);
+
+  // Measure line height from the rendered word list
+  useEffect(() => {
+    const el = wordsInnerRef.current?.querySelector(".no-ligatures");
+    if (el) {
+      const computed = parseFloat(getComputedStyle(el).lineHeight);
+      if (computed > 0) setLineHeight(computed);
+    }
+  }, [engine.words]);
+
+  // Reset scroll when a new race starts (seed/mode change or re-enable)
+  useEffect(() => {
+    suppressTransitionRef.current = true;
+    setScrollOffset(0);
+  }, [seed, mode]);
+
+  // Clear suppress flag after the instant reset renders
+  useEffect(() => {
+    if (suppressTransitionRef.current) {
+      requestAnimationFrame(() => {
+        suppressTransitionRef.current = false;
+      });
+    }
+  }, [scrollOffset]);
+
+  // Scroll to keep active word in the visible window
+  useEffect(() => {
+    const inner = wordsInnerRef.current;
+    if (!inner) return;
+
+    const activeSpan = inner.querySelector(
+      `[data-wordindex="${engine.currentWordIndex}"]`,
+    ) as HTMLElement | null;
+    if (!activeSpan) return;
+
+    const wordTop = activeSpan.offsetTop;
+    const wordLine = Math.floor(wordTop / lineHeight);
+    const scrollLine = Math.round(scrollOffset / lineHeight);
+    if (wordLine > scrollLine + 1) {
+      setScrollOffset((wordLine - 1) * lineHeight);
+    }
+  }, [engine.currentWordIndex, engine.status, lineHeight, scrollOffset]);
 
   // Auto-focus and start race timer when the race begins
   useEffect(() => {
@@ -141,6 +191,8 @@ export function RaceTypingArea({
     return () => clearInterval(interval);
   }, [finishTimeoutEnd, engine.status]);
 
+  const wordContainerHeight = lineHeight * VISIBLE_LINES;
+
   return (
     <div className={`w-full relative ${themeClass}`}>
       {timeoutRemaining != null && timeoutRemaining > 0 && (
@@ -152,7 +204,8 @@ export function RaceTypingArea({
         ref={containerRef}
         tabIndex={0}
         onKeyDown={disabled ? undefined : handleKeyDown}
-        className="relative w-full outline-none cursor-default select-none"
+        className="relative w-full outline-none cursor-default select-none overflow-hidden"
+        style={{ height: wordContainerHeight }}
         role="textbox"
         aria-label="Race typing area"
       >
@@ -163,13 +216,19 @@ export function RaceTypingArea({
             </span>
           </div>
         )}
-        <WordDisplay
-          words={engine.words}
-          currentWordIndex={engine.currentWordIndex}
-          currentCharIndex={engine.currentCharIndex}
-          isTyping={engine.status === "typing"}
-          contentType={mode === "code" ? "code" : undefined}
-        />
+        <div
+          ref={wordsInnerRef}
+          className={suppressTransitionRef.current ? "" : "transition-transform duration-150 ease-out"}
+          style={{ transform: `translateY(-${scrollOffset}px)` }}
+        >
+          <WordDisplay
+            words={engine.words}
+            currentWordIndex={engine.currentWordIndex}
+            currentCharIndex={engine.currentCharIndex}
+            isTyping={engine.status === "typing"}
+            contentType={mode === "code" ? "code" : undefined}
+          />
+        </div>
       </div>
       <div className={`flex items-baseline justify-center text-muted text-sm tabular-nums mt-4 transition-opacity duration-200 ${
         engine.status === "typing" ? "opacity-100" : "opacity-0"
