@@ -20,6 +20,7 @@ import { CosmeticBadge } from "@/components/CosmeticBadge";
 import { TextLeaderboard } from "@/components/leaderboard/TextLeaderboard";
 import { PlayerEmotePill, type EmoteEvent } from "./FloatingEmote";
 import { RaceEmoteBar } from "./RaceEmoteBar";
+import { ShareResultCard } from "@/components/shared/ShareResultCard";
 
 interface RankChange {
   direction: "up" | "down";
@@ -213,6 +214,7 @@ function AnimatedXpPanel({
   const [levelUpGlow, setLevelUpGlow] = useState(false);
   const [showRewards, setShowRewards] = useState(false);
   const [animStarted, setAnimStarted] = useState(false);
+  const [isPhase3, setIsPhase3] = useState(false);
   const rafRef = useRef<number>(0);
   const phaseRef = useRef(0);
 
@@ -254,7 +256,10 @@ function AnimatedXpPanel({
               setLevelUpGlow(true);
             }
           } else {
-            if (phaseRef.current < 3) phaseRef.current = 3;
+            if (phaseRef.current < 3) {
+              phaseRef.current = 3;
+              setIsPhase3(true);
+            }
             const p = (t - 0.55) / 0.45;
             const pe = 1 - Math.pow(1 - p, 3);
             setBarPct(finalPct * pe);
@@ -356,10 +361,22 @@ function AnimatedXpPanel({
                 levelUpGlow ? "shadow-[0_0_8px_rgba(77,158,255,0.4)]" : ""
               }`}
             >
-              <div
-                className={`h-full rounded-full bg-accent ${levelUpGlow ? "shadow-[0_0_6px_rgba(77,158,255,0.6)]" : ""}`}
-                style={{ width: `${barPct}%` }}
-              />
+              {isPhase3 ? (
+                <div
+                  className={`h-full rounded-full bg-accent ${levelUpGlow ? "shadow-[0_0_6px_rgba(77,158,255,0.6)]" : ""}`}
+                  style={{ width: `${barPct}%` }}
+                />
+              ) : (
+                <div className="h-full flex">
+                  {/* Previous XP (dim) */}
+                  <div className="h-full bg-accent/35 shrink-0" style={{ width: `${prevPct}%` }} />
+                  {/* Gained XP (bright, animates) */}
+                  <div
+                    className={`h-full bg-accent shrink-0 ${levelUpGlow ? "shadow-[0_0_6px_rgba(77,158,255,0.6)]" : ""}`}
+                    style={{ width: `${Math.max(0, barPct - prevPct)}%` }}
+                  />
+                </div>
+              )}
             </div>
             <div className="text-[10px] text-muted/55 mt-1 tabular-nums">
               {(curInfo.nextLevelXp - curInfo.currentXp).toLocaleString()} XP to level {xp.level + 1}
@@ -692,7 +709,7 @@ export function RaceResults({
             return (
               <div
                 key={result.playerId}
-                className={`relative grid items-center px-3 sm:px-4 py-1.5 border-b border-white/[0.03] last:border-0 transition-colors border-l-2 ${tableCols} ${
+                className={`relative grid items-center px-3 sm:px-4 py-1.5 border-b border-white/[0.03] last:border-0 transition-colors border-l-2 text-sm ${tableCols} ${
                   rowPlacementStyle ? rowPlacementStyle.leftBorder : "border-l-transparent"
                 } ${
                   isMe
@@ -789,7 +806,7 @@ export function RaceResults({
 
         {/* WPM Chart */}
         {myWpmHistory && myWpmHistory.length >= 2 && (
-          <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] p-2 sm:p-3 flex items-center min-h-0">
+          <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] p-2 sm:p-3 flex items-center self-stretch min-h-[160px] sm:min-h-[180px]">
             <WpmChart samples={myWpmHistory} />
           </div>
         )}
@@ -894,7 +911,7 @@ export function RaceResults({
       )}
 
       {/* ── Text Leaderboard ──────────────────────────────── */}
-      {seed != null && mode && (
+      {seed != null && mode && mode !== "words" && mode !== "special" && (
         <div
           className="w-full min-h-[4rem]"
           style={{ animation: "slide-up 0.5s ease-out 0.12s both" }}
@@ -951,49 +968,111 @@ export function RaceResults({
             <button
               onClick={() => onRaceAgain()}
               disabled={inParty && !allMembersReady}
-              className="w-full rounded-lg bg-accent/[0.06] ring-1 ring-accent/20 text-accent py-2.5 text-sm font-medium hover:bg-accent hover:text-bg hover:ring-accent transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent/[0.06] disabled:hover:text-accent disabled:hover:ring-accent/20"
+              className="w-full rounded-lg bg-accent/[0.06] ring-1 ring-accent/20 text-accent py-2.5 text-sm font-medium hover:bg-accent hover:text-bg hover:ring-accent transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent/[0.06] disabled:hover:text-accent disabled:hover:ring-accent/20 flex flex-col items-center gap-1"
             >
-              {isPlacement ? "Next Placement" : "Race Again"}
-              <span className="inline-block w-[2px] h-[1em] bg-current animate-blink ml-0.5 translate-y-px" />
+              <span>
+                {isPlacement ? "Next Placement" : "Race Again"}
+                <span className="inline-block w-[2px] h-[1em] bg-current animate-blink ml-0.5 translate-y-px" />
+              </span>
+              {!inParty && (
+                <span className="text-[9px] font-normal text-accent/40 flex items-center gap-1 group-hover:text-bg/40">
+                  <kbd className="inline-flex items-center px-1 py-px rounded bg-white/[0.04] ring-1 ring-white/[0.07] text-[9px] font-medium">Tab</kbd>
+                  {" + "}
+                  <kbd className="inline-flex items-center px-1 py-px rounded bg-white/[0.04] ring-1 ring-white/[0.07] text-[9px] font-medium">Enter ↵</kbd>
+                </span>
+              )}
             </button>
-            {inParty && !allMembersReady ? (
+            {inParty && !allMembersReady && (
               <span className="text-[10px] text-muted/60">
                 waiting for party to ready up...
-              </span>
-            ) : (
-              <span className="text-[10px] text-muted/65">
-                <kbd className="inline-flex items-center px-1 py-px rounded bg-white/[0.04] ring-1 ring-white/[0.07] text-muted/65 text-[9px] font-medium">Tab</kbd>
-                {" + "}
-                <kbd className="inline-flex items-center px-1 py-px rounded bg-white/[0.04] ring-1 ring-white/[0.07] text-muted/65 text-[9px] font-medium">Enter ↵</kbd>
               </span>
             )}
           </>
         )}
 
-        {/* Secondary actions row */}
-        <div className="flex items-center gap-3 mt-0.5">
-          <button
-            onClick={onGoHome}
-            className="text-xs text-muted/60 hover:text-muted transition-colors"
-          >
-            go home
-          </button>
+        {/* Secondary actions row — icon buttons with tooltips */}
+        <div className="flex items-center gap-1 mt-0.5">
+          {/* Go Home */}
+          <div className="relative group/tt">
+            <button
+              onClick={onGoHome}
+              className="p-2 text-muted/50 hover:text-muted transition-colors rounded"
+              aria-label="Go Home"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+              </svg>
+            </button>
+            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-0.5 rounded bg-surface ring-1 ring-white/[0.08] text-[9px] text-muted/70 whitespace-nowrap opacity-0 group-hover/tt:opacity-100 pointer-events-none transition-opacity duration-150 z-50">
+              Go Home
+            </span>
+          </div>
+
+          {/* Watch Replay */}
           {raceId && (
-            <Link
-              href={`/races/${raceId}`}
-              className="text-xs text-muted/60 hover:text-muted transition-colors"
-            >
-              watch replay
-            </Link>
+            <div className="relative group/tt">
+              <Link
+                href={`/races/${raceId}`}
+                className="p-2 text-muted/50 hover:text-muted transition-colors rounded block"
+                aria-label="Watch Replay"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="5 3 19 12 5 21 5 3" />
+                </svg>
+              </Link>
+              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-0.5 rounded bg-surface ring-1 ring-white/[0.08] text-[9px] text-muted/70 whitespace-nowrap opacity-0 group-hover/tt:opacity-100 pointer-events-none transition-opacity duration-150 z-50">
+                Watch Replay
+              </span>
+            </div>
           )}
+
+          {/* Analytics */}
           {!isPlacement && (
-            <Link
-              href="/analytics"
-              className="text-xs text-muted/60 hover:text-muted transition-colors"
-            >
-              analytics
-            </Link>
+            <div className="relative group/tt">
+              <Link
+                href="/analytics"
+                className="p-2 text-muted/50 hover:text-muted transition-colors rounded block"
+                aria-label="Analytics"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="20" x2="18" y2="10" />
+                  <line x1="12" y1="20" x2="12" y2="4" />
+                  <line x1="6" y1="20" x2="6" y2="14" />
+                </svg>
+              </Link>
+              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-0.5 rounded bg-surface ring-1 ring-white/[0.08] text-[9px] text-muted/70 whitespace-nowrap opacity-0 group-hover/tt:opacity-100 pointer-events-none transition-opacity duration-150 z-50">
+                Analytics
+              </span>
+            </div>
           )}
+
+          {/* Share */}
+          {!isPlacement &&
+            myResult != null &&
+            myResult.elo != null &&
+            myResult.eloChange != null &&
+            session?.user?.username && (
+              <ShareResultCard
+                data={{
+                  variant: "ranked",
+                  wpm: myResult.wpm,
+                  accuracy: myResult.accuracy,
+                  placement: myResult.placement,
+                  totalPlayers: results.length,
+                  elo: myResult.elo,
+                  eloChange: myResult.eloChange,
+                  rankLabel: getRankInfo(myResult.elo).label,
+                  rankTier: getRankInfo(myResult.elo).tier,
+                  username: session.user.username,
+                  date: new Date().toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  }),
+                }}
+              />
+            )}
         </div>
       </div>
     </div>

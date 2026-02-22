@@ -25,9 +25,28 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-mono",
 });
 
+const APP_URL = "https://typeoff.gg";
+const TITLE = "TypeOff — Ranked Competitive Typing";
+const DESCRIPTION =
+  "Race real players in ELO-matched typing battles. Climb from Bronze to Grandmaster.";
+
 export const metadata: Metadata = {
-  title: "TypeOff — Ranked Competitive Typing",
-  description: "Race real players in ELO-matched typing battles. Climb from Bronze to Grandmaster.",
+  title: TITLE,
+  description: DESCRIPTION,
+  metadataBase: new URL(APP_URL),
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: APP_URL,
+    siteName: "TypeOff",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    site: "@typeoffgg",
+  },
 };
 
 export const viewport: Viewport = {

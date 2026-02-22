@@ -133,14 +133,29 @@ export function PracticeResults({ stats, config, isPb, onRestart }: PracticeResu
       )}
 
       {/* Share Result Card */}
-      {session?.user && (
-        <ShareResultCard
-          wpm={stats.wpm}
-          accuracy={stats.accuracy}
-          username={session.user.name ?? session.user.username ?? ""}
-          mode={config.contentType === "quotes" ? "quotes" : `${config.mode === "timed" ? config.duration + "s" : config.duration + " words"}`}
-        />
-      )}
+      {session?.user?.username && (() => {
+        const parts: string[] = [];
+        if (config.contentType === "quotes" || config.contentType === "custom" || config.contentType === "practice") {
+          parts.push(config.contentType);
+        } else {
+          parts.push(config.mode === "timed" ? `${config.duration}s` : `${config.duration} words`);
+          if (config.difficulty !== "easy") parts.push(config.difficulty);
+          if (config.punctuation) parts.push("punct");
+        }
+        return (
+          <ShareResultCard
+            data={{
+              variant: "solo",
+              wpm: stats.wpm,
+              accuracy: stats.accuracy,
+              consistency: stats.consistency,
+              modeLabel: parts.join(" · "),
+              username: session.user!.username!,
+              date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+            }}
+          />
+        );
+      })()}
 
       {/* Sign-in prompt for guests */}
       {!session?.user && (

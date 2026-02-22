@@ -23,7 +23,7 @@ export async function GET(request: Request) {
 
   const db = getDb();
   const results = await db
-    .select({ id: users.id, username: users.username, name: users.name })
+    .select({ id: users.id, username: users.username })
     .from(users)
     .where(
       and(
@@ -37,7 +37,6 @@ export async function GET(request: Request) {
     users: results.map((u) => ({
       userId: u.id,
       username: u.username,
-      name: u.name,
     })),
   });
 }

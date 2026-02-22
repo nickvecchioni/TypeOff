@@ -40,10 +40,11 @@ export function FriendsButton() {
 
   return (
     <div className="relative flex items-center">
+      <div className="relative group/tt flex items-center">
       <button
         onClick={() => setOpen((prev) => !prev)}
         className="relative p-1.5 text-muted hover:text-text transition-colors"
-        title="Friends"
+        aria-label="Friends"
       >
         {/* People icon */}
         <svg
@@ -65,6 +66,10 @@ export function FriendsButton() {
           <span className="absolute -top-1 -right-1 w-2 h-2 bg-accent rounded-full" />
         )}
       </button>
+      <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-0.5 rounded bg-surface ring-1 ring-white/[0.08] text-[9px] text-muted/70 whitespace-nowrap opacity-0 group-hover/tt:opacity-100 pointer-events-none transition-opacity duration-150 z-50">
+        Friends
+      </span>
+      </div>
       <FriendsDrawer open={open} onClose={handleClose} />
     </div>
   );

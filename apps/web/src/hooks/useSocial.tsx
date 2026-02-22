@@ -13,7 +13,6 @@ import { useSocket } from "./useSocket";
 interface Friend {
   userId: string;
   username: string | null;
-  name: string | null;
   online?: boolean;
   lastSeen?: string | null;
   raceId?: string | null;
@@ -22,7 +21,6 @@ interface Friend {
 interface FriendRequest {
   id: string;
   requesterId: string;
-  name: string | null;
   username: string | null;
   createdAt: string;
 }
@@ -37,7 +35,7 @@ interface SocialContextValue {
   acceptRequest: (friendshipId: string) => Promise<void>;
   declineRequest: (friendshipId: string) => Promise<void>;
   removeFriend: (friendId: string) => Promise<boolean>;
-  searchUsers: (query: string) => Promise<Array<{ userId: string; username: string | null; name: string | null }>>;
+  searchUsers: (query: string) => Promise<Array<{ userId: string; username: string | null }>>;
 }
 
 const SocialContext = createContext<SocialContextValue | null>(null);
@@ -244,7 +242,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     const res = await fetch(`/api/friends/search?q=${encodeURIComponent(query)}`);
     if (!res.ok) return [];
     const data = await res.json();
-    return data.users as Array<{ userId: string; username: string | null; name: string | null }>;
+    return data.users as Array<{ userId: string; username: string | null }>;
   }, []);
 
   return (

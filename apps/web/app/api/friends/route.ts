@@ -38,14 +38,13 @@ export async function GET() {
   }
 
   const friendUsers = await db
-    .select({ id: users.id, username: users.username, name: users.name, lastSeen: users.lastSeen })
+    .select({ id: users.id, username: users.username, lastSeen: users.lastSeen })
     .from(users)
     .where(or(...friendIds.map((id) => eq(users.id, id))));
 
   const friends = friendUsers.map((u) => ({
     userId: u.id,
     username: u.username,
-    name: u.name,
     lastSeen: u.lastSeen?.toISOString() ?? null,
   }));
 
@@ -143,7 +142,7 @@ export async function POST(request: Request) {
   });
 
   // Create notification for the addressee
-  const senderName = session.user.username ?? session.user.name ?? "Someone";
+  const senderName = session.user.username ?? "Someone";
   await db.insert(notifications).values({
     userId: addresseeId,
     type: "friend_request",

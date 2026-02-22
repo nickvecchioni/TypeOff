@@ -20,7 +20,6 @@ export async function GET() {
       id: friendships.id,
       requesterId: friendships.requesterId,
       createdAt: friendships.createdAt,
-      requesterName: users.name,
       requesterUsername: users.username,
     })
     .from(friendships)
@@ -36,7 +35,6 @@ export async function GET() {
     requests: rows.map((r) => ({
       id: r.id,
       requesterId: r.requesterId,
-      name: r.requesterName,
       username: r.requesterUsername,
       createdAt: r.createdAt,
     })),

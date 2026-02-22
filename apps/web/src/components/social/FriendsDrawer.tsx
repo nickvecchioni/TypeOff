@@ -42,7 +42,7 @@ export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<
-    Array<{ userId: string; username: string | null; name: string | null }>
+    Array<{ userId: string; username: string | null }>
   >([]);
   const [searching, setSearching] = useState(false);
   const [sentRequests, setSentRequests] = useState<Set<string>>(new Set());
@@ -123,7 +123,7 @@ export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
             isOnline ? "text-text" : "text-muted"
           }`}
         >
-          {friend.username ?? friend.name ?? "Unknown"}
+          {friend.username ?? "Unknown"}
           {!isOnline && friend.lastSeen && (
             <span className="text-[10px] text-muted/60 ml-1.5">
               {formatLastSeen(friend.lastSeen)}
@@ -154,7 +154,7 @@ export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
           )}
           <button
             onClick={() => {
-              openDm(friend.userId, friend.username ?? friend.name ?? "Unknown");
+              openDm(friend.userId, friend.username ?? "Unknown");
               onClose();
             }}
             className={`relative text-[10px] font-bold px-1.5 py-0.5 rounded border transition-all ${
@@ -260,7 +260,7 @@ export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
                       onClick={onClose}
                       className="text-xs text-text hover:text-accent truncate transition-colors"
                     >
-                      {user.username ?? user.name ?? "Unknown"}
+                      {user.username ?? "Unknown"}
                     </Link>
                     {isFriend ? (
                       <span className="text-[10px] text-muted/60 uppercase tracking-wider ml-2 shrink-0">Friends</span>
@@ -303,7 +303,7 @@ export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
                       onClick={onClose}
                       className="text-xs text-text hover:text-accent truncate transition-colors"
                     >
-                      {req.username ?? req.name ?? "Unknown"}
+                      {req.username ?? "Unknown"}
                     </Link>
                     <div className="flex gap-1 shrink-0 ml-2">
                       <button
