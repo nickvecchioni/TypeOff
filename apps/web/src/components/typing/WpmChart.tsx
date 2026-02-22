@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useRef, useState } from "react";
 import type { WpmSample } from "@typeoff/shared";
 
 interface WpmChartProps {
@@ -8,10 +8,13 @@ interface WpmChartProps {
 }
 
 const CHART_WIDTH = 600;
-const CHART_HEIGHT = 200;
-const PADDING = { top: 12, right: 16, bottom: 28, left: 44 };
+const CHART_HEIGHT = 140;
+const PADDING = { top: 12, right: 16, bottom: 24, left: 44 };
 
 export function WpmChart({ samples }: WpmChartProps) {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+
   if (samples.length < 2) return null;
 
   const innerWidth = CHART_WIDTH - PADDING.left - PADDING.right;
@@ -51,12 +54,32 @@ export function WpmChart({ samples }: WpmChartProps) {
     samples.slice().reverse().map((s, i) => `${i === 0 ? "L" : "L"} ${scaleX(s.elapsed)} ${scaleY(s.wpm)}`).join(" ") +
     " Z";
 
+  function handleMouseMove(e: React.MouseEvent<SVGSVGElement>) {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const rect = svg.getBoundingClientRect();
+    const mouseX = ((e.clientX - rect.left) / rect.width) * CHART_WIDTH;
+    let closest = 0;
+    let minDist = Infinity;
+    samples.forEach((s, i) => {
+      const d = Math.abs(scaleX(s.elapsed) - mouseX);
+      if (d < minDist) { minDist = d; closest = i; }
+    });
+    setHoveredIdx(closest);
+  }
+
+  const hovered = hoveredIdx !== null ? samples[hoveredIdx] : null;
+
   return (
     <svg
+      ref={svgRef}
       viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
       className="w-full h-full"
       role="img"
       aria-label="WPM over time chart"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={() => setHoveredIdx(null)}
+      style={{ cursor: "crosshair" }}
     >
       <defs>
         <linearGradient id="wpmGradient" x1="0" x2="0" y1="0" y2="1">
@@ -134,18 +157,67 @@ export function WpmChart({ samples }: WpmChartProps) {
           key={i}
           cx={scaleX(s.elapsed)}
           cy={scaleY(s.wpm)}
-          r={2.5}
+          r={hoveredIdx === i ? 4 : 2.5}
           fill="var(--color-accent)"
         />
       ))}
 
+      {/* Hover crosshair + tooltip */}
+      {hovered !== null && hoveredIdx !== null && (() => {
+        const x = scaleX(hovered.elapsed);
+        const y = scaleY(hovered.wpm);
+        const timeSec = (hovered.elapsed / 1000).toFixed(1);
+        const wpmVal = Math.round(hovered.wpm);
+        const rawVal = Math.round(hovered.raw);
+
+        const TOOLTIP_W = 108;
+        const TOOLTIP_H = 36;
+        const flipLeft = x + TOOLTIP_W + 14 > CHART_WIDTH - PADDING.right;
+        const tx = flipLeft ? x - TOOLTIP_W - 8 : x + 8;
+        const ty = Math.max(PADDING.top, Math.min(y - TOOLTIP_H / 2, PADDING.top + innerHeight - TOOLTIP_H));
+
+        return (
+          <g pointerEvents="none">
+            {/* Vertical crosshair */}
+            <line
+              x1={x} x2={x}
+              y1={PADDING.top}
+              y2={PADDING.top + innerHeight}
+              stroke="rgba(255,255,255,0.18)"
+              strokeWidth={1}
+              strokeDasharray="3 3"
+            />
+            {/* Highlighted dot */}
+            <circle cx={x} cy={y} r={4} fill="var(--color-accent)" />
+            {/* Tooltip background */}
+            <rect
+              x={tx} y={ty}
+              width={TOOLTIP_W} height={TOOLTIP_H}
+              rx={4}
+              fill="rgba(12,12,20,0.92)"
+              stroke="rgba(255,255,255,0.08)"
+              strokeWidth={1}
+            />
+            {/* WPM value */}
+            <text x={tx + 8} y={ty + 14} fill="var(--color-accent)" fontSize={12} fontWeight="700">
+              {wpmVal} wpm
+            </text>
+            {/* Time + raw */}
+            <text x={tx + 8} y={ty + 28} fill="var(--color-muted)" fontSize={10} fillOpacity={0.7}>
+              {timeSec}s · raw {rawVal}
+            </text>
+          </g>
+        );
+      })()}
+
       {/* X-axis label */}
       <text
         x={CHART_WIDTH / 2}
-        y={CHART_HEIGHT - 6}
+        y={CHART_HEIGHT - 5}
         fill="var(--color-muted)"
-        fontSize={13}
+        fontSize={9}
         textAnchor="middle"
+        fillOpacity={0.4}
       >
         seconds
       </text>
