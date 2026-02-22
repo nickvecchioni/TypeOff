@@ -149,12 +149,12 @@ function AnimatedElo({
 
   return (
     <div>
-      <div className="flex items-baseline gap-2">
-        <span className="text-2xl font-black text-text tabular-nums">
+      <div className="flex items-baseline gap-2.5">
+        <span className="text-3xl sm:text-4xl font-black text-text tabular-nums leading-none">
           {displayElo}
         </span>
         <span
-          className={`text-sm font-bold tabular-nums transition-opacity duration-300 ${
+          className={`text-xl font-black tabular-nums transition-opacity duration-300 leading-none ${
             showChange ? "opacity-100" : "opacity-0"
           } ${change > 0 ? "text-correct" : change < 0 ? "text-error" : "text-muted"}`}
         >
@@ -603,9 +603,9 @@ export function RaceResults({
 
             {/* WPM */}
             <div className="bg-surface/40 px-3 py-3 sm:px-4 flex flex-col justify-end">
-              <div className="text-2xl font-black text-text tabular-nums leading-none">
+              <div className="text-3xl sm:text-4xl font-black text-text tabular-nums leading-none">
                 {Math.floor(myResult.wpm)}
-                <span className="text-base opacity-50">
+                <span className="text-lg opacity-50">
                   .{(myResult.wpm % 1).toFixed(2).slice(2)}
                 </span>
               </div>
@@ -622,9 +622,9 @@ export function RaceResults({
             {/* Accuracy */}
             {!isPlacement && (
               <div className="bg-surface/40 px-3 py-3 sm:px-4 flex flex-col justify-end">
-                <div className="text-2xl font-black text-text tabular-nums leading-none">
+                <div className="text-3xl sm:text-4xl font-black text-text tabular-nums leading-none">
                   {Math.floor(myResult.accuracy)}
-                  <span className="text-base opacity-50">
+                  <span className="text-lg opacity-50">
                     .{((myResult.accuracy % 1) * 10).toFixed(0)}%
                   </span>
                 </div>
@@ -656,7 +656,7 @@ export function RaceResults({
               </div>
             ) : (
               hasElo && (
-                <div className="bg-surface/40 px-3 py-2 sm:px-4 sm:py-2.5">
+                <div className="bg-surface/40 px-3 py-3 sm:px-4">
                   <AnimatedElo
                     oldElo={myResult.elo! - myResult.eloChange!}
                     newElo={myResult.elo!}
