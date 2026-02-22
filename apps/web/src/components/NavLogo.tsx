@@ -17,7 +17,7 @@ export function NavLogo() {
       <span className="nav-logo-text transition-[text-shadow] duration-300">
         TypeOff
       </span>
-      <span className="inline-block w-[2px] h-[1em] bg-accent animate-blink ml-0.5 translate-y-px" />
+      <span className="self-stretch w-[2px] bg-accent animate-blink ml-0.5" />
     </Link>
   );
 }
