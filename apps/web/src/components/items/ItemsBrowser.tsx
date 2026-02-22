@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import {
   COSMETIC_REWARDS,
@@ -13,6 +13,7 @@ import {
   TYPING_THEMES,
   getXpLevel,
   type CosmeticReward,
+  type CursorStyleDef,
 } from "@typeoff/shared";
 import { useUpdateCosmetics } from "@/contexts/CosmeticContext";
 
@@ -49,22 +50,15 @@ interface CategoryDef {
   field: keyof ActiveState;
 }
 
-/** Profile cosmetics — shown in the profile header card */
-const PROFILE_CATEGORIES: CategoryDef[] = [
-  { key: "badge",         label: "Badges",          slotLabel: "Badge",   field: "activeBadge" },
-  { key: "title",         label: "Titles",           slotLabel: "Title",   field: "activeTitle" },
-  { key: "nameColor",     label: "Name Colors",      slotLabel: "Color",   field: "activeNameColor" },
-  { key: "nameEffect",    label: "Name Effects",     slotLabel: "Effect",  field: "activeNameEffect" },
-  { key: "profileBorder", label: "Profile Borders",  slotLabel: "Border",  field: "activeProfileBorder" },
+const CATEGORIES: CategoryDef[] = [
+  { key: "badge",         label: "Badges",         slotLabel: "Badge",   field: "activeBadge" },
+  { key: "title",         label: "Titles",          slotLabel: "Title",   field: "activeTitle" },
+  { key: "nameColor",     label: "Name Colors",     slotLabel: "Color",   field: "activeNameColor" },
+  { key: "nameEffect",    label: "Name Effects",    slotLabel: "Effect",  field: "activeNameEffect" },
+  { key: "cursorStyle",   label: "Cursors",         slotLabel: "Cursor",  field: "activeCursorStyle" },
+  { key: "profileBorder", label: "Profile Borders", slotLabel: "Border",  field: "activeProfileBorder" },
+  { key: "typingTheme",   label: "Themes",          slotLabel: "Theme",   field: "activeTypingTheme" },
 ];
-
-/** Typing cosmetics — affect the typing experience */
-const TYPING_CATEGORIES: CategoryDef[] = [
-  { key: "cursorStyle",   label: "Cursors",          slotLabel: "Cursor",  field: "activeCursorStyle" },
-  { key: "typingTheme",   label: "Themes",           slotLabel: "Theme",   field: "activeTypingTheme" },
-];
-
-const CATEGORIES = [...PROFILE_CATEGORIES, ...TYPING_CATEGORIES];
 
 const EMPTY_ACTIVE: ActiveState = {
   activeBadge: null,
@@ -250,6 +244,12 @@ export function ItemsBrowser({
         )}
       </div>
 
+      {/* ── Typing Preview ────────────────────────────────── */}
+      <TypingPreview
+        cursorStyleId={previewActive.activeCursorStyle}
+        typingThemeId={previewActive.activeTypingTheme}
+      />
+
       {/* ── Equipped Loadout Strip ────────────────────────── */}
       <div>
         <h2 className="text-[10px] font-bold text-muted/60 uppercase tracking-widest mb-3 flex items-center gap-2.5">
@@ -257,64 +257,25 @@ export function ItemsBrowser({
           Equipped Loadout
           <span className="flex-1 h-px bg-white/[0.03]" />
         </h2>
-        <div className="space-y-2.5">
-          {/* Profile cosmetics row */}
-          <div>
-            <div className="text-[9px] text-muted/35 uppercase tracking-widest mb-1.5">Profile</div>
-            <div className="grid grid-cols-5 gap-1.5">
-              {PROFILE_CATEGORIES.map((cat) => (
-                <LoadoutSlot
-                  key={cat.key}
-                  cat={cat}
-                  previewActive={previewActive}
-                  active={active}
-                  selectedCategory={selectedCategory}
-                  hoverPreview={hoverPreview}
-                  onSelect={handleCategoryChange}
-                />
-              ))}
-            </div>
-          </div>
-          {/* Typing cosmetics row */}
-          <div>
-            <div className="text-[9px] text-muted/35 uppercase tracking-widest mb-1.5">Typing</div>
-            <div className="grid grid-cols-5 gap-1.5">
-              {TYPING_CATEGORIES.map((cat) => (
-                <LoadoutSlot
-                  key={cat.key}
-                  cat={cat}
-                  previewActive={previewActive}
-                  active={active}
-                  selectedCategory={selectedCategory}
-                  hoverPreview={hoverPreview}
-                  onSelect={handleCategoryChange}
-                />
-              ))}
-            </div>
-          </div>
+        <div className="grid grid-cols-7 gap-1.5">
+          {CATEGORIES.map((cat) => (
+            <LoadoutSlot
+              key={cat.key}
+              cat={cat}
+              previewActive={previewActive}
+              active={active}
+              selectedCategory={selectedCategory}
+              hoverPreview={hoverPreview}
+              onSelect={handleCategoryChange}
+            />
+          ))}
         </div>
       </div>
 
       {/* ── Category Tabs ─────────────────────────────────── */}
       <div className="space-y-4">
-        <div className="flex flex-wrap gap-1 items-center">
-          {/* Profile cosmetics tabs */}
-          {PROFILE_CATEGORIES.map((cat) => (
-            <CategoryTab
-              key={cat.key}
-              cat={cat}
-              selectedCategory={selectedCategory}
-              ownedIds={ownedIds}
-              onSelect={handleCategoryChange}
-            />
-          ))}
-          {/* Typing section separator */}
-          <div className="flex items-center gap-1.5 mx-1">
-            <div className="w-px h-4 bg-white/[0.06]" />
-            <span className="text-[9px] text-muted/35 uppercase tracking-widest">Typing</span>
-          </div>
-          {/* Typing cosmetics tabs */}
-          {TYPING_CATEGORIES.map((cat) => (
+        <div className="flex flex-wrap gap-1">
+          {CATEGORIES.map((cat) => (
             <CategoryTab
               key={cat.key}
               cat={cat}
@@ -626,6 +587,151 @@ function CategoryTab({
         {owned}/{total}
       </span>
     </button>
+  );
+}
+
+/* ── Typing Preview ────────────────────────────────────── */
+
+const SAMPLE_TEXT = "the quick brown fox jumps over the lazy dog";
+
+function TypingPreview({
+  cursorStyleId,
+  typingThemeId,
+}: {
+  cursorStyleId: string | null;
+  typingThemeId: string | null;
+}) {
+  const [typed, setTyped] = useState("");
+  const [focused, setFocused] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const cursorDef = cursorStyleId ? (CURSOR_STYLES[cursorStyleId] ?? null) : null;
+  const themeDef = typingThemeId ? (TYPING_THEMES[typingThemeId] ?? null) : null;
+
+  // Reset when cosmetics change so the user gets a fresh view
+  useEffect(() => {
+    setTyped("");
+  }, [cursorStyleId, typingThemeId]);
+
+  // Auto-restart after a brief pause when the sentence is completed
+  useEffect(() => {
+    if (typed.length === SAMPLE_TEXT.length) {
+      const t = setTimeout(() => setTyped(""), 800);
+      return () => clearTimeout(t);
+    }
+  }, [typed.length]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Tab") {
+        e.preventDefault();
+        setTyped("");
+        return;
+      }
+      if (e.key === "Backspace") {
+        setTyped((prev) => prev.slice(0, -1));
+        return;
+      }
+      if (e.key.length !== 1) return;
+      if (typed.length >= SAMPLE_TEXT.length) return;
+      setTyped((prev) => prev + e.key);
+    },
+    [typed.length],
+  );
+
+  return (
+    <div
+      ref={containerRef}
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      onClick={() => containerRef.current?.focus()}
+      className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] px-5 py-4 cursor-text outline-none focus:ring-white/[0.07] transition-colors"
+    >
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[10px] text-muted/35 uppercase tracking-widest">Try it out</span>
+        {focused && (
+          <span className="text-[10px] text-muted/30">Tab to reset</span>
+        )}
+      </div>
+      <div className="text-lg leading-loose select-none">
+        {SAMPLE_TEXT.split("").map((char, i) => {
+          const isCurrent = i === typed.length;
+          const isTyped = i < typed.length;
+          const isCorrect = isTyped && typed[i] === char;
+          const isWrong = isTyped && typed[i] !== char;
+
+          let color: string | undefined;
+          if (isCorrect) color = themeDef?.palette[0] ?? "var(--color-correct)";
+          else if (isWrong) color = themeDef?.palette[1] ?? "var(--color-error)";
+
+          return (
+            <span
+              key={i}
+              className={`relative inline-block ${!isTyped ? "text-muted/25" : ""}`}
+              style={color ? { color } : undefined}
+            >
+              {isCurrent && focused && <CursorSpan def={cursorDef} />}
+              {char === " " ? "\u00A0" : char}
+            </span>
+          );
+        })}
+        {/* Cursor after the last character when complete */}
+        {typed.length === SAMPLE_TEXT.length && focused && (
+          <span className="relative inline-block">
+            <CursorSpan def={cursorDef} />
+          </span>
+        )}
+      </div>
+      {!focused && (
+        <p className="text-[11px] text-muted/25 mt-2">Click to focus · start typing</p>
+      )}
+    </div>
+  );
+}
+
+function CursorSpan({ def }: { def: CursorStyleDef | null }) {
+  const color = def?.color ?? "var(--color-accent)";
+  const glow = def?.glowColor;
+  const shape = def?.shape ?? "line";
+  const animName = def?.animation;
+
+  const style: React.CSSProperties = {
+    position: "absolute",
+    backgroundColor: color,
+    boxShadow: glow ? `0 0 6px ${glow}` : undefined,
+    zIndex: 1,
+  };
+
+  // Apply blink animation — prefer the cursor's own animation, fall back to standard blink
+  const animClass = animName ? "" : "animate-blink";
+  if (animName) {
+    style.animation = `${animName} 1s ease-in-out infinite`;
+  }
+
+  if (shape === "block") {
+    return (
+      <span
+        className={`${animClass} rounded-sm`}
+        style={{ ...style, inset: 0, opacity: 0.35 }}
+      />
+    );
+  }
+  if (shape === "underline") {
+    return (
+      <span
+        className={animClass}
+        style={{ ...style, bottom: 1, left: 0, right: 0, height: 2 }}
+      />
+    );
+  }
+  // line (default)
+  return (
+    <span
+      className={animClass}
+      style={{ ...style, left: 0, top: "10%", bottom: "10%", width: 2 }}
+    />
   );
 }
 
