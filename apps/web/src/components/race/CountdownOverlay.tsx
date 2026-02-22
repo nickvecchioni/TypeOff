@@ -12,7 +12,7 @@ const MODE_LABELS: Record<RaceMode, string | null> = {
   numbers: "Numbers",
   difficult: "Difficult",
   code: "Code",
-  special: "Special",
+  special: "Symbols",
 };
 
 const MODE_DESCRIPTIONS: Record<RaceMode, string> = {
