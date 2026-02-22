@@ -217,7 +217,7 @@ function LevelWidget({
   isPro: boolean;
 }) {
   const xpPct = Math.round((currentXp / nextLevelXp) * 100);
-  const upcomingRewards = COSMETIC_REWARDS.filter((r) => r.level > level).slice(0, 7);
+  const upcomingRewards = COSMETIC_REWARDS.filter((r) => r.level > level).slice(0, 9);
   const xpRemaining = nextLevelXp - currentXp;
 
   return (
@@ -647,22 +647,6 @@ export function QueueScreen({
 
                 {session.user.placementsCompleted && !party && (
                   <div className="flex items-center gap-2">
-                    <Link
-                      href="/solo"
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted/70 bg-white/[0.04] ring-1 ring-white/[0.08] hover:text-text hover:bg-white/[0.06] hover:ring-white/[0.12] transition-all"
-                    >
-                      <svg
-                        width="10"
-                        height="10"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        className="opacity-70"
-                      >
-                        <circle cx="8" cy="5" r="3" stroke="currentColor" strokeWidth="1.5" />
-                        <path d="M2 14c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                      </svg>
-                      Solo
-                    </Link>
                     <button
                       onClick={onCreateParty}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted/70 bg-white/[0.04] ring-1 ring-white/[0.08] hover:text-text hover:bg-white/[0.06] hover:ring-white/[0.12] transition-all"
