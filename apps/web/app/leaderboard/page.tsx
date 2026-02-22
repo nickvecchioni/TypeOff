@@ -247,15 +247,9 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
                         <div className="flex items-center gap-1.5 min-w-0">
                           <div className="flex flex-col min-w-0">
                             <span className={`truncate text-sm leading-tight ${isMe ? "font-bold" : ""}`}>
-                              {isMe ? (
-                                <CosmeticName nameColor={null} nameEffect={cosmetic?.activeNameEffect}>
-                                  <span className="text-accent">{row.username}</span>
-                                </CosmeticName>
-                              ) : (
-                                <CosmeticName nameColor={cosmetic?.activeNameColor} nameEffect={cosmetic?.activeNameEffect}>
-                                  {row.username}
-                                </CosmeticName>
-                              )}
+                              <CosmeticName nameColor={cosmetic?.activeNameColor} nameEffect={cosmetic?.activeNameEffect}>
+                                {row.username}
+                              </CosmeticName>
                               <span className="text-[10px] font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded ml-1.5">{lvl}</span>
                             </span>
                             <span className="flex items-center gap-1.5">
@@ -323,8 +317,10 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
                   <div className="flex items-center gap-2.5 min-w-0">
                     <span className="w-2 h-2 rounded-full shrink-0 bg-emerald-400" />
                     <div className="flex flex-col min-w-0">
-                      <span className="truncate text-sm leading-tight text-accent font-bold">
-                        {row.username}
+                      <span className="truncate text-sm leading-tight font-bold">
+                        <CosmeticName nameColor={myCosmetic?.activeNameColor} nameEffect={myCosmetic?.activeNameEffect}>
+                          {row.username}
+                        </CosmeticName>
                         <span className="text-[10px] font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded ml-1.5">{myLvl}</span>
                       </span>
                       <span className="flex items-center gap-1.5">
@@ -588,15 +584,9 @@ async function SoloLeaderboard({
                         <span
                           className={`truncate text-sm leading-tight ${isMe ? "font-bold" : ""}`}
                         >
-                          {isMe ? (
-                            <CosmeticName nameColor={null} nameEffect={soloCosmetic?.activeNameEffect}>
-                              <span className="text-accent">{row.username}</span>
-                            </CosmeticName>
-                          ) : (
-                            <CosmeticName nameColor={soloCosmetic?.activeNameColor} nameEffect={soloCosmetic?.activeNameEffect}>
-                              {row.username}
-                            </CosmeticName>
-                          )}
+                          <CosmeticName nameColor={soloCosmetic?.activeNameColor} nameEffect={soloCosmetic?.activeNameEffect}>
+                            {row.username}
+                          </CosmeticName>
                           <span className="text-[10px] font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded ml-1.5">{getXpLevel(row.totalXp ?? 0).level}</span>
                         </span>
                         <span className="flex items-center gap-1.5">
@@ -655,8 +645,10 @@ async function SoloLeaderboard({
                     <LiveBadge userId={row.usrId} />
                     <div className="flex items-center gap-1.5 min-w-0">
                       <div className="flex flex-col min-w-0">
-                        <span className="truncate text-sm leading-tight text-accent font-bold">
-                          {row.username}
+                        <span className="truncate text-sm leading-tight font-bold">
+                          <CosmeticName nameColor={mySoloCosmetic?.activeNameColor} nameEffect={mySoloCosmetic?.activeNameEffect}>
+                            {row.username}
+                          </CosmeticName>
                           <span className="text-[10px] font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded ml-1.5">{getXpLevel(row.totalXp ?? 0).level}</span>
                         </span>
                         <span className="flex items-center gap-1.5">
@@ -842,15 +834,9 @@ async function UniverseLeaderboard({
                     <div className="flex items-center gap-1.5 min-w-0">
                       <div className="flex flex-col min-w-0">
                         <span className={`truncate text-sm leading-tight ${isMe ? "font-bold" : ""}`}>
-                          {isMe ? (
-                            <CosmeticName nameColor={null} nameEffect={cosmetic?.activeNameEffect}>
-                              <span className="text-accent">{row.username}</span>
-                            </CosmeticName>
-                          ) : (
-                            <CosmeticName nameColor={cosmetic?.activeNameColor} nameEffect={cosmetic?.activeNameEffect}>
-                              {row.username}
-                            </CosmeticName>
-                          )}
+                          <CosmeticName nameColor={cosmetic?.activeNameColor} nameEffect={cosmetic?.activeNameEffect}>
+                            {row.username}
+                          </CosmeticName>
                           <span className="text-[10px] font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded ml-1.5">{getXpLevel(row.totalXp ?? 0).level}</span>
                         </span>
                         <span className="flex items-center gap-1.5">
