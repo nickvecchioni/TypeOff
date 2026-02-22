@@ -445,42 +445,24 @@ function ProPanel({ level }: { level: number }) {
   return (
     <div className="rounded-xl overflow-hidden ring-1 ring-amber-400/15 bg-amber-400/[0.02]">
       <div className="h-px bg-gradient-to-r from-transparent via-amber-400/30 to-transparent" />
-      <div className="px-4 py-3 flex items-start gap-4">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2.5">
-            <span className="text-[9px] font-black tracking-[0.15em] text-amber-400 bg-amber-400/10 ring-1 ring-amber-400/25 rounded px-1.5 py-0.5 leading-none">
-              PRO
+      <div className="px-3 py-2.5 flex items-center gap-3">
+        <span className="text-[9px] font-black tracking-[0.15em] text-amber-400 bg-amber-400/10 ring-1 ring-amber-400/25 rounded px-1.5 py-0.5 leading-none shrink-0">
+          PRO
+        </span>
+        <div className="flex items-center gap-3 flex-1 min-w-0 flex-wrap">
+          {[
+            { icon: "📊", label: "Key accuracy heatmap" },
+            { icon: "🎨", label: "Pro cosmetics & themes" },
+            { icon: "⚡", label: "Bigram analytics" },
+          ].map(({ icon, label }) => (
+            <span key={label} className="flex items-center gap-1 text-[11px] text-text/55 whitespace-nowrap">
+              <span>{icon}</span>{label}
             </span>
-            <span className="text-xs font-semibold text-text/60">
-              Unlock more from every race
-            </span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 sm:gap-x-4">
-            {[
-              { icon: "📊", label: "Key accuracy heatmap", sub: "See every mistype by key" },
-              { icon: "🎨", label: "Pro cosmetics & themes", sub: "Exclusive rewards unlocked" },
-              { icon: "⚡", label: "Bigram analytics", sub: "Find your slowest sequences" },
-            ].map(({ icon, label, sub }) => (
-              <div key={label} className="flex items-start gap-1.5">
-                <span className="text-sm mt-0.5 shrink-0">{icon}</span>
-                <div>
-                  <div className="text-[11px] font-medium text-text/65">{label}</div>
-                  <div className="text-[10px] text-muted/60 leading-snug">{sub}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-          {nextProReward && (
-            <div className="mt-2 text-[10px] text-muted/60 leading-none">
-              🔒 Your next Pro reward:{" "}
-              <span className="text-amber-400/65 font-semibold">{nextProReward.name}</span>
-              {" "}at Level {nextProReward.level}
-            </div>
-          )}
+          ))}
         </div>
         <Link
           href="/pro"
-          className="shrink-0 rounded-lg bg-amber-400/10 ring-1 ring-amber-400/30 text-amber-400 text-xs font-bold px-3 py-2 hover:bg-amber-400/20 transition-colors whitespace-nowrap leading-none"
+          className="shrink-0 rounded-lg bg-amber-400/10 ring-1 ring-amber-400/30 text-amber-400 text-xs font-bold px-3 py-1.5 hover:bg-amber-400/20 transition-colors whitespace-nowrap leading-none"
         >
           Upgrade →
         </Link>
@@ -912,10 +894,7 @@ export function RaceResults({
 
       {/* ── Text Leaderboard ──────────────────────────────── */}
       {seed != null && mode && mode !== "words" && mode !== "special" && (
-        <div
-          className="w-full min-h-[4rem]"
-          style={{ animation: "slide-up 0.5s ease-out 0.12s both" }}
-        >
+        <div style={{ animation: "slide-up 0.5s ease-out 0.12s both" }}>
           <TextLeaderboard seed={seed} mode={mode} limit={10} />
         </div>
       )}
@@ -948,7 +927,7 @@ export function RaceResults({
 
       {/* ── Actions ───────────────────────────────────────── */}
       <div
-        className="flex flex-col items-center gap-1.5 w-full max-w-xs mx-auto"
+        className="flex flex-col items-center gap-1.5 w-full"
         style={{ animation: "slide-up 0.5s ease-out 0.18s both" }}
       >
         {inParty && !isLeader && !isPlacement ? (

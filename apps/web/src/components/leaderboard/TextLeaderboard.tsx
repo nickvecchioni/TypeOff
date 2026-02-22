@@ -33,11 +33,7 @@ export function TextLeaderboard({ seed, mode, limit = 10 }: TextLeaderboardProps
   }
 
   if (entries.length === 0) {
-    return (
-      <div className="text-xs text-muted/60 text-center py-3">
-        No records for this text yet
-      </div>
-    );
+    return null;
   }
 
   return (

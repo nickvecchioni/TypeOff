@@ -53,8 +53,8 @@ export function WpmChart({ samples }: WpmChartProps) {
     >
       <defs>
         <linearGradient id="wpmGradient" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.2" />
-          <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0" />
+          <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.35" />
+          <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0.02" />
         </linearGradient>
       </defs>
 
@@ -66,7 +66,7 @@ export function WpmChart({ samples }: WpmChartProps) {
             x2={CHART_WIDTH - PADDING.right}
             y1={scaleY(tick)}
             y2={scaleY(tick)}
-            stroke="var(--color-surface-bright)"
+            stroke="rgba(255,255,255,0.07)"
             strokeWidth={1}
           />
           <text
@@ -84,13 +84,23 @@ export function WpmChart({ samples }: WpmChartProps) {
       {/* Area fill under WPM line */}
       <path d={areaPath} fill="url(#wpmGradient)" />
 
+      {/* Bottom axis line */}
+      <line
+        x1={PADDING.left}
+        x2={CHART_WIDTH - PADDING.right}
+        y1={PADDING.top + innerHeight}
+        y2={PADDING.top + innerHeight}
+        stroke="rgba(255,255,255,0.1)"
+        strokeWidth={1}
+      />
+
       {/* Raw WPM line */}
       <path
         d={toPath("raw")}
         fill="none"
         stroke="var(--color-muted)"
         strokeWidth={1.5}
-        strokeOpacity={0.3}
+        strokeOpacity={0.5}
         strokeDasharray="4 4"
       />
 
