@@ -386,7 +386,7 @@ export function QueueScreen({
 
   /* ── Idle state ───────────────────────────────────────────────────────── */
   return (
-    <div className="flex flex-col items-center w-full max-w-4xl gap-5">
+    <div className="flex flex-col items-center w-full max-w-4xl gap-3">
       {session?.user ? (
         !session.user.placementsCompleted ? (
           <GuestPlacement startFromIdle onPlacementComplete={handlePlacementClaim} />
@@ -498,7 +498,7 @@ export function QueueScreen({
 
               {/* Mode selector */}
               {session.user.placementsCompleted && (
-                <div className="relative w-full mb-4">
+                <div className="relative w-full mb-3">
                 <div className="grid grid-cols-4 gap-1.5">
                   {MODES.map(({ id, label, icon, desc }) => {
                     const active = modeCategories.includes(id);
@@ -538,7 +538,7 @@ export function QueueScreen({
               <button
                 onClick={() => onJoin({ privateRace, modeCategories })}
                 disabled={!connected || (inParty && !allMembersReady)}
-                className="relative w-full rounded-xl bg-accent/[0.08] ring-1 ring-accent/25 text-accent py-5 text-base font-bold tracking-wide glow-accent hover:bg-accent hover:text-bg hover:ring-accent hover:glow-accent-strong transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent/[0.08] disabled:hover:text-accent disabled:hover:ring-accent/25"
+                className="relative w-full rounded-xl bg-accent/[0.08] ring-1 ring-accent/25 text-accent py-3.5 text-base font-bold tracking-wide glow-accent hover:bg-accent hover:text-bg hover:ring-accent hover:glow-accent-strong transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent/[0.08] disabled:hover:text-accent disabled:hover:ring-accent/25"
               >
                 {session.user.placementsCompleted
                   ? privateRace
