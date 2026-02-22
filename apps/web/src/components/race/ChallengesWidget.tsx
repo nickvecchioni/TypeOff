@@ -93,7 +93,7 @@ export function ChallengesWidget() {
         {/* Weekly Challenge */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-muted/60 uppercase tracking-wider">
+            <span className="text-xs font-bold text-amber-400/70 uppercase tracking-wider">
               Weekly Challenge
             </span>
             <span className="text-xs text-muted tabular-nums">{weeklyCountdown}</span>
@@ -131,14 +131,24 @@ function ChallengeRow({
   const pct = challenge.target > 0 ? (clamped / challenge.target) * 100 : 0;
 
   return (
-    <div className="flex items-center gap-3 group">
+    <div
+      className={`flex items-center gap-3 rounded-lg px-2 py-1.5 -mx-2 transition-colors ${
+        completed
+          ? "bg-correct/[0.04] ring-1 ring-correct/[0.10]"
+          : "ring-1 ring-transparent"
+      }`}
+    >
       <span className="text-lg shrink-0 w-6 text-center">{challenge.icon}</span>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-0.5">
-          <span className="text-xs font-medium text-text truncate">
-            {challenge.name}
+          <span className="flex items-center gap-1.5 min-w-0">
+            <span className={`text-xs font-medium truncate ${completed ? "text-text/70" : "text-text"}`}>
+              {challenge.name}
+            </span>
             {completed && (
-              <span className="text-correct ml-1.5">&#10003;</span>
+              <span className="shrink-0 text-[9px] font-black text-correct bg-correct/15 ring-1 ring-correct/25 px-1 py-[2px] rounded leading-none">
+                ✓
+              </span>
             )}
           </span>
           <span className={`text-xs tabular-nums shrink-0 ml-2 ${loading ? "text-transparent" : "text-muted"}`}>
@@ -154,17 +164,26 @@ function ChallengeRow({
                 : completed
                 ? "bg-correct"
                 : accent
-                ? "bg-purple-400"
+                ? "bg-amber-400"
                 : "bg-accent"
             }`}
-            style={loading ? undefined : { width: `${Math.round(pct)}%` }}
+            style={
+              loading
+                ? undefined
+                : {
+                    width: `${Math.round(pct)}%`,
+                    boxShadow: completed
+                      ? "0 0 6px rgba(34,197,94,0.55)"
+                      : undefined,
+                  }
+            }
           />
         </div>
       </div>
       <span
-        className={`text-[10px] font-bold shrink-0 rounded px-1.5 py-0.5 tabular-nums ${
+        className={`text-[10px] font-bold shrink-0 rounded px-1.5 py-0.5 tabular-nums transition-all ${
           completed
-            ? "bg-correct/10 text-correct"
+            ? "bg-correct/15 text-correct ring-1 ring-correct/25 [box-shadow:0_0_8px_rgba(34,197,94,0.3)]"
             : "bg-white/[0.04] text-muted"
         }`}
       >

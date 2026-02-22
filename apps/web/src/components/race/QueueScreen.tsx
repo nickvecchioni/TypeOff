@@ -6,8 +6,8 @@ import { useSession, signIn } from "next-auth/react";
 import { PartyPanel } from "@/components/social/PartyPanel";
 import { ChallengesWidget } from "@/components/race/ChallengesWidget";
 import { GuestPlacement } from "@/components/race/GuestPlacement";
-import { getXpLevel, COSMETIC_REWARDS, getRankInfo, getRankProgress, getNextDivisionElo } from "@typeoff/shared";
-import type { PartyState, RankTier, ModeCategory } from "@typeoff/shared";
+import { getXpLevel, COSMETIC_REWARDS, getRankInfo, getRankProgress, getNextDivisionElo, TYPING_THEMES, NAME_COLORS, CURSOR_STYLES } from "@typeoff/shared";
+import type { PartyState, RankTier, ModeCategory, CosmeticReward } from "@typeoff/shared";
 
 // ── Rank styling maps ───────────────────────────────────────────────────────
 
@@ -117,16 +117,91 @@ function EloProgressBar({ elo, tier }: { elo: number; tier: RankTier }) {
   );
 }
 
-function rewardTypeIcon(type: string, value: string): string {
-  switch (type) {
-    case "badge": return value;
-    case "nameColor": return "🎨";
-    case "title": return "🏷️";
-    case "cursorStyle": return "🔲";
-    case "profileBorder": return "🖼️";
-    case "typingTheme": return "🎨";
-    case "nameEffect": return "✦";
-    default: return "✨";
+const BORDER_COLORS: Record<string, string> = {
+  s1_border_ember:    "#f97316",
+  s1_border_ice:      "#67e8f9",
+  s1_border_diamond:  "#3b82f6",
+  s1_border_void:     "#818cf8",
+  pro_border_inferno: "#ef4444",
+  pro_border_aurora:  "#34d399",
+  pro_border_obsidian:"#a78bfa",
+};
+
+function RewardIcon({ reward }: { reward: CosmeticReward }) {
+  switch (reward.type) {
+    case "typingTheme": {
+      const theme = TYPING_THEMES[reward.id];
+      if (!theme) return <span className="text-sm leading-none">🎨</span>;
+      const [c, e, m] = theme.palette;
+      return (
+        <span className="flex gap-[3px] items-center shrink-0">
+          <span className="w-2.5 h-2.5 rounded-[2px]" style={{ backgroundColor: c }} />
+          <span className="w-2.5 h-2.5 rounded-[2px]" style={{ backgroundColor: e }} />
+          <span className="w-2.5 h-2.5 rounded-[2px]" style={{ backgroundColor: m }} />
+        </span>
+      );
+    }
+    case "nameColor": {
+      const color = NAME_COLORS[reward.id] ?? reward.value;
+      return (
+        <span
+          className="w-3.5 h-3.5 rounded-full shrink-0 block"
+          style={{ backgroundColor: color, boxShadow: `0 0 6px ${color}90` }}
+        />
+      );
+    }
+    case "badge":
+      return <span className="text-sm leading-none shrink-0">{reward.value}</span>;
+    case "cursorStyle": {
+      const cursor = CURSOR_STYLES[reward.id];
+      if (!cursor) return <span className="text-sm leading-none">▌</span>;
+      const { shape, color } = cursor;
+      if (shape === "block")
+        return (
+          <span
+            className="w-2.5 h-3.5 rounded-[2px] shrink-0 block"
+            style={{ backgroundColor: color, boxShadow: `0 0 5px ${color}90` }}
+          />
+        );
+      if (shape === "underline")
+        return (
+          <span className="shrink-0 flex flex-col justify-end w-3 h-3.5">
+            <span
+              className="h-[2px] w-full rounded-full"
+              style={{ backgroundColor: color, boxShadow: `0 0 4px ${color}90` }}
+            />
+          </span>
+        );
+      return (
+        <span
+          className="w-[2px] h-3.5 rounded-full shrink-0 block"
+          style={{ backgroundColor: color, boxShadow: `0 0 5px ${color}90` }}
+        />
+      );
+    }
+    case "title":
+      return (
+        <span className="text-[9px] font-black tracking-wide text-accent/80 bg-accent/[0.12] ring-1 ring-accent/20 px-1.5 py-[3px] rounded leading-none shrink-0 whitespace-nowrap max-w-[52px] truncate">
+          {reward.value}
+        </span>
+      );
+    case "nameEffect":
+      return (
+        <span className="text-[11px] font-black leading-none shrink-0 text-accent [text-shadow:0_0_8px_rgba(77,158,255,0.8)]">
+          Aa
+        </span>
+      );
+    case "profileBorder": {
+      const color = BORDER_COLORS[reward.id] ?? "#4d9eff";
+      return (
+        <span
+          className="w-3.5 h-3.5 rounded-full shrink-0 block border-2"
+          style={{ borderColor: color, boxShadow: `0 0 6px ${color}70` }}
+        />
+      );
+    }
+    default:
+      return <span className="text-sm leading-none">✨</span>;
   }
 }
 
@@ -187,14 +262,13 @@ function LevelWidget({
           <div className="space-y-1">
             {upcomingRewards.map((reward) => {
               const proLocked = reward.proOnly && !isPro;
-              const icon = rewardTypeIcon(reward.type, reward.value);
               return (
                 <div
                   key={reward.id}
                   className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/[0.02] ring-1 ring-white/[0.04] group-hover:ring-accent/10 transition-colors"
                 >
-                  <span className={`text-sm shrink-0 leading-none ${proLocked ? "opacity-30" : ""}`}>
-                    {icon}
+                  <span className={`shrink-0 flex items-center justify-center w-8 ${proLocked ? "opacity-30" : ""}`}>
+                    <RewardIcon reward={reward} />
                   </span>
                   <span className="text-[11px] font-semibold text-text/80 truncate leading-none flex-1">
                     {reward.name}
