@@ -581,7 +581,7 @@ export function QueueScreen({
 
               {/* Mode selector */}
               {session.user.placementsCompleted && (
-                <div className="relative w-full mb-3">
+                <div className="relative w-full mb-2">
                 <div className="grid grid-cols-4 gap-1.5">
                   {MODES.map(({ id, label, icon, desc }) => {
                     const active = modeCategories.includes(id);
@@ -611,7 +611,7 @@ export function QueueScreen({
                     );
                   })}
                 </div>
-                  <p className="text-[11px] text-muted/70 mt-2.5 leading-relaxed text-center">
+                  <p className="text-[11px] text-muted/70 mt-2 leading-relaxed text-center">
                     Select one or more modes. One is picked at random each race.
                   </p>
                 </div>
@@ -621,7 +621,7 @@ export function QueueScreen({
               <button
                 onClick={() => onJoin({ privateRace, modeCategories })}
                 disabled={!connected || (inParty && !allMembersReady)}
-                className="relative w-full rounded-xl bg-accent/[0.08] ring-1 ring-accent/25 text-accent py-3.5 text-base font-bold tracking-wide glow-accent hover:bg-accent hover:text-bg hover:ring-accent hover:glow-accent-strong transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent/[0.08] disabled:hover:text-accent disabled:hover:ring-accent/25"
+                className="relative w-full rounded-xl bg-accent/[0.08] ring-1 ring-accent/25 text-accent py-4 text-base font-bold tracking-wide glow-accent hover:bg-accent hover:text-bg hover:ring-accent hover:glow-accent-strong transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent/[0.08] disabled:hover:text-accent disabled:hover:ring-accent/25"
               >
                 {session.user.placementsCompleted
                   ? privateRace
@@ -631,7 +631,7 @@ export function QueueScreen({
               </button>
 
               {/* Hint row + secondary actions */}
-              <div className="relative flex items-center justify-between w-full mt-3">
+              <div className="relative flex items-center justify-between w-full mt-2">
                 <span className="text-[11px] text-muted/60">
                   {inParty && !allMembersReady ? (
                     "waiting for party to ready up..."
@@ -722,7 +722,7 @@ export function QueueScreen({
 
           {/* ── Dashboard ─────────────────────────────────────────────── */}
           {session.user.placementsCompleted && xpInfo && (
-            <div className="w-full border-t border-white/[0.05] pt-3 mt-1">
+            <div className="w-full border-t border-white/[0.05] pt-2">
             <div
               className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3 animate-fade-in"
               style={{ animationDelay: "120ms", animationFillMode: "both" }}
