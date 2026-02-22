@@ -246,7 +246,7 @@ export function RaceArena() {
 
   return (
     <div className={`flex flex-col items-center gap-8 w-full max-w-4xl mx-auto flex-1 ${
-      race.phase === "queuing" || race.phase === "placed" ? "justify-center" : "pt-8"
+      race.phase === "queuing" || race.phase === "placed" ? "justify-center" : "py-[8vh]"
     }`}>
       {race.error && (
         <div className="text-error text-sm">{race.error}</div>
