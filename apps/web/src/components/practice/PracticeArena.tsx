@@ -4,6 +4,7 @@ import React, { useRef, useEffect, useCallback, useState } from "react";
 import { useSession } from "next-auth/react";
 import { getPbKey } from "@typeoff/shared";
 import { useTypingEngine } from "@/hooks/useTypingEngine";
+import { useCapsLock } from "@/hooks/useCapsLock";
 import { WordDisplay } from "@/components/typing/WordDisplay";
 import { ConfigBar } from "./ConfigBar";
 import { PracticeResults } from "./PracticeResults";
@@ -207,6 +208,7 @@ export function PracticeArena({ initialDrill = false }: { initialDrill?: boolean
 
   const isTyping = engine.status === "typing";
   const isFinished = engine.status === "finished";
+  const capsLock = useCapsLock();
 
   // Current PB for the active config combo
   const pbKey = getPbKey(engine.config);
@@ -361,6 +363,13 @@ export function PracticeArena({ initialDrill = false }: { initialDrill?: boolean
               </span>
             ) : null}
           </div>
+
+          {/* Caps Lock warning */}
+          {capsLock && (
+            <span className="absolute top-0 px-2 py-0.5 rounded text-xs font-medium bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/20">
+              Caps Lock
+            </span>
+          )}
 
           {/* Tab+Enter hint (fades out when typing starts) */}
           <p

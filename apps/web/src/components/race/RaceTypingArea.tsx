@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect, useCallback, useState, useMemo } from "react";
 import { useTypingEngine } from "@/hooks/useTypingEngine";
+import { useCapsLock } from "@/hooks/useCapsLock";
 import { WordDisplay } from "@/components/typing/WordDisplay";
 import { useActiveCosmetics } from "@/contexts/CosmeticContext";
 import { TYPING_THEMES, generateWordsForMode } from "@typeoff/shared";
@@ -38,6 +39,7 @@ export function RaceTypingArea({
   disabled,
 }: RaceTypingAreaProps) {
   const { activeTypingTheme } = useActiveCosmetics();
+  const capsLock = useCapsLock();
   const themeClass = activeTypingTheme ? TYPING_THEMES[activeTypingTheme]?.className ?? "" : "";
 
   // Use the same generation function as the server for all modes
@@ -140,9 +142,14 @@ export function RaceTypingArea({
 
   return (
     <div className={`w-full relative ${themeClass}`}>
-      <div className="text-center text-sm text-muted mb-3 tabular-nums h-5">
+      <div className="text-center text-sm text-muted mb-3 tabular-nums h-5 flex items-center justify-center gap-3">
         {timeoutRemaining != null && timeoutRemaining > 0 && (
           <>Time remaining: <span className="text-accent font-bold">{timeoutRemaining}s</span></>
+        )}
+        {capsLock && (
+          <span className="px-2 py-0.5 rounded text-xs font-medium bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/20">
+            Caps Lock
+          </span>
         )}
       </div>
       <div
