@@ -168,10 +168,9 @@ export function WpmChart({ samples }: WpmChartProps) {
         const y = scaleY(hovered.wpm);
         const timeSec = (hovered.elapsed / 1000).toFixed(1);
         const wpmVal = Math.round(hovered.wpm);
-        const rawVal = Math.round(hovered.raw);
 
-        const TOOLTIP_W = 108;
-        const TOOLTIP_H = 36;
+        const TOOLTIP_W = 90;
+        const TOOLTIP_H = 30;
         const flipLeft = x + TOOLTIP_W + 14 > CHART_WIDTH - PADDING.right;
         const tx = flipLeft ? x - TOOLTIP_W - 8 : x + 8;
         const ty = Math.max(PADDING.top, Math.min(y - TOOLTIP_H / 2, PADDING.top + innerHeight - TOOLTIP_H));
@@ -199,12 +198,12 @@ export function WpmChart({ samples }: WpmChartProps) {
               strokeWidth={1}
             />
             {/* WPM value */}
-            <text x={tx + 8} y={ty + 14} fill="var(--color-accent)" fontSize={12} fontWeight="700">
+            <text x={tx + 8} y={ty + 12} fill="var(--color-accent)" fontSize={12} fontWeight="700">
               {wpmVal} wpm
             </text>
-            {/* Time + raw */}
-            <text x={tx + 8} y={ty + 28} fill="var(--color-muted)" fontSize={10} fillOpacity={0.7}>
-              {timeSec}s · raw {rawVal}
+            {/* Time */}
+            <text x={tx + 8} y={ty + 24} fill="var(--color-muted)" fontSize={10} fillOpacity={0.7}>
+              at {timeSec}s
             </text>
           </g>
         );
