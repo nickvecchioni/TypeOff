@@ -34,10 +34,10 @@ const RANK_GLOW: Record<RankTier, string> = {
 // ── Static data ─────────────────────────────────────────────────────────────
 
 const MODES = [
-  { id: "words" as const, label: "Words", icon: "Aa", desc: "common english words" },
-  { id: "special" as const, label: "Special", icon: "#!", desc: "numbers & punct" },
-  { id: "quotes" as const, label: "Quotes", icon: "\u201C\u201D", desc: "famous quotes" },
-  { id: "code" as const, label: "Code", icon: "</>", desc: "code snippets" },
+  { id: "words" as const, label: "Words", icon: "Aa", desc: "everyday vocabulary" },
+  { id: "special" as const, label: "Special", icon: "#!", desc: "symbols & numbers" },
+  { id: "quotes" as const, label: "Quotes", icon: "\u201C\u201D", desc: "from books & film" },
+  { id: "code" as const, label: "Code", icon: "</>", desc: "real syntax, real pain" },
 ] as const;
 
 // ── Props ───────────────────────────────────────────────────────────────────
@@ -500,7 +500,7 @@ export function QueueScreen({
               {session.user.placementsCompleted && (
                 <div className="relative w-full mb-4">
                   <p className="text-[11px] text-muted/50 mb-2.5 leading-relaxed">
-                    Select one or more modes. Each race randomly picks from your selection. You&apos;ll be matched with players who have at least one mode in common.
+                    Pick one or more modes — each race draws from your selection, matched with players sharing at least one.
                   </p>
                 <div className="grid grid-cols-4 gap-1.5">
                   {MODES.map(({ id, label, icon, desc }) => {
