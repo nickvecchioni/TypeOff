@@ -68,9 +68,9 @@ export function ChallengesWidget() {
   }, []);
 
   return (
-    <div className="w-full rounded-xl bg-surface/50 ring-1 ring-white/[0.04] overflow-hidden">
-      <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
-      <div className="p-5 space-y-4">
+    <div className="w-full h-full rounded-xl bg-surface/50 ring-1 ring-white/[0.04] overflow-hidden flex flex-col">
+      <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent shrink-0" />
+      <div className="p-5 flex flex-col flex-1 justify-between gap-4">
         {/* Daily Challenges */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">

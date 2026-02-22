@@ -724,7 +724,7 @@ export function QueueScreen({
           {session.user.placementsCompleted && xpInfo && (
             <div className="w-full border-t border-white/[0.05] pt-3 mt-1">
             <div
-              className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3 items-start animate-fade-in"
+              className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3 animate-fade-in"
               style={{ animationDelay: "120ms", animationFillMode: "both" }}
             >
               <ChallengesWidget />
