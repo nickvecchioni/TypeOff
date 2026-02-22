@@ -120,9 +120,14 @@ const BOT_WEIGHT = 0.6;
 
 /**
  * Calculate ELO changes for all players in a race.
- * Uses pairwise comparisons with WPM-margin sigmoid scoring:
- *   scoreA = 1 / (1 + exp(-wpmDiff / 15))
- * Close races → near-draw; blowouts → larger swings.
+ * Uses pairwise comparisons with a blended score:
+ *   wpmScore    = 1 / (1 + exp(-wpmDiff / 15))   — sigmoid on WPM margin
+ *   placementScore = 1 if A placed higher than B, else 0
+ *   scoreA      = wpmScore * 0.6 + placementScore * 0.4
+ *
+ * The placement component ensures any win (regardless of WPM margin) always
+ * produces a positive score, preventing tight victories from rounding to 0 ELO.
+ * The WPM component preserves larger swings for dominant performances.
  *
  * Bot pairings are weighted at 60% to reduce bot-RNG influence.
  * Accuracy multiplier: gains scaled by min(1, accuracy / 96) — losses unaffected.
@@ -149,9 +154,13 @@ export function calculateRaceElo(
       const a = players[i];
       const b = players[j];
 
-      // Sigmoid score based on WPM difference (positive = A faster)
+      // Blended score: WPM margin (60%) + placement outcome (40%)
+      // Placement component ensures any win yields a positive score even when
+      // WPM margins are too small for the sigmoid to clear the rounding threshold.
       const wpmDiff = a.wpm - b.wpm;
-      const scoreA = 1 / (1 + Math.exp(-wpmDiff / 15));
+      const wpmScore = 1 / (1 + Math.exp(-wpmDiff / 15));
+      const placementScore = a.placement < b.placement ? 1 : 0;
+      const scoreA = wpmScore * 0.6 + placementScore * 0.4;
 
       let changeA = calculateEloChange(a.elo, b.elo, scoreA, a.gamesPlayed);
       let changeB = -calculateEloChange(b.elo, a.elo, 1 - scoreA, b.gamesPlayed);
