@@ -529,7 +529,7 @@ export function QueueScreen({
                   })}
                 </div>
                   <p className="text-[11px] text-muted/50 mt-2.5 leading-relaxed text-center">
-                    Pick one or more modes — each race draws from your selection, matched with players sharing at least one.
+                    Select the modes you want to race in. You'll only be matched with players who share at least one.
                   </p>
                 </div>
               )}
