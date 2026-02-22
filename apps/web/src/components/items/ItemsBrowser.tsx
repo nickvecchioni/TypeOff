@@ -628,6 +628,9 @@ function TypingPreview({
         setTyped("");
         return;
       }
+      if (e.key === " ") {
+        e.preventDefault();
+      }
       if (e.key === "Backspace") {
         setTyped((prev) => prev.slice(0, -1));
         return;
