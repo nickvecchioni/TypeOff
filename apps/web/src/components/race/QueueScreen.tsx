@@ -510,7 +510,7 @@ export function QueueScreen({
                         className={`flex flex-col items-center gap-1 px-2 py-2.5 rounded-lg text-center transition-all ${
                           active
                             ? "ring-1 ring-accent bg-accent/[0.08] text-accent"
-                            : "ring-1 ring-white/[0.06] bg-white/[0.02] text-muted/60 hover:text-muted hover:ring-white/[0.1] hover:bg-white/[0.04]"
+                            : "ring-1 ring-white/[0.09] bg-white/[0.02] text-muted/80 hover:text-muted hover:ring-white/[0.15] hover:bg-white/[0.04]"
                         }`}
                       >
                         <span
@@ -528,7 +528,7 @@ export function QueueScreen({
                     );
                   })}
                 </div>
-                  <p className="text-[11px] text-muted/50 mt-2.5 leading-relaxed text-center">
+                  <p className="text-[11px] text-muted/70 mt-2.5 leading-relaxed text-center">
                     Select the modes you want to race in. You'll only be matched with players who share at least one.
                   </p>
                 </div>
@@ -655,6 +655,7 @@ export function QueueScreen({
 
           {/* ── Dashboard ─────────────────────────────────────────────── */}
           {session.user.placementsCompleted && xpInfo && (
+            <div className="w-full border-t border-white/[0.05] pt-3 mt-1">
             <div
               className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3 animate-fade-in"
               style={{ animationDelay: "120ms", animationFillMode: "both" }}
@@ -666,6 +667,7 @@ export function QueueScreen({
                 nextLevelXp={xpInfo.nextLevelXp}
                 isPro={session.user.isPro ?? false}
               />
+            </div>
             </div>
           )}
         </>
