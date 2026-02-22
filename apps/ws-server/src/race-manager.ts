@@ -636,6 +636,8 @@ export class RaceManager {
     });
   }
 
+  get isFinished() { return this.status === "finished"; }
+
   private async endRace() {
     if (this.status === "finished") return;
     this.status = "finished";

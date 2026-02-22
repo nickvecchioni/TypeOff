@@ -59,10 +59,22 @@ export class Matchmaker implements RaceOwner {
     // Remove if already in queue
     this.removeFromQueue(socket.id);
 
-    // If already in a race, prevent duplicate joins
+    // If already in a race, prevent duplicate joins — but allow re-queue if race is finished
     if (this.socketToRace.has(socket.id)) {
-      console.log(`[matchmaker] player ${player.id} already in race, ignoring joinQueue`);
-      return;
+      const existingRaceId = this.socketToRace.get(socket.id)!;
+      const existingRace = this.races.get(existingRaceId);
+      if (existingRace && !existingRace.isFinished) {
+        console.log(`[matchmaker] player ${player.id} already in active race, ignoring joinQueue`);
+        return;
+      }
+      // Race is finished (results screen) — release this socket so they can re-queue
+      this.socketToRace.delete(socket.id);
+      const userId = this.socketToUserId.get(socket.id);
+      if (userId) {
+        this.userIdToRace.delete(userId);
+        this.socketToUserId.delete(socket.id);
+      }
+      console.log(`[matchmaker] player ${player.id} re-queuing after finished race`);
     }
 
     // Check placement for authenticated players
@@ -100,10 +112,20 @@ export class Matchmaker implements RaceOwner {
     for (const entry of entries) {
       this.removeFromQueue(entry.socket.id);
 
-      // If already in a race, skip
+      // If already in an active race, skip; if finished, release the mapping
       if (this.socketToRace.has(entry.socket.id)) {
-        console.log(`[matchmaker] party member ${entry.player.id} already in race, skipping`);
-        continue;
+        const existingRaceId = this.socketToRace.get(entry.socket.id)!;
+        const existingRace = this.races.get(existingRaceId);
+        if (existingRace && !existingRace.isFinished) {
+          console.log(`[matchmaker] party member ${entry.player.id} already in active race, skipping`);
+          continue;
+        }
+        this.socketToRace.delete(entry.socket.id);
+        const userId = this.socketToUserId.get(entry.socket.id);
+        if (userId) {
+          this.userIdToRace.delete(userId);
+          this.socketToUserId.delete(entry.socket.id);
+        }
       }
     }
 
