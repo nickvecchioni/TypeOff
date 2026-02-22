@@ -68,9 +68,16 @@ interface QueueScreenProps {
 function EloProgressBar({ elo, tier }: { elo: number; tier: RankTier }) {
   const progress = getRankProgress(elo);
   const nextElo = getNextDivisionElo(elo);
+  const currentRankInfo = getRankInfo(elo);
 
   if (nextElo == null) {
-    return <div className="flex-1" />;
+    return (
+      <div className="flex-1 min-w-0 flex items-center">
+        <span className="text-sm font-bold" style={{ color: RANK_HEX[tier] }}>
+          {currentRankInfo.label}
+        </span>
+      </div>
+    );
   }
 
   const nextRankInfo = getRankInfo(nextElo);
@@ -79,13 +86,17 @@ function EloProgressBar({ elo, tier }: { elo: number; tier: RankTier }) {
   return (
     <div className="flex-1 min-w-0 flex flex-col gap-1.5 justify-center">
       <div className="flex items-center justify-between gap-2">
-        <div className="text-[9px] text-muted/50 uppercase tracking-widest leading-none">
-          next rank
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="text-[9px] text-muted/50 tabular-nums">{eloNeeded} away</span>
+        <span
+          className="text-[11px] font-bold leading-none"
+          style={{ color: RANK_HEX[currentRankInfo.tier] }}
+        >
+          {currentRankInfo.label}
+        </span>
+        <div className="flex items-center gap-1 leading-none">
+          <span className="text-[11px] text-muted/50 tabular-nums">{eloNeeded} away</span>
+          <span className="text-[11px] text-muted/30">·</span>
           <span
-            className="text-[9px] font-bold leading-none"
+            className="text-[11px] font-bold"
             style={{ color: RANK_HEX[nextRankInfo.tier] }}
           >
             {nextRankInfo.label}
@@ -131,7 +142,7 @@ function LevelWidget({
   isPro: boolean;
 }) {
   const xpPct = Math.round((currentXp / nextLevelXp) * 100);
-  const upcomingRewards = COSMETIC_REWARDS.filter((r) => r.level > level).slice(0, 3);
+  const upcomingRewards = COSMETIC_REWARDS.filter((r) => r.level > level).slice(0, 5);
   const xpRemaining = nextLevelXp - currentXp;
 
   return (
@@ -189,7 +200,7 @@ function LevelWidget({
                     {reward.name}
                   </span>
                   <span className="text-[10px] text-muted/50 leading-none shrink-0">
-                    lv. {reward.level}
+                    Level {reward.level}
                   </span>
                   {proLocked && (
                     <span className="text-[8px] font-black tracking-wider text-amber-400 bg-amber-400/10 ring-1 ring-amber-400/30 px-1.5 py-0.5 rounded shrink-0 leading-none">
@@ -527,7 +538,7 @@ export function QueueScreen({
                   })}
                 </div>
                   <p className="text-[11px] text-muted/70 mt-2.5 leading-relaxed text-center">
-                    Select the modes you want to race in. You'll only be matched with players who share at least one.
+                    Select one or more modes. One is picked at random each race.
                   </p>
                 </div>
               )}
