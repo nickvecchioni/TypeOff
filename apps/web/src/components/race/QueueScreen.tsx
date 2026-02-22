@@ -512,7 +512,7 @@ export function QueueScreen({
                         }`}
                       >
                         <span
-                          className={`text-sm font-bold font-mono leading-none ${active ? "text-accent" : ""}`}
+                          className={`text-sm font-bold font-mono leading-none [font-variant-ligatures:none] ${active ? "text-accent" : ""}`}
                         >
                           {icon}
                         </span>
