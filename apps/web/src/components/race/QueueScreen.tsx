@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { useSession, signIn } from "next-auth/react";
 import { PartyPanel } from "@/components/social/PartyPanel";
@@ -59,6 +59,8 @@ interface QueueScreenProps {
   onMarkReady?: () => void;
   privateRace?: boolean;
   onSetPrivateRace?: (v: boolean) => void;
+  modeCategories: ModeCategory[];
+  onSetModeCategories: (categories: ModeCategory[]) => void;
 }
 
 // ── Sub-components ──────────────────────────────────────────────────────────
@@ -226,10 +228,11 @@ export function QueueScreen({
   onMarkReady,
   privateRace,
   onSetPrivateRace,
+  modeCategories,
+  onSetModeCategories,
 }: QueueScreenProps) {
   const { data: session, status, update: updateSession } = useSession();
   const tabPressedRef = React.useRef(false);
-  const [modeCategories, setModeCategories] = useState<ModeCategory[]>(["words"]);
 
   async function handlePlacementClaim(wpm: number) {
     try {
@@ -243,10 +246,10 @@ export function QueueScreen({
   }
 
   function toggleMode(id: ModeCategory) {
-    setModeCategories(prev =>
-      prev.includes(id)
-        ? prev.length > 1 ? prev.filter(m => m !== id) : prev
-        : [...prev, id]
+    onSetModeCategories(
+      modeCategories.includes(id)
+        ? modeCategories.length > 1 ? modeCategories.filter(m => m !== id) : modeCategories
+        : [...modeCategories, id]
     );
   }
 
@@ -495,7 +498,11 @@ export function QueueScreen({
 
               {/* Mode selector */}
               {session.user.placementsCompleted && (
-                <div className="relative w-full grid grid-cols-4 gap-1.5 mb-4">
+                <div className="relative w-full mb-4">
+                  <p className="text-[11px] text-muted/50 mb-2.5 leading-relaxed">
+                    Select one or more modes. Each race randomly picks from your selection. You&apos;ll be matched with players who have at least one mode in common.
+                  </p>
+                <div className="grid grid-cols-4 gap-1.5">
                   {MODES.map(({ id, label, icon, desc }) => {
                     const active = modeCategories.includes(id);
                     return (
@@ -523,6 +530,7 @@ export function QueueScreen({
                       </button>
                     );
                   })}
+                </div>
                 </div>
               )}
 

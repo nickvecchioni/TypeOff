@@ -14,7 +14,7 @@ import { SpectatorIndicator } from "./SpectatorIndicator";
 import type { EmoteEvent } from "./FloatingEmote";
 import { useSocket } from "@/hooks/useSocket";
 import { getRankInfo } from "@typeoff/shared";
-import type { RankTier, WpmSample } from "@typeoff/shared";
+import type { RankTier, WpmSample, ModeCategory } from "@typeoff/shared";
 
 const TIER_ORDER: RankTier[] = [
   "bronze", "silver", "gold", "platinum", "diamond", "master", "grandmaster",
@@ -31,6 +31,8 @@ export function RaceArena() {
   const { on } = useSocket();
 
   const myPlayerId = session?.user?.id ?? null;
+
+  const [modeCategories, setModeCategories] = React.useState<ModeCategory[]>(["words"]);
 
   // Spectator awareness
   const [spectators, setSpectators] = React.useState<Array<{ userId: string; name: string }>>([]);
@@ -280,6 +282,8 @@ export function RaceArena() {
           onMarkReady={partyHook.markReady}
           privateRace={partyHook.party?.privateRace}
           onSetPrivateRace={partyHook.setPrivateRace}
+          modeCategories={modeCategories}
+          onSetModeCategories={setModeCategories}
         />
       )}
 
@@ -353,7 +357,7 @@ export function RaceArena() {
           <RaceResults
             results={race.results}
             myPlayerId={myPlayerId}
-            onRaceAgain={() => race.raceAgain({ privateRace: partyHook.party?.privateRace })}
+            onRaceAgain={() => race.raceAgain({ privateRace: partyHook.party?.privateRace, modeCategories })}
             onGoHome={race.reset}
             placementRace={race.placementRace}
             placementTotal={race.placementTotal}
