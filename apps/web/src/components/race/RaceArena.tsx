@@ -329,14 +329,11 @@ export function RaceArena() {
                 </button>
               )}
             </div>
-            {/* Words — blurred during countdown, comes into focus on GO */}
+            {/* Words — hidden during countdown, fades in on GO */}
             <div
-              className="transition-[filter,opacity] duration-700 ease-out"
-              style={{
-                filter:
-                  race.phase === "countdown" ? "blur(12px)" : "none",
-                opacity: race.phase === "countdown" ? 0.3 : 1,
-              }}
+              className={`transition-opacity duration-700 ease-out ${
+                race.phase === "countdown" ? "opacity-0" : "opacity-100"
+              }`}
             >
               <RaceTypingArea
                 seed={race.raceState.seed}
