@@ -520,7 +520,7 @@ export function QueueScreen({
                         </span>
                         <span className="text-[11px] font-semibold leading-none">{label}</span>
                         <span
-                          className={`text-[9px] leading-tight hidden sm:block ${active ? "text-accent/70" : "text-muted/60"}`}
+                          className={`text-[11px] leading-tight hidden sm:block ${active ? "text-accent/70" : "text-muted/60"}`}
                         >
                           {desc}
                         </span>
