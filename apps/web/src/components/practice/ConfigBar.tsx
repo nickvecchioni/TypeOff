@@ -160,21 +160,22 @@ export function ConfigBar({
           ))}
         </div>
 
-        {/* Strict mode (hidden for zen + code) */}
-        {ct !== "zen" && ct !== "code" && (
-          <div className={`flex items-center gap-1 transition-opacity ${ct === "quotes" ? "opacity-20 pointer-events-none" : ""}`}>
-            <MicroDivider />
-            <StrictModeSelector
-              value={config.strictMode ?? "easy"}
-              onChange={(m: StrictMode) =>
-                set({
-                  strictMode: m,
-                  difficulty: m,
-                })
-              }
-            />
-          </div>
-        )}
+        {/* Strict mode (invisible for zen + code to preserve row height) */}
+        <div className={`flex items-center gap-1 transition-opacity ${
+          ct === "zen" || ct === "code" ? "invisible pointer-events-none" :
+          ct === "quotes" ? "opacity-20 pointer-events-none" : ""
+        }`}>
+          <MicroDivider />
+          <StrictModeSelector
+            value={config.strictMode ?? "easy"}
+            onChange={(m: StrictMode) =>
+              set({
+                strictMode: m,
+                difficulty: m,
+              })
+            }
+          />
+        </div>
 
         {/* Code language picker */}
         {ct === "code" && (
