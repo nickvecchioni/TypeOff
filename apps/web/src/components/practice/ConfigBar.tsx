@@ -54,6 +54,7 @@ export function ConfigBar({
       const needsDefaults = FIXED_CONTENT_TYPES.includes(ct);
       set({
         contentType: newCt,
+        punctuation: false,
         mode:
           !needsDefaults && config.mode === "wordcount" && config.duration > 0
             ? "wordcount"
@@ -65,6 +66,21 @@ export function ConfigBar({
     }
   };
 
+  // Switches to words content type with punctuation flag set — preserves sub-options
+  const setWordMode = (punctuation: boolean) => {
+    const needsDefaults = FIXED_CONTENT_TYPES.includes(ct);
+    set({
+      contentType: "words",
+      punctuation,
+      mode: needsDefaults
+        ? "timed"
+        : config.mode === "wordcount"
+        ? "wordcount"
+        : "timed",
+      duration: needsDefaults || config.duration <= 0 ? TIME_OPTIONS[0] : config.duration,
+    });
+  };
+
   return (
     <div
       className={`focus-fade flex flex-col items-center gap-2 transition-opacity ${
@@ -73,19 +89,12 @@ export function ConfigBar({
     >
       {/* ── Primary row: mode / content type ── */}
       <div className="flex items-center gap-0.5">
-        <Chip active={ct === "words"} onClick={() => setContentType("words")}>
+        <Chip active={ct === "words" && !(config.punctuation ?? false)} onClick={() => setWordMode(false)}>
           words
         </Chip>
-
-        {/* Mixed mode toggle — only shown for word-based modes */}
-        {ct !== "quotes" && ct !== "code" && ct !== "zen" && (
-          <Chip
-            active={config.punctuation ?? false}
-            onClick={() => set({ punctuation: !config.punctuation })}
-          >
-            mixed
-          </Chip>
-        )}
+        <Chip active={ct === "words" && (config.punctuation ?? false)} onClick={() => setWordMode(true)}>
+          mixed
+        </Chip>
 
         <Divider />
 
