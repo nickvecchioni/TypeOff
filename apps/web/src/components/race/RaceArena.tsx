@@ -332,7 +332,7 @@ export function RaceArena() {
       )}
 
       {race.phase === "finished" && (
-        <div className="w-full" style={{ animation: "fade-in-up 0.4s ease-out both" }}>
+        <div className="w-full flex-1 min-h-0 flex flex-col" style={{ animation: "fade-in-up 0.4s ease-out both" }}>
           <RaceResults
             results={race.results}
             myPlayerId={myPlayerId}

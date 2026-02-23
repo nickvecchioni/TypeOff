@@ -2,6 +2,7 @@
 
 import React from "react";
 import type { RaceMode } from "@typeoff/shared";
+import { useCapsLock } from "@/hooks/useCapsLock";
 
 const MODE_LABELS: Record<RaceMode, string | null> = {
   standard: null,
@@ -48,6 +49,7 @@ export function CountdownOverlay({
   mode,
   codeLanguage,
 }: CountdownOverlayProps) {
+  const capsLock = useCapsLock();
   const modeLabel = mode ? MODE_LABELS[mode] : null;
   const modeDesc = mode === "code" && codeLanguage
     ? (LANGUAGE_LABELS[codeLanguage] ?? codeLanguage)
@@ -73,6 +75,11 @@ export function CountdownOverlay({
         <p className="text-muted text-xs">
           Placement Test &mdash; type to determine your starting rank
         </p>
+      )}
+      {capsLock && (
+        <span className="px-2 py-0.5 rounded text-xs font-medium bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/20 mt-1">
+          Caps Lock
+        </span>
       )}
     </div>
   );
