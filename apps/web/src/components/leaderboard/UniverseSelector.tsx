@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 const UNIVERSES = [
   { value: "all", label: "All" },
   { value: "words", label: "Words" },
-  { value: "special", label: "Symbols" },
+  { value: "special", label: "Mixed" },
   { value: "quotes", label: "Quotes" },
   { value: "code", label: "Code" },
 ] as const;

@@ -375,12 +375,18 @@ async function SoloLeaderboard({
 }) {
   const mode = params.mode === "wordcount" ? "wordcount" : "timed";
   const duration = Number(params.duration) || (mode === "timed" ? 15 : 25);
-  const category = ["words", "quotes", "code"].includes(params.category as string) ? (params.category as string) : "words";
+  const category = ["words", "mixed", "quotes", "code"].includes(params.category as string) ? (params.category as string) : "words";
   const difficulty = ["easy", "medium", "hard"].includes(params.difficulty as string) ? (params.difficulty as string) : "easy";
 
-  // word_pool format is "category:difficulty:punctuation" (e.g. "words:easy:false")
-  // Legacy rows (null) are treated as words:easy
-  const wordPoolPattern = `${category}:${difficulty}:%`;
+  // word_pool format is "contentType:difficulty:punctuation" (e.g. "words:easy:false")
+  // "mixed" is words + punctuation=true; "words" is words + punctuation=false
+  // Legacy rows (null) are treated as words:easy:false
+  const resolvedContentType = category === "mixed" ? "words" : category;
+  const wordPoolPattern = category === "words"
+    ? `words:${difficulty}:false`
+    : category === "mixed"
+    ? `words:${difficulty}:true`
+    : `${resolvedContentType}:${difficulty}:%`;
   const wordPoolFilter = category === "words" && difficulty === "easy"
     ? or(like(soloResults.wordPool, wordPoolPattern), isNull(soloResults.wordPool))
     : like(soloResults.wordPool, wordPoolPattern);

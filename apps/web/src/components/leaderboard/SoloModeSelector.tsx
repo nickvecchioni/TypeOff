@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 const TIME_OPTIONS = [15, 30, 60, 120];
 const WORD_OPTIONS = [10, 25, 50, 100];
-const CATEGORIES = ["words", "quotes", "code"] as const;
+const CATEGORIES = ["words", "mixed", "quotes", "code"] as const;
 const DIFFICULTIES = ["easy", "medium", "hard"] as const;
 
 export function SoloModeSelector() {
