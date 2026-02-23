@@ -245,8 +245,10 @@ export function RaceArena() {
     || (race.phase === "finished" && race.placementRace != null);
 
   return (
-    <div className={`flex flex-col items-center gap-8 w-full max-w-4xl mx-auto flex-1 ${
-      race.phase === "queuing" || race.phase === "placed" ? "justify-center" : "py-[8vh]"
+    <div className={`flex flex-col items-center gap-8 w-full max-w-4xl mx-auto flex-1 min-h-0 ${
+      race.phase === "queuing" || race.phase === "placed" ? "justify-center" :
+      race.phase === "finished" ? "pt-4" :
+      "py-[8vh]"
     }`}>
       {race.error && (
         <div className="text-error text-sm">{race.error}</div>
@@ -331,7 +333,7 @@ export function RaceArena() {
       )}
 
       {race.phase === "finished" && (
-        <div className="w-full flex-1 flex flex-col justify-center" style={{ animation: "fade-in-up 0.4s ease-out both" }}>
+        <div className="w-full" style={{ animation: "fade-in-up 0.4s ease-out both" }}>
           <RaceResults
             results={race.results}
             myPlayerId={myPlayerId}
