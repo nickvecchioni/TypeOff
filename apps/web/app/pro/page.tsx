@@ -137,16 +137,9 @@ export default function ProPage() {
 
             {/* ── Hero ── */}
             <div className="relative animate-fade-in">
-              <div
-                className="absolute inset-0 pointer-events-none rounded-2xl"
-                style={{
-                  background:
-                    "radial-gradient(ellipse 70% 50% at 50% -10%, rgba(77,158,255,0.08) 0%, transparent 70%)",
-                }}
-              />
               <div className="relative text-center pt-8 pb-6 px-4">
-                <div className="inline-flex items-center gap-1.5 text-[9px] font-bold text-accent/70 ring-1 ring-accent/20 px-3 py-1 rounded-full uppercase tracking-widest mb-5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-accent/70" />
+                <div className="inline-flex items-center gap-1.5 text-[9px] font-bold leading-none text-accent/70 ring-1 ring-accent/20 px-3 py-1.5 rounded-full uppercase tracking-widest mb-5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent/70 shrink-0" />
                   TypeOff Pro
                 </div>
 
@@ -169,8 +162,12 @@ export default function ProPage() {
                     { value: "∞",                        label: "Race History"  },
                   ].map((s) => (
                     <div key={s.label} className="text-center">
-                      <div className={`text-2xl font-black tabular-nums text-accent ${s.value === "∞" ? "font-bold" : ""}`}>
-                        {s.value}
+                      <div className="text-2xl font-black tabular-nums text-accent flex items-center justify-center">
+                        {s.value === "∞" ? (
+                          <svg width="36" height="20" viewBox="0 0 36 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M18 10C16 6.5 13 4 9.5 4C5.36 4 2 6.91 2 10C2 13.09 5.36 16 9.5 16C13 16 16 13.5 18 10ZM18 10C20 6.5 23 4 26.5 4C30.64 4 34 6.91 34 10C34 13.09 30.64 16 26.5 16C23 16 20 13.5 18 10Z" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                          </svg>
+                        ) : s.value}
                       </div>
                       <div className="text-[10px] text-muted/55 uppercase tracking-wider mt-0.5">
                         {s.label}
