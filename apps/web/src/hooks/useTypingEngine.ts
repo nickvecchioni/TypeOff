@@ -213,6 +213,24 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     }
   }, [config, status, timeElapsed, finishTest]);
 
+  // Safety net: detect finish using rendered state (catches stale-closure misses in handleCharacter)
+  useEffect(() => {
+    if (status !== "typing" || config.contentType === "zen") return;
+    const totalWordCount = isWordcountBehavior
+      ? words.length
+      : config.mode === "wordcount" ? config.duration : Infinity;
+    if (totalWordCount === Infinity || words.length === 0) return;
+    const lastWord = words[totalWordCount - 1];
+    if (!lastWord) return;
+    if (
+      currentWordIndex >= totalWordCount - 1 &&
+      currentCharIndex >= lastWord.chars.length &&
+      lastWord.chars.every((c) => c.status === "correct")
+    ) {
+      finishTest();
+    }
+  }, [words, currentWordIndex, currentCharIndex, status, config, isWordcountBehavior, finishTest]);
+
   const restart = useCallback(() => {
     stopTimer();
     let newWords: WordState[];
