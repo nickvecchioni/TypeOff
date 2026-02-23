@@ -597,15 +597,16 @@ export class RaceManager {
 
       // WPM = (chars / 5) / minutes → chars/min = WPM * 5
       // At 100ms intervals: chars/tick = (WPM * 5) / (60 * 10)
-      // Use wordCharsTotal (no inter-word spaces) so progress matches the client formula
+      // charsPerTick includes inter-word spaces (standard WPM definition), so divide
+      // by totalChars (which also includes spaces) for an accurate progress ratio.
       const charsPerTick = (effectiveWpm * 5) / 600;
-      const progressPerTick = charsPerTick / this.wordCharsTotal;
+      const progressPerTick = charsPerTick / this.totalChars;
 
       // Track raw progress internally, cap broadcast at 97% until truly done
       entry.botRawProgress += progressPerTick;
       entry.progress.progress = Math.min(0.97, entry.botRawProgress);
 
-      // Derive wordIndex from cumulative char offsets for accurate per-token granularity
+      // Derive wordIndex from cumulative char offsets (word-chars only, no spaces)
       const charsTyped = entry.botRawProgress * this.wordCharsTotal;
       let wordIndex = this.wordCount - 1;
       for (let i = 0; i < this.cumulativeWordChars.length; i++) {
@@ -615,7 +616,7 @@ export class RaceManager {
 
       // Running average WPM based on actual progress and elapsed time
       const elapsedMinutes = (entry.botTypingTicks * PROGRESS_INTERVAL_MS) / 60_000;
-      const wordsTyped = (entry.botRawProgress * this.wordCharsTotal) / 5;
+      const wordsTyped = (entry.botRawProgress * this.totalChars) / 5;
       const runningWpm = elapsedMinutes > 0 ? Math.round(wordsTyped / elapsedMinutes) : 0;
       entry.progress.wpm = runningWpm;
 
