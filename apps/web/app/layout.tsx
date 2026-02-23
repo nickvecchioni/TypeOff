@@ -26,7 +26,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 const APP_URL = "https://typeoff.gg";
-const TITLE = "TypeOff — Ranked Competitive Typing";
+const TITLE = "TypeOff";
 const DESCRIPTION =
   "Race real players in ELO-matched typing battles. Climb from Bronze to Grandmaster.";
 
