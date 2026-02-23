@@ -26,8 +26,11 @@ function useCountdown(type: "daily" | "weekly") {
       const diff = target.getTime() - now.getTime();
       if (diff <= 0) return "Resetting...";
 
-      const hours = Math.floor(diff / 3600000);
+      const totalHours = Math.floor(diff / 3600000);
+      const days = Math.floor(totalHours / 24);
+      const hours = totalHours % 24;
       const minutes = Math.floor((diff % 3600000) / 60000);
+      if (days > 0) return `${days}d ${hours}h`;
       if (hours > 0) return `${hours}h ${minutes}m`;
       const seconds = Math.floor((diff % 60000) / 1000);
       return `${minutes}m ${seconds}s`;
