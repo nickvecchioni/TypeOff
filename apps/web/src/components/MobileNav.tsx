@@ -103,15 +103,15 @@ export function MobileNav() {
           })}
           <div className="border-t border-white/[0.06] mt-2 pt-2">
             <Link
-              href="/bug-report"
+              href="/report-issue"
               onClick={close}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                pathname === "/bug-report"
+                pathname === "/report-issue"
                   ? "bg-accent/10 text-accent font-medium"
                   : "text-muted/65 hover:text-muted hover:bg-white/[0.04]"
               }`}
             >
-              Report a Bug
+              Report an Issue
             </Link>
           </div>
         </nav>
