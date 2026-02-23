@@ -612,7 +612,7 @@ export function QueueScreen({
                   })}
                 </div>
                   <p className="text-[11px] text-muted/70 mt-2 leading-relaxed text-center">
-                    Select one or more modes. One is picked at random each race.
+                    Select one or more modes. One is picked at random each race. Your ELO rating is shared across all modes.
                   </p>
                 </div>
               )}
