@@ -495,8 +495,9 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
               setCurrentWordIndex(nextWord);
               setCurrentCharIndex(0);
             }
+            return;
           }
-          return;
+          // Not an indent token — fall through to Tab+Enter restart
         }
         tabPressedRef.current = true;
         return;

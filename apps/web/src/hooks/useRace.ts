@@ -53,7 +53,7 @@ export interface RaceResult {
   level?: number;
 }
 
-export function useRace() {
+export function useRace(myPlayerId?: string | null) {
   const { connected, emit, on } = useSocket();
   const [phase, setPhase] = useState<RacePhase>("idle");
   const [queueCount, setQueueCount] = useState(0);
@@ -69,7 +69,8 @@ export function useRace() {
   const [error, setError] = useState<string | null>(null);
 
   // Keep track of own player id
-  const myPlayerIdRef = useRef<string | null>(null);
+  const myPlayerIdRef = useRef<string | null>(myPlayerId ?? null);
+  myPlayerIdRef.current = myPlayerId ?? null;
 
   // Track previous connected state for reconnection detection
   const prevConnectedRef = useRef(connected);
@@ -98,7 +99,19 @@ export function useRace() {
         }
       }),
       on("raceProgress", (data) => {
-        setProgress(data.progress);
+        setProgress(prev => {
+          const myId = myPlayerIdRef.current;
+          if (!myId) return data.progress;
+          const serverEntry = data.progress[myId];
+          // If server marks us as finished, always use server value
+          if (serverEntry?.finished) return data.progress;
+          const localEntry = prev[myId];
+          // Keep local progress if it's ahead of the server (optimistic update)
+          if (localEntry && !localEntry.finished && localEntry.progress > (serverEntry?.progress ?? 0)) {
+            return { ...data.progress, [myId]: localEntry };
+          }
+          return data.progress;
+        });
         if (data.finishTimeoutEnd != null) {
           setFinishTimeoutEnd(data.finishTimeoutEnd);
         }
@@ -225,6 +238,27 @@ export function useRace() {
       progress: number;
     }) => {
       emit("raceProgress", data);
+      // Optimistically update own progress bar immediately
+      const myId = myPlayerIdRef.current;
+      if (myId) {
+        setProgress(prev => {
+          const current = prev[myId];
+          if (current?.finished || (current && current.progress >= data.progress)) return prev;
+          return {
+            ...prev,
+            [myId]: {
+              playerId: myId,
+              wordIndex: data.wordIndex,
+              charIndex: data.charIndex,
+              wpm: data.wpm,
+              progress: data.progress,
+              finished: false,
+              placement: current?.placement ?? null,
+              finalStats: current?.finalStats ?? null,
+            },
+          };
+        });
+      }
     },
     [emit]
   );

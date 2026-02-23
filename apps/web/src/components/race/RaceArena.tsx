@@ -26,11 +26,10 @@ function rankValue(tier: RankTier, division: number | null): number {
 
 export function RaceArena() {
   const { data: session, update: updateSession } = useSession();
-  const race = useRace();
+  const myPlayerId = session?.user?.id ?? null;
+  const race = useRace(myPlayerId);
   const partyHook = useParty();
   const { on } = useSocket();
-
-  const myPlayerId = session?.user?.id ?? null;
 
   const [modeCategories, setModeCategories] = React.useState<ModeCategory[]>(["words"]);
 
