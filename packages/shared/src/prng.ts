@@ -197,6 +197,23 @@ export function generateWordsForMode(mode: RaceMode, seed: number): string[] {
 }
 
 /**
+ * Randomly replace ~20% of word tokens with short number strings (1–4 digits).
+ * Used to give solo "mixed" mode the same character as the race "special" mode.
+ */
+function applyMixedNumbers(words: string[], seed: number): string[] {
+  const rng = mulberry32(seed);
+  return words.map((w) => {
+    if (rng() < 0.2) {
+      const digits = 1 + Math.floor(rng() * 4);
+      let n = "";
+      for (let i = 0; i < digits; i++) n += Math.floor(rng() * 10);
+      return n;
+    }
+    return w;
+  });
+}
+
+/**
  * Randomly capitalize ~`rate` fraction of word tokens (skips numbers and
  * words already capitalized by applyPunctuation).
  */
@@ -362,9 +379,11 @@ export function generateSoloWords(config: TestConfig, seed?: number): string[] {
       words = generateWords(pool, 200, s);
   }
 
-  // Apply punctuation (quotes already have their own; skip for code/zen)
+  // Apply mixed mode (numbers + punctuation + caps) when enabled; skip for quotes/code/zen
   if (config.punctuation && config.contentType !== "quotes" && config.contentType !== "code" && config.contentType !== "zen") {
+    words = applyMixedNumbers(words, s + 3);
     words = applyPunctuation(words, s + 1);
+    words = applyRandomCaps(words, 0.25, s + 2);
   }
 
   return words;

@@ -77,13 +77,13 @@ export function ConfigBar({
           words
         </Chip>
 
-        {/* Symbols (punctuation) toggle — only shown for word-based modes */}
+        {/* Mixed mode toggle — only shown for word-based modes */}
         {ct !== "quotes" && ct !== "code" && ct !== "zen" && (
           <Chip
             active={config.punctuation ?? false}
             onClick={() => set({ punctuation: !config.punctuation })}
           >
-            symbols
+            mixed
           </Chip>
         )}
 
