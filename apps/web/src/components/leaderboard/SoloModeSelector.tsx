@@ -16,6 +16,7 @@ export function SoloModeSelector() {
   const category = (CATEGORIES as readonly string[]).includes(searchParams.get("category") ?? "") ? searchParams.get("category")! : "words";
   const difficulty = (DIFFICULTIES as readonly string[]).includes(searchParams.get("difficulty") ?? "") ? searchParams.get("difficulty")! : "easy";
   const durations = mode === "timed" ? TIME_OPTIONS : WORD_OPTIONS;
+  const isFixed = category === "quotes" || category === "code";
 
   function update(updates: Partial<{ mode: string; duration: number; category: string; difficulty: string }>) {
     const params = new URLSearchParams(searchParams.toString());
@@ -33,7 +34,7 @@ export function SoloModeSelector() {
   return (
     <div className="flex flex-col gap-3">
       {/* Row 1: mode + duration */}
-      <div className="flex items-center justify-center gap-6">
+      <div className={`flex items-center justify-center gap-6 transition-opacity ${isFixed ? "opacity-20 pointer-events-none" : ""}`}>
         <div className="flex items-center gap-1">
           <Chip active={mode === "timed"} onClick={() => update({ mode: "timed" })}>time</Chip>
           <Chip active={mode === "wordcount"} onClick={() => update({ mode: "wordcount" })}>words</Chip>
@@ -58,7 +59,7 @@ export function SoloModeSelector() {
           ))}
         </div>
         <div className="w-px h-4 bg-white/[0.08]" />
-        <div className="flex items-center gap-1">
+        <div className={`flex items-center gap-1 transition-opacity ${isFixed ? "opacity-20 pointer-events-none" : ""}`}>
           {DIFFICULTIES.map((d) => (
             <Chip key={d} active={difficulty === d} onClick={() => update({ difficulty: d })}>
               {d}
