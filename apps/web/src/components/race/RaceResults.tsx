@@ -884,11 +884,11 @@ export function RaceResults({
 
       {/* ── TWO-COLUMN GRID ─────────────────────────────── */}
       <div
-        className="grid grid-cols-1 sm:grid-cols-[3fr_2fr] gap-1.5 w-full flex-1 min-h-0"
+        className="grid grid-cols-1 sm:grid-cols-[3fr_2fr] gap-1.5 w-full flex-1 min-h-0 overflow-hidden"
         style={{ animation: "fade-in 0.3s ease-out 0.05s both" }}
       >
         {/* ── LEFT COLUMN: Standings + Chat + Actions + Achievements ── */}
-        <div className="flex flex-col gap-1.5 min-h-0">
+        <div className="flex flex-col gap-1.5 min-h-0 overflow-y-auto">
           {/* Standings table + chat feed */}
           <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden">
             {/* Header */}
@@ -1188,7 +1188,7 @@ export function RaceResults({
         </div>
 
         {/* ── RIGHT COLUMN: Chart + Challenges + XP + Pro ── */}
-        <div className="flex flex-col gap-1.5 min-h-0 sm:overflow-y-auto">
+        <div className="flex flex-col gap-1.5 min-h-0 overflow-y-auto">
           {/* WPM Chart */}
           {myWpmHistory && myWpmHistory.length >= 2 && (
             <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 pt-2.5 pb-1.5">
