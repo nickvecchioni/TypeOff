@@ -7,7 +7,8 @@ import Link from "next/link";
 import { BigramAnalysis } from "@/components/practice/BigramAnalysis";
 import { BigramHeatmap } from "@/components/practice/BigramHeatmap";
 import { KeyboardHeatmap } from "@/components/typing/KeyboardHeatmap";
-import type { KeyStatsMap } from "@typeoff/shared";
+import { WpmChart } from "@/components/typing/WpmChart";
+import type { KeyStatsMap, WpmSample } from "@typeoff/shared";
 import { estimateWpmImpact, rankWeaknesses } from "@typeoff/shared";
 import { AnalyticsInsights } from "@/components/analytics/AnalyticsInsights";
 import { PracticeProgress } from "@/components/practice/PracticeProgress";
@@ -56,6 +57,8 @@ const MODE_LABELS: Record<string, string> = {
   code: "Code",
   special: "Special",
 };
+
+const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
 
 export default function AnalyticsPage() {
   const { data: session, status } = useSession();
@@ -112,14 +115,20 @@ export default function AnalyticsPage() {
   if (status === "loading" || (loading && !data)) {
     return (
       <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
-        <div className="max-w-3xl mx-auto space-y-4">
+        <div className="max-w-5xl mx-auto space-y-4">
           <div className="h-8 w-48 rounded bg-surface/40 animate-pulse" />
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-20 rounded-xl bg-surface/30 animate-pulse" />
-            ))}
+          <div className="rounded-xl overflow-hidden ring-1 ring-white/[0.04]">
+            <div className="h-0.5 bg-accent/30" />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-px">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-24 bg-surface/40 animate-pulse" />
+              ))}
+            </div>
           </div>
-          <div className="h-48 rounded-xl bg-surface/30 animate-pulse" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+            <div className="h-56 rounded-xl bg-surface/30 animate-pulse" />
+            <div className="h-56 rounded-xl bg-surface/30 animate-pulse" />
+          </div>
         </div>
       </main>
     );
@@ -140,26 +149,36 @@ export default function AnalyticsPage() {
       ? recentWpms.reduce((s, r) => s + r.wpm, 0) / recentWpms.length
       : 0;
 
-  const last30Days: { date: string; count: number }[] = [];
+  const last30Days: { date: string; count: number; dayOfWeek: number }[] = [];
   if (data.racesPerDay) {
     const today = new Date();
     for (let i = 29; i >= 0; i--) {
       const d = new Date(today);
       d.setDate(d.getDate() - i);
       const key = d.toISOString().slice(0, 10);
-      last30Days.push({ date: key, count: data.racesPerDay[key] ?? 0 });
+      last30Days.push({ date: key, count: data.racesPerDay[key] ?? 0, dayOfWeek: d.getDay() });
     }
   }
   const maxDayCount = Math.max(1, ...last30Days.map((d) => d.count));
+  const totalRacesLast30 = last30Days.reduce((s, d) => s + d.count, 0);
+
+  // Transform wpmTrend to WpmSample[] for WpmChart
+  const wpmSamples: WpmSample[] = data.wpmTrend.map((r, i) => ({
+    elapsed: i + 1,
+    wpm: r.wpm,
+    raw: r.wpm,
+  }));
 
   return (
     <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
-      <div className="max-w-3xl mx-auto animate-fade-in">
-        <div className="mb-5">
-          <h1 className="text-lg font-bold text-text tracking-tight">Analytics</h1>
-          {isPro && data.totalRaces != null && (
-            <p className="text-xs text-muted/65 mt-0.5">{data.totalRaces} total races analyzed</p>
-          )}
+      <div className="max-w-5xl mx-auto animate-fade-in">
+        <div className="mb-5 flex items-baseline justify-between">
+          <div>
+            <h1 className="text-lg font-bold text-text tracking-tight">Analytics</h1>
+            {isPro && data.totalRaces != null && (
+              <p className="text-xs text-muted/65 mt-0.5">{data.totalRaces} total races analyzed</p>
+            )}
+          </div>
         </div>
 
         {/* ── Mode Filter ─────────────────────────────────── */}
@@ -179,159 +198,246 @@ export default function AnalyticsPage() {
           ))}
         </div>
 
-        {/* ── Personal Records (free + pro) ───────────────── */}
         <div className={`transition-opacity duration-200 ${loading && data ? "opacity-60 pointer-events-none" : "opacity-100"}`}>
-        <div className={`grid gap-2 mb-4 ${isPro ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-2"}`}>
-          <StatCard
-            label="Best WPM"
-            value={data.personalRecords.bestWpm ? Math.floor(data.personalRecords.bestWpm.wpm).toString() : "-"}
-            sub={data.personalRecords.bestWpm ? new Date(data.personalRecords.bestWpm.date).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : undefined}
-          />
-          <StatCard
-            label="Best Accuracy"
-            value={data.personalRecords.bestAccuracy ? `${Math.floor(data.personalRecords.bestAccuracy.accuracy)}%` : "-"}
-            sub={data.personalRecords.bestAccuracy ? new Date(data.personalRecords.bestAccuracy.date).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : undefined}
-          />
+
+        {/* ── Hero Stats Bar ──────────────────────────────── */}
+        <div className="rounded-xl overflow-hidden ring-1 ring-white/[0.04] mb-1.5">
+          <div className="h-0.5 bg-accent opacity-60" />
+          <div className={`grid gap-px ${isPro ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-2"}`}>
+            {/* Best WPM */}
+            <div className="bg-surface/40 px-4 py-2.5">
+              <div className="text-3xl sm:text-4xl font-black text-accent tabular-nums leading-none">
+                {data.personalRecords.bestWpm ? Math.floor(data.personalRecords.bestWpm.wpm) : "—"}
+                {data.personalRecords.bestWpm && (
+                  <span className="text-lg opacity-50">
+                    .{(data.personalRecords.bestWpm.wpm % 1).toFixed(2).slice(2)}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2 mt-1">
+                <div className="text-[10px] text-muted/60 uppercase tracking-wide">best wpm</div>
+                {data.personalRecords.bestWpm && (
+                  <div className="text-[10px] text-muted/65 tabular-nums">
+                    {new Date(data.personalRecords.bestWpm.date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Best Accuracy */}
+            <div className="bg-surface/40 px-4 py-2.5">
+              <div className="text-3xl sm:text-4xl font-black text-text tabular-nums leading-none">
+                {data.personalRecords.bestAccuracy ? (
+                  <>
+                    {Math.floor(data.personalRecords.bestAccuracy.accuracy)}
+                    <span className="text-lg opacity-50">
+                      .{((data.personalRecords.bestAccuracy.accuracy % 1) * 10).toFixed(0)}%
+                    </span>
+                  </>
+                ) : "—"}
+              </div>
+              <div className="flex items-center gap-2 mt-1">
+                <div className="text-[10px] text-muted/60 uppercase tracking-wide">best accuracy</div>
+                {data.personalRecords.bestAccuracy && (
+                  <div className="text-[10px] text-muted/65 tabular-nums">
+                    {new Date(data.personalRecords.bestAccuracy.date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Pro: Consistency */}
+            {isPro && (
+              <div className="bg-surface/40 px-4 py-2.5">
+                <div className="text-3xl sm:text-4xl font-black text-text tabular-nums leading-none">
+                  {data.consistencyScore != null ? (
+                    <>
+                      {Math.floor(data.consistencyScore)}
+                      <span className="text-lg opacity-50">
+                        .{(data.consistencyScore % 1).toFixed(1).slice(2)}
+                      </span>
+                    </>
+                  ) : "—"}
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <div className="text-[10px] text-muted/60 uppercase tracking-wide">consistency</div>
+                  <div className="text-[10px] text-muted/65">std dev (last 50)</div>
+                </div>
+              </div>
+            )}
+
+            {/* Pro: Avg WPM */}
+            {isPro && (
+              <div className="bg-surface/40 px-4 py-2.5">
+                <div className="text-3xl sm:text-4xl font-black text-text tabular-nums leading-none">
+                  {avgWpm > 0 ? (
+                    <>
+                      {Math.floor(avgWpm)}
+                      <span className="text-lg opacity-50">
+                        .{(avgWpm % 1).toFixed(2).slice(2)}
+                      </span>
+                    </>
+                  ) : "—"}
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <div className="text-[10px] text-muted/60 uppercase tracking-wide">avg wpm</div>
+                  <div className="text-[10px] text-muted/65">last 50 races</div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Secondary stats row (Pro) */}
           {isPro && (
-            <>
-              <StatCard
-                label="Consistency"
-                value={data.consistencyScore != null ? data.consistencyScore.toFixed(1) : "-"}
-                sub="WPM std dev (last 50)"
-              />
-              <StatCard
-                label="Avg WPM"
-                value={avgWpm > 0 ? Math.floor(avgWpm).toString() : "-"}
-                sub="Last 50 races"
-              />
-            </>
+            <div className="flex items-center gap-px">
+              <div className="flex-1 bg-surface/40 px-3 py-1.5 sm:px-4">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-sm font-bold text-text tabular-nums">
+                    {data.winRate != null ? `${data.winRate}%` : "—"}
+                  </span>
+                  <span className="text-[10px] text-muted/60 uppercase tracking-wide">win rate</span>
+                </div>
+              </div>
+              <div className="flex-1 bg-surface/40 px-3 py-1.5 sm:px-4">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-sm font-bold text-text tabular-nums">
+                    {data.avgAccuracy != null ? `${data.avgAccuracy.toFixed(1)}%` : "—"}
+                  </span>
+                  <span className="text-[10px] text-muted/60 uppercase tracking-wide">avg accuracy</span>
+                </div>
+              </div>
+              <div className="flex-1 bg-surface/40 px-3 py-1.5 sm:px-4">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-sm font-bold text-text tabular-nums">
+                    {data.personalRecords.maxStreak ?? 0}
+                  </span>
+                  <span className="text-[10px] text-muted/60 uppercase tracking-wide">best streak</span>
+                </div>
+              </div>
+              <div className="flex-1 bg-surface/40 px-3 py-1.5 sm:px-4">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-sm font-bold text-text tabular-nums">
+                    {data.personalRecords.maxRankedDayStreak ?? 0}
+                  </span>
+                  <span className="text-[10px] text-muted/60 uppercase tracking-wide">day streak</span>
+                </div>
+              </div>
+            </div>
           )}
         </div>
 
-        {/* ── WPM Trend (free: last 20, pro: full) ────────── */}
-        {data.wpmTrend.length >= 2 && (
-          <section className="mb-6">
-            <SectionHeader>
-              WPM Trend
-              {!isPro && (
-                <span className="text-[10px] font-normal text-muted/65 normal-case tracking-normal ml-1">
-                  (last 20 races)
-                </span>
-              )}
-            </SectionHeader>
-            <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3">
-              <MiniChart data={data.wpmTrend.map((r) => r.wpm)} color="#4d9eff" height={120} />
-            </div>
-          </section>
-        )}
-
-        {/* ── Pro-only sections ────────────────────────────── */}
+        {/* ── Pro: Two-Column Layout ─────────────────────── */}
         {isPro ? (
-          <>
-            {/* Streaks + Win Rate + Avg Accuracy */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
-              <StatCard
-                label="Win Rate"
-                value={data.winRate != null ? `${data.winRate}%` : "—"}
-                sub={data.winRate != null ? "ranked races" : "need 5+ races"}
-              />
-              <StatCard
-                label="Avg Accuracy"
-                value={data.avgAccuracy != null ? `${data.avgAccuracy.toFixed(1)}%` : "—"}
-                sub="Last 50 races"
-              />
-              <StatCard label="Best Win Streak" value={(data.personalRecords.maxStreak ?? 0).toString()} />
-              <StatCard label="Best Day Streak" value={(data.personalRecords.maxRankedDayStreak ?? 0).toString()} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+
+            {/* ── LEFT COLUMN: Charts ──────────────────────── */}
+            <div className="flex flex-col gap-1.5">
+              {/* WPM Trend Chart */}
+              {wpmSamples.length >= 2 && (
+                <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 pt-2.5 pb-1.5 flex flex-col" style={{ minHeight: 200 }}>
+                  <div className="text-[10px] font-bold text-muted/50 uppercase tracking-widest mb-1.5">WPM over time</div>
+                  <div className="flex-1 min-h-0">
+                    <WpmChart samples={wpmSamples} />
+                  </div>
+                </div>
+              )}
+
+              {/* ELO Trend Chart */}
+              {(data.eloTrend?.length ?? 0) >= 2 && (
+                <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 pt-2.5 pb-1.5 flex flex-col" style={{ minHeight: 180 }}>
+                  <div className="text-[10px] font-bold text-muted/50 uppercase tracking-widest mb-1.5">ELO over time</div>
+                  <div className="flex-1 min-h-0">
+                    <AreaMiniChart data={data.eloTrend!.map((r) => r.elo)} color="#eab308" height={140} />
+                  </div>
+                </div>
+              )}
+
+              {/* Actionable Insights */}
+              {(bigrams.length > 0 || (keyStats && Object.keys(keyStats).length > 0)) && (
+                <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 py-2.5 sm:px-4">
+                  <div className="text-[10px] font-bold text-muted/50 uppercase tracking-widest mb-2">Insights</div>
+                  <AnalyticsInsights
+                    weakKeys={keyStats ? Object.entries(keyStats).map(([key, stat]) => ({
+                      key,
+                      accuracy: stat.total > 0 ? stat.correct / stat.total : 1,
+                      total: stat.total,
+                    })) : []}
+                    weakBigrams={bigrams.map((b) => ({ bigram: b.bigram, accuracy: b.accuracy / 100, total: b.total }))}
+                    avgWpm={avgWpm}
+                  />
+                </div>
+              )}
             </div>
 
-            {/* Actionable Insights (Pro) */}
-            {(bigrams.length > 0 || (keyStats && Object.keys(keyStats).length > 0)) && (
-              <section className="mb-6">
-                <SectionHeader>Insights</SectionHeader>
-                <AnalyticsInsights
-                  weakKeys={keyStats ? Object.entries(keyStats).map(([key, stat]) => ({
-                    key,
-                    accuracy: stat.total > 0 ? stat.correct / stat.total : 1,
-                    total: stat.total,
-                  })) : []}
-                  weakBigrams={bigrams.map((b) => ({ bigram: b.bigram, accuracy: b.accuracy / 100, total: b.total }))}
-                  avgWpm={avgWpm}
-                />
-              </section>
-            )}
-
-            {/* By Mode breakdown (visible in "All" view, hidden when filtered) */}
-            {modeFilter === "all" && (data.modeStats?.length ?? 0) > 0 && (
-              <section className="mb-6">
-                <SectionHeader>By Mode</SectionHeader>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {(data.modeStats ?? []).map((m) => (
-                    <button
-                      key={m.modeCategory}
-                      onClick={() => setModeFilter(m.modeCategory)}
-                      className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2.5 text-left hover:bg-white/[0.04] transition-colors"
-                    >
-                      <div className="text-[10px] text-muted/50 uppercase tracking-wider mb-1">
-                        {MODE_LABELS[m.modeCategory] ?? m.modeCategory}
-                      </div>
-                      <div className="text-base font-bold text-text tabular-nums leading-tight">
-                        {Math.floor(m.bestWpm)}
-                        <span className="text-[0.6em] text-muted/60 ml-1">best</span>
-                      </div>
-                      <div className="text-xs text-muted/60 tabular-nums">
-                        {Math.floor(m.avgWpm)} avg
-                      </div>
-                      <div className="text-[10px] text-muted/50 tabular-nums mt-0.5">
-                        {m.racesPlayed} races · {m.racesPlayed > 0 ? Math.round((m.racesWon / m.racesPlayed) * 100) : 0}% win
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* ELO Trend */}
-            {(data.eloTrend?.length ?? 0) >= 2 && (
-              <section className="mb-6">
-                <SectionHeader>ELO Trend</SectionHeader>
-                <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3">
-                  <MiniChart data={data.eloTrend!.map((r) => r.elo)} color="#eab308" height={100} />
-                </div>
-              </section>
-            )}
-
-            {/* Speed by Placement + Distribution */}
-            {(data.speedByPlacement?.length ?? 0) > 0 && (
-              <section className="mb-6">
-                <SectionHeader>Speed by Placement</SectionHeader>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
-                  {data.speedByPlacement!.map((p) => {
-                    const ord = p.placement === 1 ? "1st" : p.placement === 2 ? "2nd" : p.placement === 3 ? "3rd" : `${p.placement}th`;
-                    const color = p.placement === 1 ? "text-rank-gold" : p.placement === 2 ? "text-rank-silver" : p.placement === 3 ? "text-rank-bronze" : "text-muted";
-                    return (
-                      <div key={p.placement} className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2.5">
-                        <div className={`text-xs font-bold ${color} mb-0.5`}>{ord} Place</div>
-                        <div className="text-base font-bold text-text tabular-nums">
-                          {Math.floor(p.avgWpm)}
-                          <span className="text-[0.7em] opacity-50">.{(p.avgWpm % 1).toFixed(2).slice(2)}</span>
-                          <span className="text-[0.6em] text-muted/60 ml-1">wpm</span>
+            {/* ── RIGHT COLUMN: Stats ──────────────────────── */}
+            <div className="flex flex-col gap-1.5">
+              {/* By Mode breakdown */}
+              {modeFilter === "all" && (data.modeStats?.length ?? 0) > 0 && (
+                <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 py-2.5 sm:px-4">
+                  <div className="text-[10px] font-bold text-muted/50 uppercase tracking-widest mb-2">By Mode</div>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {(data.modeStats ?? []).map((m) => (
+                      <button
+                        key={m.modeCategory}
+                        onClick={() => setModeFilter(m.modeCategory)}
+                        className="rounded-lg bg-white/[0.02] ring-1 ring-white/[0.04] px-3 py-2.5 text-left hover:bg-white/[0.04] transition-colors"
+                      >
+                        <div className="text-[10px] text-muted/50 uppercase tracking-wider mb-1">
+                          {MODE_LABELS[m.modeCategory] ?? m.modeCategory}
                         </div>
-                        <div className="text-[10px] text-muted/60 tabular-nums">{p.count} races</div>
-                      </div>
-                    );
-                  })}
+                        <div className="text-base font-bold text-text tabular-nums leading-tight">
+                          {Math.floor(m.bestWpm)}
+                          <span className="text-[0.6em] text-muted/60 ml-1">best</span>
+                        </div>
+                        <div className="text-xs text-muted/60 tabular-nums">
+                          {Math.floor(m.avgWpm)} avg
+                        </div>
+                        <div className="text-[10px] text-muted/50 tabular-nums mt-0.5">
+                          {m.racesPlayed} races · {m.racesPlayed > 0 ? Math.round((m.racesWon / m.racesPlayed) * 100) : 0}% win
+                        </div>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                {data.placementDistribution && data.placementDistribution.total >= 5 && (
-                  <PlacementBar dist={data.placementDistribution} />
-                )}
-              </section>
-            )}
+              )}
 
-            {/* Activity Heatmap */}
-            {last30Days.length > 0 && (
-              <section className="mb-6">
-                <SectionHeader>Activity (Last 30 Days)</SectionHeader>
-                <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3">
+              {/* Speed by Placement + Distribution */}
+              {(data.speedByPlacement?.length ?? 0) > 0 && (
+                <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 py-2.5 sm:px-4">
+                  <div className="text-[10px] font-bold text-muted/50 uppercase tracking-widest mb-2">Speed by Placement</div>
+                  <div className="grid grid-cols-2 gap-1.5 mb-3">
+                    {data.speedByPlacement!.map((p) => {
+                      const ord = p.placement === 1 ? "1st" : p.placement === 2 ? "2nd" : p.placement === 3 ? "3rd" : `${p.placement}th`;
+                      const color = p.placement === 1 ? "text-rank-gold" : p.placement === 2 ? "text-rank-silver" : p.placement === 3 ? "text-rank-bronze" : "text-muted";
+                      return (
+                        <div key={p.placement} className="rounded-lg bg-white/[0.02] ring-1 ring-white/[0.04] px-3 py-2">
+                          <div className={`text-xs font-bold ${color} mb-0.5`}>{ord} Place</div>
+                          <div className="text-base font-bold text-text tabular-nums">
+                            {Math.floor(p.avgWpm)}
+                            <span className="text-[0.7em] opacity-50">.{(p.avgWpm % 1).toFixed(2).slice(2)}</span>
+                            <span className="text-[0.6em] text-muted/60 ml-1">wpm</span>
+                          </div>
+                          <div className="text-[10px] text-muted/60 tabular-nums">{p.count} races</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {data.placementDistribution && data.placementDistribution.total >= 5 && (
+                    <PlacementBar dist={data.placementDistribution} />
+                  )}
+                </div>
+              )}
+
+              {/* Activity Heatmap */}
+              {last30Days.length > 0 && (
+                <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 py-2.5 sm:px-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-[10px] font-bold text-muted/50 uppercase tracking-widest">Activity (30 days)</div>
+                    <div className="text-xs font-bold text-text tabular-nums">
+                      {totalRacesLast30}
+                      <span className="text-[0.8em] text-muted/60 ml-1 font-normal">races</span>
+                    </div>
+                  </div>
                   <div className="flex items-end gap-[3px] h-16">
                     {last30Days.map((d) => {
                       const pct = (d.count / maxDayCount) * 100;
@@ -339,70 +445,92 @@ export default function AnalyticsPage() {
                       return (
                         <div
                           key={d.date}
-                          className="flex-1 rounded-sm bg-accent transition-all"
+                          className="flex-1 rounded-t-sm bg-accent transition-all"
                           style={{ height: d.count === 0 ? "4px" : `${Math.max(10, pct)}%`, opacity }}
                           title={`${d.date}: ${d.count} races`}
                         />
                       );
                     })}
                   </div>
-                  <div className="flex justify-between mt-1.5 text-[9px] text-muted/65">
+                  <div className="flex justify-between mt-1.5">
+                    <div className="flex gap-[3px] flex-1">
+                      {last30Days.map((d, i) => (
+                        <div key={i} className="flex-1 text-center text-[8px] text-muted/40 leading-none">
+                          {i % 7 === 0 ? DAY_LABELS[d.dayOfWeek] : ""}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex justify-between mt-0.5 text-[9px] text-muted/65">
                     <span>{last30Days[0]?.date.slice(5)}</span>
                     <span>Today</span>
                   </div>
                 </div>
-              </section>
-            )}
+              )}
+            </div>
+
+            {/* ── Full-width sections below the two-column grid ── */}
 
             {/* Key Accuracy */}
             {keyStats && Object.keys(keyStats).length > 0 && (
-              <section className="mb-6">
-                <SectionHeader>Key Accuracy</SectionHeader>
-                <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] px-4 py-5">
-                  <KeyboardHeatmap keyStats={keyStats} />
-                  <div className="mt-4 flex justify-center">
-                    <Link
-                      href="/solo?drill=true"
-                      className="px-4 py-2 rounded-lg bg-accent/10 ring-1 ring-accent/20 text-xs font-semibold text-accent hover:bg-accent/15 transition-colors"
-                    >
-                      Start Drill Session →
-                    </Link>
-                  </div>
+              <div className="sm:col-span-2 rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 py-2.5 sm:px-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-[10px] font-bold text-muted/50 uppercase tracking-widest">Key Accuracy</div>
+                  <Link
+                    href="/solo?drill=true"
+                    className="px-3 py-1.5 rounded-lg bg-accent/10 ring-1 ring-accent/20 text-[10px] font-semibold text-accent hover:bg-accent/15 transition-colors"
+                  >
+                    Start Drill Session →
+                  </Link>
                 </div>
-              </section>
+                <KeyboardHeatmap keyStats={keyStats} />
+              </div>
             )}
 
             {/* Bigram Analysis */}
             {bigrams.length > 0 && (
-              <section className="mb-6">
-                <SectionHeader>Bigram Analysis</SectionHeader>
+              <div className="sm:col-span-2 rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 py-2.5 sm:px-4">
+                <div className="text-[10px] font-bold text-muted/50 uppercase tracking-widest mb-2">Bigram Analysis</div>
                 <BigramAnalysis bigrams={bigrams} onPractice={(weak) => router.push(`/solo?bigrams=${weak.join(",")}`)} />
-              </section>
+              </div>
             )}
             {bigrams.length > 0 && (
-              <section className="mb-6">
+              <div className="sm:col-span-2">
                 <BigramHeatmap bigrams={bigrams} />
-              </section>
+              </div>
             )}
 
             {/* Practice Progress */}
-            <section className="mb-6">
-              <SectionHeader>Practice Progress</SectionHeader>
+            <div className="sm:col-span-2 rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 py-2.5 sm:px-4">
+              <div className="text-[10px] font-bold text-muted/50 uppercase tracking-widest mb-2">Practice Progress</div>
               <PracticeProgress />
-            </section>
-          </>
+            </div>
+          </div>
         ) : (
           /* ── Free user sections ─────────────────────────── */
-          <>
+          <div className="flex flex-col gap-1.5">
+            {/* WPM Trend (last 20) */}
+            {wpmSamples.length >= 2 && (
+              <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 pt-2.5 pb-1.5 flex flex-col" style={{ minHeight: 200 }}>
+                <div className="flex items-baseline gap-1.5 mb-1.5">
+                  <div className="text-[10px] font-bold text-muted/50 uppercase tracking-widest">WPM over time</div>
+                  <span className="text-[10px] font-normal text-muted/65 normal-case tracking-normal">(last 20 races)</span>
+                </div>
+                <div className="flex-1 min-h-0">
+                  <WpmChart samples={wpmSamples} />
+                </div>
+              </div>
+            )}
+
             {/* By Mode (free users get read-only summary) */}
             {modeFilter === "all" && (data.modeStats?.length ?? 0) > 0 && (
-              <section className="mb-4">
-                <SectionHeader>By Mode</SectionHeader>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 py-2.5 sm:px-4">
+                <div className="text-[10px] font-bold text-muted/50 uppercase tracking-widest mb-2">By Mode</div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                   {(data.modeStats ?? []).map((m) => (
                     <div
                       key={m.modeCategory}
-                      className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2.5"
+                      className="rounded-lg bg-white/[0.02] ring-1 ring-white/[0.04] px-3 py-2.5"
                     >
                       <div className="text-[10px] text-muted/50 uppercase tracking-wider mb-1">
                         {MODE_LABELS[m.modeCategory] ?? m.modeCategory}
@@ -417,17 +545,15 @@ export default function AnalyticsPage() {
                     </div>
                   ))}
                 </div>
-              </section>
+              </div>
             )}
 
             {/* Key Accuracy heatmap (read-only, no drill button) */}
             {keyStats && Object.keys(keyStats).length > 0 && (
-              <section className="mb-6">
-                <SectionHeader>Key Accuracy</SectionHeader>
-                <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] px-4 py-5">
-                  <KeyboardHeatmap keyStats={keyStats} />
-                </div>
-              </section>
+              <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 py-2.5 sm:px-4">
+                <div className="text-[10px] font-bold text-muted/50 uppercase tracking-widest mb-3">Key Accuracy</div>
+                <KeyboardHeatmap keyStats={keyStats} />
+              </div>
             )}
 
             {/* Worst 5 bigrams (free preview) + teaser insight */}
@@ -452,21 +578,30 @@ export default function AnalyticsPage() {
                 : null;
               return (
                 <>
-                  <section className="mb-4">
-                    <SectionHeader>Weakest Bigrams</SectionHeader>
-                    <div className="flex flex-wrap gap-2">
-                      {worst5.map((b) => (
-                        <div key={b.bigram} className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2">
-                          <span className="text-accent font-bold text-sm">{b.bigram}</span>
-                          <span className={`ml-2 text-xs tabular-nums ${b.accuracy < 70 ? "text-error/70" : b.accuracy < 90 ? "text-amber-400/70" : "text-correct/70"}`}>
-                            {Math.round(b.accuracy)}%
-                          </span>
-                        </div>
-                      ))}
+                  <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 py-2.5 sm:px-4">
+                    <div className="text-[10px] font-bold text-muted/50 uppercase tracking-widest mb-2">Weakest Bigrams</div>
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
+                      {worst5.map((b) => {
+                        const accColor = b.accuracy < 70 ? "bg-error/30" : b.accuracy < 90 ? "bg-amber-400/30" : "bg-correct/30";
+                        const textColor = b.accuracy < 70 ? "text-error/70" : b.accuracy < 90 ? "text-amber-400/70" : "text-correct/70";
+                        return (
+                          <div key={b.bigram} className="rounded-lg bg-white/[0.02] ring-1 ring-white/[0.04] px-3 py-2">
+                            <div className="flex items-center justify-between mb-1.5">
+                              <span className="text-accent font-bold text-sm">{b.bigram}</span>
+                              <span className={`text-xs font-bold tabular-nums ${textColor}`}>
+                                {Math.round(b.accuracy)}%
+                              </span>
+                            </div>
+                            <div className="h-1 rounded-full bg-surface overflow-hidden">
+                              <div className={`h-full rounded-full ${accColor}`} style={{ width: `${b.accuracy}%` }} />
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  </section>
+                  </div>
                   {teaserInsight && (
-                    <div className="rounded-lg ring-1 ring-accent/10 bg-accent/[0.02] px-4 py-3 mb-4">
+                    <div className="rounded-xl ring-1 ring-accent/10 bg-accent/[0.02] px-4 py-3">
                       <p className="text-[11px] text-muted/70 leading-relaxed">{teaserInsight.insight}</p>
                       <p className="text-[10px] text-muted/50 mt-1">Upgrade to Pro for all insights and practice drills</p>
                     </div>
@@ -476,19 +611,50 @@ export default function AnalyticsPage() {
             })()}
 
             {/* Pro upsell */}
-            <div className="rounded-xl ring-1 ring-accent/10 bg-accent/[0.02] px-5 py-4">
-              <p className="text-xs font-bold text-accent/60 mb-1">Pro Analytics</p>
-              <p className="text-[11px] text-muted/60 mb-3 leading-relaxed">
-                Unlock smart practice drills, full bigram analysis, WPM impact insights, progress tracking, ELO trends, placement distribution, and more.
-              </p>
-              <Link
-                href="/pro"
-                className="inline-block text-xs font-bold text-white bg-accent hover:bg-accent/80 px-4 py-2 rounded-lg transition-colors"
-              >
-                Upgrade to Pro →
-              </Link>
+            <div className="rounded-xl overflow-hidden ring-1 ring-accent/15 bg-accent/[0.02]">
+              <div className="h-1 bg-gradient-to-r from-accent/40 via-accent/60 to-accent/40" />
+              <div className="px-4 py-4 sm:px-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-[9px] font-black tracking-[0.15em] text-accent bg-accent/10 ring-1 ring-accent/25 rounded px-1.5 py-0.5 leading-none">
+                    PRO
+                  </span>
+                  <span className="text-xs font-bold text-text/70">Unlock Full Analytics</span>
+                </div>
+                <div className="space-y-1.5 mb-4">
+                  {[
+                    { icon: "🎯", label: "Smart practice drills for weak keys" },
+                    { icon: "📊", label: "ELO trends & placement distribution" },
+                    { icon: "🔍", label: "Full bigram analysis & WPM impact insights" },
+                    { icon: "📈", label: "Activity tracking & consistency scores" },
+                  ].map(({ icon, label }) => (
+                    <div key={label} className="flex items-center gap-2 text-[11px] text-text/55">
+                      <span className="shrink-0">{icon}</span>
+                      <span>{label}</span>
+                    </div>
+                  ))}
+                </div>
+                {/* Blurred preview hint */}
+                <div className="relative rounded-lg overflow-hidden mb-4 h-16 ring-1 ring-white/[0.04]">
+                  <div className="absolute inset-0 bg-surface/50 flex items-center justify-center gap-4 blur-[2px] opacity-40">
+                    <div className="h-8 w-20 bg-accent/20 rounded" />
+                    <div className="h-10 w-16 bg-accent/15 rounded" />
+                    <div className="h-6 w-24 bg-accent/10 rounded" />
+                    <div className="h-9 w-14 bg-accent/20 rounded" />
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-[10px] font-bold text-accent/60 uppercase tracking-wider">Preview locked</span>
+                  </div>
+                </div>
+                <Link
+                  href="/pro"
+                  className="w-full rounded-lg bg-accent/10 ring-1 ring-accent/30 text-accent text-xs font-bold px-4 py-2.5 hover:bg-accent/20 transition-colors text-center leading-none block"
+                >
+                  Upgrade to Pro — $4.99/mo
+                </Link>
+                <p className="text-[9px] text-muted/40 text-center mt-1.5">cancel anytime</p>
+              </div>
             </div>
-          </>
+          </div>
         )}
         </div>
       </div>
@@ -497,25 +663,6 @@ export default function AnalyticsPage() {
 }
 
 /* ── Helper Components ──────────────────────────────────── */
-
-function SectionHeader({ children }: { children: React.ReactNode }) {
-  return (
-    <h2 className="text-xs font-bold text-muted/60 uppercase tracking-wider mb-3 flex items-center gap-3">
-      {children}
-      <span className="flex-1 h-px bg-white/[0.03]" />
-    </h2>
-  );
-}
-
-function StatCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
-  return (
-    <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2.5">
-      <div className="text-base font-bold text-text tabular-nums leading-tight">{value}</div>
-      <div className="text-[10px] text-muted/60 mt-0.5">{label}</div>
-      {sub && <div className="text-[9px] text-muted/65 mt-0.5">{sub}</div>}
-    </div>
-  );
-}
 
 function PlacementBar({ dist }: {
   dist: { first: number; second: number; third: number; other: number; total: number };
@@ -530,8 +677,8 @@ function PlacementBar({ dist }: {
     { label: "4th+", count: other, pct: pct(other), color: "bg-muted/30", textColor: "text-muted/65" },
   ];
   return (
-    <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3">
-      <div className="flex h-2 rounded-full overflow-hidden gap-px mb-3">
+    <div>
+      <div className="flex h-2 rounded-full overflow-hidden gap-px mb-2">
         {segments.map((s) =>
           s.count > 0 ? (
             <div
@@ -555,38 +702,108 @@ function PlacementBar({ dist }: {
   );
 }
 
-function MiniChart({ data, color, height }: { data: number[]; color: string; height: number }) {
+function AreaMiniChart({ data, color, height }: { data: number[]; color: string; height: number }) {
   if (data.length < 2) return null;
 
   const min = Math.min(...data);
   const max = Math.max(...data);
   const range = max - min || 1;
-  const padding = 4;
+  const padding = { top: 12, right: 16, bottom: 20, left: 44 };
   const w = 600;
+  const innerW = w - padding.left - padding.right;
+  const innerH = height - padding.top - padding.bottom;
 
-  const points = data.map((v, i) => {
-    const x = (i / (data.length - 1)) * w;
-    const y = height - padding - ((v - min) / range) * (height - padding * 2);
-    return `${x},${y}`;
-  });
+  // Y-axis ticks
+  const niceStep = range <= 100 ? 25 : range <= 300 ? 50 : 100;
+  const yMin = Math.floor(min / niceStep) * niceStep;
+  const yMax = Math.ceil(max * 1.05 / niceStep) * niceStep;
+  const yRange = yMax - yMin || 1;
+  const tickCount = Math.min(5, Math.max(2, Math.ceil(yRange / niceStep)));
+  const yTicks = Array.from({ length: tickCount + 1 }, (_, i) => yMin + i * niceStep).filter((v) => v <= yMax);
+
+  const scaleX = (i: number) => padding.left + (i / (data.length - 1)) * innerW;
+  const scaleY = (v: number) => padding.top + innerH - ((v - yMin) / yRange) * innerH;
+
+  const linePath = data.map((v, i) => `${i === 0 ? "M" : "L"} ${scaleX(i)} ${scaleY(v)}`).join(" ");
+  const areaPath = linePath +
+    ` L ${scaleX(data.length - 1)} ${padding.top + innerH}` +
+    ` L ${scaleX(0)} ${padding.top + innerH} Z`;
 
   return (
-    <svg viewBox={`0 0 ${w} ${height}`} className="w-full" style={{ height }}>
-      <polyline
-        points={points.join(" ")}
+    <svg viewBox={`0 0 ${w} ${height}`} className="w-full h-full" style={{ cursor: "crosshair" }}>
+      <defs>
+        <linearGradient id={`areaGrad-${color.replace("#", "")}`} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.3" />
+          <stop offset="100%" stopColor={color} stopOpacity="0.02" />
+        </linearGradient>
+      </defs>
+
+      {/* Grid lines + labels */}
+      {yTicks.map((tick) => (
+        <g key={tick}>
+          <line
+            x1={padding.left}
+            x2={w - padding.right}
+            y1={scaleY(tick)}
+            y2={scaleY(tick)}
+            stroke="rgba(255,255,255,0.07)"
+            strokeWidth={1}
+          />
+          <text
+            x={padding.left - 6}
+            y={scaleY(tick)}
+            fill="var(--color-muted)"
+            fontSize={11}
+            textAnchor="end"
+            dominantBaseline="middle"
+            fillOpacity={0.7}
+          >
+            {tick}
+          </text>
+        </g>
+      ))}
+
+      {/* Bottom axis */}
+      <line
+        x1={padding.left}
+        x2={w - padding.right}
+        y1={padding.top + innerH}
+        y2={padding.top + innerH}
+        stroke="rgba(255,255,255,0.1)"
+        strokeWidth={1}
+      />
+
+      {/* Area fill */}
+      <path d={areaPath} fill={`url(#areaGrad-${color.replace("#", "")})`} />
+
+      {/* Line */}
+      <path
+        d={linePath}
         fill="none"
         stroke={color}
-        strokeWidth="2"
-        strokeLinejoin="round"
+        strokeWidth={2}
         strokeLinecap="round"
-        opacity="0.7"
+        strokeLinejoin="round"
       />
+
       {/* Min/max labels */}
-      <text x={w - 2} y={padding + 4} textAnchor="end" fill={color} opacity="0.4" fontSize="10">
+      <text x={w - padding.right} y={scaleY(max) - 6} textAnchor="end" fill={color} opacity="0.5" fontSize="10" fontWeight="700">
         {Math.floor(max)}
       </text>
-      <text x={w - 2} y={height - padding} textAnchor="end" fill={color} opacity="0.4" fontSize="10">
+      <text x={w - padding.right} y={scaleY(min) + 12} textAnchor="end" fill={color} opacity="0.5" fontSize="10" fontWeight="700">
         {Math.floor(min)}
+      </text>
+
+      {/* X-axis label */}
+      <text
+        x={w / 2}
+        y={padding.top + innerH + 14}
+        fill="var(--color-muted)"
+        fontSize={9}
+        textAnchor="middle"
+        fillOpacity={0.4}
+      >
+        races
       </text>
     </svg>
   );
