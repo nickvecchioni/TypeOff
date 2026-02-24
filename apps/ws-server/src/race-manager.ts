@@ -659,9 +659,8 @@ export class RaceManager {
       const charsPerTick = (effectiveWpm * 5) / 600;
       const progressPerTick = charsPerTick / this.totalChars;
 
-      // Track raw progress internally, cap broadcast at 97% until truly done
       entry.botRawProgress += progressPerTick;
-      entry.progress.progress = Math.min(0.97, entry.botRawProgress);
+      entry.progress.progress = Math.min(1, entry.botRawProgress);
 
       // Derive wordIndex from cumulative char offsets (word-chars only, no spaces)
       const charsTyped = entry.botRawProgress * this.wordCharsTotal;
@@ -674,7 +673,7 @@ export class RaceManager {
       // Running average WPM based on actual progress and elapsed time
       const elapsedMinutes = (entry.botTypingTicks * PROGRESS_INTERVAL_MS) / 60_000;
       const wordsTyped = (entry.botRawProgress * this.totalChars) / 5;
-      const runningWpm = elapsedMinutes > 0 ? Math.round(wordsTyped / elapsedMinutes) : 0;
+      const runningWpm = elapsedMinutes > 0 ? Math.round((wordsTyped / elapsedMinutes) * 100) / 100 : 0;
       entry.progress.wpm = runningWpm;
 
       if (entry.botRawProgress >= 1) {
