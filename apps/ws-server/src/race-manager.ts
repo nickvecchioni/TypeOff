@@ -719,9 +719,37 @@ export class RaceManager {
       ...(this.finishTimeoutEnd != null ? { finishTimeoutEnd: this.finishTimeoutEnd } : {}),
     });
 
-    // Safety net: catch "all finished" state that was missed by handleFinish/tickBots
-    // (e.g. socket hiccup lost the raceFinish event but progress=1 safety net fired)
+    // Safety net 1: auto-finish players with high progress who stopped sending events.
+    // Catches the case where both raceFinish AND the progress=1 event were dropped
+    // (transient network blip) — the client optimistically shows finished but the
+    // server never received the events.
     if (this.status === "racing") {
+      const now = Date.now();
+      for (const entry of this.players.values()) {
+        if (
+          !entry.progress.finished &&
+          !entry.isBot &&
+          entry.progress.progress >= 0.95 &&
+          entry.progress.wpm > 0 &&
+          now - entry.lastProgressTime > 3000
+        ) {
+          console.log(
+            `[race-manager] broadcastProgress stall safety net: auto-finishing player ${entry.player.id} ` +
+            `(progress=${entry.progress.progress.toFixed(3)}, wpm=${entry.progress.wpm}, ` +
+            `stalled ${((now - entry.lastProgressTime) / 1000).toFixed(1)}s) race=${this.raceId}`,
+          );
+          entry.progress.finished = true;
+          entry.progress.placement = this.nextPlacement++;
+          entry.progress.progress = 1;
+          entry.progress.finalStats = {
+            wpm: entry.progress.wpm,
+            rawWpm: entry.progress.wpm,
+            accuracy: 100,
+          };
+        }
+      }
+
+      // Safety net 2: catch "all finished" state that was missed by handleFinish/tickBots
       const allFinished = [...this.players.values()].every((p) => p.progress.finished);
       if (allFinished) {
         console.log(`[race-manager] broadcastProgress safety net: all players finished, ending race ${this.raceId}`);
@@ -800,9 +828,19 @@ export class RaceManager {
     // Send results to clients IMMEDIATELY — don't wait for DB
     this.io.to(this.raceId).emit("raceFinished", immediatePayload);
 
+    // Re-send immediate results a few times in case the first emission was dropped
+    // by a transient network blip. The client's handler merges idempotently.
+    let rebroadcastCount = 0;
+    const rebroadcastTimer = setInterval(() => {
+      rebroadcastCount++;
+      this.io.to(this.raceId).emit("raceFinished", immediatePayload);
+      if (rebroadcastCount >= 3) clearInterval(rebroadcastTimer);
+    }, 500);
+
     // Persist to DB in the background, then send enriched results (ELO, achievements, etc.)
     this.persistResults()
       .then((enrichedResults) => {
+        clearInterval(rebroadcastTimer); // enriched results supersede immediate rebroadcasts
         const enrichedPayload = {
           results: enrichedResults,
           ...(this.placementRace != null
