@@ -266,6 +266,25 @@ export function useRace(myPlayerId?: string | null) {
   const sendFinish = useCallback(
     (data: { wpm: number; rawWpm: number; accuracy: number; misstypedChars?: number }) => {
       emit("raceFinish", data);
+      // Optimistically mark self as finished so RaceTrack shows WPM immediately
+      // (placement stays null until the server assigns it)
+      const myId = myPlayerIdRef.current;
+      if (myId) {
+        setProgress(prev => {
+          const current = prev[myId];
+          if (current?.finished) return prev;
+          return {
+            ...prev,
+            [myId]: {
+              ...(current ?? { playerId: myId, wordIndex: 0, charIndex: 0, placement: null }),
+              wpm: data.wpm,
+              progress: 1,
+              finished: true,
+              finalStats: data,
+            },
+          };
+        });
+      }
     },
     [emit]
   );
