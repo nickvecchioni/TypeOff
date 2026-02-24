@@ -266,13 +266,34 @@ export class RaceManager {
   ) {
     let entry = this.players.get(socketId);
     if (!entry) {
-      // Fallback: search by socket reference (handles reconnection)
+      // Fallback 1: search by socket reference (handles reconnection where entry
+      // was re-keyed but socket object reference was updated)
       for (const [key, e] of this.players.entries()) {
         if (e.socket?.id === socketId) {
           entry = e;
           this.players.delete(key);
           this.players.set(socketId, e);
+          console.log(`[race-manager] handleProgress: re-keyed player ${e.player.id} from ${key} to ${socketId}`);
           break;
+        }
+      }
+      // Fallback 2: search by userId — handles the case where the socket
+      // disconnected (entry.socket = null) and reconnected with a new ID before
+      // reconnectPlayer was called. Uses the io server to get the socket object.
+      if (!entry) {
+        for (const [key, e] of this.players.entries()) {
+          if (!e.isBot && key !== socketId) {
+            const sock = this.io.sockets.sockets.get(socketId);
+            if (sock && sock.data?.userId === e.player.id) {
+              entry = e;
+              this.players.delete(key);
+              entry.socket = sock;
+              this.players.set(socketId, entry);
+              sock.join(this.raceId);
+              console.log(`[race-manager] handleProgress: userId-based re-key for ${e.player.id} from ${key} to ${socketId}`);
+              break;
+            }
+          }
         }
       }
       if (!entry) return;
@@ -315,16 +336,31 @@ export class RaceManager {
   ) {
     let entry = this.players.get(socketId);
     if (!entry) {
-      // Fallback: search by player socket reference (handles reconnection where
-      // the socketId key is stale but the socket reference was updated by reconnectPlayer)
+      // Fallback 1: search by socket reference
       for (const [key, e] of this.players.entries()) {
         if (e.socket?.id === socketId) {
           entry = e;
-          // Re-key the entry for future lookups
           this.players.delete(key);
           this.players.set(socketId, e);
           console.log(`[race-manager] handleFinish: re-keyed player ${e.player.id} from ${key} to ${socketId}`);
           break;
+        }
+      }
+      // Fallback 2: search by userId via socket.data
+      if (!entry) {
+        for (const [key, e] of this.players.entries()) {
+          if (!e.isBot && key !== socketId) {
+            const sock = this.io.sockets.sockets.get(socketId);
+            if (sock && sock.data?.userId === e.player.id) {
+              entry = e;
+              this.players.delete(key);
+              entry.socket = sock;
+              this.players.set(socketId, entry);
+              sock.join(this.raceId);
+              console.log(`[race-manager] handleFinish: userId-based re-key for ${e.player.id} from ${key} to ${socketId}`);
+              break;
+            }
+          }
         }
       }
       if (!entry) {
@@ -445,7 +481,8 @@ export class RaceManager {
     }
   }
 
-  /** Reconnect a player who briefly disconnected. Returns true on success. */
+  /** Reconnect a player who briefly disconnected. Returns true on success.
+   *  Idempotent — safe to call multiple times with the same socket. */
   reconnectPlayer(userId: string, newSocket: TypedSocket): boolean {
     if (this.status === "finished") return false;
 
@@ -461,10 +498,15 @@ export class RaceManager {
     }
     if (!oldSocketId || !entry) return false;
 
+    // Already connected with this socket — nothing to do
+    if (oldSocketId === newSocket.id && entry.socket === newSocket) return true;
+
     // Re-key the entry from old socketId to new socketId
-    this.players.delete(oldSocketId);
+    if (oldSocketId !== newSocket.id) {
+      this.players.delete(oldSocketId);
+      this.players.set(newSocket.id, entry);
+    }
     entry.socket = newSocket;
-    this.players.set(newSocket.id, entry);
 
     // Join the new socket to the race room
     newSocket.join(this.raceId);
@@ -475,6 +517,7 @@ export class RaceManager {
       this.disconnectGraceTimer = null;
     }
 
+    console.log(`[race-manager] reconnectPlayer: ${userId} re-keyed from ${oldSocketId} to ${newSocket.id} in race ${this.raceId}`);
     return true;
   }
 

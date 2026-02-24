@@ -31,9 +31,44 @@ export function SocketProvider({ children }: { children: ReactNode }) {
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
+    // Cached token for fast reconnection auth (avoids async fetch in auth callback)
+    let cachedToken: string | null = null;
+    let tokenFetchInFlight = false;
+
+    const fetchAndCacheToken = async (): Promise<string | null> => {
+      if (tokenFetchInFlight) return cachedToken;
+      tokenFetchInFlight = true;
+      try {
+        const res = await fetch("/api/ws-token");
+        if (res.ok) {
+          const data = await res.json();
+          cachedToken = data.token ?? null;
+        }
+      } catch {
+        // Token fetch failed — will connect without auth
+      } finally {
+        tokenFetchInFlight = false;
+      }
+      return cachedToken;
+    };
+
     const socket: TypedSocket = io(WS_URL, {
       autoConnect: false,
       transports: ["websocket"],
+      // Send auth token on EVERY connection (including reconnections).
+      // The server middleware uses this to identify the socket and
+      // proactively restore race mappings BEFORE any events are processed.
+      auth: (cb) => {
+        if (cachedToken) {
+          cb({ token: cachedToken });
+          // Refresh token in background for next reconnection
+          fetchAndCacheToken();
+        } else {
+          fetchAndCacheToken().then((token) => {
+            cb(token ? { token } : {});
+          });
+        }
+      },
     });
 
     socket.on("connect", () => setConnected(true));

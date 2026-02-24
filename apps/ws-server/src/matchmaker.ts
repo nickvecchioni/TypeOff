@@ -176,16 +176,27 @@ export class Matchmaker implements RaceOwner {
 
   handleProgress(
     socketId: string,
-    data: { wordIndex: number; charIndex: number; wpm: number; progress: number }
+    data: { wordIndex: number; charIndex: number; wpm: number; progress: number },
+    userId?: string,
   ) {
     let raceId = this.socketToRace.get(socketId);
     if (!raceId) {
       // Fallback: try to find race by userId (handles socket reconnection)
-      const userId = this.socketToUserId.get(socketId);
-      if (userId) {
-        raceId = this.userIdToRace.get(userId);
+      const uid = this.socketToUserId.get(socketId) ?? userId;
+      if (uid) {
+        raceId = this.userIdToRace.get(uid);
         if (raceId) {
+          // Restore socket-level mappings so future lookups are fast
           this.socketToRace.set(socketId, raceId);
+          this.socketToUserId.set(socketId, uid);
+
+          // Proactively reconnect the player in the race manager so the
+          // socket reference and entry key are updated
+          const race = this.races.get(raceId);
+          const sock = this.io.sockets.sockets.get(socketId);
+          if (race && sock) {
+            race.reconnectPlayer(uid, sock);
+          }
         }
       }
       if (!raceId) return;
@@ -196,27 +207,38 @@ export class Matchmaker implements RaceOwner {
 
   handleFinish(
     socketId: string,
-    data: { wpm: number; rawWpm: number; accuracy: number; misstypedChars?: number; wpmHistory?: WpmSample[] }
+    data: { wpm: number; rawWpm: number; accuracy: number; misstypedChars?: number; wpmHistory?: WpmSample[] },
+    userId?: string,
   ) {
-    const raceId = this.socketToRace.get(socketId);
+    let raceId = this.socketToRace.get(socketId);
     if (!raceId) {
-      console.warn(`[matchmaker] handleFinish: no race mapping for socketId=${socketId} (wpm=${data.wpm}). Socket may have reconnected.`);
-      // Try to find race by userId as fallback
-      const userId = this.socketToUserId.get(socketId);
-      if (userId) {
-        const fallbackRaceId = this.userIdToRace.get(userId);
-        if (fallbackRaceId) {
-          const race = this.races.get(fallbackRaceId);
+      // Fallback: try to find race by userId (handles socket reconnection)
+      const uid = this.socketToUserId.get(socketId) ?? userId;
+      if (uid) {
+        raceId = this.userIdToRace.get(uid);
+        if (raceId) {
+          const race = this.races.get(raceId);
           if (race) {
-            console.log(`[matchmaker] handleFinish: found race via userId fallback. userId=${userId} race=${fallbackRaceId}`);
-            // Re-establish the mapping
-            this.socketToRace.set(socketId, fallbackRaceId);
+            console.log(`[matchmaker] handleFinish: found race via userId fallback. userId=${uid} race=${raceId}`);
+            // Restore socket-level mappings
+            this.socketToRace.set(socketId, raceId);
+            this.socketToUserId.set(socketId, uid);
+
+            // Proactively reconnect the player in the race manager
+            const sock = this.io.sockets.sockets.get(socketId);
+            if (sock) {
+              race.reconnectPlayer(uid, sock);
+            }
+
             race.handleFinish(socketId, data);
             return;
           }
         }
       }
-      return;
+      if (!raceId) {
+        console.warn(`[matchmaker] handleFinish: no race mapping for socketId=${socketId} (wpm=${data.wpm}).`);
+        return;
+      }
     }
     const race = this.races.get(raceId);
     race?.handleFinish(socketId, data);

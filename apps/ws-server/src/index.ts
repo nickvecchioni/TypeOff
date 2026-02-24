@@ -62,8 +62,32 @@ matchmaker.setOnRaceStarted((raceId, playerUserIds) => {
   }
 });
 
+// ─── Auth Middleware ────────────────────────────────────────────────────
+// Runs BEFORE any event handlers. Identifies the socket via the handshake
+// auth token (sent on every connection including reconnections), proactively
+// restoring race mappings so progress/finish events are never lost.
+io.use(async (socket, next) => {
+  const token = socket.handshake.auth?.token;
+  if (token && typeof token === "string") {
+    try {
+      const player = await authenticateSocket({ token }, socket.id);
+      socket.data.userId = player.id;
+
+      // If the user has an active race, proactively reconnect their socket
+      // so progress/finish events sent immediately after reconnection work.
+      const result = matchmaker.tryReconnect(socket, player.id);
+      if (result) {
+        console.log(`[middleware] proactive reconnect: ${socket.id} → race ${result.raceId} (userId=${player.id})`);
+      }
+    } catch {
+      // Auth failed — not an error, socket can still auth via joinQueue/rejoinRace
+    }
+  }
+  next();
+});
+
 io.on("connection", (socket) => {
-  console.log(`[connect] ${socket.id}`);
+  console.log(`[connect] ${socket.id}${socket.data.userId ? ` (userId=${socket.data.userId})` : ""}`);
 
   // ─── Queue Events ─────────────────────────────────────────────────
 
@@ -71,6 +95,7 @@ io.on("connection", (socket) => {
     console.log(`[joinQueue] ${socket.id} connected=${socket.connected}`);
     try {
       const player = await authenticateSocket(data, socket.id);
+      socket.data.userId = player.id;
       console.log(`[joinQueue] ${socket.id} authenticated as ${player.id} (${player.name})`);
       // Fire-and-forget: don't block queue join on friend notifications
       socialManager.trackConnection(socket, player.id).catch(() => {});
@@ -131,6 +156,7 @@ io.on("connection", (socket) => {
   socket.on("rejoinRace", async (data) => {
     try {
       const player = await authenticateSocket(data, socket.id);
+      socket.data.userId = player.id;
       const result = matchmaker.tryReconnect(socket, player.id);
       if (result) {
         const state = result.race.getState();
@@ -150,11 +176,11 @@ io.on("connection", (socket) => {
   // ─── Race Events ──────────────────────────────────────────────────
 
   socket.on("raceProgress", (data) => {
-    matchmaker.handleProgress(socket.id, data);
+    matchmaker.handleProgress(socket.id, data, socket.data?.userId);
   });
 
   socket.on("raceFinish", (data) => {
-    matchmaker.handleFinish(socket.id, data);
+    matchmaker.handleFinish(socket.id, data, socket.data?.userId);
   });
 
   // ─── Party Events ─────────────────────────────────────────────────
