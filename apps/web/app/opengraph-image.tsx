@@ -33,6 +33,7 @@ export default function Image() {
         {/* Accent glow blob */}
         <div
           style={{
+            display: "flex",
             position: "absolute",
             left: -120,
             top: -120,
@@ -47,6 +48,7 @@ export default function Image() {
         {/* Bottom-right glow */}
         <div
           style={{
+            display: "flex",
             position: "absolute",
             right: -80,
             bottom: -80,
@@ -61,6 +63,7 @@ export default function Image() {
         {/* Left accent stripe */}
         <div
           style={{
+            display: "flex",
             position: "absolute",
             left: 0,
             top: 0,
