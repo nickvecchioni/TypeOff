@@ -3,8 +3,7 @@ import { getXpLevel } from "./challenges";
 // ─── Pro Subscription Constants ────────────────────────────────────────
 
 export const PRO_MONTHLY_PRICE = 4.99;
-export const PRO_YEARLY_PRICE = 39.99;
-export const PRO_LIFETIME_PRICE = 99.99;
+export const PRO_YEARLY_PRICE = 29.99;
 export const PRO_BADGE_ID = "pro_badge";
 
 // ─── Types ─────────────────────────────────────────────────────────────

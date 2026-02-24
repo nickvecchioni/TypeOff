@@ -7,7 +7,6 @@ import Link from "next/link";
 import {
   PRO_MONTHLY_PRICE,
   PRO_YEARLY_PRICE,
-  PRO_LIFETIME_PRICE,
   COSMETIC_REWARDS,
   BADGE_EMOJIS,
   TITLE_TEXTS,
@@ -238,7 +237,7 @@ export default function ProPage() {
               <p className="text-[9px] font-bold text-muted/65 uppercase tracking-widest mb-4 text-center">
                 Choose your plan
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 
                 {/* Monthly */}
                 <div className="rounded-xl px-5 py-5 ring-1 ring-white/[0.06] bg-surface/30 flex flex-col">
@@ -265,7 +264,7 @@ export default function ProPage() {
                 >
                   <div className="absolute -top-3 left-0 right-0 flex justify-center">
                     <span className="text-[9px] font-black bg-accent text-white px-3 py-1 rounded-full uppercase tracking-wider shadow-[0_2px_12px_rgba(77,158,255,0.5)]">
-                      Save 33%
+                      Save 50%
                     </span>
                   </div>
                   <div className="text-[10px] font-bold text-accent/60 uppercase tracking-wider mb-3">
@@ -299,32 +298,9 @@ export default function ProPage() {
                   </button>
                 </div>
 
-                {/* Lifetime */}
-                <div className="rounded-xl px-5 py-5 ring-1 ring-white/[0.06] bg-surface/30 flex flex-col">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="text-[10px] font-bold text-muted/60 uppercase tracking-wider">
-                      Lifetime
-                    </div>
-                    <span className="text-[9px] font-bold text-muted/55 ring-1 ring-white/[0.08] px-2 py-0.5 rounded-full uppercase tracking-wider">
-                      Forever
-                    </span>
-                  </div>
-                  <div className="text-3xl font-black text-text tabular-nums leading-none mb-0.5">
-                    ${PRO_LIFETIME_PRICE.toFixed(2)}
-                    <span className="text-sm font-normal text-muted/60"> one-time</span>
-                  </div>
-                  <div className="text-[10px] text-muted/45 mb-6">Pay once, Pro forever</div>
-                  <button
-                    onClick={() => router.push("/pro/checkout?plan=lifetime")}
-                    className="mt-auto w-full rounded-lg py-2.5 text-[13px] font-bold ring-1 ring-white/[0.10] bg-white/[0.04] text-text/70 hover:ring-accent/30 hover:bg-accent/[0.05] hover:text-accent/80 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
-                  >
-                    Get Pro
-                  </button>
-                </div>
-
               </div>
               <p className="text-center text-[9px] text-muted/20 mt-3 leading-relaxed">
-                Subscriptions cancel anytime. Lifetime is permanent.{" "}
+                Subscriptions cancel anytime.{" "}
                 Cosmetics earned are yours to keep.
               </p>
             </div>

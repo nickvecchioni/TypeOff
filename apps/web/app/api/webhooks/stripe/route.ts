@@ -34,62 +34,6 @@ export async function POST(request: Request) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
 
-      // Handle lifetime (one-time payment) checkout
-      if (session.mode === "payment") {
-        const userId = session.metadata?.userId;
-        if (!userId) {
-          console.error("[stripe-webhook] lifetime checkout missing userId metadata");
-          break;
-        }
-        const customerId =
-          typeof session.customer === "string"
-            ? session.customer
-            : session.customer?.id;
-        if (!customerId) break;
-
-        await db
-          .insert(userSubscription)
-          .values({
-            userId,
-            stripeCustomerId: customerId,
-            status: "lifetime",
-          })
-          .onConflictDoUpdate({
-            target: userSubscription.userId,
-            set: {
-              stripeCustomerId: customerId,
-              status: "lifetime",
-              updatedAt: new Date(),
-            },
-          });
-
-        // Grant and auto-equip Pro badge
-        await db
-          .insert(userCosmetics)
-          .values({ userId, cosmeticId: PRO_BADGE_ID, seasonId: "pro" })
-          .onConflictDoNothing();
-        await db
-          .insert(userActiveCosmetics)
-          .values({ userId, activeBadge: PRO_BADGE_ID })
-          .onConflictDoUpdate({
-            target: userActiveCosmetics.userId,
-            set: { activeBadge: PRO_BADGE_ID },
-          });
-
-        // Retroactively unlock Pro XP cosmetics
-        const [[statsRow], existingCosmetics] = await Promise.all([
-          db.select({ totalXp: userStats.totalXp }).from(userStats).where(eq(userStats.userId, userId)).limit(1),
-          db.select({ cosmeticId: userCosmetics.cosmeticId }).from(userCosmetics).where(eq(userCosmetics.userId, userId)),
-        ]);
-        const totalXp = statsRow?.totalXp ?? 0;
-        const ownedSet = new Set(existingCosmetics.map((c) => c.cosmeticId));
-        const missed = getMissedProRewards(totalXp, ownedSet);
-        for (const reward of missed) {
-          await db.insert(userCosmetics).values({ userId, cosmeticId: reward.id, seasonId: "xp" }).onConflictDoNothing();
-        }
-        break;
-      }
-
       // Handle subscription checkout
       if (session.mode === "subscription") {
         const userId = session.metadata?.userId;
