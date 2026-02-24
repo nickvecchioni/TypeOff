@@ -1009,16 +1009,18 @@ export function RaceResults({
             {!isPlacement && <PresetChatFeed emotes={emotes} />}
           </div>
 
-          {/* WPM Chart */}
+          {/* WPM Chart — flex-1 so action buttons align with right column bottom */}
           {myWpmHistory && myWpmHistory.length >= 2 && (
-            <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 pt-2.5 pb-1.5">
+            <div className="flex-1 min-h-[160px] rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 pt-2.5 pb-1.5 flex flex-col">
               <div className="text-[10px] font-bold text-muted/50 uppercase tracking-widest mb-1.5">WPM over time</div>
-              <WpmChart samples={myWpmHistory} compact />
+              <div className="flex-1 min-h-0">
+                <WpmChart samples={myWpmHistory} compact />
+              </div>
             </div>
           )}
 
           {/* Actions */}
-          <div className="flex flex-col items-center gap-1.5 w-full">
+          <div className="flex flex-col items-center gap-1.5 w-full min-w-0 px-px">
             {/* Party ready state */}
             {inParty && !isPlacement && (
               <div className="flex items-center justify-center gap-3 flex-wrap">
