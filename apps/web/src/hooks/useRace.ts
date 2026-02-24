@@ -75,6 +75,14 @@ export function useRace(myPlayerId?: string | null) {
   // Track previous connected state for reconnection detection
   const prevConnectedRef = useRef(connected);
 
+  // Ref-based finish lock: set synchronously in sendFinish, checked in all
+  // setProgress paths. Unlike React state, a ref update is immediate and can't
+  // be lost to batching, stale closures, or event ordering.
+  const localFinishRef = useRef<{
+    playerId: string;
+    entry: RacePlayerProgress;
+  } | null>(null);
+
   useEffect(() => {
     const unsubs = [
       on("queueUpdate", (data) => {
@@ -88,7 +96,15 @@ export function useRace(myPlayerId?: string | null) {
         }
         setError(null);
         setRaceState(data);
-        setProgress(data.progress);
+        // During reconnection, preserve local finished state if the server
+        // hasn't caught up yet (raceFinish event may have been lost)
+        const finish = localFinishRef.current;
+        if (finish && !data.progress[finish.playerId]?.finished) {
+          setProgress({ ...data.progress, [finish.playerId]: finish.entry });
+        } else {
+          if (finish) localFinishRef.current = null; // server confirmed, clear lock
+          setProgress(data.progress);
+        }
         setCountdown(data.countdown);
         setPhase("countdown");
       }),
@@ -100,17 +116,24 @@ export function useRace(myPlayerId?: string | null) {
       }),
       on("raceProgress", (data) => {
         setProgress(prev => {
+          // Ref-based finish lock: if we finished locally, never let any
+          // server broadcast regress our state (regardless of myPlayerId,
+          // React batching, or event ordering)
+          const finish = localFinishRef.current;
+          if (finish) {
+            if (data.progress[finish.playerId]?.finished) {
+              // Server confirmed our finish — use server data, clear lock
+              localFinishRef.current = null;
+              return data.progress;
+            }
+            // Server hasn't caught up — merge server data but keep our entry
+            return { ...data.progress, [finish.playerId]: finish.entry };
+          }
           const myId = myPlayerIdRef.current;
           if (!myId) return data.progress;
           const serverEntry = data.progress[myId];
-          // If server marks us as finished, always use server value
           if (serverEntry?.finished) return data.progress;
           const localEntry = prev[myId];
-          // If we optimistically marked ourselves finished, never let a stale
-          // server broadcast (finished: false) overwrite that
-          if (localEntry?.finished) {
-            return { ...data.progress, [myId]: localEntry };
-          }
           // Keep local progress if it's ahead of the server (optimistic update)
           if (localEntry && localEntry.progress > (serverEntry?.progress ?? 0)) {
             return { ...data.progress, [myId]: localEntry };
@@ -228,6 +251,7 @@ export function useRace(myPlayerId?: string | null) {
 
   const leaveRace = useCallback(() => {
     emit("leaveRace");
+    localFinishRef.current = null;
     setPhase("idle");
     setRaceState(null);
     setProgress({});
@@ -242,6 +266,7 @@ export function useRace(myPlayerId?: string | null) {
       wpm: number;
       progress: number;
     }) => {
+      if (localFinishRef.current) return; // Already finished, don't send stale progress
       emit("raceProgress", data);
       // Optimistically update own progress bar immediately
       const myId = myPlayerIdRef.current;
@@ -275,19 +300,33 @@ export function useRace(myPlayerId?: string | null) {
       // (placement stays null until the server assigns it)
       const myId = myPlayerIdRef.current;
       if (myId) {
+        // Build the finished entry and store in the ref SYNCHRONOUSLY before
+        // any async setProgress — this ref is the source of truth that
+        // raceProgress / raceStart handlers check to prevent regression.
+        const entry: RacePlayerProgress = {
+          playerId: myId,
+          wordIndex: 0,
+          charIndex: 0,
+          placement: null,
+          wpm: data.wpm,
+          progress: 1,
+          finished: true,
+          finalStats: data,
+        };
+        localFinishRef.current = { playerId: myId, entry };
+
         setProgress(prev => {
           const current = prev[myId];
           if (current?.finished) return prev;
-          return {
-            ...prev,
-            [myId]: {
-              ...(current ?? { playerId: myId, wordIndex: 0, charIndex: 0, placement: null }),
-              wpm: data.wpm,
-              progress: 1,
-              finished: true,
-              finalStats: data,
-            },
+          // Merge with current entry to preserve wordIndex/charIndex
+          const merged = {
+            ...entry,
+            wordIndex: current?.wordIndex ?? 0,
+            charIndex: current?.charIndex ?? 0,
+            placement: current?.placement ?? null,
           };
+          localFinishRef.current = { playerId: myId, entry: merged };
+          return { ...prev, [myId]: merged };
         });
       }
     },
@@ -295,6 +334,7 @@ export function useRace(myPlayerId?: string | null) {
   );
 
   const reset = useCallback(() => {
+    localFinishRef.current = null;
     setPhase("idle");
     setRaceState(null);
     setProgress({});
@@ -309,6 +349,7 @@ export function useRace(myPlayerId?: string | null) {
 
   const raceAgain = useCallback(
     (opts?: { privateRace?: boolean; modeCategories?: ModeCategory[] }) => {
+      localFinishRef.current = null;
       setRaceState(null);
       setProgress({});
       setResults([]);
