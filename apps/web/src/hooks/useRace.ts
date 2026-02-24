@@ -274,7 +274,10 @@ export function useRace(myPlayerId?: string | null) {
       wpm: number;
       progress: number;
     }) => {
-      if (localFinishRef.current) return; // Already finished, don't send stale progress
+      // After finishing, keep sending progress=1 so the server's handleProgress
+      // safety net can auto-finish us if the raceFinish event was dropped.
+      // Block anything below 1 to prevent stale progress regression.
+      if (localFinishRef.current && data.progress < 1) return;
       emit("raceProgress", data);
       // Optimistically update own progress bar immediately
       const myId = myPlayerIdRef.current;

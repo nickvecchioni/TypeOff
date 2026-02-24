@@ -191,7 +191,7 @@ export function RaceArena() {
       return;
     }
     const interval = setInterval(() => {
-      if (finishSentAt.current && lastFinishData.current && Date.now() - finishSentAt.current > 5000) {
+      if (finishSentAt.current && lastFinishData.current && Date.now() - finishSentAt.current > 2000) {
         console.warn("[RaceArena] Stuck race — resending finish event");
         finishSentAt.current = Date.now();
         race.sendFinish(lastFinishData.current);
