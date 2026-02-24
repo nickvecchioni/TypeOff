@@ -12,7 +12,6 @@ interface RaceTypingAreaProps {
   seed: number;
   wordCount: number;
   mode: RaceMode;
-  finishTimeoutEnd?: number | null;
   onProgress: (data: {
     wordIndex: number;
     charIndex: number;
@@ -35,7 +34,6 @@ export function RaceTypingArea({
   seed,
   wordCount,
   mode,
-  finishTimeoutEnd,
   onProgress,
   onFinish,
   disabled,
@@ -250,31 +248,10 @@ export function RaceTypingArea({
     [engine.handleKeyDown, mode]
   );
 
-  // Finish timeout countdown
-  const [timeoutRemaining, setTimeoutRemaining] = useState<number | null>(null);
-  useEffect(() => {
-    if (!finishTimeoutEnd || engine.status === "finished") {
-      setTimeoutRemaining(null);
-      return;
-    }
-    const tick = () => {
-      const remaining = Math.max(0, Math.ceil((finishTimeoutEnd - Date.now()) / 1000));
-      setTimeoutRemaining(remaining);
-    };
-    tick();
-    const interval = setInterval(tick, 1000);
-    return () => clearInterval(interval);
-  }, [finishTimeoutEnd, engine.status]);
-
   const wordContainerHeight = lineHeight * VISIBLE_LINES;
 
   return (
     <div className={`w-full relative ${themeClass}`}>
-      {timeoutRemaining != null && timeoutRemaining > 0 && (
-        <div className="text-center text-sm text-muted mb-3 tabular-nums h-5 flex items-center justify-center">
-          Time remaining: <span className="text-accent font-bold ml-1">{timeoutRemaining}s</span>
-        </div>
-      )}
       <div
         ref={containerRef}
         tabIndex={0}

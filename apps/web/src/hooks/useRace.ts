@@ -279,27 +279,9 @@ export function useRace(myPlayerId?: string | null) {
       // Block anything below 1 to prevent stale progress regression.
       if (localFinishRef.current && data.progress < 1) return;
       emit("raceProgress", data);
-      // Optimistically update own progress bar immediately
-      const myId = myPlayerIdRef.current;
-      if (myId) {
-        setProgress(prev => {
-          const current = prev[myId];
-          if (current?.finished || (current && current.progress >= data.progress)) return prev;
-          return {
-            ...prev,
-            [myId]: {
-              playerId: myId,
-              wordIndex: data.wordIndex,
-              charIndex: data.charIndex,
-              wpm: data.wpm,
-              progress: data.progress,
-              finished: false,
-              placement: current?.placement ?? null,
-              finalStats: current?.finalStats ?? null,
-            },
-          };
-        });
-      }
+      // No optimistic local progress update — the server broadcasts progress
+      // every 100ms which is smooth enough for the race track, and keeps all
+      // players on the same timescale so visual progress matches placements.
     },
     [emit]
   );

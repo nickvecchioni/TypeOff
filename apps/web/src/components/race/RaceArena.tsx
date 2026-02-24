@@ -16,6 +16,25 @@ import { useSocket } from "@/hooks/useSocket";
 import { getRankInfo, getCodeSnippet } from "@typeoff/shared";
 import type { RankTier, WpmSample, ModeCategory } from "@typeoff/shared";
 
+function FinishTimeoutDisplay({ finishTimeoutEnd }: { finishTimeoutEnd: number }) {
+  const [remaining, setRemaining] = React.useState<number | null>(null);
+  React.useEffect(() => {
+    const tick = () => {
+      const r = Math.max(0, Math.ceil((finishTimeoutEnd - Date.now()) / 1000));
+      setRemaining(r);
+    };
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [finishTimeoutEnd]);
+  if (remaining == null || remaining <= 0) return null;
+  return (
+    <div className="text-center text-sm text-muted mt-3 tabular-nums h-5 flex items-center justify-center">
+      Time remaining: <span className="text-accent font-bold ml-1">{remaining}s</span>
+    </div>
+  );
+}
+
 const TIER_ORDER: RankTier[] = [
   "bronze", "silver", "gold", "platinum", "diamond", "master", "grandmaster",
 ];
@@ -111,6 +130,16 @@ export function RaceArena() {
       })
       .catch(() => {});
   }, [session?.user?.id, session?.user?.placementsCompleted, updateSession]);
+
+  // Delay showing race results by 1s so the final placements can settle visually
+  const [showResults, setShowResults] = React.useState(false);
+  React.useEffect(() => {
+    if (race.phase === "finished") {
+      const timer = setTimeout(() => setShowResults(true), 1000);
+      return () => clearTimeout(timer);
+    }
+    setShowResults(false);
+  }, [race.phase]);
 
   // Delay showing the queue screen so fast matches (placements) skip it
   const [showQueuing, setShowQueuing] = React.useState(false);
@@ -297,7 +326,7 @@ export function RaceArena() {
         />
       )}
 
-      {(race.phase === "countdown" || race.phase === "racing") && race.raceState && (
+      {(race.phase === "countdown" || race.phase === "racing" || (race.phase === "finished" && !showResults)) && race.raceState && (
         <div
           className="flex flex-col items-center gap-8 w-full pt-[12vh]"
           style={{ animation: "fade-in-up 0.4s ease-out both" }}
@@ -315,7 +344,12 @@ export function RaceArena() {
               myPlayerId={myPlayerId}
               isPlacement={isInPlacement}
             />
+            {/* Finish timeout below the race track (under user's WPM row) */}
+            {race.finishTimeoutEnd != null && race.phase !== "finished" && (
+              <FinishTimeoutDisplay finishTimeoutEnd={race.finishTimeoutEnd} />
+            )}
           </div>
+          {race.phase !== "finished" && (
           <div className="relative w-full">
             {/* Countdown overlay — absolutely positioned, no layout shift */}
             <div
@@ -342,17 +376,17 @@ export function RaceArena() {
                 seed={race.raceState.seed}
                 wordCount={race.raceState.wordCount}
                 mode={race.raceState.mode}
-                finishTimeoutEnd={race.finishTimeoutEnd}
                 onProgress={race.sendProgress}
                 onFinish={handleFinish}
                 disabled={race.phase === "countdown"}
               />
             </div>
           </div>
+          )}
         </div>
       )}
 
-      {race.phase === "finished" && (
+      {race.phase === "finished" && showResults && (
         <div className="w-full flex-1 min-h-0 flex flex-col" style={{ animation: "fade-in-up 0.4s ease-out both" }}>
           <RaceResults
             results={race.results}
