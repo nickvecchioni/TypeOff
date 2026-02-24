@@ -734,8 +734,20 @@ export function RaceResults({
                     change={myResult.eloChange!}
                     rankChange={rankChange}
                   />
+                ) : !isPlacement && myResult?.elo != null ? (
+                  /* Show static ELO + rank badge while waiting for enriched data
+                     (same visual structure as AnimatedElo to prevent layout shift) */
+                  <div>
+                    <div className="flex items-baseline gap-2.5">
+                      <span className="text-3xl sm:text-4xl font-black text-text tabular-nums leading-none">
+                        {myResult.elo}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <RankBadge tier={getRankInfo(myResult.elo).tier} elo={myResult.elo} showElo={false} size="xs" />
+                    </div>
+                  </div>
                 ) : (
-                  /* Reserve space while ELO loads to prevent layout shift */
                   <div className="h-[52px]" />
                 )}
               </div>

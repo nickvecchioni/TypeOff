@@ -145,7 +145,15 @@ export function useRace(myPlayerId?: string | null) {
         }
       }),
       on("raceFinished", (data) => {
-        setResults(data.results);
+        // Merge enriched fields into existing results rather than replacing,
+        // so React can diff minimally and avoid a full re-render flash
+        setResults(prev => {
+          if (prev.length === 0) return data.results;
+          return data.results.map(r => {
+            const existing = prev.find(p => p.playerId === r.playerId);
+            return existing ? { ...existing, ...r } : r;
+          });
+        });
         setPlacementRace(data.placementRace);
         setPlacementTotal(data.placementTotal);
         // Show rank reveal screen after final placement race
