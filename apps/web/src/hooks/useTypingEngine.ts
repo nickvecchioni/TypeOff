@@ -31,6 +31,7 @@ export interface TypingEngine extends EngineAPI {
   handleKeyDown: (e: React.KeyboardEvent) => void;
   timeElapsed: number;
   stopZen: () => void;
+  forceFinish: () => void;
   replaySnapshots: React.MutableRefObject<ReplaySnapshot[]>;
   startRaceTimer: () => void;
 }
@@ -656,6 +657,12 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     }
   }, [startTimer]);
 
+  // Force finish even if finishedRef is already set (used by race safety net)
+  const forceFinish = useCallback(() => {
+    finishedRef.current = false;
+    finishTest();
+  }, [finishTest]);
+
   return {
     words,
     currentWordIndex,
@@ -669,6 +676,7 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     setConfig,
     restart,
     stopZen,
+    forceFinish,
     replaySnapshots: replaySnapshotsRef,
     handleKeyDown: (e: React.KeyboardEvent) => keyDownRef.current(e),
     startRaceTimer,

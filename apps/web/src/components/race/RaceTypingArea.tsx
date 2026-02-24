@@ -158,30 +158,44 @@ export function RaceTypingArea({
     }
   }, [engine.status, engine.stats, onFinish]);
 
-  // Safety-net: poll for completion in case the engine's finish detection misses
+  // Safety-net: detect completion from word state and force finish if the engine missed it.
+  // Runs on every render — checks if all chars are correct and forces the race to end.
+  const safetyFinishSent = useRef(false);
   useEffect(() => {
-    if (disabled || engine.status === "finished") return;
-    const interval = setInterval(() => {
-      if (engine.status !== "typing" || engine.words.length === 0) return;
-      const lastWord = engine.words[engine.words.length - 1];
-      const allComplete =
-        engine.currentWordIndex >= engine.words.length - 1 &&
-        engine.currentCharIndex >= lastWord.chars.length &&
-        lastWord.chars.every((c) => c.status === "correct");
-      if (allComplete) {
-        console.warn("[RaceTypingArea] Safety-net detected completion — forcing finish");
-        // Send progress=1 so server auto-finish safety net can also trigger
-        const totalChars = engine.words.reduce((sum, w) => sum + w.chars.length, 0);
-        onProgress({
-          wordIndex: engine.words.length - 1,
-          charIndex: lastWord.chars.length,
-          wpm: engine.liveWpm,
-          progress: 1,
+    if (disabled || engine.words.length === 0 || safetyFinishSent.current || sentFinish.current) return;
+    // Check if every char in every word is correct
+    const allWordsComplete = engine.words.every(
+      (w) => w.chars.length > 0 && w.chars.every((c) => c.status === "correct"),
+    );
+    if (!allWordsComplete) return;
+
+    // All words are complete — the race should be over
+    if (engine.status === "finished") {
+      // Engine already finished — the normal finish effect will handle it
+      return;
+    }
+
+    console.warn("[RaceTypingArea] Safety-net: all words complete but engine status is", engine.status);
+
+    // Try forcing the engine to finish — this schedules setStats + setStatus("finished")
+    engine.forceFinish();
+
+    // Schedule a fallback: if the normal finish flow hasn't sent after 100ms, send directly
+    const timer = setTimeout(() => {
+      if (!sentFinish.current && !safetyFinishSent.current) {
+        safetyFinishSent.current = true;
+        const wpm = engine.liveWpm > 0 ? engine.liveWpm : 1;
+        console.warn("[RaceTypingArea] Safety-net fallback: sending onFinish directly with wpm=", wpm);
+        onFinish({
+          wpm,
+          rawWpm: wpm,
+          accuracy: 100,
+          misstypedChars: 0,
         });
       }
-    }, 250);
-    return () => clearInterval(interval);
-  }, [disabled, engine.status, engine.words, engine.currentWordIndex, engine.currentCharIndex, engine.liveWpm, onProgress]);
+    }, 100);
+    return () => clearTimeout(timer);
+  });
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
