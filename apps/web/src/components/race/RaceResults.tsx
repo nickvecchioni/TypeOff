@@ -752,7 +752,7 @@ export function RaceResults({
     : "grid-cols-[2rem_1fr_4rem_3.5rem]";
   const desktopCols = isPlacement
     ? ""
-    : "sm:grid-cols-[2rem_1fr_5rem_5rem_4rem_4rem]";
+    : "sm:grid-cols-[2rem_1fr_auto_4rem_3.5rem_3.5rem]";
   const tableCols = `${mobileCols} ${desktopCols}`;
 
   const hasAchievements = myResult?.newAchievements && myResult.newAchievements.length > 0;
@@ -1197,8 +1197,31 @@ export function RaceResults({
           )}
         </div>
 
-        {/* ── RIGHT COLUMN: Challenges + XP + Pro ── */}
+        {/* ── RIGHT COLUMN: XP + Challenges + Pro ── */}
         <div className="flex flex-col gap-1.5 min-h-0 overflow-y-auto">
+          {/* XP Progress — always reserve space to prevent jitter */}
+          {!isPlacement && (
+            hasXpProgress ? (
+              <AnimatedXpPanel xp={myResult!.xpProgress!} isPro={isPro} />
+            ) : (
+              /* Skeleton placeholder for XP panel */
+              <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden">
+                <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
+                <div className="px-3 py-2.5 sm:px-4 sm:py-3 flex flex-col gap-2.5">
+                  <div className="h-3 w-12 rounded bg-white/[0.03] animate-pulse" />
+                  <div className="rounded-lg px-3 py-2 ring-1 ring-accent/10 bg-surface/40 flex items-center gap-4">
+                    <div className="w-10 h-10 rounded bg-white/[0.03] animate-pulse" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-3 w-24 rounded bg-white/[0.03] animate-pulse" />
+                      <div className="h-1.5 w-full rounded-full bg-surface" />
+                      <div className="h-2 w-20 rounded bg-white/[0.03] animate-pulse" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
+          )}
+
           {/* Challenges — always reserve space to prevent jitter */}
           {!isPlacement && (
             <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden px-3 py-2 sm:px-4 sm:py-2.5">
@@ -1255,29 +1278,6 @@ export function RaceResults({
                 </div>
               )}
             </div>
-          )}
-
-          {/* XP Progress — always reserve space to prevent jitter */}
-          {!isPlacement && (
-            hasXpProgress ? (
-              <AnimatedXpPanel xp={myResult!.xpProgress!} isPro={isPro} />
-            ) : (
-              /* Skeleton placeholder for XP panel */
-              <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden">
-                <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
-                <div className="px-3 py-2.5 sm:px-4 sm:py-3 flex flex-col gap-2.5">
-                  <div className="h-3 w-12 rounded bg-white/[0.03] animate-pulse" />
-                  <div className="rounded-lg px-3 py-2 ring-1 ring-accent/10 bg-surface/40 flex items-center gap-4">
-                    <div className="w-10 h-10 rounded bg-white/[0.03] animate-pulse" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-3 w-24 rounded bg-white/[0.03] animate-pulse" />
-                      <div className="h-1.5 w-full rounded-full bg-surface" />
-                      <div className="h-2 w-20 rounded bg-white/[0.03] animate-pulse" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )
           )}
 
           {/* Pro upsell card (non-Pro only) */}
