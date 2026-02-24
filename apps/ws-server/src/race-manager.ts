@@ -337,7 +337,15 @@ export class RaceManager {
       return;
     }
     if (entry.progress.finished) {
-      // Already finished — not an error, just a duplicate
+      // Already finished (likely via the progress safety net which uses
+      // approximate integer WPM). If this is the real raceFinish event with
+      // more accurate stats, update finalStats so results show precise WPM.
+      if (entry.progress.finalStats && data.wpmHistory) {
+        entry.progress.finalStats = data;
+        entry.progress.wpm = data.wpm;
+        if (data.misstypedChars != null) entry.misstypedChars = data.misstypedChars;
+        if (data.wpmHistory) entry.wpmHistory = data.wpmHistory;
+      }
       return;
     }
 
