@@ -25,7 +25,6 @@ import type { AchievementRarity, PartyState } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
 import { CosmeticName } from "@/components/CosmeticName";
 import { CosmeticBadge } from "@/components/CosmeticBadge";
-import { TextLeaderboard } from "@/components/leaderboard/TextLeaderboard";
 import type { EmoteEvent } from "./FloatingEmote";
 import { useSocket } from "@/hooks/useSocket";
 import { ShareResultCard } from "@/components/shared/ShareResultCard";
@@ -48,8 +47,6 @@ interface RaceResultsProps {
   party?: PartyState | null;
   onMarkReady?: () => void;
   raceId?: string | null;
-  seed?: number | null;
-  mode?: string | null;
   emotes?: EmoteEvent[];
 }
 
@@ -693,8 +690,6 @@ export function RaceResults({
   party,
   onMarkReady,
   raceId,
-  seed,
-  mode,
   emotes = [],
 }: RaceResultsProps) {
   const { data: session } = useSession();
@@ -1280,12 +1275,6 @@ export function RaceResults({
         </div>
       </div>
 
-      {/* ── TEXT LEADERBOARD (full width, below grid) ──── */}
-      {seed != null && mode && mode !== "words" && mode !== "special" && (
-        <div style={{ animation: "fade-in 0.3s ease-out 0.14s both" }}>
-          <TextLeaderboard seed={seed} mode={mode} limit={10} />
-        </div>
-      )}
 
     </div>
   );

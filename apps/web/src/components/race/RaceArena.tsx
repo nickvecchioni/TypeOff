@@ -400,8 +400,6 @@ export function RaceArena() {
             party={partyHook.party}
             onMarkReady={partyHook.markReady}
             raceId={race.raceId}
-            seed={race.raceState?.seed ?? null}
-            mode={race.raceState?.mode ?? null}
             emotes={emotes}
           />
         </div>
