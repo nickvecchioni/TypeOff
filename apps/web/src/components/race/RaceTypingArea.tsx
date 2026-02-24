@@ -115,9 +115,22 @@ export function RaceTypingArea({
     }
   }, [disabled]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Report progress
+  // Report progress — also fires once when status becomes "finished" to send progress=1.0
+  // so the server's auto-finish safety net triggers even if the raceFinish event is lost.
   const prevReport = useRef({ wordIndex: 0, charIndex: 0 });
+  const sentFinalProgress = useRef(false);
   useEffect(() => {
+    if (engine.status === "finished" && !sentFinalProgress.current) {
+      // Send one final progress update with progress=1.0
+      sentFinalProgress.current = true;
+      onProgress({
+        wordIndex: engine.currentWordIndex,
+        charIndex: engine.currentCharIndex,
+        wpm: engine.liveWpm > 0 ? engine.liveWpm : 1,
+        progress: 1,
+      });
+      return;
+    }
     if (
       engine.status === "typing" &&
       (engine.currentWordIndex !== prevReport.current.wordIndex ||
@@ -144,18 +157,32 @@ export function RaceTypingArea({
     }
   }, [engine.currentWordIndex, engine.currentCharIndex, engine.status, engine.liveWpm, onProgress, wordCount]);
 
-  // Report finish
+  // Report finish — sends raceFinish and retries if results don't arrive within 3s
+  const finishRetryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (engine.status === "finished" && engine.stats && !sentFinish.current) {
       sentFinish.current = true;
-      onFinish({
+      const finishData = {
         wpm: engine.stats.wpm,
         rawWpm: engine.stats.rawWpm,
         accuracy: engine.stats.accuracy,
         misstypedChars: engine.stats.misstypedChars,
         wpmHistory: engine.stats.wpmHistory,
-      });
+      };
+      onFinish(finishData);
+
+      // Retry: if the parent hasn't transitioned away within 3s, resend
+      finishRetryTimer.current = setTimeout(() => {
+        console.warn("[RaceTypingArea] Finish retry: resending raceFinish after 3s timeout");
+        onFinish(finishData);
+      }, 3000);
     }
+    return () => {
+      if (finishRetryTimer.current) {
+        clearTimeout(finishRetryTimer.current);
+        finishRetryTimer.current = null;
+      }
+    };
   }, [engine.status, engine.stats, onFinish]);
 
   // Safety-net: detect completion from word state and force finish if the engine missed it.

@@ -171,13 +171,31 @@ export function RaceArena() {
 
   // Capture wpmHistory locally (not sent to server, only used for chart)
   const wpmHistoryRef = React.useRef<WpmSample[]>([]);
+  const finishSentAt = React.useRef<number | null>(null);
   const handleFinish = React.useCallback(
     (data: { wpm: number; rawWpm: number; accuracy: number; misstypedChars: number; wpmHistory?: WpmSample[] }) => {
       wpmHistoryRef.current = data.wpmHistory ?? [];
+      finishSentAt.current = Date.now();
       race.sendFinish(data);
     },
     [race.sendFinish],
   );
+
+  // Stuck race detection: if we sent a finish but never got results after 8s, reset to idle
+  React.useEffect(() => {
+    if (race.phase !== "racing" && race.phase !== "countdown") {
+      finishSentAt.current = null;
+      return;
+    }
+    const interval = setInterval(() => {
+      if (finishSentAt.current && Date.now() - finishSentAt.current > 8000) {
+        console.error("[RaceArena] Stuck race detected — forcing reset after 8s with no results");
+        finishSentAt.current = null;
+        race.reset();
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [race.phase, race.reset]);
 
   // Reset race when the nav logo is clicked while already on "/"
   React.useEffect(() => {

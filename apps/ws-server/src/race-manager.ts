@@ -707,7 +707,13 @@ export class RaceManager {
 
     let results: Awaited<ReturnType<typeof this.persistResults>>;
     try {
-      results = await this.persistResults();
+      // Timeout persistResults at 15s to ensure raceFinished always emits
+      results = await Promise.race([
+        this.persistResults(),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("persistResults timed out after 15s")), 15_000)
+        ),
+      ]);
     } catch (err) {
       console.error("[race-manager] persistResults crashed:", err);
       // Build fallback results so the event always fires
