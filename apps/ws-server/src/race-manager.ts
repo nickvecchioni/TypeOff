@@ -294,10 +294,10 @@ export class RaceManager {
       });
     }
 
-    // Safety net: auto-finish player when progress is near-complete but raceFinish
+    // Safety net: auto-finish player when progress reaches 1.0 but raceFinish
     // event was never received (e.g. client-side finish detection failed, socket
     // reconnected with new id dropping the event, etc.)
-    if (validated.progress >= 0.95 && !entry.progress.finished && validated.wpm > 0) {
+    if (validated.progress >= 1 && !entry.progress.finished && validated.wpm > 0) {
       console.log(
         `[race-manager] Auto-finishing player ${entry.player.id} via progress safety net (progress=${validated.progress}, wpm=${validated.wpm})`,
       );
