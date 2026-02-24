@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect, useCallback, useState } from "react";
 import { useSession } from "next-auth/react";
-import { getPbKey, getQuoteAuthor } from "@typeoff/shared";
+import { getPbKey, getQuoteAuthor, getCodeSnippet } from "@typeoff/shared";
 import { useTypingEngine } from "@/hooks/useTypingEngine";
 import { useCapsLock } from "@/hooks/useCapsLock";
 import { WordDisplay } from "@/components/typing/WordDisplay";
@@ -402,6 +402,16 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
           — {getQuoteAuthor(engine.lastSeed)}
         </div>
       )}
+
+      {/* Code snippet info */}
+      {ct === "code" && engine.lastSeed != null && (() => {
+        const snippet = getCodeSnippet(engine.lastSeed);
+        return (
+          <div className="text-center mt-1 -mb-2 text-[11px] text-muted/50">
+            {snippet.name} <span className="text-muted/35">·</span> <span className="text-muted/40">{snippet.language}</span>
+          </div>
+        );
+      })()}
 
       {/* Live WPM+time / Tab+Enter hint — overlaid in shared space */}
       {!isFinished && (

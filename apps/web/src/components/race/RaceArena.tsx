@@ -13,7 +13,7 @@ import { PlacementReveal } from "./PlacementReveal";
 import { SpectatorIndicator } from "./SpectatorIndicator";
 import type { EmoteEvent } from "./FloatingEmote";
 import { useSocket } from "@/hooks/useSocket";
-import { getRankInfo, getCodeSnippet } from "@typeoff/shared";
+import { getRankInfo, getCodeSnippet, getQuoteAuthor } from "@typeoff/shared";
 import type { RankTier, WpmSample, ModeCategory } from "@typeoff/shared";
 
 function FinishTimeoutDisplay({ finishTimeoutEnd }: { finishTimeoutEnd: number }) {
@@ -348,12 +348,19 @@ export function RaceArena() {
                   : "opacity-0"
               }`}
             >
-              <CountdownOverlay
-                countdown={race.countdown}
-                placementRace={race.raceState.placementRace}
-                mode={race.raceState.mode}
-                codeLanguage={race.raceState.mode === "code" ? getCodeSnippet(race.raceState.seed).language : undefined}
-              />
+              {(() => {
+                const snippet = race.raceState!.mode === "code" ? getCodeSnippet(race.raceState!.seed) : undefined;
+                return (
+                  <CountdownOverlay
+                    countdown={race.countdown}
+                    placementRace={race.raceState!.placementRace}
+                    mode={race.raceState!.mode}
+                    codeLanguage={snippet?.language}
+                    codeSnippetName={snippet?.name}
+                    quoteAuthor={race.raceState!.mode === "quotes" ? getQuoteAuthor(race.raceState!.seed) : undefined}
+                  />
+                );
+              })()}
             </div>
             {/* Words — hidden during countdown, fades in on GO */}
             <div

@@ -5,7 +5,7 @@ import { useTypingEngine } from "@/hooks/useTypingEngine";
 import { useCapsLock } from "@/hooks/useCapsLock";
 import { WordDisplay } from "@/components/typing/WordDisplay";
 import { useActiveCosmetics } from "@/contexts/CosmeticContext";
-import { TYPING_THEMES, generateWordsForMode, getQuoteAuthor } from "@typeoff/shared";
+import { TYPING_THEMES, generateWordsForMode, getCodeSnippet } from "@typeoff/shared";
 import type { RaceMode } from "@typeoff/shared";
 
 interface RaceTypingAreaProps {
@@ -275,11 +275,14 @@ export function RaceTypingArea({
           />
         </div>
       </div>
-      {mode === "quotes" && (
-        <div className="text-center mt-2 text-[11px] text-muted/50 italic">
-          — {getQuoteAuthor(seed)}
-        </div>
-      )}
+      {mode === "code" && (() => {
+        const snippet = getCodeSnippet(seed);
+        return (
+          <div className="text-center mt-2 text-[11px] text-muted/50">
+            {snippet.name} <span className="text-muted/35">·</span> <span className="text-muted/40">{snippet.language}</span>
+          </div>
+        );
+      })()}
       <div className={`flex items-baseline justify-center text-muted text-sm tabular-nums mt-4 transition-opacity duration-200 ${
         engine.status === "typing" ? "opacity-100" : "opacity-0"
       }`}>
