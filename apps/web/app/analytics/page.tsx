@@ -43,6 +43,7 @@ interface AnalyticsData {
 
 const MODE_FILTERS = [
   { value: "all", label: "All" },
+  { value: "solo", label: "Solo" },
   { value: "words", label: "Words" },
   { value: "quotes", label: "Quotes" },
   { value: "code", label: "Code" },

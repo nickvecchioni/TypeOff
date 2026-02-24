@@ -1,13 +1,36 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { raceParticipants, races, userStats, userModeStats } from "@typeoff/db";
+import { raceParticipants, races, userStats, userModeStats, soloResults } from "@typeoff/db";
 import { eq, desc, sql, and } from "drizzle-orm";
 import type { ModeCategory } from "@typeoff/shared";
 
 export const dynamic = "force-dynamic";
 
-const VALID_MODES = new Set<string>(["words", "special", "quotes", "code"]);
+const VALID_MODES = new Set<string>(["words", "special", "quotes", "code", "solo"]);
+
+/** Map solo wordPool (e.g. "words:easy:false") to a mode category for filtering */
+function soloModeCategory(wordPool: string | null): string {
+  if (!wordPool) return "words";
+  const ct = wordPool.split(":")[0];
+  if (ct === "code") return "code";
+  if (ct === "quotes") return "quotes";
+  if (ct === "practice" || ct === "custom" || ct === "zen") return "special";
+  return "words";
+}
+
+/** Common shape for merged results */
+interface UnifiedResult {
+  wpm: number;
+  accuracy: number;
+  date: Date;
+  source: "race" | "solo";
+  // Race-only fields
+  placement?: number | null;
+  eloBefore?: number | null;
+  eloAfter?: number | null;
+  playerCount?: number;
+}
 
 export async function GET(request: Request) {
   const session = await auth();
@@ -17,8 +40,8 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const rawMode = searchParams.get("mode");
-  const modeFilter: ModeCategory | null =
-    rawMode && VALID_MODES.has(rawMode) ? (rawMode as ModeCategory) : null;
+  const modeFilter: string | null =
+    rawMode && VALID_MODES.has(rawMode) ? rawMode : null;
 
   const db = getDb();
   const userId = session.user.id;
@@ -39,64 +62,150 @@ export async function GET(request: Request) {
     avgAccuracy: r.avgAccuracy,
   }));
 
-  // Free users: return limited data (last 20 races, best records only)
+  // Free users: return limited data (last 20 results, best records only)
   if (!isPro) {
-    const whereClause = modeFilter
-      ? and(eq(raceParticipants.userId, userId), eq(races.modeCategory, modeFilter))
-      : eq(raceParticipants.userId, userId);
+    // Fetch ranked races (skip if filtering to solo-only)
+    const raceResults: UnifiedResult[] = [];
+    if (modeFilter !== "solo") {
+      const raceWhere = modeFilter && modeFilter !== "solo"
+        ? and(eq(raceParticipants.userId, userId), eq(races.modeCategory, modeFilter as ModeCategory))
+        : eq(raceParticipants.userId, userId);
 
-    const freeRaces = await db
+      const freeRaces = await db
+        .select({
+          wpm: raceParticipants.wpm,
+          accuracy: raceParticipants.accuracy,
+          finishedAt: raceParticipants.finishedAt,
+        })
+        .from(raceParticipants)
+        .innerJoin(races, eq(raceParticipants.raceId, races.id))
+        .where(raceWhere)
+        .orderBy(desc(raceParticipants.finishedAt))
+        .limit(20);
+
+      for (const r of freeRaces) {
+        if (r.wpm != null && r.finishedAt) {
+          raceResults.push({
+            wpm: r.wpm,
+            accuracy: r.accuracy ?? 0,
+            date: r.finishedAt,
+            source: "race",
+          });
+        }
+      }
+    }
+
+    // Fetch solo results
+    const soloRows = await db
       .select({
-        wpm: raceParticipants.wpm,
-        accuracy: raceParticipants.accuracy,
-        finishedAt: raceParticipants.finishedAt,
+        wpm: soloResults.wpm,
+        accuracy: soloResults.accuracy,
+        createdAt: soloResults.createdAt,
+        wordPool: soloResults.wordPool,
       })
-      .from(raceParticipants)
-      .innerJoin(races, eq(raceParticipants.raceId, races.id))
-      .where(whereClause)
-      .orderBy(desc(raceParticipants.finishedAt))
+      .from(soloResults)
+      .where(eq(soloResults.userId, userId))
+      .orderBy(desc(soloResults.createdAt))
       .limit(20);
 
-    const wpmTrend = freeRaces
-      .filter((r) => r.wpm != null && r.finishedAt)
-      .map((r) => ({ date: r.finishedAt!.toISOString(), wpm: r.wpm!, accuracy: r.accuracy ?? 0 }))
+    const soloFiltered: UnifiedResult[] = [];
+    for (const r of soloRows) {
+      if (modeFilter && modeFilter !== "solo" && soloModeCategory(r.wordPool) !== modeFilter) continue;
+      soloFiltered.push({
+        wpm: r.wpm,
+        accuracy: r.accuracy,
+        date: r.createdAt,
+        source: "solo",
+      });
+    }
+
+    // Merge, sort by date desc, take 20
+    const merged = [...raceResults, ...soloFiltered]
+      .sort((a, b) => b.date.getTime() - a.date.getTime())
+      .slice(0, 20);
+
+    const wpmTrend = merged
+      .map((r) => ({ date: r.date.toISOString(), wpm: r.wpm, accuracy: r.accuracy }))
       .reverse();
 
     let bestWpm: { wpm: number; date: string } | null = null;
     let bestAccuracy: { accuracy: number; date: string } | null = null;
-    for (const r of freeRaces) {
-      if (r.wpm != null && r.finishedAt) {
-        if (!bestWpm || r.wpm > bestWpm.wpm) bestWpm = { wpm: r.wpm, date: r.finishedAt.toISOString() };
-      }
-      if (r.accuracy != null && r.finishedAt) {
-        if (!bestAccuracy || r.accuracy > bestAccuracy.accuracy) bestAccuracy = { accuracy: r.accuracy, date: r.finishedAt.toISOString() };
-      }
+    for (const r of merged) {
+      if (!bestWpm || r.wpm > bestWpm.wpm) bestWpm = { wpm: r.wpm, date: r.date.toISOString() };
+      if (!bestAccuracy || r.accuracy > bestAccuracy.accuracy) bestAccuracy = { accuracy: r.accuracy, date: r.date.toISOString() };
     }
 
     return NextResponse.json({ wpmTrend, personalRecords: { bestWpm, bestAccuracy }, modeStats });
   }
 
-  // Pro users: fetch everything
-  const whereClause = modeFilter
-    ? and(eq(raceParticipants.userId, userId), eq(races.modeCategory, modeFilter))
-    : eq(raceParticipants.userId, userId);
+  // ── Pro users: fetch everything ──────────────────────────────────
 
-  const allRaces = await db
+  // Fetch ranked races (skip if filtering to solo-only)
+  const raceResults: UnifiedResult[] = [];
+  if (modeFilter !== "solo") {
+    const raceWhere = modeFilter && modeFilter !== "solo"
+      ? and(eq(raceParticipants.userId, userId), eq(races.modeCategory, modeFilter as ModeCategory))
+      : eq(raceParticipants.userId, userId);
+
+    const allRaces = await db
+      .select({
+        raceId: raceParticipants.raceId,
+        placement: raceParticipants.placement,
+        wpm: raceParticipants.wpm,
+        rawWpm: raceParticipants.rawWpm,
+        accuracy: raceParticipants.accuracy,
+        eloBefore: raceParticipants.eloBefore,
+        eloAfter: raceParticipants.eloAfter,
+        finishedAt: raceParticipants.finishedAt,
+        playerCount: races.playerCount,
+      })
+      .from(raceParticipants)
+      .innerJoin(races, eq(raceParticipants.raceId, races.id))
+      .where(raceWhere)
+      .orderBy(desc(raceParticipants.finishedAt));
+
+    for (const r of allRaces) {
+      if (r.wpm != null && r.finishedAt) {
+        raceResults.push({
+          wpm: r.wpm,
+          accuracy: r.accuracy ?? 0,
+          date: r.finishedAt,
+          source: "race",
+          placement: r.placement,
+          eloBefore: r.eloBefore,
+          eloAfter: r.eloAfter,
+          playerCount: r.playerCount,
+        });
+      }
+    }
+  }
+
+  // Fetch solo results
+  const soloRows = await db
     .select({
-      raceId: raceParticipants.raceId,
-      placement: raceParticipants.placement,
-      wpm: raceParticipants.wpm,
-      rawWpm: raceParticipants.rawWpm,
-      accuracy: raceParticipants.accuracy,
-      eloBefore: raceParticipants.eloBefore,
-      eloAfter: raceParticipants.eloAfter,
-      finishedAt: raceParticipants.finishedAt,
-      playerCount: races.playerCount,
+      wpm: soloResults.wpm,
+      accuracy: soloResults.accuracy,
+      createdAt: soloResults.createdAt,
+      wordPool: soloResults.wordPool,
     })
-    .from(raceParticipants)
-    .innerJoin(races, eq(raceParticipants.raceId, races.id))
-    .where(whereClause)
-    .orderBy(desc(raceParticipants.finishedAt));
+    .from(soloResults)
+    .where(eq(soloResults.userId, userId))
+    .orderBy(desc(soloResults.createdAt));
+
+  const soloFiltered: UnifiedResult[] = [];
+  for (const r of soloRows) {
+    if (modeFilter && modeFilter !== "solo" && soloModeCategory(r.wordPool) !== modeFilter) continue;
+    soloFiltered.push({
+      wpm: r.wpm,
+      accuracy: r.accuracy,
+      date: r.createdAt,
+      source: "solo",
+    });
+  }
+
+  // Merge all results sorted by date desc
+  const allResults = [...raceResults, ...soloFiltered]
+    .sort((a, b) => b.date.getTime() - a.date.getTime());
 
   // Fetch user stats
   const [stats] = await db
@@ -105,21 +214,17 @@ export async function GET(request: Request) {
     .where(eq(userStats.userId, userId))
     .limit(1);
 
-  // WPM trend (all races)
-  const wpmTrend = allRaces
-    .filter((r) => r.wpm != null && r.finishedAt)
+  // WPM trend (all results)
+  const wpmTrend = allResults
     .map((r) => ({
-      date: r.finishedAt!.toISOString(),
-      wpm: r.wpm!,
-      accuracy: r.accuracy ?? 0,
+      date: r.date.toISOString(),
+      wpm: r.wpm,
+      accuracy: r.accuracy,
     }))
     .reverse();
 
   // Consistency score (stddev of last 50 WPMs)
-  const recentWpms = allRaces
-    .filter((r) => r.wpm != null)
-    .slice(0, 50)
-    .map((r) => r.wpm!);
+  const recentWpms = allResults.slice(0, 50).map((r) => r.wpm);
   let consistencyScore: number | null = null;
   if (recentWpms.length >= 5) {
     const mean = recentWpms.reduce((s, v) => s + v, 0) / recentWpms.length;
@@ -127,15 +232,15 @@ export async function GET(request: Request) {
     consistencyScore = Math.round(Math.sqrt(variance) * 100) / 100;
   }
 
-  // Avg accuracy (last 50 races)
-  const recentAccuracies = allRaces.filter((r) => r.accuracy != null).slice(0, 50).map((r) => r.accuracy!);
+  // Avg accuracy (last 50 results)
+  const recentAccuracies = allResults.slice(0, 50).map((r) => r.accuracy);
   const avgAccuracy =
     recentAccuracies.length > 0
       ? Math.round((recentAccuracies.reduce((s, v) => s + v, 0) / recentAccuracies.length) * 10) / 10
       : null;
 
   // Win rate (multiplayer races only, min 5 to be meaningful)
-  const multiplayerRaces = allRaces.filter((r) => r.playerCount > 1 && r.placement != null);
+  const multiplayerRaces = raceResults.filter((r) => (r.playerCount ?? 0) > 1 && r.placement != null);
   const wins = multiplayerRaces.filter((r) => r.placement === 1).length;
   const winRate =
     multiplayerRaces.length >= 5
@@ -143,15 +248,15 @@ export async function GET(request: Request) {
       : null;
 
   // ELO trend (ranked races with ELO data)
-  const eloTrend = allRaces
-    .filter((r) => r.eloAfter != null && r.finishedAt)
-    .map((r) => ({ date: r.finishedAt!.toISOString(), elo: r.eloAfter! }))
+  const eloTrend = raceResults
+    .filter((r) => r.eloAfter != null)
+    .map((r) => ({ date: r.date.toISOString(), elo: r.eloAfter! }))
     .reverse();
 
-  // Speed by placement
+  // Speed by placement (race-only)
   const placementStats: Record<number, { totalWpm: number; count: number }> = {};
-  for (const r of allRaces) {
-    if (r.placement != null && r.wpm != null && r.playerCount > 1) {
+  for (const r of raceResults) {
+    if (r.placement != null && (r.playerCount ?? 0) > 1) {
       if (!placementStats[r.placement]) {
         placementStats[r.placement] = { totalWpm: 0, count: 0 };
       }
@@ -177,33 +282,27 @@ export async function GET(request: Request) {
     total: multiplayerRaces.length,
   };
 
-  // Session breakdown (races per day)
+  // Session breakdown (races + solo per day)
   const racesPerDay: Record<string, number> = {};
-  for (const r of allRaces) {
-    if (r.finishedAt) {
-      const day = r.finishedAt.toISOString().slice(0, 10);
-      racesPerDay[day] = (racesPerDay[day] ?? 0) + 1;
-    }
+  for (const r of allResults) {
+    const day = r.date.toISOString().slice(0, 10);
+    racesPerDay[day] = (racesPerDay[day] ?? 0) + 1;
   }
 
-  // Personal records
+  // Personal records (across both ranked and solo)
   let bestWpm: { wpm: number; date: string } | null = null;
   let bestAccuracy: { accuracy: number; date: string } | null = null;
-  for (const r of allRaces) {
-    if (r.wpm != null && r.finishedAt) {
-      if (!bestWpm || r.wpm > bestWpm.wpm) {
-        bestWpm = { wpm: r.wpm, date: r.finishedAt.toISOString() };
-      }
+  for (const r of allResults) {
+    if (!bestWpm || r.wpm > bestWpm.wpm) {
+      bestWpm = { wpm: r.wpm, date: r.date.toISOString() };
     }
-    if (r.accuracy != null && r.finishedAt) {
-      if (!bestAccuracy || r.accuracy > bestAccuracy.accuracy) {
-        bestAccuracy = { accuracy: r.accuracy, date: r.finishedAt.toISOString() };
-      }
+    if (!bestAccuracy || r.accuracy > bestAccuracy.accuracy) {
+      bestAccuracy = { accuracy: r.accuracy, date: r.date.toISOString() };
     }
   }
 
   return NextResponse.json({
-    totalRaces: allRaces.length,
+    totalRaces: allResults.length,
     wpmTrend,
     consistencyScore,
     avgAccuracy,
