@@ -176,26 +176,29 @@ export function RaceArena() {
     (data: { wpm: number; rawWpm: number; accuracy: number; misstypedChars: number; wpmHistory?: WpmSample[] }) => {
       wpmHistoryRef.current = data.wpmHistory ?? [];
       finishSentAt.current = Date.now();
+      lastFinishData.current = { wpm: data.wpm, rawWpm: data.rawWpm, accuracy: data.accuracy };
       race.sendFinish(data);
     },
     [race.sendFinish],
   );
 
-  // Stuck race detection: if we sent a finish but never got results after 8s, reset to idle
+  // Stuck race detection: if we sent a finish but never got results, keep retrying
+  const lastFinishData = React.useRef<{ wpm: number; rawWpm: number; accuracy: number } | null>(null);
   React.useEffect(() => {
     if (race.phase !== "racing" && race.phase !== "countdown") {
       finishSentAt.current = null;
+      lastFinishData.current = null;
       return;
     }
     const interval = setInterval(() => {
-      if (finishSentAt.current && Date.now() - finishSentAt.current > 8000) {
-        console.error("[RaceArena] Stuck race detected — forcing reset after 8s with no results");
-        finishSentAt.current = null;
-        race.reset();
+      if (finishSentAt.current && lastFinishData.current && Date.now() - finishSentAt.current > 5000) {
+        console.warn("[RaceArena] Stuck race — resending finish event");
+        finishSentAt.current = Date.now();
+        race.sendFinish(lastFinishData.current);
       }
-    }, 1000);
+    }, 2000);
     return () => clearInterval(interval);
-  }, [race.phase, race.reset]);
+  }, [race.phase, race.sendFinish]);
 
   // Reset race when the nav logo is clicked while already on "/"
   React.useEffect(() => {

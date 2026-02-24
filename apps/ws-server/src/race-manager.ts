@@ -705,44 +705,51 @@ export class RaceManager {
       sorted[i].progress.placement = i + 1;
     }
 
-    let results: Awaited<ReturnType<typeof this.persistResults>>;
-    try {
-      // Timeout persistResults at 15s to ensure raceFinished always emits
-      results = await Promise.race([
-        this.persistResults(),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error("persistResults timed out after 15s")), 15_000)
-        ),
-      ]);
-    } catch (err) {
-      console.error("[race-manager] persistResults crashed:", err);
-      // Build fallback results so the event always fires
-      results = [...this.players.values()]
-        .map((entry) => ({
-          playerId: entry.player.id,
-          name: entry.player.name,
-          placement: entry.progress.placement ?? 99,
-          wpm: entry.progress.finalStats?.wpm ?? 0,
-          rawWpm: entry.progress.finalStats?.rawWpm ?? 0,
-          accuracy: entry.progress.finalStats?.accuracy ?? 0,
-          eloChange: null as number | null,
-          elo: entry.player.elo,
-          activeBadge: entry.player.activeBadge,
-          activeNameColor: entry.player.activeNameColor,
-          activeNameEffect: entry.player.activeNameEffect,
-        }))
-        .sort((a, b) => a.placement - b.placement);
-    }
+    // Emit immediate results from in-memory data so the client gets results ASAP.
+    // DB persistence (ELO, achievements, etc.) happens in the background afterward.
+    const immediateResults = [...this.players.values()]
+      .map((entry) => ({
+        playerId: entry.player.id,
+        name: entry.player.name,
+        placement: entry.progress.placement ?? 99,
+        wpm: entry.progress.finalStats?.wpm ?? 0,
+        rawWpm: entry.progress.finalStats?.rawWpm ?? 0,
+        accuracy: entry.progress.finalStats?.accuracy ?? 0,
+        eloChange: null as number | null,
+        elo: entry.player.elo,
+        activeBadge: entry.player.activeBadge,
+        activeNameColor: entry.player.activeNameColor,
+        activeNameEffect: entry.player.activeNameEffect,
+      }))
+      .sort((a, b) => a.placement - b.placement);
 
-    const payload = {
-      results,
+    const immediatePayload = {
+      results: immediateResults,
       ...(this.placementRace != null
         ? { placementRace: this.placementRace, placementTotal: PLACEMENT_RACE_COUNT }
         : {}),
     };
 
-    // Broadcast to entire room (players + spectators)
-    this.io.to(this.raceId).emit("raceFinished", payload);
+    // Send results to clients IMMEDIATELY — don't wait for DB
+    this.io.to(this.raceId).emit("raceFinished", immediatePayload);
+
+    // Persist to DB in the background, then send enriched results (ELO, achievements, etc.)
+    this.persistResults()
+      .then((enrichedResults) => {
+        const enrichedPayload = {
+          results: enrichedResults,
+          ...(this.placementRace != null
+            ? { placementRace: this.placementRace, placementTotal: PLACEMENT_RACE_COUNT }
+            : {}),
+        };
+        // Send enriched results so clients can update with ELO changes, achievements, etc.
+        this.io.to(this.raceId).emit("raceFinished", enrichedPayload);
+      })
+      .catch((err) => {
+        console.error("[race-manager] persistResults failed:", err);
+        // Immediate results already sent — client has basic data
+      });
+
     // Keep race alive for 90s so players can emote on the results screen
     this.resultsCleanupTimer = setTimeout(() => this.cleanup(), 90_000);
   }
