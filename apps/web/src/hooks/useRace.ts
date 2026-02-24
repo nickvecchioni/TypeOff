@@ -106,8 +106,13 @@ export function useRace(myPlayerId?: string | null) {
           // If server marks us as finished, always use server value
           if (serverEntry?.finished) return data.progress;
           const localEntry = prev[myId];
+          // If we optimistically marked ourselves finished, never let a stale
+          // server broadcast (finished: false) overwrite that
+          if (localEntry?.finished) {
+            return { ...data.progress, [myId]: localEntry };
+          }
           // Keep local progress if it's ahead of the server (optimistic update)
-          if (localEntry && !localEntry.finished && localEntry.progress > (serverEntry?.progress ?? 0)) {
+          if (localEntry && localEntry.progress > (serverEntry?.progress ?? 0)) {
             return { ...data.progress, [myId]: localEntry };
           }
           return data.progress;
