@@ -638,11 +638,10 @@ export function RaceResults({
   const hasProgress = hasChallenges || hasXpProgress;
 
   const hasElo = !isPlacement && myResult?.eloChange != null && myResult?.elo != null;
+  // Always reserve 4 columns for non-placement races to prevent layout shift when ELO arrives
   const statCols = isPlacement
     ? "grid-cols-2 sm:grid-cols-3"
-    : hasElo
-    ? "grid-cols-2 sm:grid-cols-4"
-    : "grid-cols-2 sm:grid-cols-3";
+    : "grid-cols-2 sm:grid-cols-4";
 
   const pStyle = myResult
     ? PLACEMENT_STYLE[myResult.placement] ?? { bar: "bg-muted/30", text: "text-muted", leftBorder: "" }
@@ -728,16 +727,19 @@ export function RaceResults({
                 </div>
               </div>
             ) : (
-              hasElo && (
-                <div className="bg-surface/40 px-3 py-2.5 sm:px-4">
+              <div className="bg-surface/40 px-3 py-2.5 sm:px-4">
+                {hasElo ? (
                   <AnimatedElo
                     oldElo={myResult.elo! - myResult.eloChange!}
                     newElo={myResult.elo!}
                     change={myResult.eloChange!}
                     rankChange={rankChange}
                   />
-                </div>
-              )
+                ) : (
+                  /* Reserve space while ELO loads to prevent layout shift */
+                  <div className="h-[52px]" />
+                )}
+              </div>
             )}
           </div>
         </div>
