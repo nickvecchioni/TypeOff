@@ -52,6 +52,8 @@ function CursorInner({ charIndex, isTyping, smooth }: CursorProps) {
         h = `${smooth.lineH}px`;
     }
 
+    // Separate positioning (outer) from cosmetic animation (inner) so that
+    // re-renders from position changes don't restart the CSS animation.
     return (
       <span
         className="absolute pointer-events-none select-none z-10"
@@ -62,15 +64,22 @@ function CursorInner({ charIndex, isTyping, smooth }: CursorProps) {
           height: h,
           transform: `translate(${smooth.x}px, ${ty}px)`,
           transition: isTyping ? "transform 80ms cubic-bezier(0.22, 1, 0.36, 1)" : "none",
-          backgroundColor: bgColor,
-          boxShadow: shape === "block" ? (style?.glowColor ? `0 0 12px ${style.glowColor}` : "none") : shadow,
-          opacity: shape === "block" ? 0.3 : 1,
-          animation: isTyping
-            ? cosmeticAnimation ? `${cosmeticAnimation} 2s ease-in-out infinite` : "none"
-            : "blink 1s step-end infinite",
+          willChange: "transform",
         }}
         aria-hidden
-      />
+      >
+        <span
+          className="block w-full h-full"
+          style={{
+            backgroundColor: bgColor,
+            boxShadow: shape === "block" ? (style?.glowColor ? `0 0 12px ${style.glowColor}` : "none") : shadow,
+            opacity: shape === "block" ? 0.3 : 1,
+            animation: isTyping
+              ? cosmeticAnimation ? `${cosmeticAnimation} 2s ease-in-out infinite` : "none"
+              : "blink 1s step-end infinite",
+          }}
+        />
+      </span>
     );
   }
 
