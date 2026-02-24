@@ -264,8 +264,20 @@ export class RaceManager {
     socketId: string,
     data: { wordIndex: number; charIndex: number; wpm: number; progress: number }
   ) {
-    const entry = this.players.get(socketId);
-    if (!entry || this.status !== "racing" || entry.progress.finished) return;
+    let entry = this.players.get(socketId);
+    if (!entry) {
+      // Fallback: search by socket reference (handles reconnection)
+      for (const [key, e] of this.players.entries()) {
+        if (e.socket?.id === socketId) {
+          entry = e;
+          this.players.delete(key);
+          this.players.set(socketId, e);
+          break;
+        }
+      }
+      if (!entry) return;
+    }
+    if (this.status !== "racing" || entry.progress.finished) return;
 
     const validated = this.validateProgress(data, entry);
     entry.progress.wordIndex = validated.wordIndex;
@@ -282,9 +294,10 @@ export class RaceManager {
       });
     }
 
-    // Safety net: auto-finish player when progress reaches 1.0 but raceFinish
-    // event was never received (e.g. client-side finish detection failed)
-    if (validated.progress >= 1 && !entry.progress.finished && validated.wpm > 0) {
+    // Safety net: auto-finish player when progress is near-complete but raceFinish
+    // event was never received (e.g. client-side finish detection failed, socket
+    // reconnected with new id dropping the event, etc.)
+    if (validated.progress >= 0.95 && !entry.progress.finished && validated.wpm > 0) {
       console.log(
         `[race-manager] Auto-finishing player ${entry.player.id} via progress safety net (progress=${validated.progress}, wpm=${validated.wpm})`,
       );
@@ -300,8 +313,33 @@ export class RaceManager {
     socketId: string,
     data: { wpm: number; rawWpm: number; accuracy: number; misstypedChars?: number; wpmHistory?: WpmSample[]; keystrokeTimings?: number[] }
   ) {
-    const entry = this.players.get(socketId);
-    if (!entry || this.status !== "racing" || entry.progress.finished) return;
+    let entry = this.players.get(socketId);
+    if (!entry) {
+      // Fallback: search by player socket reference (handles reconnection where
+      // the socketId key is stale but the socket reference was updated by reconnectPlayer)
+      for (const [key, e] of this.players.entries()) {
+        if (e.socket?.id === socketId) {
+          entry = e;
+          // Re-key the entry for future lookups
+          this.players.delete(key);
+          this.players.set(socketId, e);
+          console.log(`[race-manager] handleFinish: re-keyed player ${e.player.id} from ${key} to ${socketId}`);
+          break;
+        }
+      }
+      if (!entry) {
+        console.warn(`[race-manager] handleFinish: no player entry for socketId=${socketId} race=${this.raceId}`);
+        return;
+      }
+    }
+    if (this.status !== "racing") {
+      console.warn(`[race-manager] handleFinish: race status is ${this.status}, not racing. player=${entry.player.id} race=${this.raceId}`);
+      return;
+    }
+    if (entry.progress.finished) {
+      // Already finished — not an error, just a duplicate
+      return;
+    }
 
     const rejection = this.validateFinish(data, entry);
     if (rejection) {
@@ -683,9 +721,18 @@ export class RaceManager {
 
     if (this.progressTimer) clearInterval(this.progressTimer);
 
-    // Mark unfinished players as finished with their current stats
+    // Mark unfinished players as finished with their current stats.
+    // Players with high progress (>= 0.9) almost certainly completed typing but
+    // their raceFinish event was lost (socket reconnect, network blip, etc.) —
+    // treat them as legitimately finished with progress = 1.
     for (const entry of this.players.values()) {
       if (!entry.progress.finished) {
+        if (entry.progress.progress >= 0.9 && entry.progress.wpm > 0) {
+          console.log(
+            `[race-manager] endRace: auto-finishing high-progress player ${entry.player.id} (progress=${entry.progress.progress}, wpm=${entry.progress.wpm})`,
+          );
+          entry.progress.progress = 1;
+        }
         entry.progress.finished = true;
         entry.progress.finalStats = {
           wpm: entry.progress.wpm,
@@ -696,15 +743,11 @@ export class RaceManager {
     }
 
     // Re-assign placements by WPM (highest first).
-    // Finish-order alone is unfair because bots have zero reaction time,
-    // while humans' WPM is measured from their first keystroke.
+    // Sort purely by WPM — progress-based sorting is unreliable when
+    // finish events are lost due to socket issues.
     const sorted = [...this.players.values()].sort((a, b) => {
       const aWpm = a.progress.finalStats?.wpm ?? 0;
       const bWpm = b.progress.finalStats?.wpm ?? 0;
-      // Finished players beat unfinished (progress < 1)
-      if (a.progress.progress >= 1 && b.progress.progress < 1) return -1;
-      if (b.progress.progress >= 1 && a.progress.progress < 1) return 1;
-      // Among finished: highest WPM wins
       return bWpm - aWpm;
     });
     for (let i = 0; i < sorted.length; i++) {

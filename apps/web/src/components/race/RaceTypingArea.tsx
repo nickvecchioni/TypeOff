@@ -157,8 +157,8 @@ export function RaceTypingArea({
     }
   }, [engine.currentWordIndex, engine.currentCharIndex, engine.status, engine.liveWpm, onProgress, wordCount]);
 
-  // Report finish — sends raceFinish and retries if results don't arrive within 3s
-  const finishRetryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Report finish — sends raceFinish and retries aggressively until parent transitions away
+  const finishRetryTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   useEffect(() => {
     if (engine.status === "finished" && engine.stats && !sentFinish.current) {
       sentFinish.current = true;
@@ -171,15 +171,22 @@ export function RaceTypingArea({
       };
       onFinish(finishData);
 
-      // Retry: if the parent hasn't transitioned away within 3s, resend
-      finishRetryTimer.current = setTimeout(() => {
-        console.warn("[RaceTypingArea] Finish retry: resending raceFinish after 3s timeout");
+      // Retry every 2s — handles socket reconnections where the first event was lost
+      let retryCount = 0;
+      finishRetryTimer.current = setInterval(() => {
+        retryCount++;
+        console.warn(`[RaceTypingArea] Finish retry #${retryCount}: resending raceFinish`);
         onFinish(finishData);
-      }, 3000);
+        // Stop after 6 retries (12s) — the stuck detection in RaceArena takes over
+        if (retryCount >= 6 && finishRetryTimer.current) {
+          clearInterval(finishRetryTimer.current);
+          finishRetryTimer.current = null;
+        }
+      }, 2000);
     }
     return () => {
       if (finishRetryTimer.current) {
-        clearTimeout(finishRetryTimer.current);
+        clearInterval(finishRetryTimer.current);
         finishRetryTimer.current = null;
       }
     };

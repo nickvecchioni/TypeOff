@@ -178,8 +178,18 @@ export class Matchmaker implements RaceOwner {
     socketId: string,
     data: { wordIndex: number; charIndex: number; wpm: number; progress: number }
   ) {
-    const raceId = this.socketToRace.get(socketId);
-    if (!raceId) return;
+    let raceId = this.socketToRace.get(socketId);
+    if (!raceId) {
+      // Fallback: try to find race by userId (handles socket reconnection)
+      const userId = this.socketToUserId.get(socketId);
+      if (userId) {
+        raceId = this.userIdToRace.get(userId);
+        if (raceId) {
+          this.socketToRace.set(socketId, raceId);
+        }
+      }
+      if (!raceId) return;
+    }
     const race = this.races.get(raceId);
     race?.handleProgress(socketId, data);
   }
@@ -189,7 +199,25 @@ export class Matchmaker implements RaceOwner {
     data: { wpm: number; rawWpm: number; accuracy: number; misstypedChars?: number; wpmHistory?: WpmSample[] }
   ) {
     const raceId = this.socketToRace.get(socketId);
-    if (!raceId) return;
+    if (!raceId) {
+      console.warn(`[matchmaker] handleFinish: no race mapping for socketId=${socketId} (wpm=${data.wpm}). Socket may have reconnected.`);
+      // Try to find race by userId as fallback
+      const userId = this.socketToUserId.get(socketId);
+      if (userId) {
+        const fallbackRaceId = this.userIdToRace.get(userId);
+        if (fallbackRaceId) {
+          const race = this.races.get(fallbackRaceId);
+          if (race) {
+            console.log(`[matchmaker] handleFinish: found race via userId fallback. userId=${userId} race=${fallbackRaceId}`);
+            // Re-establish the mapping
+            this.socketToRace.set(socketId, fallbackRaceId);
+            race.handleFinish(socketId, data);
+            return;
+          }
+        }
+      }
+      return;
+    }
     const race = this.races.get(raceId);
     race?.handleFinish(socketId, data);
   }
