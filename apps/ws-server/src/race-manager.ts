@@ -718,6 +718,17 @@ export class RaceManager {
       progress,
       ...(this.finishTimeoutEnd != null ? { finishTimeoutEnd: this.finishTimeoutEnd } : {}),
     });
+
+    // Safety net: catch "all finished" state that was missed by handleFinish/tickBots
+    // (e.g. socket hiccup lost the raceFinish event but progress=1 safety net fired)
+    if (this.status === "racing") {
+      const allFinished = [...this.players.values()].every((p) => p.progress.finished);
+      if (allFinished) {
+        console.log(`[race-manager] broadcastProgress safety net: all players finished, ending race ${this.raceId}`);
+        if (this.finishTimeoutTimer) clearTimeout(this.finishTimeoutTimer);
+        this.endRace();
+      }
+    }
   }
 
   get isFinished() { return this.status === "finished"; }
