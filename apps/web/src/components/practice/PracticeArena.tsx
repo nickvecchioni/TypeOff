@@ -6,6 +6,7 @@ import { getPbKey } from "@typeoff/shared";
 import { useTypingEngine } from "@/hooks/useTypingEngine";
 import { useCapsLock } from "@/hooks/useCapsLock";
 import { WordDisplay } from "@/components/typing/WordDisplay";
+import Link from "next/link";
 import { ConfigBar } from "./ConfigBar";
 import { PracticeResults } from "./PracticeResults";
 import { ZenFreeformArena } from "./ZenFreeformArena";
@@ -14,7 +15,7 @@ function getVisibleLines(): number {
   return 3;
 }
 
-export function PracticeArena({ initialDrill = false }: { initialDrill?: boolean }) {
+export function PracticeArena({ initialDrill = false, initialBigrams }: { initialDrill?: boolean; initialBigrams?: string[] }) {
   const { data: session } = useSession();
   const isPro = session?.user?.isPro ?? false;
   const engine = useTypingEngine();
@@ -35,6 +36,9 @@ export function PracticeArena({ initialDrill = false }: { initialDrill?: boolean
   // Weak keys and accuracy for drill mode (Pro only)
   const [weakKeys, setWeakKeys] = useState<string[]>([]);
   const [weakKeyAccuracy, setWeakKeyAccuracy] = useState<Record<string, number>>({});
+  // Weak bigrams and accuracy for drill/smart practice (Pro only)
+  const [weakBigrams, setWeakBigrams] = useState<string[]>([]);
+  const [weakBigramAccuracy, setWeakBigramAccuracy] = useState<Record<string, number>>({});
 
   // Fetch PBs on mount (logged-in only)
   useEffect(() => {
@@ -45,7 +49,7 @@ export function PracticeArena({ initialDrill = false }: { initialDrill?: boolean
       .catch(() => {});
   }, [session?.user?.id]);
 
-  // Fetch weak keys for drill mode (Pro only)
+  // Fetch weak keys + weak bigrams for drill mode (Pro only)
   useEffect(() => {
     if (!session?.user?.id || !isPro) return;
     fetch("/api/key-accuracy")
@@ -57,6 +61,20 @@ export function PracticeArena({ initialDrill = false }: { initialDrill?: boolean
           for (const k of data.all) acc[k.key] = k.accuracy;
           setWeakKeyAccuracy(acc);
         }
+      })
+      .catch(() => {});
+    fetch("/api/bigram-accuracy")
+      .then((res) => res.json())
+      .then((data: { bigrams?: Array<{ bigram: string; accuracy: number; total: number }> }) => {
+        if (!data.bigrams) return;
+        // Keep worst 10 bigrams with enough data (>= 10 total)
+        const meaningful = data.bigrams.filter((b) => b.total >= 10);
+        meaningful.sort((a, b) => a.accuracy - b.accuracy);
+        const worst = meaningful.slice(0, 10);
+        setWeakBigrams(worst.map((b) => b.bigram));
+        const acc: Record<string, number> = {};
+        for (const b of data.bigrams) acc[b.bigram] = b.accuracy;
+        setWeakBigramAccuracy(acc);
       })
       .catch(() => {});
   }, [session?.user?.id, isPro]);
@@ -144,6 +162,19 @@ export function PracticeArena({ initialDrill = false }: { initialDrill?: boolean
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialDrill, isPro, weakKeys]);
 
+  // Auto-start bigram practice when ?bigrams=... is set
+  const bigramActivatedRef = useRef(false);
+  useEffect(() => {
+    if (!initialBigrams?.length || !isPro || bigramActivatedRef.current) return;
+    bigramActivatedRef.current = true;
+    engine.setConfig({ ...engine.config, contentType: "practice", weakBigrams: initialBigrams });
+    handleAfterConfigChange();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialBigrams, isPro]);
+
+  // Show Pro upsell banner for free users trying drill/bigrams
+  const showProUpsell = !isPro && session?.user?.id && (initialDrill || !!initialBigrams?.length);
+
   // Save results when test finishes (logged-in only)
   useEffect(() => {
     if (engine.status !== "finished" || !engine.stats) return;
@@ -173,6 +204,7 @@ export function PracticeArena({ initialDrill = false }: { initialDrill?: boolean
         time: stats.time,
         consistency: stats.consistency,
         keyStats: stats.keyStats,
+        bigramStats: stats.bigramStats,
       }),
     })
       .then((res) => res.json())
@@ -231,7 +263,7 @@ export function PracticeArena({ initialDrill = false }: { initialDrill?: boolean
             status={engine.status}
             onConfigChange={(c) => {
               if (c.contentType === "practice") {
-                engine.setConfig({ ...c, weakKeys });
+                engine.setConfig({ ...c, weakKeys, weakBigrams });
               } else {
                 engine.setConfig(c);
               }
@@ -244,6 +276,8 @@ export function PracticeArena({ initialDrill = false }: { initialDrill?: boolean
             }}
             practiceWeakKeys={weakKeys}
             weakKeyAccuracy={weakKeyAccuracy}
+            practiceWeakBigrams={weakBigrams}
+            weakBigramAccuracy={weakBigramAccuracy}
             isPro={isPro}
           />
         </div>
@@ -291,7 +325,7 @@ export function PracticeArena({ initialDrill = false }: { initialDrill?: boolean
             onConfigChange={(c) => {
               // Inject weakKeys into config for practice mode
               if (c.contentType === "practice") {
-                engine.setConfig({ ...c, weakKeys });
+                engine.setConfig({ ...c, weakKeys, weakBigrams });
               } else {
                 engine.setConfig(c);
               }
@@ -304,8 +338,28 @@ export function PracticeArena({ initialDrill = false }: { initialDrill?: boolean
             }}
             practiceWeakKeys={weakKeys}
             weakKeyAccuracy={weakKeyAccuracy}
+            practiceWeakBigrams={weakBigrams}
+            weakBigramAccuracy={weakBigramAccuracy}
             isPro={isPro}
           />
+        </div>
+      )}
+
+      {/* Pro upsell for free users with drill/bigram params */}
+      {showProUpsell && !isFinished && (
+        <div className="rounded-lg ring-1 ring-amber-400/15 bg-amber-400/[0.03] px-4 py-3 flex items-center gap-3 animate-fade-in max-w-lg">
+          <div className="flex-1">
+            <p className="text-xs font-bold text-amber-400/70">Pro Feature</p>
+            <p className="text-[11px] text-muted/60 leading-relaxed mt-0.5">
+              Smart practice and drill modes are available with Pro. Upgrade to target your weakest keys and bigrams.
+            </p>
+          </div>
+          <Link
+            href="/pro"
+            className="shrink-0 text-[11px] font-bold text-bg bg-amber-400 hover:bg-amber-300 px-3 py-1.5 rounded-md transition-colors"
+          >
+            Upgrade
+          </Link>
         </div>
       )}
 

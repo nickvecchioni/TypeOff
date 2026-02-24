@@ -8,6 +8,7 @@ import {
   real,
   boolean,
   unique,
+  index,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
 
@@ -389,6 +390,26 @@ export const userBigramAccuracy = pgTable(
       .$defaultFn(() => new Date()),
   },
   (t) => [primaryKey({ columns: [t.userId, t.bigram] })],
+);
+
+// ─── Accuracy Snapshots (practice progress tracking) ─────────────
+
+export const userAccuracySnapshots = pgTable(
+  "user_accuracy_snapshots",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    snapshotType: text("snapshot_type").notNull(), // "key" | "bigram"
+    target: text("target").notNull(),              // "j" or "th"
+    accuracy: real("accuracy").notNull(),          // 0-1
+    totalCount: integer("total_count").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("accuracy_snapshot_lookup_idx").on(t.userId, t.snapshotType, t.target, t.createdAt),
+  ],
 );
 
 // ─── User Preferences ────────────────────────────────────────────

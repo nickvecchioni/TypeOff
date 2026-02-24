@@ -8,6 +8,9 @@ import { BigramAnalysis } from "@/components/practice/BigramAnalysis";
 import { BigramHeatmap } from "@/components/practice/BigramHeatmap";
 import { KeyboardHeatmap } from "@/components/typing/KeyboardHeatmap";
 import type { KeyStatsMap } from "@typeoff/shared";
+import { estimateWpmImpact, rankWeaknesses } from "@typeoff/shared";
+import { AnalyticsInsights } from "@/components/analytics/AnalyticsInsights";
+import { PracticeProgress } from "@/components/practice/PracticeProgress";
 
 interface ModeStat {
   modeCategory: string;
@@ -84,9 +87,9 @@ export default function AnalyticsPage() {
       .finally(() => setLoading(false));
   }, [session?.user?.id, modeFilter]);
 
-  // Bigram + key accuracy data is Pro-only
+  // Bigram + key accuracy data for all users (display gating happens in render)
   useEffect(() => {
-    if (!session?.user?.id || !isPro) return;
+    if (!session?.user?.id) return;
     fetch("/api/bigram-accuracy")
       .then((r) => r.json())
       .then((d) => { if (d.bigrams) setBigrams(d.bigrams); })
@@ -102,7 +105,7 @@ export default function AnalyticsPage() {
         setKeyStats(map);
       })
       .catch(() => {});
-  }, [session?.user?.id, isPro]);
+  }, [session?.user?.id]);
 
   if (status === "loading" || loading) {
     return (
@@ -238,6 +241,22 @@ export default function AnalyticsPage() {
               <StatCard label="Best Day Streak" value={(data.personalRecords.maxRankedDayStreak ?? 0).toString()} />
             </div>
 
+            {/* Actionable Insights (Pro) */}
+            {(bigrams.length > 0 || (keyStats && Object.keys(keyStats).length > 0)) && (
+              <section className="mb-6">
+                <SectionHeader>Insights</SectionHeader>
+                <AnalyticsInsights
+                  weakKeys={keyStats ? Object.entries(keyStats).map(([key, stat]) => ({
+                    key,
+                    accuracy: stat.total > 0 ? stat.correct / stat.total : 1,
+                    total: stat.total,
+                  })) : []}
+                  weakBigrams={bigrams.map((b) => ({ bigram: b.bigram, accuracy: b.accuracy, total: b.total }))}
+                  avgWpm={avgWpm}
+                />
+              </section>
+            )}
+
             {/* By Mode breakdown (visible in "All" view, hidden when filtered) */}
             {modeFilter === "all" && (data.modeStats?.length ?? 0) > 0 && (
               <section className="mb-6">
@@ -358,10 +377,16 @@ export default function AnalyticsPage() {
               </section>
             )}
             {bigrams.length > 0 && (
-              <section>
+              <section className="mb-6">
                 <BigramHeatmap bigrams={bigrams} />
               </section>
             )}
+
+            {/* Practice Progress */}
+            <section className="mb-6">
+              <SectionHeader>Practice Progress</SectionHeader>
+              <PracticeProgress />
+            </section>
           </>
         ) : (
           /* ── Free user sections ─────────────────────────── */
@@ -392,11 +417,66 @@ export default function AnalyticsPage() {
               </section>
             )}
 
+            {/* Key Accuracy heatmap (read-only, no drill button) */}
+            {keyStats && Object.keys(keyStats).length > 0 && (
+              <section className="mb-6">
+                <SectionHeader>Key Accuracy</SectionHeader>
+                <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] px-4 py-5">
+                  <KeyboardHeatmap keyStats={keyStats} />
+                </div>
+              </section>
+            )}
+
+            {/* Worst 5 bigrams (free preview) + teaser insight */}
+            {bigrams.length > 0 && (() => {
+              const meaningful = bigrams.filter((b) => b.total >= 10);
+              meaningful.sort((a, b) => a.accuracy - b.accuracy);
+              const worst5 = meaningful.slice(0, 5);
+              // Generate a teaser insight from the worst bigram
+              const teaserInsight = worst5.length > 0
+                ? (() => {
+                    const rawKeys = keyStats
+                      ? Object.entries(keyStats).map(([key, stat]) => ({
+                          key,
+                          accuracy: stat.total > 0 ? stat.correct / stat.total : 1,
+                          total: stat.total,
+                        }))
+                      : [];
+                    const ranked = rankWeaknesses(rawKeys, worst5.map((b) => ({ bigram: b.bigram, accuracy: b.accuracy, total: b.total })));
+                    const insights = estimateWpmImpact(avgWpm || 60, ranked);
+                    return insights[0];
+                  })()
+                : null;
+              return (
+                <>
+                  <section className="mb-4">
+                    <SectionHeader>Weakest Bigrams</SectionHeader>
+                    <div className="flex flex-wrap gap-2">
+                      {worst5.map((b) => (
+                        <div key={b.bigram} className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2">
+                          <span className="text-accent font-bold text-sm">{b.bigram}</span>
+                          <span className={`ml-2 text-xs tabular-nums ${b.accuracy < 0.7 ? "text-error/70" : b.accuracy < 0.9 ? "text-amber-400/70" : "text-correct/70"}`}>
+                            {Math.round(b.accuracy * 100)}%
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                  {teaserInsight && (
+                    <div className="rounded-lg ring-1 ring-amber-400/10 bg-amber-400/[0.02] px-4 py-3 mb-4">
+                      <p className="text-[11px] text-muted/70 leading-relaxed">{teaserInsight.insight}</p>
+                      <p className="text-[10px] text-muted/50 mt-1">Upgrade to Pro for all insights and practice drills</p>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+
             {/* Pro upsell */}
             <div className="rounded-xl ring-1 ring-amber-400/10 bg-amber-400/[0.02] px-5 py-4">
               <p className="text-xs font-bold text-amber-400/60 mb-1">Pro Analytics</p>
               <p className="text-[11px] text-muted/60 mb-3 leading-relaxed">
-                Upgrade to unlock win rate, ELO trend, consistency scores, key accuracy heatmap, placement distribution, and full bigram analysis.
+                Unlock smart practice drills, full bigram analysis, WPM impact insights, progress tracking, ELO trends, placement distribution, and more.
               </p>
               <Link
                 href="/pro"

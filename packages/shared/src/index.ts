@@ -10,3 +10,4 @@ export * from "./challenges";
 export * from "./difficulty";
 export * from "./code-snippets";
 export * from "./type-pass";
+export * from "./smart-practice";

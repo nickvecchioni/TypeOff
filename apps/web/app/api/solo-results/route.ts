@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
-import { soloResults, userKeyAccuracy, userBigramAccuracy } from "@typeoff/db";
+import { soloResults, userKeyAccuracy, userBigramAccuracy, userAccuracySnapshots } from "@typeoff/db";
 import { eq, and, desc, sql } from "drizzle-orm";
 import type { KeyStatsMap } from "@typeoff/shared";
 
@@ -172,6 +172,60 @@ export async function POST(request: Request) {
             },
           });
       }
+    }
+  }
+
+  // Record accuracy snapshots for practice/drill sessions (progress tracking)
+  if (contentType === "practice") {
+    const snapshots: Array<{ userId: string; snapshotType: string; target: string; accuracy: number; totalCount: number }> = [];
+
+    // Read back updated cumulative accuracy for targeted keys
+    if (keyStats && typeof keyStats === "object") {
+      const keyEntries = Object.entries(keyStats as KeyStatsMap).filter(([k]) => k.length === 1).slice(0, 26);
+      for (const [key] of keyEntries) {
+        const [row] = await db
+          .select({ correctCount: userKeyAccuracy.correctCount, totalCount: userKeyAccuracy.totalCount })
+          .from(userKeyAccuracy)
+          .where(and(eq(userKeyAccuracy.userId, userId), eq(userKeyAccuracy.key, key)))
+          .limit(1);
+        if (row && row.totalCount > 0) {
+          snapshots.push({
+            userId,
+            snapshotType: "key",
+            target: key,
+            accuracy: row.correctCount / row.totalCount,
+            totalCount: row.totalCount,
+          });
+        }
+      }
+    }
+
+    // Read back updated cumulative accuracy for targeted bigrams
+    if (bigramStats && typeof bigramStats === "object") {
+      const bgEntries = Object.entries(bigramStats as Record<string, { correct: number; total: number }>)
+        .filter(([bg]) => bg.length === 2)
+        .slice(0, 50);
+      for (const [bigram] of bgEntries) {
+        const [row] = await db
+          .select({ correctCount: userBigramAccuracy.correctCount, totalCount: userBigramAccuracy.totalCount })
+          .from(userBigramAccuracy)
+          .where(and(eq(userBigramAccuracy.userId, userId), eq(userBigramAccuracy.bigram, bigram)))
+          .limit(1);
+        if (row && row.totalCount > 0) {
+          snapshots.push({
+            userId,
+            snapshotType: "bigram",
+            target: bigram,
+            accuracy: row.correctCount / row.totalCount,
+            totalCount: row.totalCount,
+          });
+        }
+      }
+    }
+
+    // Batch insert snapshots
+    if (snapshots.length > 0) {
+      await db.insert(userAccuracySnapshots).values(snapshots);
     }
   }
 
