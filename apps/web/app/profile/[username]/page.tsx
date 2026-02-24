@@ -174,10 +174,10 @@ export default async function ProfilePage({
   // Merge into a single map
   const activityMap: Record<string, number> = {};
   for (const row of activityRows) {
-    activityMap[row.date] = (activityMap[row.date] ?? 0) + row.count;
+    activityMap[row.date] = (activityMap[row.date] ?? 0) + Number(row.count);
   }
   for (const row of raceActivityRows) {
-    activityMap[row.date] = (activityMap[row.date] ?? 0) + row.count;
+    activityMap[row.date] = (activityMap[row.date] ?? 0) + Number(row.count);
   }
   const activityData = Object.entries(activityMap).map(([date, count]) => ({ date, count }));
 

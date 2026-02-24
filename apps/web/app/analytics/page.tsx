@@ -252,7 +252,7 @@ export default function AnalyticsPage() {
                     accuracy: stat.total > 0 ? stat.correct / stat.total : 1,
                     total: stat.total,
                   })) : []}
-                  weakBigrams={bigrams.map((b) => ({ bigram: b.bigram, accuracy: b.accuracy, total: b.total }))}
+                  weakBigrams={bigrams.map((b) => ({ bigram: b.bigram, accuracy: b.accuracy / 100, total: b.total }))}
                   avgWpm={avgWpm}
                 />
               </section>
@@ -443,7 +443,7 @@ export default function AnalyticsPage() {
                           total: stat.total,
                         }))
                       : [];
-                    const ranked = rankWeaknesses(rawKeys, worst5.map((b) => ({ bigram: b.bigram, accuracy: b.accuracy, total: b.total })));
+                    const ranked = rankWeaknesses(rawKeys, worst5.map((b) => ({ bigram: b.bigram, accuracy: b.accuracy / 100, total: b.total })));
                     const insights = estimateWpmImpact(avgWpm || 60, ranked);
                     return insights[0];
                   })()
@@ -456,8 +456,8 @@ export default function AnalyticsPage() {
                       {worst5.map((b) => (
                         <div key={b.bigram} className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2">
                           <span className="text-accent font-bold text-sm">{b.bigram}</span>
-                          <span className={`ml-2 text-xs tabular-nums ${b.accuracy < 0.7 ? "text-error/70" : b.accuracy < 0.9 ? "text-amber-400/70" : "text-correct/70"}`}>
-                            {Math.round(b.accuracy * 100)}%
+                          <span className={`ml-2 text-xs tabular-nums ${b.accuracy < 70 ? "text-error/70" : b.accuracy < 90 ? "text-amber-400/70" : "text-correct/70"}`}>
+                            {Math.round(b.accuracy)}%
                           </span>
                         </div>
                       ))}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 
 interface ActivityDay {
   date: string;
@@ -24,6 +24,7 @@ function getColor(count: number, max: number): string {
 }
 
 export function ActivityCalendar({ activity }: ActivityCalendarProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const [tooltip, setTooltip] = useState<{
     date: string;
     count: number;
@@ -83,7 +84,7 @@ export function ActivityCalendar({ activity }: ActivityCalendarProps) {
   });
 
   return (
-    <div className="relative">
+    <div className="relative" ref={containerRef}>
       <div className="flex gap-0">
         {/* Day-of-week labels */}
         <div className="flex flex-col gap-[3px] mr-2 shrink-0" style={{ marginTop: 18 }}>
@@ -122,12 +123,15 @@ export function ActivityCalendar({ activity }: ActivityCalendarProps) {
                     }`}
                     onMouseEnter={(e) => {
                       if (day.future) return;
-                      const rect = e.currentTarget.getBoundingClientRect();
+                      const container = containerRef.current;
+                      if (!container) return;
+                      const containerRect = container.getBoundingClientRect();
+                      const cellRect = e.currentTarget.getBoundingClientRect();
                       setTooltip({
                         date: day.date,
                         count: day.count,
-                        x: rect.left,
-                        y: rect.top,
+                        x: cellRect.left - containerRect.left + cellRect.width / 2,
+                        y: cellRect.top - containerRect.top,
                       });
                     }}
                     onMouseLeave={() => setTooltip(null)}
@@ -141,16 +145,20 @@ export function ActivityCalendar({ activity }: ActivityCalendarProps) {
 
       {tooltip && (
         <div
-          className="fixed z-50 pointer-events-none bg-surface ring-1 ring-white/[0.08] rounded px-2 py-1 text-xs text-text shadow-lg"
-          style={{ left: tooltip.x + 12, top: tooltip.y - 28 }}
+          className="absolute z-50 pointer-events-none bg-surface ring-1 ring-white/[0.08] rounded-lg px-2.5 py-1.5 text-xs text-text shadow-lg -translate-x-1/2"
+          style={{ left: tooltip.x, top: tooltip.y - 36 }}
         >
-          <span className="font-bold text-accent tabular-nums">{tooltip.count}</span>{" "}
-          {tooltip.count === 1 ? "race" : "races"} —{" "}
-          {new Date(tooltip.date + "T12:00:00").toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          })}
+          <div className="flex items-center gap-1.5">
+            <span className="font-bold text-accent tabular-nums">{tooltip.count}</span>
+            <span className="text-muted/70">{tooltip.count === 1 ? "race" : "races"}</span>
+          </div>
+          <div className="text-[10px] text-muted/50 mt-0.5">
+            {new Date(tooltip.date + "T12:00:00").toLocaleDateString("en-US", {
+              weekday: "short",
+              month: "short",
+              day: "numeric",
+            })}
+          </div>
         </div>
       )}
     </div>
