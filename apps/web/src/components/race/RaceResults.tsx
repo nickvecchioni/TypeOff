@@ -552,13 +552,6 @@ function PresetChatFeed({ emotes }: { emotes: EmoteEvent[] }) {
     timestamp: e.receivedAt,
   }));
 
-  // Auto-scroll feed to bottom on new messages
-  useEffect(() => {
-    if (feedRef.current) {
-      feedRef.current.scrollTop = feedRef.current.scrollHeight;
-    }
-  }, [messages.length]);
-
   useEffect(() => {
     return () => {
       if (cooldownTimerRef.current) clearTimeout(cooldownTimerRef.current);
