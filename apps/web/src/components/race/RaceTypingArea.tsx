@@ -142,11 +142,13 @@ export function RaceTypingArea({
       };
 
       // Character-level progress for smooth race track
+      // Include inter-word spaces to match server's bot progress denominator
       let typedChars = engine.currentCharIndex;
       for (let i = 0; i < engine.currentWordIndex; i++) {
-        typedChars += engine.words[i]?.chars.length ?? 0;
+        typedChars += (engine.words[i]?.chars.length ?? 0) + 1; // +1 for space after each completed word
       }
-      const totalChars = engine.words.reduce((sum, w) => sum + w.chars.length, 0);
+      const totalChars = engine.words.reduce((sum, w) => sum + w.chars.length, 0)
+        + (engine.words.length - 1); // include inter-word spaces like the server does
 
       onProgress({
         wordIndex: engine.currentWordIndex,
