@@ -91,7 +91,9 @@ export function MobileNav() {
                 onClick={close}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
                   isActive
-                    ? "bg-white/[0.06] text-text font-medium"
+                    ? link.className
+                      ? "bg-accent/[0.08] text-accent font-medium drop-shadow-[0_0_8px_rgba(77,158,255,0.5)]"
+                      : "bg-white/[0.06] text-text font-medium"
                     : link.className
                       ? `${link.className} hover:text-accent hover:bg-white/[0.04]`
                       : "text-muted hover:text-text hover:bg-white/[0.04]"

@@ -26,7 +26,9 @@ export function NavLinks() {
             href={link.href}
             className={`hidden md:inline text-sm transition-colors ${
               isActive
-                ? "text-text font-medium"
+                ? link.isPro
+                  ? "text-accent font-medium drop-shadow-[0_0_8px_rgba(77,158,255,0.5)]"
+                  : "text-text font-medium"
                 : link.isPro
                   ? "text-accent/70 hover:text-accent"
                   : "text-muted hover:text-text"
