@@ -788,13 +788,16 @@ export class RaceManager {
       }
     }
 
-    // Re-assign placements by WPM (highest first).
+    // Re-assign placements by WPM (highest first), accuracy as tiebreaker.
     // Sort purely by WPM — progress-based sorting is unreliable when
     // finish events are lost due to socket issues.
     const sorted = [...this.players.values()].sort((a, b) => {
       const aWpm = a.progress.finalStats?.wpm ?? 0;
       const bWpm = b.progress.finalStats?.wpm ?? 0;
-      return bWpm - aWpm;
+      if (bWpm !== aWpm) return bWpm - aWpm;
+      const aAcc = a.progress.finalStats?.accuracy ?? 0;
+      const bAcc = b.progress.finalStats?.accuracy ?? 0;
+      return bAcc - aAcc;
     });
     for (let i = 0; i < sorted.length; i++) {
       sorted[i].progress.placement = i + 1;
