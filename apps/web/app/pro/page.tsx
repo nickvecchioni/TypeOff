@@ -21,16 +21,16 @@ const PRO_REWARD_COUNT = COSMETIC_REWARDS.filter((r) => r.proOnly).length;
 const TOTAL_REWARD_COUNT = COSMETIC_REWARDS.length;
 const FREE_REWARD_COUNT = TOTAL_REWARD_COUNT - PRO_REWARD_COUNT;
 
-const COMPARISON_ROWS = [
-  { feature: "Smart Practice",      free: false,                             pro: true },
-  { feature: "Advanced Analytics",  free: false,                             pro: true },
-  { feature: "Race Replays",        free: false,                             pro: true },
-  { feature: "Custom Text Mode",    free: false,                             pro: true },
-  { feature: "Race History",        free: "Last 20",                         pro: "Full Archive" },
-  { feature: "XP Multiplier",       free: "1×",                              pro: "1.5×" },
-  { feature: "Level Rewards",       free: `${FREE_REWARD_COUNT} cosmetics`,  pro: `All ${TOTAL_REWARD_COUNT}` },
-  { feature: "Ranked Racing",       free: true,                              pro: true },
-  { feature: "Leaderboard",         free: true,                              pro: true },
+const COMPARISON_ROWS: { feature: string; desc?: string; free: boolean | string; pro: boolean | string }[] = [
+  { feature: "Smart Practice",      desc: "AI-generated drills targeting your weakest keys",          free: false,                             pro: true },
+  { feature: "Advanced Analytics",  desc: "Per-key heatmaps, bigram breakdown, WPM trends",          free: false,                             pro: true },
+  { feature: "Race Replays",        desc: "Rewatch any race keystroke by keystroke",                  free: false,                             pro: true },
+  { feature: "Custom Text Mode",    desc: "Practice with your own text or code snippets",             free: false,                             pro: true },
+  { feature: "Race History",        desc: "Browse and filter your past race results",                 free: "Last 20",                         pro: "Full Archive" },
+  { feature: "XP Multiplier",       desc: "Earn XP faster to unlock cosmetics sooner",                free: "1×",                              pro: "1.5×" },
+  { feature: "Level Rewards",       desc: "Exclusive themes, cursors, effects, and more",             free: `${FREE_REWARD_COUNT} cosmetics`,  pro: `All ${TOTAL_REWARD_COUNT}` },
+  { feature: "Ranked Racing",       desc: "Compete in ELO-rated matches with skill-based matchmaking", free: true,                              pro: true },
+  { feature: "Leaderboard",         desc: "Global rankings by PP, text, and universe",                free: true,                              pro: true },
 ];
 
 const TEASER_IDS = [
@@ -70,7 +70,7 @@ const FEATURES = [
       </svg>
     ),
     title: "Race Replays",
-    description: "Rewatch any race keystroke by keystroke. Study your pacing, find hesitation points, and share your best runs.",
+    description: "Rewatch any race keystroke by keystroke. Study your pacing, spot hesitation points, compare runs side by side, and share your best performances.",
     amber: false,
   },
   {
@@ -80,7 +80,7 @@ const FEATURES = [
       </svg>
     ),
     title: "Pro Cosmetics",
-    description: `${PRO_REWARD_COUNT} exclusive rewards in the level track — yours to keep even if you cancel.`,
+    description: `${PRO_REWARD_COUNT} exclusive rewards in the level track — badges, name effects, themes, cursors, and more. Yours to keep permanently, even if you cancel.`,
     amber: false,
   },
 ] as const;
@@ -142,14 +142,14 @@ export default function ProPage() {
                 </div>
 
                 <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-tight mb-4">
-                  <span className="text-text">Find your weaknesses.</span>
+                  <span className="text-text">Random practice plateaus.</span>
                   <br />
-                  <span className="text-accent">Destroy them.</span>
+                  <span className="text-accent">Targeted training doesn&apos;t.</span>
                 </h1>
 
                 <p className="text-sm text-muted/65 max-w-md mx-auto leading-relaxed">
-                  Smart practice that targets your worst keys. Analytics that show exactly
-                  where you lose speed. Tools built for typers who want to get faster.
+                  Pro gives you drills built from your accuracy data, analytics that
+                  pinpoint where you lose speed, and tools to turn weak spots into strengths.
                 </p>
 
                 {/* Stat highlights */}
@@ -239,26 +239,84 @@ export default function ProPage() {
               </div>
             </div>
 
-            {/* ── Pricing ── */}
+            {/* ── Comparison table ── */}
             <div className="animate-slide-up" style={{ animationDelay: "60ms" }}>
-              <p className="text-[9px] font-bold text-muted/65 uppercase tracking-widest mb-4 text-center">
+              <p className="text-xs font-bold text-muted/65 uppercase tracking-widest mb-4">
+                Free vs Pro
+              </p>
+              <div className="rounded-xl ring-1 ring-white/[0.06] overflow-hidden">
+                {/* Header */}
+                <div className="grid grid-cols-[1fr_7rem_7rem] text-[11px] font-bold uppercase tracking-wider border-b border-white/[0.08]">
+                  <span className="px-5 py-3.5 bg-surface/30" />
+                  <span className="px-3 py-3.5 text-center text-muted/50 bg-surface/30">Free</span>
+                  <span className="px-3 py-3.5 text-center text-accent bg-accent/[0.06]">Pro</span>
+                </div>
+                {/* Rows */}
+                {COMPARISON_ROWS.map((row, i) => {
+                  const isProExclusive = row.free === false;
+                  return (
+                    <div
+                      key={row.feature}
+                      className={`grid grid-cols-[1fr_7rem_7rem] ${
+                        i < COMPARISON_ROWS.length - 1 ? "border-b border-white/[0.04]" : ""
+                      }`}
+                    >
+                      <div className="px-5 py-3.5 bg-surface/30">
+                        <span className={`text-[13px] block ${isProExclusive ? "text-text/80 font-medium" : "text-text/50"}`}>
+                          {row.feature}
+                        </span>
+                        {row.desc && (
+                          <span className="text-[11px] text-muted/35 leading-snug block mt-0.5">
+                            {row.desc}
+                          </span>
+                        )}
+                      </div>
+                      <span className="px-3 py-3.5 text-center text-[13px] bg-surface/30 flex items-center justify-center">
+                        {row.free === true ? (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted/30">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        ) : row.free === false ? (
+                          <span className="text-muted/20">—</span>
+                        ) : (
+                          <span className="text-muted/45 text-[12px]">{row.free}</span>
+                        )}
+                      </span>
+                      <span className="px-3 py-3.5 text-center text-[13px] bg-accent/[0.06] flex items-center justify-center">
+                        {row.pro === true ? (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-accent drop-shadow-[0_0_6px_rgba(77,158,255,0.5)]">
+                            <polyline points="20 6 9 17 4 12" stroke="currentColor" />
+                          </svg>
+                        ) : (
+                          <span className="text-accent font-bold text-[12px]">{row.pro}</span>
+                        )}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* ── Pricing ── */}
+            <div className="animate-slide-up" style={{ animationDelay: "80ms" }}>
+              <p className="text-xs font-bold text-muted/65 uppercase tracking-widest mb-5 text-center">
                 Choose your plan
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 
                 {/* Monthly */}
                 <div className="rounded-xl px-5 py-5 ring-1 ring-white/[0.06] bg-surface/30 flex flex-col">
-                  <div className="text-[10px] font-bold text-muted/60 uppercase tracking-wider mb-3">
+                  <div className="text-[11px] font-bold text-muted/60 uppercase tracking-wider mb-3">
                     Monthly
                   </div>
                   <div className="text-3xl font-black text-text tabular-nums leading-none mb-0.5">
                     ${PRO_MONTHLY_PRICE.toFixed(2)}
                     <span className="text-sm font-normal text-muted/60">/mo</span>
                   </div>
-                  <div className="text-[10px] text-muted/45 mb-6">Billed monthly, cancel anytime</div>
+                  <div className="text-[11px] text-muted/45 mb-6">Billed monthly, cancel anytime</div>
                   <button
                     onClick={() => router.push("/pro/checkout?plan=monthly")}
-                    className="mt-auto w-full rounded-lg py-2.5 text-[13px] font-bold ring-1 ring-white/[0.10] bg-white/[0.04] text-text/70 hover:ring-accent/30 hover:bg-accent/[0.05] hover:text-accent/80 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
+                    className="mt-auto w-full rounded-lg py-3 text-sm font-bold ring-1 ring-white/[0.10] bg-white/[0.04] text-text/70 hover:ring-accent/30 hover:bg-accent/[0.05] hover:text-accent/80 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
                   >
                     Get Pro
                   </button>
@@ -274,19 +332,19 @@ export default function ProPage() {
                       Save 50%
                     </span>
                   </div>
-                  <div className="text-[10px] font-bold text-accent/60 uppercase tracking-wider mb-3">
+                  <div className="text-[11px] font-bold text-accent/60 uppercase tracking-wider mb-3">
                     Yearly
                   </div>
                   <div className="text-3xl font-black text-text tabular-nums leading-none mb-0.5">
                     ${PRO_YEARLY_PRICE.toFixed(2)}
                     <span className="text-sm font-normal text-muted/60">/yr</span>
                   </div>
-                  <div className="text-[10px] text-accent/40 mb-6">
+                  <div className="text-[11px] text-accent/40 mb-6">
                     ${(PRO_YEARLY_PRICE / 12).toFixed(2)}/mo billed annually
                   </div>
                   <button
                     onClick={() => router.push("/pro/checkout?plan=yearly")}
-                    className="mt-auto relative w-full rounded-lg py-2.5 text-[13px] font-black tracking-wide overflow-hidden transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                    className="mt-auto relative w-full rounded-lg py-3 text-sm font-black tracking-wide overflow-hidden transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                     style={{
                       background: "linear-gradient(135deg, #3d7ed4 0%, #5a9de6 50%, #3d7ed4 100%)",
                       color: "rgba(255,255,255,0.95)",
@@ -306,57 +364,10 @@ export default function ProPage() {
                 </div>
 
               </div>
-              <p className="text-center text-[9px] text-muted/20 mt-3 leading-relaxed">
+              <p className="text-center text-[11px] text-muted/30 mt-3 leading-relaxed">
                 Subscriptions cancel anytime.{" "}
                 Cosmetics earned are yours to keep.
               </p>
-            </div>
-
-            {/* ── Comparison table ── */}
-            <div className="animate-slide-up" style={{ animationDelay: "80ms" }}>
-              <p className="text-[9px] font-bold text-muted/65 uppercase tracking-widest mb-3">
-                Free vs Pro
-              </p>
-              <div className="rounded-xl ring-1 ring-white/[0.06] overflow-hidden">
-                {/* Header */}
-                <div className="grid grid-cols-[1fr_6rem_6rem] text-[10px] font-bold uppercase tracking-wider border-b border-white/[0.08]">
-                  <span className="px-5 py-3 bg-surface/30" />
-                  <span className="px-3 py-3 text-center text-muted/50 bg-surface/30">Free</span>
-                  <span className="px-3 py-3 text-center text-accent bg-accent/[0.06]">Pro</span>
-                </div>
-                {/* Rows */}
-                {COMPARISON_ROWS.map((row, i) => {
-                  const isProExclusive = row.free === false;
-                  return (
-                    <div
-                      key={row.feature}
-                      className={`grid grid-cols-[1fr_6rem_6rem] ${
-                        i < COMPARISON_ROWS.length - 1 ? "border-b border-white/[0.04]" : ""
-                      }`}
-                    >
-                      <span className={`px-5 py-3 text-[12px] bg-surface/30 ${isProExclusive ? "text-text/80 font-medium" : "text-text/50"}`}>
-                        {row.feature}
-                      </span>
-                      <span className="px-3 py-3 text-center text-[12px] bg-surface/30">
-                        {row.free === true ? (
-                          <span className="text-muted/40">✓</span>
-                        ) : row.free === false ? (
-                          <span className="text-muted/20">—</span>
-                        ) : (
-                          <span className="text-muted/45">{row.free}</span>
-                        )}
-                      </span>
-                      <span className="px-3 py-3 text-center text-[12px] bg-accent/[0.06]">
-                        {row.pro === true ? (
-                          <span className="text-accent font-bold">✓</span>
-                        ) : (
-                          <span className="text-accent font-semibold">{row.pro}</span>
-                        )}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
             </div>
 
           </div>
