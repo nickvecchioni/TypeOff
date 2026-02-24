@@ -149,10 +149,7 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
 
   return (
     <>
-      <div
-        className="flex items-baseline justify-between mb-6 opacity-0 animate-fade-in"
-        style={{ animationDelay: "0ms", animationFillMode: "both" }}
-      >
+      <div className="flex items-baseline justify-between mb-6 animate-fade-in">
         <div className="flex items-center gap-4">
           <h1 className="text-lg font-black text-text uppercase tracking-wider">
             Leaderboard
@@ -166,28 +163,21 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
         </span>
       </div>
 
-      <div
-        className="mb-4 opacity-0 animate-fade-in"
-        style={{ animationDelay: "40ms", animationFillMode: "both" }}
-      >
+      <div className="mb-4 animate-fade-in">
         <Suspense>
           <UniverseSelector />
         </Suspense>
       </div>
 
       {rows.length === 0 ? (
-        <div
-          className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] py-16 text-center opacity-0 animate-fade-in"
-          style={{ animationDelay: "80ms", animationFillMode: "both" }}
-        >
+        <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] py-16 text-center animate-fade-in">
           <p className="text-muted text-sm">No ranked players yet. Be the first.</p>
         </div>
       ) : (
         <div>
           {/* Header */}
           <div
-            className={`grid ${gridCols} items-center gap-3 px-4 py-2 text-xs text-muted/60 uppercase tracking-wider border-b border-white/[0.04] opacity-0 animate-fade-in`}
-            style={{ animationDelay: "60ms", animationFillMode: "both" }}
+            className={`grid ${gridCols} items-center gap-3 px-4 py-2 text-xs text-muted/60 uppercase tracking-wider border-b border-white/[0.04] animate-fade-in`}
           >
             <span></span>
             <span>Player</span>
@@ -200,10 +190,7 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
           </div>
 
           {/* Rows */}
-          <div
-            className="divide-y divide-white/[0.03] opacity-0 animate-fade-in"
-            style={{ animationDelay: "120ms", animationFillMode: "both" }}
-          >
+          <div className="divide-y divide-white/[0.03] animate-fade-in">
             {rows.map((row, i) => {
               const rank = i + 1;
               const isMe = userId === row.id;
@@ -300,10 +287,7 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
             const myLvl = getXpLevel(row.totalXp ?? 0).level;
 
             return (
-              <div
-                className="mt-3 border-t border-white/[0.04] pt-3 opacity-0 animate-fade-in"
-                style={{ animationDelay: "200ms", animationFillMode: "both" }}
-              >
+              <div className="mt-3 border-t border-white/[0.04] pt-3 animate-fade-in">
                 <p className="text-center text-muted/65 text-sm select-none leading-none mb-3">
                   &middot;&middot;&middot;
                 </p>
@@ -496,10 +480,7 @@ async function SoloLeaderboard({
 
   return (
     <>
-      <div
-        className="flex items-baseline justify-between mb-6 opacity-0 animate-fade-in"
-        style={{ animationDelay: "0ms", animationFillMode: "both" }}
-      >
+      <div className="flex items-baseline justify-between mb-6 animate-fade-in">
         <div className="flex items-center gap-4">
           <h1 className="text-lg font-black text-text uppercase tracking-wider">
             Leaderboard
@@ -513,20 +494,14 @@ async function SoloLeaderboard({
         </span>
       </div>
 
-      <div
-        className="mb-6 opacity-0 animate-fade-in"
-        style={{ animationDelay: "40ms", animationFillMode: "both" }}
-      >
+      <div className="mb-6 animate-fade-in">
         <Suspense>
           <SoloModeSelector />
         </Suspense>
       </div>
 
       {rows.length === 0 ? (
-        <div
-          className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] py-16 text-center opacity-0 animate-fade-in"
-          style={{ animationDelay: "80ms", animationFillMode: "both" }}
-        >
+        <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] py-16 text-center animate-fade-in">
           <p className="text-muted text-sm">
             No solo results for {modeLabel} yet. Be the first.
           </p>
@@ -535,8 +510,7 @@ async function SoloLeaderboard({
         <div>
           {/* Header */}
           <div
-            className={`grid ${soloGridCols} items-center gap-3 px-4 py-2 text-xs text-muted/60 uppercase tracking-wider border-b border-white/[0.04] opacity-0 animate-fade-in`}
-            style={{ animationDelay: "60ms", animationFillMode: "both" }}
+            className={`grid ${soloGridCols} items-center gap-3 px-4 py-2 text-xs text-muted/60 uppercase tracking-wider border-b border-white/[0.04] animate-fade-in`}
           >
             <span></span>
             <span>Player</span>
@@ -547,10 +521,7 @@ async function SoloLeaderboard({
           </div>
 
           {/* Rows */}
-          <div
-            className="divide-y divide-white/[0.03] opacity-0 animate-fade-in"
-            style={{ animationDelay: "120ms", animationFillMode: "both" }}
-          >
+          <div className="divide-y divide-white/[0.03] animate-fade-in">
             {rows.map((row, i) => {
               const rank = i + 1;
               const isMe = userId === row.usrId;
@@ -632,10 +603,7 @@ async function SoloLeaderboard({
             const myTierColor = TIER_TEXT[myInfo.tier];
 
             return (
-              <div
-                className="mt-3 border-t border-white/[0.04] pt-3 opacity-0 animate-fade-in"
-                style={{ animationDelay: "200ms", animationFillMode: "both" }}
-              >
+              <div className="mt-3 border-t border-white/[0.04] pt-3 animate-fade-in">
                 <p className="text-center text-muted/65 text-sm select-none leading-none mb-3">
                   &middot;&middot;&middot;
                 </p>
@@ -752,10 +720,7 @@ async function UniverseLeaderboard({
 
   return (
     <>
-      <div
-        className="flex items-baseline justify-between mb-6 opacity-0 animate-fade-in"
-        style={{ animationDelay: "0ms", animationFillMode: "both" }}
-      >
+      <div className="flex items-baseline justify-between mb-6 animate-fade-in">
         <div className="flex items-center gap-4">
           <h1 className="text-lg font-black text-text uppercase tracking-wider">
             Leaderboard
@@ -769,20 +734,14 @@ async function UniverseLeaderboard({
         </span>
       </div>
 
-      <div
-        className="mb-4 opacity-0 animate-fade-in"
-        style={{ animationDelay: "40ms", animationFillMode: "both" }}
-      >
+      <div className="mb-4 animate-fade-in">
         <Suspense>
           <UniverseSelector />
         </Suspense>
       </div>
 
       {rows.length === 0 ? (
-        <div
-          className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] py-16 text-center opacity-0 animate-fade-in"
-          style={{ animationDelay: "80ms", animationFillMode: "both" }}
-        >
+        <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] py-16 text-center animate-fade-in">
           <p className="text-muted text-sm">
             No results for this mode yet. Be the first.
           </p>
@@ -790,8 +749,7 @@ async function UniverseLeaderboard({
       ) : (
         <div>
           <div
-            className={`grid ${gridCols} items-center gap-3 px-4 py-2 text-xs text-muted/60 uppercase tracking-wider border-b border-white/[0.04] opacity-0 animate-fade-in`}
-            style={{ animationDelay: "60ms", animationFillMode: "both" }}
+            className={`grid ${gridCols} items-center gap-3 px-4 py-2 text-xs text-muted/60 uppercase tracking-wider border-b border-white/[0.04] animate-fade-in`}
           >
             <span></span>
             <span>Player</span>
@@ -801,10 +759,7 @@ async function UniverseLeaderboard({
             <span className="text-right hidden sm:block">Wins</span>
           </div>
 
-          <div
-            className="divide-y divide-white/[0.03] opacity-0 animate-fade-in"
-            style={{ animationDelay: "120ms", animationFillMode: "both" }}
-          >
+          <div className="divide-y divide-white/[0.03] animate-fade-in">
             {rows.map((row, i) => {
               const rank = i + 1;
               const isMe = userId === row.usrId;

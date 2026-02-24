@@ -108,7 +108,8 @@ export default function AnalyticsPage() {
       .catch(() => {});
   }, [session?.user?.id]);
 
-  if (status === "loading" || loading) {
+  // Show full skeleton only on initial load (no data yet)
+  if (status === "loading" || (loading && !data)) {
     return (
       <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
         <div className="max-w-3xl mx-auto space-y-4">
@@ -179,6 +180,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* ── Personal Records (free + pro) ───────────────── */}
+        <div className={`transition-opacity duration-200 ${loading && data ? "opacity-60 pointer-events-none" : "opacity-100"}`}>
         <div className={`grid gap-2 mb-4 ${isPro ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-2"}`}>
           <StatCard
             label="Best WPM"
@@ -488,6 +490,7 @@ export default function AnalyticsPage() {
             </div>
           </>
         )}
+        </div>
       </div>
     </main>
   );
