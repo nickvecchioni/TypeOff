@@ -550,11 +550,10 @@ export class RaceManager {
     entry: PlayerEntry,
   ) {
     const now = Date.now();
-    let { wordIndex, charIndex, wpm, progress } = data;
+    let { wordIndex, charIndex, wpm } = data;
 
     // Clamp basic values
     wpm = Math.min(wpm, 350);
-    progress = Math.max(0, Math.min(1, progress));
 
     // Reject going backwards in word index
     if (wordIndex < entry.progress.wordIndex) {
@@ -568,11 +567,21 @@ export class RaceManager {
       wordIndex = this.wordCount;
     }
 
-    // Reject progress regression
-    if (progress < entry.progress.progress) {
-      this.addFlag(entry.player.id, "progress regression");
-      progress = entry.progress.progress;
+    // Clamp charIndex to the current word's length
+    if (wordIndex < this.expectedWords.length) {
+      charIndex = Math.min(charIndex, this.expectedWords[wordIndex].length);
     }
+
+    // Compute progress server-side from wordIndex + charIndex — authoritative,
+    // immune to client calculation mismatches, reconnection edge cases, or stale closures.
+    // cumulativeWordChars[i] = total word-chars before word i (no spaces)
+    const wordCharsTyped = wordIndex < this.cumulativeWordChars.length
+      ? this.cumulativeWordChars[wordIndex]
+      : this.wordCharsTotal;
+    const spacesTyped = wordIndex; // one space after each completed word
+    const totalTyped = wordCharsTyped + spacesTyped + charIndex;
+    let progress = this.totalChars > 0 ? totalTyped / this.totalChars : 0;
+    progress = Math.max(0, Math.min(1, progress));
 
     // Rate limit: flag if >20 progress events per second
     if (now - entry.progressWindowStart > 1000) {

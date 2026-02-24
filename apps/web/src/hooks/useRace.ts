@@ -55,7 +55,7 @@ export interface RaceResult {
 }
 
 export function useRace(myPlayerId?: string | null) {
-  const { connected, emit, on } = useSocket();
+  const { connected, emit, on, socket } = useSocket();
   const [phase, setPhase] = useState<RacePhase>("idle");
   const [queueCount, setQueueCount] = useState(0);
   const [maxWaitSeconds, setMaxWaitSeconds] = useState(5);
@@ -83,6 +83,13 @@ export function useRace(myPlayerId?: string | null) {
     playerId: string;
     entry: RacePlayerProgress;
   } | null>(null);
+
+  // Stale connection detection: track last sent progress and compare with
+  // server broadcasts to detect one-way communication failures.
+  const lastSentProgressRef = useRef<{ progress: number; time: number } | null>(null);
+  const staleReconnectAttempts = useRef(0);
+  const STALE_THRESHOLD_MS = 3000;
+  const STALE_PROGRESS_GAP = 0.05;
 
   useEffect(() => {
     const unsubs = [
@@ -116,6 +123,33 @@ export function useRace(myPlayerId?: string | null) {
         }
       }),
       on("raceProgress", (data) => {
+        // Stale connection detection: if we've been sending progress but the
+        // server doesn't reflect it, our client→server path is broken.
+        // Force a socket reconnection to recover.
+        const myId = myPlayerIdRef.current;
+        const sent = lastSentProgressRef.current;
+        if (myId && sent && !localFinishRef.current) {
+          const serverProg = data.progress[myId]?.progress ?? 0;
+          const timeSinceSend = Date.now() - sent.time;
+          const progressGap = sent.progress - serverProg;
+
+          if (timeSinceSend > STALE_THRESHOLD_MS && progressGap > STALE_PROGRESS_GAP) {
+            if (staleReconnectAttempts.current < 3) {
+              staleReconnectAttempts.current++;
+              console.warn(
+                `[useRace] Stale progress detected: sent=${sent.progress.toFixed(3)} ` +
+                `server=${serverProg.toFixed(3)} gap=${timeSinceSend}ms — ` +
+                `forcing reconnect (#${staleReconnectAttempts.current})`,
+              );
+              lastSentProgressRef.current = null;
+              socket.current?.disconnect();
+              socket.current?.connect();
+            }
+          } else if (progressGap <= 0.02) {
+            staleReconnectAttempts.current = 0;
+          }
+        }
+
         setProgress(prev => {
           // Ref-based finish lock: if we finished locally, never let any
           // server broadcast regress our state (regardless of myPlayerId,
@@ -130,7 +164,6 @@ export function useRace(myPlayerId?: string | null) {
             // Server hasn't caught up — merge server data but keep our entry
             return { ...data.progress, [finish.playerId]: finish.entry };
           }
-          const myId = myPlayerIdRef.current;
           if (!myId) return data.progress;
           const serverEntry = data.progress[myId];
           if (serverEntry?.finished) return data.progress;
@@ -280,9 +313,8 @@ export function useRace(myPlayerId?: string | null) {
       // Block anything below 1 to prevent stale progress regression.
       if (localFinishRef.current && data.progress < 1) return;
       emit("raceProgress", data);
-      // No optimistic local progress update — the server broadcasts progress
-      // every 100ms which is smooth enough for the race track, and keeps all
-      // players on the same timescale so visual progress matches placements.
+      // Track sent progress for stale connection detection
+      lastSentProgressRef.current = { progress: data.progress, time: Date.now() };
     },
     [emit]
   );
@@ -329,6 +361,8 @@ export function useRace(myPlayerId?: string | null) {
 
   const reset = useCallback(() => {
     localFinishRef.current = null;
+    lastSentProgressRef.current = null;
+    staleReconnectAttempts.current = 0;
     setPhase("idle");
     setRaceState(null);
     setProgress({});
@@ -344,6 +378,8 @@ export function useRace(myPlayerId?: string | null) {
   const raceAgain = useCallback(
     (opts?: { privateRace?: boolean; modeCategories?: ModeCategory[] }) => {
       localFinishRef.current = null;
+      lastSentProgressRef.current = null;
+      staleReconnectAttempts.current = 0;
       setRaceState(null);
       setProgress({});
       setResults([]);

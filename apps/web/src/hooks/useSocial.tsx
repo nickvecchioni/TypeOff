@@ -151,9 +151,16 @@ export function SocialProvider({ children }: { children: ReactNode }) {
           const prevMap = new Map(prev.map((f) => [f.userId, f]));
           return data.friends.map((f: Friend) => {
             const existing = prevMap.get(f.userId);
+            // Before socket statuses arrive, derive online from lastSeen using
+            // the same 3-minute heuristic as the profile/leaderboard pages.
+            // This prevents the friends list from showing "offline" while the
+            // profile shows "Online" for the same user.
+            const isRecentlyOnline = f.lastSeen
+              ? (Date.now() - new Date(f.lastSeen).getTime()) < 3 * 60 * 1000
+              : false;
             return {
               ...f,
-              online: existing?.online ?? false,
+              online: existing?.online ?? isRecentlyOnline,
               lastSeen: existing != null ? existing.lastSeen : (f.lastSeen ?? null),
             };
           });

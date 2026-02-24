@@ -40,6 +40,7 @@ export const metadata: Metadata = {
     url: APP_URL,
     siteName: "TypeOff",
     type: "website",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",

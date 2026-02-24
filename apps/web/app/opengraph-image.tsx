@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 export const alt = "TypeOff — Ranked Competitive Typing";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
@@ -24,7 +24,7 @@ export default function Image() {
           height: 630,
           background: "#0c0c12",
           display: "flex",
-          flexDirection: "column",
+          flexDirection: "row",
           position: "relative",
           overflow: "hidden",
           fontFamily: "monospace",
