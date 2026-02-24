@@ -629,20 +629,52 @@ function PresetChatFeed({ emotes }: { emotes: EmoteEvent[] }) {
   );
 }
 
-/* ── Pro upsell panel ─────────────────────────────────────── */
+/* ── Pro upsell panel (collapsible) ───────────────────────── */
 
 function ProPanel({ level, xpEarned }: { level: number; xpEarned: number }) {
   const proCosmetics = COSMETIC_REWARDS.filter((r) => r.proOnly === true).length;
   const missedXp = Math.floor(xpEarned * 0.5);
+  const [dismissed, setDismissed] = useState(false);
+
+  if (dismissed) {
+    return (
+      <Link
+        href="/pro"
+        className="flex items-center justify-between rounded-lg bg-accent/[0.03] ring-1 ring-accent/15 px-3 py-2 hover:bg-accent/[0.06] transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-[9px] font-black tracking-[0.15em] text-accent bg-accent/10 ring-1 ring-accent/25 rounded px-1.5 py-0.5 leading-none">
+            PRO
+          </span>
+          <span className="text-[11px] text-text/50">
+            {missedXp > 0 ? `+${missedXp} bonus XP missed` : "Upgrade for 1.5x XP"}
+          </span>
+        </div>
+        <span className="text-[10px] text-accent/60 font-medium">$4.99/mo</span>
+      </Link>
+    );
+  }
 
   return (
     <div className="rounded-xl overflow-hidden ring-1 ring-accent/15 bg-accent/[0.02]">
       <div className="h-1 bg-gradient-to-r from-accent/40 via-accent/60 to-accent/40" />
       <div className="px-3 py-3 sm:px-4 sm:py-3.5 flex flex-col gap-2.5">
-        {/* Header */}
-        <span className="text-[9px] font-black tracking-[0.15em] text-accent bg-accent/10 ring-1 ring-accent/25 rounded px-1.5 py-0.5 leading-none self-start">
-          PRO
-        </span>
+        {/* Header with dismiss */}
+        <div className="flex items-center justify-between">
+          <span className="text-[9px] font-black tracking-[0.15em] text-accent bg-accent/10 ring-1 ring-accent/25 rounded px-1.5 py-0.5 leading-none">
+            PRO
+          </span>
+          <button
+            onClick={() => setDismissed(true)}
+            className="text-muted/30 hover:text-muted/60 transition-colors p-0.5"
+            aria-label="Dismiss"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
 
         {/* Missed XP callout */}
         {missedXp > 0 && (
@@ -742,12 +774,21 @@ export function RaceResults({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onRaceAgain, inParty, isLeader, amReady, allMembersReady, onMarkReady]);
 
+  // #2: Detect if all opponents are bots (for hiding ELO column and chat)
+  const allOpponentsAreBots = results.every(
+    (r) => r.playerId === myPlayerId || r.playerId.startsWith("bot_")
+  );
+  const showEloCol = !isPlacement && !allOpponentsAreBots;
   const mobileCols = isPlacement
     ? "grid-cols-[2rem_1fr_5rem]"
-    : "grid-cols-[2rem_1fr_4rem_3.5rem]";
+    : showEloCol
+    ? "grid-cols-[2rem_1fr_4rem_3.5rem]"
+    : "grid-cols-[2rem_1fr_4rem]";
   const desktopCols = isPlacement
     ? ""
-    : "sm:grid-cols-[2rem_1fr_auto_4rem_3.5rem_3.5rem]";
+    : showEloCol
+    ? "sm:grid-cols-[2rem_1fr_auto_4rem_3.5rem_3.5rem]"
+    : "sm:grid-cols-[2rem_1fr_auto_4rem_3.5rem]";
   const tableCols = `${mobileCols} ${desktopCols}`;
 
   const hasAchievements = myResult?.newAchievements && myResult.newAchievements.length > 0;
@@ -768,6 +809,53 @@ export function RaceResults({
 
   const currentLevel = myResult?.xpProgress?.level ?? 0;
   const showProPanel = !isPro && !isPlacement && myResult != null && session?.user != null;
+
+  // #4: Personal best detection
+  const isPersonalBest =
+    myResult != null &&
+    myResult.previousBestWpm != null &&
+    myResult.wpm > myResult.previousBestWpm &&
+    myResult.previousBestWpm > 0;
+
+  // #6: Consistency (100 - coefficient of variation) and time
+  const raceTime = myWpmHistory && myWpmHistory.length > 0
+    ? myWpmHistory[myWpmHistory.length - 1].elapsed
+    : null;
+  const consistency = (() => {
+    if (!myWpmHistory || myWpmHistory.length < 2) return null;
+    const wpms = myWpmHistory.map((s) => s.wpm).filter((v) => v > 0);
+    if (wpms.length < 2) return null;
+    const mean = wpms.reduce((a, b) => a + b, 0) / wpms.length;
+    if (mean === 0) return null;
+    const variance = wpms.reduce((sum, v) => sum + (v - mean) ** 2, 0) / wpms.length;
+    const stdDev = Math.sqrt(variance);
+    return Math.max(0, Math.round(100 - (stdDev / mean) * 100));
+  })();
+
+  // #3: Build opponent WPM lines for the chart
+  const opponentLines = results
+    .filter((r) => r.playerId !== myPlayerId)
+    .map((r, idx) => {
+      const name = r.username ?? r.name;
+      const isBot = r.playerId.startsWith("bot_");
+      // Use real wpmHistory if available, otherwise generate synthetic for bots
+      let samples = r.wpmHistory;
+      if (!samples && isBot && raceTime && raceTime > 0) {
+        // Generate a simple synthetic curve for bots
+        const duration = Math.ceil(raceTime);
+        const finalWpm = r.wpm;
+        samples = Array.from({ length: duration }, (_, i) => {
+          const t = i + 1;
+          // Start at ~85% of final WPM, ramp up with slight noise
+          const progress = t / duration;
+          const wpm = finalWpm * (0.85 + 0.15 * progress);
+          return { elapsed: t, wpm: Math.round(wpm), raw: Math.round(wpm) };
+        });
+      }
+      if (!samples || samples.length < 2) return null;
+      return { name, samples, color: "" };
+    })
+    .filter((line): line is NonNullable<typeof line> => line != null);
 
   return (
     <div className="flex flex-col gap-1.5 w-full flex-1 min-h-0">
@@ -793,11 +881,20 @@ export function RaceResults({
 
             {/* WPM */}
             <div className="bg-surface/40 px-3 py-2.5 sm:px-4 flex flex-col justify-end">
-              <div className="text-3xl sm:text-4xl font-black text-text tabular-nums leading-none">
-                {Math.floor(myResult.wpm)}
-                <span className="text-lg opacity-50">
-                  .{(myResult.wpm % 1).toFixed(2).slice(2)}
-                </span>
+              <div className="flex items-baseline gap-2">
+                <div className="text-3xl sm:text-4xl font-black text-text tabular-nums leading-none">
+                  {Math.floor(myResult.wpm)}
+                  <span className="text-lg opacity-50">
+                    .{(myResult.wpm % 1).toFixed(2).slice(2)}
+                  </span>
+                </div>
+                {isPersonalBest && (
+                  <span
+                    className="text-[10px] font-black text-correct bg-correct/10 ring-1 ring-correct/30 rounded px-1.5 py-0.5 uppercase tracking-wider leading-none animate-fade-in"
+                  >
+                    NEW PB!
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-2 mt-1">
                 <div className="text-[10px] text-muted/60 uppercase tracking-wide">wpm</div>
@@ -872,6 +969,32 @@ export function RaceResults({
               </div>
             )}
           </div>
+
+          {/* Secondary stats row: time + consistency */}
+          {!isPlacement && (raceTime != null || consistency != null) && (
+            <div className="flex items-center gap-px">
+              {raceTime != null && (
+                <div className="flex-1 bg-surface/40 px-3 py-1.5 sm:px-4">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-sm font-bold text-text tabular-nums">
+                      {raceTime >= 60
+                        ? `${Math.floor(raceTime / 60)}:${String(Math.round(raceTime % 60)).padStart(2, "0")}`
+                        : `${raceTime.toFixed(1)}s`}
+                    </span>
+                    <span className="text-[10px] text-muted/60 uppercase tracking-wide">time</span>
+                  </div>
+                </div>
+              )}
+              {consistency != null && (
+                <div className="flex-1 bg-surface/40 px-3 py-1.5 sm:px-4">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-sm font-bold text-text tabular-nums">{consistency}%</span>
+                    <span className="text-[10px] text-muted/60 uppercase tracking-wide">consistency</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       ) : (
         <h2 className="text-lg font-bold text-text animate-fade-in">Results</h2>
@@ -895,7 +1018,7 @@ export function RaceResults({
               {!isPlacement && <span className="font-medium hidden sm:block">Rank</span>}
               <span className="font-medium text-right">WPM</span>
               {!isPlacement && <span className="font-medium text-right hidden sm:block">Acc</span>}
-              {!isPlacement && <span className="font-medium text-right">ELO</span>}
+              {showEloCol && <span className="font-medium text-right">ELO</span>}
             </div>
 
             {/* Rows */}
@@ -924,19 +1047,20 @@ export function RaceResults({
                 >
                   <span className="font-bold tabular-nums">{result.placement}</span>
 
-                  <span className="flex items-center gap-2 min-w-0 pr-3">
+                  <span className="flex items-center gap-2 min-w-0 pr-1">
                     {!isBot && <CosmeticBadge badge={result.activeBadge} />}
                     {result.username && !isGuest ? (
                       <Link
                         href={`/profile/${result.username}`}
                         className="hover:text-accent transition-colors truncate"
+                        title={displayName}
                       >
                         <CosmeticName nameColor={result.activeNameColor} nameEffect={result.activeNameEffect}>
                           {displayName}
                         </CosmeticName>
                       </Link>
                     ) : (
-                      <span className="truncate">{displayName}</span>
+                      <span className="truncate" title={displayName}>{displayName}</span>
                     )}
                     {result.level != null && !isBot && (
                       <span className="text-[10px] font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded shrink-0">
@@ -980,7 +1104,7 @@ export function RaceResults({
                     </span>
                   )}
 
-                  {!isPlacement && (
+                  {showEloCol && (
                     <span className="text-right tabular-nums whitespace-nowrap">
                       {result.eloChange != null ? (
                         <span
@@ -1000,8 +1124,8 @@ export function RaceResults({
               );
             })}
 
-            {/* Preset chat feed (replaces emote bar) */}
-            {!isPlacement && <PresetChatFeed emotes={emotes} />}
+            {/* Preset chat feed — hidden in bot-only races (#8) */}
+            {!isPlacement && !allOpponentsAreBots && <PresetChatFeed emotes={emotes} />}
           </div>
 
           {/* WPM Chart — flex-1 so action buttons align with right column bottom */}
@@ -1009,7 +1133,7 @@ export function RaceResults({
             <div className="flex-1 min-h-[160px] rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 pt-2.5 pb-1.5 flex flex-col">
               <div className="text-[10px] font-bold text-muted/50 uppercase tracking-widest mb-1.5">WPM over time</div>
               <div className="flex-1 min-h-0">
-                <WpmChart samples={myWpmHistory} />
+                <WpmChart samples={myWpmHistory} opponents={opponentLines} />
               </div>
             </div>
           )}
@@ -1071,61 +1195,49 @@ export function RaceResults({
               </>
             )}
 
-            {/* Secondary actions row — icon buttons with tooltips */}
-            <div className="flex items-center gap-1">
+            {/* Secondary actions row — labeled buttons */}
+            <div className="flex items-center gap-2">
               {/* Go Home */}
-              <div className="relative group/tt">
-                <button
-                  onClick={onGoHome}
-                  className="p-2 text-muted/50 hover:text-muted transition-colors rounded"
-                  aria-label="Go Home"
-                >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                    <polyline points="9 22 9 12 15 12 15 22" />
-                  </svg>
-                </button>
-                <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-0.5 rounded bg-surface ring-1 ring-white/[0.08] text-[9px] text-muted/70 whitespace-nowrap opacity-0 group-hover/tt:opacity-100 pointer-events-none transition-opacity duration-150 z-50">
-                  Go Home
-                </span>
-              </div>
+              <button
+                onClick={onGoHome}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 text-muted/50 hover:text-muted transition-colors rounded"
+                aria-label="Go Home"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                  <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
+                <span className="text-[10px] font-medium">Home</span>
+              </button>
 
               {/* Watch Replay */}
               {raceId && (
-                <div className="relative group/tt">
-                  <Link
-                    href={`/races/${raceId}`}
-                    className="p-2 text-muted/50 hover:text-muted transition-colors rounded block"
-                    aria-label="Watch Replay"
-                  >
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="5 3 19 12 5 21 5 3" />
-                    </svg>
-                  </Link>
-                  <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-0.5 rounded bg-surface ring-1 ring-white/[0.08] text-[9px] text-muted/70 whitespace-nowrap opacity-0 group-hover/tt:opacity-100 pointer-events-none transition-opacity duration-150 z-50">
-                    Watch Replay
-                  </span>
-                </div>
+                <Link
+                  href={`/races/${raceId}`}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 text-muted/50 hover:text-muted transition-colors rounded"
+                  aria-label="Watch Replay"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="5 3 19 12 5 21 5 3" />
+                  </svg>
+                  <span className="text-[10px] font-medium">Replay</span>
+                </Link>
               )}
 
               {/* Analytics */}
               {!isPlacement && (
-                <div className="relative group/tt">
-                  <Link
-                    href="/analytics"
-                    className="p-2 text-muted/50 hover:text-muted transition-colors rounded block"
-                    aria-label="Analytics"
-                  >
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="18" y1="20" x2="18" y2="10" />
-                      <line x1="12" y1="20" x2="12" y2="4" />
-                      <line x1="6" y1="20" x2="6" y2="14" />
-                    </svg>
-                  </Link>
-                  <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-0.5 rounded bg-surface ring-1 ring-white/[0.08] text-[9px] text-muted/70 whitespace-nowrap opacity-0 group-hover/tt:opacity-100 pointer-events-none transition-opacity duration-150 z-50">
-                    Analytics
-                  </span>
-                </div>
+                <Link
+                  href="/analytics"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 text-muted/50 hover:text-muted transition-colors rounded"
+                  aria-label="Analytics"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10" />
+                    <line x1="12" y1="20" x2="12" y2="4" />
+                    <line x1="6" y1="20" x2="6" y2="14" />
+                  </svg>
+                  <span className="text-[10px] font-medium">Analytics</span>
+                </Link>
               )}
 
               {/* Share */}

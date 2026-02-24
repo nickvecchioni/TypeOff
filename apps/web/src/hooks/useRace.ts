@@ -51,6 +51,7 @@ export interface RaceResult {
   activeNameColor?: string | null;
   activeNameEffect?: string | null;
   level?: number;
+  previousBestWpm?: number;
 }
 
 export function useRace(myPlayerId?: string | null) {

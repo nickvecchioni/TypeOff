@@ -156,6 +156,7 @@ export interface ServerToClientEvents {
       activeBadge?: string | null;
       activeNameColor?: string | null;
       activeNameEffect?: string | null;
+      previousBestWpm?: number;
     }>;
     placementRace?: number;
     placementTotal?: number;

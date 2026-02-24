@@ -3,14 +3,28 @@
 import React, { useRef, useState } from "react";
 import type { WpmSample } from "@typeoff/shared";
 
+interface OpponentLine {
+  name: string;
+  samples: WpmSample[];
+  color: string;
+}
+
 interface WpmChartProps {
   samples: WpmSample[];
   compact?: boolean;
+  opponents?: OpponentLine[];
 }
 
 const CHART_WIDTH = 600;
 
-export function WpmChart({ samples, compact = false }: WpmChartProps) {
+const OPPONENT_COLORS = [
+  "rgba(255,255,255,0.18)",
+  "rgba(255,255,255,0.14)",
+  "rgba(255,255,255,0.10)",
+  "rgba(255,255,255,0.08)",
+];
+
+export function WpmChart({ samples, compact = false, opponents }: WpmChartProps) {
   const CHART_HEIGHT = compact ? 90 : 140;
   const PADDING = compact
     ? { top: 8, right: 16, bottom: 14, left: 36 }
@@ -23,7 +37,12 @@ export function WpmChart({ samples, compact = false }: WpmChartProps) {
   const innerWidth = CHART_WIDTH - PADDING.left - PADDING.right;
   const innerHeight = CHART_HEIGHT - PADDING.top - PADDING.bottom;
 
-  const rawMax = Math.max(...samples.map((s) => Math.max(s.wpm, s.raw)), 10);
+  // Include opponent WPMs in the max calculation for proper scaling
+  const allWpms = [
+    ...samples.map((s) => Math.max(s.wpm, s.raw)),
+    ...(opponents ?? []).flatMap((o) => o.samples.map((s) => s.wpm)),
+  ];
+  const rawMax = Math.max(...allWpms, 10);
   const minTime = samples[0].elapsed;
   const maxTime = samples[samples.length - 1].elapsed || 1;
   const timeRange = maxTime - minTime || 1;
@@ -43,6 +62,9 @@ export function WpmChart({ samples, compact = false }: WpmChartProps) {
     samples
       .map((s, i) => `${i === 0 ? "M" : "L"} ${scaleX(s.elapsed)} ${scaleY(s[key])}`)
       .join(" ");
+
+  const samplesToPath = (s: WpmSample[]) =>
+    s.map((pt, i) => `${i === 0 ? "M" : "L"} ${scaleX(pt.elapsed)} ${scaleY(pt.wpm)}`).join(" ");
 
   // Area fill path under WPM line (close at bottom)
   const areaPath =
@@ -117,6 +139,34 @@ export function WpmChart({ samples, compact = false }: WpmChartProps) {
           >
             {tick}
           </text>
+        </g>
+      ))}
+
+      {/* Opponent WPM lines (rendered behind main line) */}
+      {(opponents ?? []).map((opp, idx) => (
+        <g key={`opp-${idx}`}>
+          <path
+            d={samplesToPath(opp.samples)}
+            fill="none"
+            stroke={opp.color || OPPONENT_COLORS[idx % OPPONENT_COLORS.length]}
+            strokeWidth={1.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeDasharray="4 3"
+          />
+          {/* Name label at the end of the line */}
+          {opp.samples.length > 0 && (
+            <text
+              x={scaleX(opp.samples[opp.samples.length - 1].elapsed) + 4}
+              y={scaleY(opp.samples[opp.samples.length - 1].wpm)}
+              fill={opp.color || OPPONENT_COLORS[idx % OPPONENT_COLORS.length]}
+              fontSize={8}
+              dominantBaseline="middle"
+              fillOpacity={0.7}
+            >
+              {opp.name}
+            </text>
+          )}
         </g>
       ))}
 

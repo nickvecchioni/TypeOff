@@ -889,6 +889,7 @@ export class RaceManager {
       activeNameColor?: string | null;
       activeNameEffect?: string | null;
       level?: number;
+      previousBestWpm?: number;
     }> = [];
 
     // Track per-player data for results
@@ -902,6 +903,7 @@ export class RaceManager {
     const xpProgressMap = new Map<string, XpProgress>();
     const playerStatsMap = new Map<string, { racesPlayed: number; racesWon: number; currentStreak: number; maxStreak: number }>();
     const cosmeticsMap = new Map<string, { activeBadge: string | null; activeNameColor: string | null; activeNameEffect: string | null }>();
+    const previousBestWpmMap = new Map<string, number>();
 
     const db = createDb(process.env.DATABASE_URL!);
 
@@ -957,6 +959,7 @@ export class RaceManager {
             const newWon = placement === 1 ? 1 : 0;
             streakMap.set(entry.player.id, newStreak);
             playerStatsMap.set(entry.player.id, { racesPlayed: 1, racesWon: newWon, currentStreak: newStreak, maxStreak: newStreak });
+            previousBestWpmMap.set(entry.player.id, 0);
             await db.insert(userStats).values({
               userId: entry.player.id,
               racesPlayed: 1,
@@ -972,6 +975,7 @@ export class RaceManager {
             });
           } else {
             const s = existing[0];
+            previousBestWpmMap.set(entry.player.id, s.maxWpm);
             const newPlayed = s.racesPlayed + 1;
             const newWon = s.racesWon + (placement === 1 ? 1 : 0);
             const newStreak = placement === 1 ? s.currentStreak + 1 : 0;
@@ -1433,6 +1437,7 @@ export class RaceManager {
         activeNameColor: cosmetics?.activeNameColor ?? entry.player.activeNameColor,
         activeNameEffect: cosmetics?.activeNameEffect ?? entry.player.activeNameEffect,
         level: levelMap.get(entry.player.id),
+        previousBestWpm: previousBestWpmMap.get(entry.player.id),
       });
     }
 
