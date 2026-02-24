@@ -162,8 +162,8 @@ export default function ProPage() {
                     <div key={s.label} className="text-center">
                       <div className="text-2xl font-black tabular-nums text-accent flex items-center justify-center h-9">
                         {s.value === "∞" ? (
-                          <svg width="36" height="20" viewBox="0 0 36 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M18 10C16 6.5 13 4 9.5 4C5.36 4 2 6.91 2 10C2 13.09 5.36 16 9.5 16C13 16 16 13.5 18 10ZM18 10C20 6.5 23 4 26.5 4C30.64 4 34 6.91 34 10C34 13.09 30.64 16 26.5 16C23 16 20 13.5 18 10Z" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                          <svg width="28" height="20" viewBox="0 0 24 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 8C10.5 5.5 8.5 3.5 6 3.5C3.24 3.5 1 5.74 1 8.5C1 11.26 3.24 13.5 6 13.5C8.5 13.5 10.5 11.5 12 8.5V8ZM12 8C13.5 5.5 15.5 3.5 18 3.5C20.76 3.5 23 5.74 23 8.5C23 11.26 20.76 13.5 18 13.5C15.5 13.5 13.5 11.5 12 8.5V8Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                           </svg>
                         ) : s.value}
                       </div>
@@ -210,22 +210,29 @@ export default function ProPage() {
                 </p>
                 <p className="text-[9px] text-muted/20">yours to keep on cancel</p>
               </div>
-              <div className="rounded-xl ring-1 ring-white/[0.06] overflow-hidden bg-[#0c0c12]">
+              <div className="rounded-xl ring-1 ring-accent/10 overflow-hidden bg-[#0c0c12]" style={{ boxShadow: "0 0 60px rgba(77,158,255,0.04)" }}>
                 {/* Live name preview */}
                 <NamePreview username={session?.user?.username ?? session?.user?.name ?? "TypeOff"} />
-                {/* Teaser items strip */}
-                <div className="flex divide-x divide-white/[0.03] border-t border-white/[0.03]">
-                  {TEASER_REWARDS.map((item) => (
+                {/* Teaser items grid */}
+                <div className="grid grid-cols-5 border-t border-white/[0.06]">
+                  {TEASER_REWARDS.map((item, i) => (
                     <div
                       key={item.id}
-                      className="flex-1 flex flex-col items-center justify-center py-5 gap-2 group hover:bg-accent/[0.03] transition-colors"
+                      className={`flex flex-col items-center justify-center py-6 gap-2.5 group hover:bg-accent/[0.05] transition-all ${
+                        i < TEASER_REWARDS.length - 1 ? "border-r border-white/[0.04]" : ""
+                      }`}
                     >
-                      <div className="opacity-60 group-hover:opacity-100 transition-opacity">
+                      <div className="group-hover:scale-110 transition-transform duration-200">
                         <TeaserVisual item={item} />
                       </div>
-                      <span className="text-[9px] text-muted/45 capitalize">
-                        {item.type === "nameColor" ? "color" : item.type === "cursorStyle" ? "cursor" : item.type === "typingTheme" ? "theme" : item.type}
-                      </span>
+                      <div className="text-center">
+                        <span className="block text-[10px] text-text/70 font-medium leading-tight">
+                          {item.name}
+                        </span>
+                        <span className="block text-[8px] text-accent/40 uppercase tracking-wider mt-0.5">
+                          {item.type === "nameColor" ? "color" : item.type === "cursorStyle" ? "cursor" : item.type === "typingTheme" ? "theme" : item.type}
+                        </span>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -281,17 +288,17 @@ export default function ProPage() {
                     onClick={() => router.push("/pro/checkout?plan=yearly")}
                     className="mt-auto relative w-full rounded-lg py-2.5 text-[13px] font-black tracking-wide overflow-hidden transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                     style={{
-                      background: "linear-gradient(135deg, #4d9eff 0%, #80bbff 50%, #4d9eff 100%)",
-                      color: "#ffffff",
-                      boxShadow: "0 2px 20px rgba(77,158,255,0.35)",
+                      background: "linear-gradient(135deg, #3d7ed4 0%, #5a9de6 50%, #3d7ed4 100%)",
+                      color: "rgba(255,255,255,0.95)",
+                      boxShadow: "0 2px 16px rgba(77,158,255,0.2)",
                     }}
                     onMouseEnter={(e) => {
                       (e.currentTarget as HTMLButtonElement).style.boxShadow =
-                        "0 4px 32px rgba(77,158,255,0.55)";
+                        "0 4px 24px rgba(77,158,255,0.4)";
                     }}
                     onMouseLeave={(e) => {
                       (e.currentTarget as HTMLButtonElement).style.boxShadow =
-                        "0 2px 20px rgba(77,158,255,0.35)";
+                        "0 2px 16px rgba(77,158,255,0.2)";
                     }}
                   >
                     Get Pro →
@@ -310,28 +317,45 @@ export default function ProPage() {
               <p className="text-[9px] font-bold text-muted/65 uppercase tracking-widest mb-3">
                 Free vs Pro
               </p>
-              <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden">
-                <div className="grid grid-cols-[1fr_5rem_5rem] text-[9px] font-bold text-muted/60 uppercase tracking-wider px-4 py-2.5 border-b border-white/[0.06]">
-                  <span />
-                  <span className="text-center">Free</span>
-                  <span className="text-center text-accent/60">Pro</span>
+              <div className="rounded-xl ring-1 ring-white/[0.06] overflow-hidden">
+                {/* Header */}
+                <div className="grid grid-cols-[1fr_6rem_6rem] text-[10px] font-bold uppercase tracking-wider border-b border-white/[0.08]">
+                  <span className="px-5 py-3 bg-surface/30" />
+                  <span className="px-3 py-3 text-center text-muted/50 bg-surface/30">Free</span>
+                  <span className="px-3 py-3 text-center text-accent bg-accent/[0.06]">Pro</span>
                 </div>
-                {COMPARISON_ROWS.map((row, i) => (
-                  <div
-                    key={row.feature}
-                    className={`grid grid-cols-[1fr_5rem_5rem] px-4 py-2.5 ${
-                      i < COMPARISON_ROWS.length - 1 ? "border-b border-white/[0.03]" : ""
-                    }`}
-                  >
-                    <span className="text-[11px] text-text/60">{row.feature}</span>
-                    <span className="text-center text-[11px] text-muted/65">
-                      {row.free === true ? "✓" : row.free === false ? "—" : row.free}
-                    </span>
-                    <span className="text-center text-[11px] text-accent/70">
-                      {row.pro === true ? "✓" : row.pro === false ? "—" : row.pro}
-                    </span>
-                  </div>
-                ))}
+                {/* Rows */}
+                {COMPARISON_ROWS.map((row, i) => {
+                  const isProExclusive = row.free === false;
+                  return (
+                    <div
+                      key={row.feature}
+                      className={`grid grid-cols-[1fr_6rem_6rem] ${
+                        i < COMPARISON_ROWS.length - 1 ? "border-b border-white/[0.04]" : ""
+                      }`}
+                    >
+                      <span className={`px-5 py-3 text-[12px] bg-surface/30 ${isProExclusive ? "text-text/80 font-medium" : "text-text/50"}`}>
+                        {row.feature}
+                      </span>
+                      <span className="px-3 py-3 text-center text-[12px] bg-surface/30">
+                        {row.free === true ? (
+                          <span className="text-muted/40">✓</span>
+                        ) : row.free === false ? (
+                          <span className="text-muted/20">—</span>
+                        ) : (
+                          <span className="text-muted/45">{row.free}</span>
+                        )}
+                      </span>
+                      <span className="px-3 py-3 text-center text-[12px] bg-accent/[0.06]">
+                        {row.pro === true ? (
+                          <span className="text-accent font-bold">✓</span>
+                        ) : (
+                          <span className="text-accent font-semibold">{row.pro}</span>
+                        )}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 

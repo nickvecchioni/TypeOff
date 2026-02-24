@@ -30,7 +30,7 @@ export function NavLinks() {
                   ? "text-accent font-medium drop-shadow-[0_0_8px_rgba(77,158,255,0.5)]"
                   : "text-text font-medium"
                 : link.isPro
-                  ? "text-accent/70 hover:text-accent"
+                  ? "text-accent/90 hover:text-accent hover:drop-shadow-[0_0_6px_rgba(77,158,255,0.4)]"
                   : "text-muted hover:text-text"
             }`}
           >
