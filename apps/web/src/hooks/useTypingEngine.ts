@@ -65,6 +65,10 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [currentCharIndex, setCurrentCharIndex] = useState(0);
   const [status, setStatus] = useState<EngineStatus>("idle");
+  // Refs mirror state values synchronously — avoids stale closure issues from React batching
+  const wordsRef = useRef<WordState[]>([]);
+  const currentWordIndexRef = useRef(0);
+  const currentCharIndexRef = useRef(0);
   const [timeElapsed, setTimeElapsed] = useState(0);
   const [stats, setStats] = useState<TestStats | null>(null);
 
@@ -101,17 +105,20 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
   useEffect(() => {
     if (!initialized.current) {
       initialized.current = true;
+      let newWords: WordState[];
       if (external?.externalWords) {
-        setWords(createWordStates(external.externalWords));
+        newWords = createWordStates(external.externalWords);
       } else if (external?.externalSeed != null || external?.externalWordCount != null) {
         const seed = external?.externalSeed ?? undefined;
         const count = external?.externalWordCount ?? WORD_POOL_SIZE;
         const wordStrings = generateFromPool(count, seed);
-        setWords(createWordStates(wordStrings));
+        newWords = createWordStates(wordStrings);
       } else {
         const wordStrings = generateSoloWords(config);
-        setWords(createWordStates(wordStrings));
+        newWords = createWordStates(wordStrings);
       }
+      wordsRef.current = newWords;
+      setWords(newWords);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -155,7 +162,9 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     const mistyped = misstypedCharsRef.current;
     const total = correct + incorrect + extra;
     const wpm = elapsed > 0 ? Math.round(((correct / 5) / (elapsed / 60)) * 100) / 100 : 0;
-    const rawWpm = elapsed > 0 ? Math.round(((total / 5) / (elapsed / 60)) * 100) / 100 : 0;
+    // Clamp rawWpm >= wpm: React batching can cause counter drift where total < correct
+    const rawWpmCalc = elapsed > 0 ? Math.round(((total / 5) / (elapsed / 60)) * 100) / 100 : 0;
+    const rawWpm = Math.max(rawWpmCalc, wpm);
     const totalKeystrokes = correct + mistyped;
     const accuracy = totalKeystrokes > 0 ? Math.round((correct / totalKeystrokes) * 100 * 10) / 10 : 100;
 
@@ -253,8 +262,11 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
       newWords = createWordStates(wordStrings);
     }
     setWords(newWords);
+    wordsRef.current = newWords;
     setCurrentWordIndex(0);
+    currentWordIndexRef.current = 0;
     setCurrentCharIndex(0);
+    currentCharIndexRef.current = 0;
     setStatus("idle");
     setTimeElapsed(0);
     setStats(null);
@@ -279,23 +291,29 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
 
   const handleCharacter = useCallback(
     (char: string) => {
-      const word = words[currentWordIndex];
-      if (!word || currentCharIndex >= word.chars.length) return;
+      // Use refs for indices to avoid stale closure issues from React batching
+      const wi = currentWordIndexRef.current;
+      const ci = currentCharIndexRef.current;
+      const currentWords = wordsRef.current;
+      const word = currentWords[wi];
+      if (!word || ci >= word.chars.length) return;
 
-      const isCorrect = char === word.chars[currentCharIndex].expected;
+      const isCorrect = char === word.chars[ci].expected;
 
       setWords((prev) => {
         const newWords = [...prev];
         const newWord = {
-          chars: [...prev[currentWordIndex].chars],
+          chars: [...prev[wi].chars],
           extraChars: [],
         };
-        newWord.chars[currentCharIndex] = {
-          expected: word.chars[currentCharIndex].expected,
+        newWord.chars[ci] = {
+          expected: word.chars[ci].expected,
           actual: char,
           status: isCorrect ? "correct" as const : "incorrect" as const,
         };
-        newWords[currentWordIndex] = newWord;
+        newWords[wi] = newWord;
+        // Sync ref with the new words state
+        wordsRef.current = newWords;
         return newWords;
       });
 
@@ -308,7 +326,7 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
       totalCharsRef.current++;
 
       // Track per-key accuracy
-      const expectedKey = word.chars[currentCharIndex].expected.toLowerCase();
+      const expectedKey = word.chars[ci].expected.toLowerCase();
       const existing = keyStatsRef.current.get(expectedKey) ?? { correct: 0, total: 0 };
       keyStatsRef.current.set(expectedKey, {
         correct: existing.correct + (isCorrect ? 1 : 0),
@@ -326,14 +344,16 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
       }
       prevTypedCharRef.current = expectedKey;
 
-      setCurrentCharIndex((prev) => prev + 1);
+      // Sync ref BEFORE the state update so subsequent calls in the same batch see the right value
+      currentCharIndexRef.current = ci + 1;
+      setCurrentCharIndex(ci + 1);
 
       // Capture replay snapshot
       if (startTimeRef.current > 0) {
         replaySnapshotsRef.current.push({
           t: Math.round(performance.now() - startTimeRef.current),
-          w: currentWordIndex,
-          c: currentCharIndex + 1,
+          w: wi,
+          c: ci + 1,
         });
       }
 
@@ -341,33 +361,34 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
       if (config.contentType === "zen") return;
 
       // Auto-finish: last char of last word, only if all chars correct
-      // For wordcount-behavior modes (wordcount, quotes, marathon, sprint), finish when all words typed
       const totalWordCount = isWordcountBehavior
-        ? words.length
+        ? currentWords.length
         : config.mode === "wordcount" ? config.duration : Infinity;
       if (
         isCorrect &&
-        currentCharIndex + 1 >= word.chars.length &&
-        currentWordIndex + 1 >= totalWordCount &&
-        !word.chars.some((c, idx) => idx < currentCharIndex && c.status === "incorrect")
+        ci + 1 >= word.chars.length &&
+        wi + 1 >= totalWordCount &&
+        !word.chars.some((c, idx) => idx < ci && c.status === "incorrect")
       ) {
         finishTest();
       }
     },
-    [words, currentWordIndex, currentCharIndex, config, finishTest]
+    [config, finishTest, isWordcountBehavior]
   );
 
   const handleBackspace = useCallback(() => {
-    if (currentCharIndex === 0) return; // No cross-word backspace
+    const ci = currentCharIndexRef.current;
+    const wi = currentWordIndexRef.current;
+    if (ci === 0) return; // No cross-word backspace
 
-    const prevIdx = currentCharIndex - 1;
-    const word = words[currentWordIndex];
+    const prevIdx = ci - 1;
+    const word = wordsRef.current[wi];
     if (!word) return;
 
     const wasCorrect = word.chars[prevIdx].status === "correct";
 
     setWords((prev) => {
-      const w = prev[currentWordIndex];
+      const w = prev[wi];
       if (!w) return prev;
 
       const newWords = [...prev];
@@ -380,7 +401,8 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
         actual: null,
         status: "idle" as const,
       };
-      newWords[currentWordIndex] = newWord;
+      newWords[wi] = newWord;
+      wordsRef.current = newWords;
       return newWords;
     });
 
@@ -390,28 +412,31 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
       incorrectCharsRef.current--;
     }
     totalCharsRef.current--;
-    setCurrentCharIndex((prev) => prev - 1);
-  }, [words, currentWordIndex, currentCharIndex]);
+    currentCharIndexRef.current = prevIdx;
+    setCurrentCharIndex(prevIdx);
+  }, []);
 
   const handleWordDelete = useCallback(() => {
-    if (currentCharIndex === 0) return;
+    const ci = currentCharIndexRef.current;
+    const wi = currentWordIndexRef.current;
+    if (ci === 0) return;
 
-    const word = words[currentWordIndex];
+    const word = wordsRef.current[wi];
     if (!word) return;
 
     // Adjust stats counters for each char being deleted
-    for (let i = currentCharIndex - 1; i >= 0; i--) {
+    for (let i = ci - 1; i >= 0; i--) {
       if (word.chars[i].status === "correct") {
         correctCharsRef.current--;
       } else if (word.chars[i].status === "incorrect") {
         incorrectCharsRef.current--;
       }
     }
-    totalCharsRef.current -= currentCharIndex;
+    totalCharsRef.current -= ci;
 
     // Reset all chars in the current word to idle
     setWords((prev) => {
-      const w = prev[currentWordIndex];
+      const w = prev[wi];
       if (!w) return prev;
 
       const newWords = [...prev];
@@ -420,17 +445,23 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
         actual: null,
         status: "idle" as const,
       }));
-      newWords[currentWordIndex] = { chars: newChars, extraChars: [] };
+      newWords[wi] = { chars: newChars, extraChars: [] };
+      wordsRef.current = newWords;
       return newWords;
     });
 
+    currentCharIndexRef.current = 0;
     setCurrentCharIndex(0);
-  }, [words, currentWordIndex, currentCharIndex]);
+  }, []);
 
   const handleSpace = useCallback(() => {
+    // Use refs to avoid stale closure issues from React batching
+    const wi = currentWordIndexRef.current;
+    const ci = currentCharIndexRef.current;
+    const currentWords = wordsRef.current;
+    const word = currentWords[wi];
     // Only allow space when the current word is fully and correctly typed
-    const word = words[currentWordIndex];
-    if (!word || currentCharIndex < word.chars.length) return;
+    if (!word || ci < word.chars.length) return;
     if (word.chars.some((c) => c.status !== "correct")) {
       return;
     }
@@ -442,10 +473,10 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     correctCharsRef.current++;
     totalCharsRef.current++;
 
-    const nextWordIndex = currentWordIndex + 1;
+    const nextWordIndex = wi + 1;
 
     // Zen mode: generate more words when running low, never auto-finish
-    if (config.contentType === "zen" && nextWordIndex > words.length - 30) {
+    if (config.contentType === "zen" && nextWordIndex > currentWords.length - 30) {
       zenBatchRef.current++;
       const pool = wordPoolByDifficulty[config.difficulty ?? "easy"];
       const newBatch = generateWords(pool, 200, (Date.now() + zenBatchRef.current * 7919));
@@ -457,11 +488,17 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
         })),
         extraChars: [] as CharState[],
       }));
-      setWords((prev) => [...prev, ...newWordStates]);
+      setWords((prev) => {
+        const updated = [...prev, ...newWordStates];
+        wordsRef.current = updated;
+        return updated;
+      });
     }
 
     // Zen mode never auto-finishes
     if (config.contentType === "zen") {
+      currentWordIndexRef.current = nextWordIndex;
+      currentCharIndexRef.current = 0;
       setCurrentWordIndex(nextWordIndex);
       setCurrentCharIndex(0);
       return;
@@ -469,16 +506,18 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
 
     // Last word auto-finishes via handleCharacter, but keep as safety net
     const totalWordCount = isWordcountBehavior
-      ? words.length
+      ? currentWords.length
       : config.mode === "wordcount" ? config.duration : Infinity;
     if (nextWordIndex >= totalWordCount) {
       finishTest();
       return;
     }
 
+    currentWordIndexRef.current = nextWordIndex;
+    currentCharIndexRef.current = 0;
     setCurrentWordIndex(nextWordIndex);
     setCurrentCharIndex(0);
-  }, [words, currentWordIndex, currentCharIndex, config, finishTest]);
+  }, [config, finishTest, isWordcountBehavior]);
 
   // Stop zen mode manually
   const stopZen = useCallback(() => {
@@ -498,26 +537,32 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
         e.preventDefault();
         if (isCodeMode) {
           // In code mode, Tab auto-advances through the current word if it's all spaces (indent token)
-          const word = words[currentWordIndex];
+          const wi = currentWordIndexRef.current;
+          const ci = currentCharIndexRef.current;
+          const currentWords = wordsRef.current;
+          const word = currentWords[wi];
           if (word && word.chars.every(c => c.expected === " ")) {
             // Atomically mark all remaining chars correct and advance to next word
-            const remaining = word.chars.length - currentCharIndex;
+            const remaining = word.chars.length - ci;
             correctCharsRef.current += remaining;
             totalCharsRef.current += remaining;
             setWords(prev => {
               const newWords = [...prev];
-              newWords[currentWordIndex] = {
-                chars: prev[currentWordIndex].chars.map((c, ci) =>
-                  ci >= currentCharIndex ? { ...c, actual: c.expected, status: "correct" as const } : c
+              newWords[wi] = {
+                chars: prev[wi].chars.map((c, idx) =>
+                  idx >= ci ? { ...c, actual: c.expected, status: "correct" as const } : c
                 ),
                 extraChars: [],
               };
+              wordsRef.current = newWords;
               return newWords;
             });
-            const nextWord = currentWordIndex + 1;
-            if (nextWord >= words.length) {
+            const nextWord = wi + 1;
+            if (nextWord >= currentWords.length) {
               finishTest();
             } else {
+              currentWordIndexRef.current = nextWord;
+              currentCharIndexRef.current = 0;
               setCurrentWordIndex(nextWord);
               setCurrentCharIndex(0);
             }
@@ -539,46 +584,55 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
         // In code mode, Enter advances past \n tokens
         if (isCodeMode) {
           e.preventDefault();
-          const word = words[currentWordIndex];
+          const wi = currentWordIndexRef.current;
+          const ci = currentCharIndexRef.current;
+          const currentWords = wordsRef.current;
+          const word = currentWords[wi];
           if (!word) return;
 
           const wordText = word.chars.map((c) => c.expected).join("");
           const isNewlineToken = wordText === "\\n";
           const isWordFullyTyped =
-            currentCharIndex >= word.chars.length &&
+            ci >= word.chars.length &&
             !word.chars.some((c) => c.status !== "correct");
 
           if (isNewlineToken) {
             // Already on a \n token — mark remaining chars correct and advance
-            const remaining = word.chars.length - currentCharIndex;
+            const remaining = word.chars.length - ci;
             correctCharsRef.current += remaining;
             totalCharsRef.current += remaining;
             setWords((prev) => {
               const newWords = [...prev];
-              newWords[currentWordIndex] = {
-                chars: prev[currentWordIndex].chars.map((c, ci) =>
-                  ci >= currentCharIndex ? { ...c, actual: c.expected, status: "correct" as const } : c
+              newWords[wi] = {
+                chars: prev[wi].chars.map((c, idx) =>
+                  idx >= ci ? { ...c, actual: c.expected, status: "correct" as const } : c
                 ),
                 extraChars: [],
               };
+              wordsRef.current = newWords;
               return newWords;
             });
-            const next = currentWordIndex + 1;
-            if (next >= words.length) finishTest();
-            else { setCurrentWordIndex(next); setCurrentCharIndex(0); }
+            const next = wi + 1;
+            if (next >= currentWords.length) finishTest();
+            else {
+              currentWordIndexRef.current = next;
+              currentCharIndexRef.current = 0;
+              setCurrentWordIndex(next);
+              setCurrentCharIndex(0);
+            }
           } else if (isWordFullyTyped) {
             // At end of a fully-typed regular token — advance past it and skip the subsequent \n token
             prevTypedCharRef.current = null;
             correctCharsRef.current++; // count the separator keystroke
             totalCharsRef.current++;
 
-            let next = currentWordIndex + 1;
-            if (next < words.length) {
-              const nextText = words[next].chars.map((c) => c.expected).join("");
+            let next = wi + 1;
+            if (next < currentWords.length) {
+              const nextText = currentWords[next].chars.map((c) => c.expected).join("");
               if (nextText === "\\n") {
                 // Mark the \n token as correct and skip over it
-                correctCharsRef.current += words[next].chars.length;
-                totalCharsRef.current += words[next].chars.length;
+                correctCharsRef.current += currentWords[next].chars.length;
+                totalCharsRef.current += currentWords[next].chars.length;
                 const skipIdx = next;
                 setWords((prev) => {
                   const newWords = [...prev];
@@ -586,13 +640,19 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
                     chars: prev[skipIdx].chars.map((c) => ({ ...c, actual: c.expected, status: "correct" as const })),
                     extraChars: [],
                   };
+                  wordsRef.current = newWords;
                   return newWords;
                 });
                 next = next + 1;
               }
             }
-            if (next >= words.length) finishTest();
-            else { setCurrentWordIndex(next); setCurrentCharIndex(0); }
+            if (next >= currentWords.length) finishTest();
+            else {
+              currentWordIndexRef.current = next;
+              currentCharIndexRef.current = 0;
+              setCurrentWordIndex(next);
+              setCurrentCharIndex(0);
+            }
           }
           return;
         }
@@ -644,7 +704,7 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
         handleCharacter(e.key);
       }
     },
-    [status, config, words, currentWordIndex, currentCharIndex, restart, startTimer, finishTest, handleBackspace, handleWordDelete, handleSpace, handleCharacter]
+    [status, config, restart, startTimer, finishTest, handleBackspace, handleWordDelete, handleSpace, handleCharacter]
   );
 
   // Attach keydown handler to window for this hook's consumer to use

@@ -304,7 +304,12 @@ export class RaceManager {
     if (!entry || this.status !== "racing" || entry.progress.finished) return;
 
     const rejection = this.validateFinish(data, entry);
-    if (rejection) return;
+    if (rejection) {
+      console.warn(`[race-manager] raceFinish REJECTED for ${entry.player.id}: ${rejection}`, {
+        wpm: data.wpm, rawWpm: data.rawWpm, accuracy: data.accuracy,
+      });
+      return;
+    }
 
     entry.progress.finished = true;
     entry.progress.placement = this.nextPlacement++;
@@ -513,8 +518,9 @@ export class RaceManager {
       return "accuracy out of range";
     }
     if (data.rawWpm < data.wpm) {
-      socket?.emit("error", { message: "Invalid finish: raw WPM cannot be less than WPM" });
-      return "rawWpm < wpm";
+      // Auto-correct: can happen due to React batching causing counter drift in the client
+      this.addFlag(entry.player.id, `rawWpm (${data.rawWpm}) < wpm (${data.wpm}), auto-corrected`);
+      data.rawWpm = data.wpm;
     }
     // Check elapsed time vs theoretical minimum (300 WPM)
     if (this.startedAt) {
