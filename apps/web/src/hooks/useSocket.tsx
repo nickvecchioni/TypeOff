@@ -31,13 +31,16 @@ export function SocketProvider({ children }: { children: ReactNode }) {
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    // Cached token for fast reconnection auth (avoids async fetch in auth callback)
+    // Token management for Socket.IO auth.
+    // On the FIRST connection we use a cached token for speed.
+    // On RECONNECTIONS we always fetch a fresh token because the cached one
+    // may have expired — an expired token causes the server middleware to
+    // fail authentication, which means socket.data.userId is never set and
+    // race mappings can't be restored (root cause of the 0-WPM bug).
     let cachedToken: string | null = null;
-    let tokenFetchInFlight = false;
+    let hasConnectedOnce = false;
 
-    const fetchAndCacheToken = async (): Promise<string | null> => {
-      if (tokenFetchInFlight) return cachedToken;
-      tokenFetchInFlight = true;
+    const fetchFreshToken = async (): Promise<string | null> => {
       try {
         const res = await fetch("/api/ws-token");
         if (res.ok) {
@@ -46,8 +49,6 @@ export function SocketProvider({ children }: { children: ReactNode }) {
         }
       } catch {
         // Token fetch failed — will connect without auth
-      } finally {
-        tokenFetchInFlight = false;
       }
       return cachedToken;
     };
@@ -59,19 +60,29 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       // The server middleware uses this to identify the socket and
       // proactively restore race mappings BEFORE any events are processed.
       auth: (cb) => {
-        if (cachedToken) {
+        if (hasConnectedOnce) {
+          // Reconnection — ALWAYS fetch a fresh token to avoid sending an
+          // expired one. The small delay (~100ms) is worth the reliability.
+          fetchFreshToken().then((token) => {
+            cb(token ? { token } : {});
+          });
+        } else if (cachedToken) {
+          // First connection with a cached token — use it immediately
           cb({ token: cachedToken });
-          // Refresh token in background for next reconnection
-          fetchAndCacheToken();
+          fetchFreshToken(); // refresh in background
         } else {
-          fetchAndCacheToken().then((token) => {
+          // First connection, no cache — wait for fetch
+          fetchFreshToken().then((token) => {
             cb(token ? { token } : {});
           });
         }
       },
     });
 
-    socket.on("connect", () => setConnected(true));
+    socket.on("connect", () => {
+      hasConnectedOnce = true;
+      setConnected(true);
+    });
     socket.on("disconnect", () => setConnected(false));
 
     socketRef.current = socket;

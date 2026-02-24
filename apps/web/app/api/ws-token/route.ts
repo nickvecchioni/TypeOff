@@ -41,7 +41,7 @@ export async function GET() {
     activeNameEffect: row?.activeNameEffect ?? null,
   })
     .setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime("5m")
+    .setExpirationTime("30m")
     .sign(secret);
 
   return NextResponse.json({ token });

@@ -199,7 +199,12 @@ export class Matchmaker implements RaceOwner {
           }
         }
       }
-      if (!raceId) return;
+      if (!raceId) {
+        console.warn(
+          `[matchmaker] handleProgress: no race mapping for socketId=${socketId} userId=${userId ?? "none"} (wpm=${data.wpm}, progress=${data.progress.toFixed(3)})`,
+        );
+        return;
+      }
     }
     const race = this.races.get(raceId);
     race?.handleProgress(socketId, data);

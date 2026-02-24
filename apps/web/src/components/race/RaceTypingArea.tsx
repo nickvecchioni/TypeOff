@@ -148,11 +148,18 @@ export function RaceTypingArea({
       const totalChars = engine.words.reduce((sum, w) => sum + w.chars.length, 0)
         + (engine.words.length - 1); // include inter-word spaces like the server does
 
+      let prog = totalChars > 0 ? typedChars / totalChars : 0;
+      // Cap at 0.99 during typing — the final progress=1 is sent explicitly
+      // when the engine finishes (all words correct). Without this cap, typing
+      // all chars of the last word incorrectly would reach 1.0 and trigger the
+      // server's auto-finish safety net prematurely.
+      if (prog >= 1) prog = 0.99;
+
       onProgress({
         wordIndex: engine.currentWordIndex,
         charIndex: engine.currentCharIndex,
         wpm: engine.liveWpm,
-        progress: totalChars > 0 ? typedChars / totalChars : 0,
+        progress: prog,
       });
     }
   }, [engine.currentWordIndex, engine.currentCharIndex, engine.status, engine.liveWpm, onProgress, wordCount]);
