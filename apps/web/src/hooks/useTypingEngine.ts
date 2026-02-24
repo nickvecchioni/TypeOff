@@ -139,11 +139,17 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     }
   }, []);
 
+  const finishedRef = useRef(false);
   const finishTest = useCallback(() => {
+    if (finishedRef.current) return; // Already finished — avoid duplicate calls
+    finishedRef.current = true;
     stopTimer();
     const elapsed = (performance.now() - startTimeRef.current) / 1000;
     const correct = correctCharsRef.current;
     const incorrect = incorrectCharsRef.current;
+    if (correct === 0 || elapsed <= 0) {
+      console.warn("[useTypingEngine] finishTest called with suspicious values:", { correct, elapsed, startTime: startTimeRef.current });
+    }
     const extra = extraCharsRef.current;
     const mistyped = misstypedCharsRef.current;
     const total = correct + incorrect + extra;
@@ -260,6 +266,7 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     wpmHistoryRef.current = [];
     bigramStatsRef.current = new Map();
     prevTypedCharRef.current = null;
+    finishedRef.current = false;
     zenBatchRef.current = 0;
     replaySnapshotsRef.current = [];
   }, [stopTimer, config]);

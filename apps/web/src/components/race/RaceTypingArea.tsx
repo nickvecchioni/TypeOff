@@ -158,6 +158,31 @@ export function RaceTypingArea({
     }
   }, [engine.status, engine.stats, onFinish]);
 
+  // Safety-net: poll for completion in case the engine's finish detection misses
+  useEffect(() => {
+    if (disabled || engine.status === "finished") return;
+    const interval = setInterval(() => {
+      if (engine.status !== "typing" || engine.words.length === 0) return;
+      const lastWord = engine.words[engine.words.length - 1];
+      const allComplete =
+        engine.currentWordIndex >= engine.words.length - 1 &&
+        engine.currentCharIndex >= lastWord.chars.length &&
+        lastWord.chars.every((c) => c.status === "correct");
+      if (allComplete) {
+        console.warn("[RaceTypingArea] Safety-net detected completion — forcing finish");
+        // Send progress=1 so server auto-finish safety net can also trigger
+        const totalChars = engine.words.reduce((sum, w) => sum + w.chars.length, 0);
+        onProgress({
+          wordIndex: engine.words.length - 1,
+          charIndex: lastWord.chars.length,
+          wpm: engine.liveWpm,
+          progress: 1,
+        });
+      }
+    }, 250);
+    return () => clearInterval(interval);
+  }, [disabled, engine.status, engine.words, engine.currentWordIndex, engine.currentCharIndex, engine.liveWpm, onProgress]);
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       // Don't allow Escape to restart during a race

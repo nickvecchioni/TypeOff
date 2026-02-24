@@ -281,6 +281,19 @@ export class RaceManager {
         c: validated.charIndex,
       });
     }
+
+    // Safety net: auto-finish player when progress reaches 1.0 but raceFinish
+    // event was never received (e.g. client-side finish detection failed)
+    if (validated.progress >= 1 && !entry.progress.finished && validated.wpm > 0) {
+      console.log(
+        `[race-manager] Auto-finishing player ${entry.player.id} via progress safety net (progress=${validated.progress}, wpm=${validated.wpm})`,
+      );
+      this.handleFinish(socketId, {
+        wpm: validated.wpm,
+        rawWpm: validated.wpm,
+        accuracy: 100,
+      });
+    }
   }
 
   handleFinish(
