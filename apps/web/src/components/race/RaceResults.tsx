@@ -589,7 +589,7 @@ function PresetChatFeed({ emotes }: { emotes: EmoteEvent[] }) {
       {/* Chat feed */}
       <div
         ref={feedRef}
-        className="max-h-[5.5rem] overflow-y-auto px-3 sm:px-4 py-1.5 space-y-0.5 scrollbar-thin"
+        className="h-[5.5rem] overflow-y-auto px-3 sm:px-4 py-1.5 space-y-0.5 scrollbar-thin"
       >
         {messages.length === 0 ? (
           <p className="text-[10px] text-muted/40 italic py-1">No messages yet</p>
@@ -876,7 +876,7 @@ export function RaceResults({
         style={{ animation: "fade-in 0.3s ease-out 0.05s both" }}
       >
         {/* ── LEFT COLUMN: Standings + Chat + Actions + Achievements ── */}
-        <div className="flex flex-col gap-1.5 min-h-0 overflow-y-auto">
+        <div className="flex flex-col gap-1.5 min-h-0">
           {/* Standings table + chat feed */}
           <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden">
             {/* Header */}
@@ -1002,7 +1002,7 @@ export function RaceResults({
             <div className="flex-1 min-h-[160px] rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 pt-2.5 pb-1.5 flex flex-col">
               <div className="text-[10px] font-bold text-muted/50 uppercase tracking-widest mb-1.5">WPM over time</div>
               <div className="flex-1 min-h-0">
-                <WpmChart samples={myWpmHistory} compact />
+                <WpmChart samples={myWpmHistory} />
               </div>
             </div>
           )}

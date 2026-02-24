@@ -76,7 +76,6 @@ export function RaceArena() {
 
   // Emote events
   const [emotes, setEmotes] = React.useState<EmoteEvent[]>([]);
-  const emoteTimersRef = React.useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
 
   React.useEffect(() => {
     const unsub = on("raceEmote", (data) => {
@@ -88,18 +87,8 @@ export function RaceArena() {
         receivedAt: Date.now(),
       };
       setEmotes((prev) => [...prev, event]);
-      // Auto-cleanup after 3s
-      const timer = setTimeout(() => {
-        emoteTimersRef.current.delete(timer);
-        setEmotes((prev) => prev.filter((e) => e.id !== event.id));
-      }, 3000);
-      emoteTimersRef.current.add(timer);
     });
-    return () => {
-      unsub();
-      emoteTimersRef.current.forEach(clearTimeout);
-      emoteTimersRef.current.clear();
-    };
+    return () => unsub();
   }, [on]);
 
   // Reset emotes on race reset
