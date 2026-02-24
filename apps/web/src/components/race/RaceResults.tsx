@@ -884,7 +884,7 @@ export function RaceResults({
 
       {/* ── TWO-COLUMN GRID ─────────────────────────────── */}
       <div
-        className="grid grid-cols-1 sm:grid-cols-[3fr_2fr] gap-1.5 w-full flex-1 min-h-0 overflow-hidden"
+        className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 w-full flex-1 min-h-0 overflow-hidden"
         style={{ animation: "fade-in 0.3s ease-out 0.05s both" }}
       >
         {/* ── LEFT COLUMN: Standings + Chat + Actions + Achievements ── */}
@@ -1008,6 +1008,14 @@ export function RaceResults({
             {/* Preset chat feed (replaces emote bar) */}
             {!isPlacement && <PresetChatFeed emotes={emotes} />}
           </div>
+
+          {/* WPM Chart */}
+          {myWpmHistory && myWpmHistory.length >= 2 && (
+            <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 pt-2.5 pb-1.5">
+              <div className="text-[10px] font-bold text-muted/50 uppercase tracking-widest mb-1.5">WPM over time</div>
+              <WpmChart samples={myWpmHistory} compact />
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex flex-col items-center gap-1.5 w-full">
@@ -1187,16 +1195,8 @@ export function RaceResults({
           )}
         </div>
 
-        {/* ── RIGHT COLUMN: Chart + Challenges + XP + Pro ── */}
+        {/* ── RIGHT COLUMN: Challenges + XP + Pro ── */}
         <div className="flex flex-col gap-1.5 min-h-0 overflow-y-auto">
-          {/* WPM Chart */}
-          {myWpmHistory && myWpmHistory.length >= 2 && (
-            <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 pt-2.5 pb-1.5">
-              <div className="text-[10px] font-bold text-muted/50 uppercase tracking-widest mb-1.5">WPM over time</div>
-              <WpmChart samples={myWpmHistory} compact />
-            </div>
-          )}
-
           {/* Challenges — always reserve space to prevent jitter */}
           {!isPlacement && (
             <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden px-3 py-2 sm:px-4 sm:py-2.5">
