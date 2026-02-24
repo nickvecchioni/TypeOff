@@ -31,6 +31,7 @@ export interface TypingEngine extends EngineAPI {
   handleKeyDown: (e: React.KeyboardEvent) => void;
   timeElapsed: number;
   stopZen: () => void;
+  lastSeed: number | null;
   forceFinish: () => void;
   replaySnapshots: React.MutableRefObject<ReplaySnapshot[]>;
   startRaceTimer: () => void;
@@ -100,6 +101,9 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     config.contentType === "practice" ||
     config.contentType === "code";
 
+  // Track the seed used for word generation (useful for looking up quote authors, etc.)
+  const seedRef = useRef<number | null>(null);
+
   // Generate words on mount (avoids hydration mismatch from Date.now() seed)
   const initialized = useRef(false);
   useEffect(() => {
@@ -113,8 +117,11 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
         const count = external?.externalWordCount ?? WORD_POOL_SIZE;
         const wordStrings = generateFromPool(count, seed);
         newWords = createWordStates(wordStrings);
+        seedRef.current = seed ?? null;
       } else {
-        const wordStrings = generateSoloWords(config);
+        const seed = Date.now();
+        seedRef.current = seed;
+        const wordStrings = generateSoloWords(config, seed);
         newWords = createWordStates(wordStrings);
       }
       wordsRef.current = newWords;
@@ -257,8 +264,11 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
       const count = external?.externalWordCount ?? WORD_POOL_SIZE;
       const wordStrings = generateFromPool(count, seed);
       newWords = createWordStates(wordStrings);
+      seedRef.current = seed ?? null;
     } else {
-      const wordStrings = generateSoloWords(config);
+      const seed = Date.now();
+      seedRef.current = seed;
+      const wordStrings = generateSoloWords(config, seed);
       newWords = createWordStates(wordStrings);
     }
     setWords(newWords);
@@ -740,5 +750,6 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     replaySnapshots: replaySnapshotsRef,
     handleKeyDown: (e: React.KeyboardEvent) => keyDownRef.current(e),
     startRaceTimer,
+    lastSeed: seedRef.current,
   };
 }

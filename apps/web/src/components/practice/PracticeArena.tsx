@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect, useCallback, useState } from "react";
 import { useSession } from "next-auth/react";
-import { getPbKey } from "@typeoff/shared";
+import { getPbKey, getQuoteAuthor } from "@typeoff/shared";
 import { useTypingEngine } from "@/hooks/useTypingEngine";
 import { useCapsLock } from "@/hooks/useCapsLock";
 import { WordDisplay } from "@/components/typing/WordDisplay";
@@ -393,6 +393,13 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
               />
             )}
           </div>
+        </div>
+      )}
+
+      {/* Quote attribution */}
+      {ct === "quotes" && engine.lastSeed != null && (
+        <div className="text-center mt-1 -mb-2 text-[11px] text-muted/50 italic">
+          — {getQuoteAuthor(engine.lastSeed)}
         </div>
       )}
 
