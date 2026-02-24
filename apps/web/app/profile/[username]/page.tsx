@@ -258,7 +258,7 @@ export default async function ProfilePage({
                   )}
                   <CosmeticBadge badge={activeCosmetics?.activeBadge} />
                   {isProUser && (
-                    <span className="text-[10px] font-bold text-amber-400/70 bg-amber-400/[0.08] px-1.5 py-0.5 rounded uppercase tracking-wider">
+                    <span className="text-[10px] font-bold text-accent/70 bg-accent/[0.08] px-1.5 py-0.5 rounded uppercase tracking-wider">
                       Pro
                     </span>
                   )}
@@ -620,7 +620,7 @@ export default async function ProfilePage({
               </svg>
               <span className="text-xs font-medium text-muted/65 group-hover:text-text transition-colors">Full History</span>
               {!session?.user?.isPro && (
-                <span className="text-[9px] font-bold text-amber-400/50 bg-amber-400/[0.06] px-1.5 py-0.5 rounded uppercase tracking-wider ml-auto">Pro</span>
+                <span className="text-[9px] font-bold text-accent/50 bg-accent/[0.06] px-1.5 py-0.5 rounded uppercase tracking-wider ml-auto">Pro</span>
               )}
             </Link>
             <Link
@@ -632,7 +632,7 @@ export default async function ProfilePage({
               </svg>
               <span className="text-xs font-medium text-muted/65 group-hover:text-text transition-colors">Analytics</span>
               {!session?.user?.isPro && (
-                <span className="text-[9px] font-bold text-amber-400/50 bg-amber-400/[0.06] px-1.5 py-0.5 rounded uppercase tracking-wider ml-auto">Pro</span>
+                <span className="text-[9px] font-bold text-accent/50 bg-accent/[0.06] px-1.5 py-0.5 rounded uppercase tracking-wider ml-auto">Pro</span>
               )}
             </Link>
           </div>

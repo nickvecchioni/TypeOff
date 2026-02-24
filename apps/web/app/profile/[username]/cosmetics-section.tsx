@@ -262,13 +262,13 @@ export function CosmeticsSection({ totalXp }: { totalXp: number }) {
                 {proLockedItems.length > 0 && (
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-[11px] font-bold text-amber-400/55 uppercase tracking-widest flex items-center gap-1.5">
+                      <h3 className="text-[11px] font-bold text-accent/55 uppercase tracking-widest flex items-center gap-1.5">
                         <span>✦</span>
                         Pro Exclusive
                       </h3>
                       <Link
                         href="/pro"
-                        className="text-[9px] font-bold text-amber-400/50 hover:text-amber-400/80 transition-colors"
+                        className="text-[9px] font-bold text-accent/50 hover:text-accent/80 transition-colors"
                       >
                         Unlock with Pro →
                       </Link>
@@ -324,7 +324,7 @@ function ItemCard({
       className={`group relative text-left rounded-lg px-4 py-3.5 ring-1 transition-all ${
         locked
           ? proLocked
-            ? "ring-amber-400/15 bg-amber-400/[0.03] cursor-default opacity-70"
+            ? "ring-accent/15 bg-accent/[0.03] cursor-default opacity-70"
             : "ring-white/[0.05] bg-surface/30 cursor-default opacity-60"
           : active
             ? "ring-accent/40 bg-accent/[0.08]"
@@ -335,7 +335,7 @@ function ItemCard({
         <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-accent shadow-[0_0_6px_rgba(77,158,255,0.5)]" />
       )}
       {locked && (
-        <span className={`absolute top-2.5 right-2.5 ${proLocked ? "text-amber-400/30" : "text-muted/20"}`}>
+        <span className={`absolute top-2.5 right-2.5 ${proLocked ? "text-accent/30" : "text-muted/20"}`}>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
@@ -348,11 +348,11 @@ function ItemCard({
       </div>
 
       <p className={`text-xs font-medium truncate ${
-        active ? "text-accent" : proLocked ? "text-amber-400/60" : locked ? "text-muted/60" : "text-text"
+        active ? "text-accent" : proLocked ? "text-accent/60" : locked ? "text-muted/60" : "text-text"
       }`}>
         {item.name}
       </p>
-      <p className={`text-[10px] mt-0.5 ${proLocked ? "text-amber-400/40" : "text-muted/60"}`}>
+      <p className={`text-[10px] mt-0.5 ${proLocked ? "text-accent/40" : "text-muted/60"}`}>
         {proLocked ? "Pro" : locked ? `Level ${item.level}` : active ? "Equipped" : "Click to equip"}
       </p>
     </button>
@@ -366,7 +366,7 @@ function ItemVisual({ item }: { item: CosmeticReward }) {
     case "badge":
       return <span className="text-2xl">{BADGE_EMOJIS[item.id] ?? item.value}</span>;
     case "title":
-      return <span className="text-sm text-amber-400/80 font-medium">{TITLE_TEXTS[item.id] ?? item.value}</span>;
+      return <span className="text-sm text-accent/80 font-medium">{TITLE_TEXTS[item.id] ?? item.value}</span>;
     case "nameColor": {
       const hex = NAME_COLORS[item.id] ?? item.value;
       return (

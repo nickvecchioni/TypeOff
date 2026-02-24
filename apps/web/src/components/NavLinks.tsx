@@ -26,11 +26,9 @@ export function NavLinks() {
             href={link.href}
             className={`hidden md:inline text-sm transition-colors ${
               isActive
-                ? link.isPro
-                  ? "text-amber-400 font-medium"
-                  : "text-accent font-medium"
+                ? "text-text font-medium"
                 : link.isPro
-                  ? "text-amber-400/70 hover:text-amber-400"
+                  ? "text-accent/70 hover:text-accent"
                   : "text-muted hover:text-text"
             }`}
           >

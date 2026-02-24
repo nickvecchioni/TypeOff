@@ -274,7 +274,7 @@ function LevelWidget({
                     {reward.name}
                   </span>
                   {proLocked && (
-                    <span className="text-[8px] font-black tracking-wider text-amber-400 bg-amber-400/10 ring-1 ring-amber-400/30 px-1.5 py-0.5 rounded shrink-0 leading-none">
+                    <span className="text-[8px] font-black tracking-wider text-accent bg-accent/10 ring-1 ring-accent/30 px-1.5 py-0.5 rounded shrink-0 leading-none">
                       PRO
                     </span>
                   )}

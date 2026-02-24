@@ -90,7 +90,7 @@ export function XpProgressWidget() {
                   : "\u2728"}
               </span>
               {nextRewardProLocked && (
-                <span className="absolute -top-1.5 -right-2 text-[7px] font-black tracking-wider text-amber-400 bg-amber-400/10 ring-1 ring-amber-400/30 px-1 py-px rounded leading-none">
+                <span className="absolute -top-1.5 -right-2 text-[7px] font-black tracking-wider text-accent bg-accent/10 ring-1 ring-accent/30 px-1 py-px rounded leading-none">
                   PRO
                 </span>
               )}

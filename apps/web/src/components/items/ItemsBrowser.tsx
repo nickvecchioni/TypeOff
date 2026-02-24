@@ -203,7 +203,7 @@ export function ItemsBrowser({
             <span className="text-[10px] text-accent/50 tabular-nums">saving...</span>
           )}
           {isPro && (
-            <span className="text-[10px] font-bold text-amber-400/70 bg-amber-400/[0.08] px-2 py-0.5 rounded uppercase tracking-wider">
+            <span className="text-[10px] font-bold text-accent/70 bg-accent/[0.08] px-2 py-0.5 rounded uppercase tracking-wider">
               Pro
             </span>
           )}
@@ -442,7 +442,7 @@ function ProfileHeaderCard({
       <div
         className={`px-5 py-4 transition-all duration-200 ${
           isPreviewingPro && isLockedPinned
-            ? "bg-amber-400/[0.03]"
+            ? "bg-accent/[0.03]"
             : isPreviewingNewItem
             ? "bg-surface/60"
             : "bg-surface/40"
@@ -453,7 +453,7 @@ function ProfileHeaderCard({
           <span
             className={`text-[10px] font-bold uppercase tracking-widest ${
               isPreviewingPro && isLockedPinned
-                ? "text-amber-400/50"
+                ? "text-accent/50"
                 : isPreviewingNewItem
                 ? "text-accent/50"
                 : "text-muted/45"
@@ -467,7 +467,7 @@ function ProfileHeaderCard({
             )}
             {isLockedPinned && (
               <>
-                <span className={`text-[10px] ${isPreviewingPro ? "text-amber-400/40" : "text-muted/35"}`}>
+                <span className={`text-[10px] ${isPreviewingPro ? "text-accent/40" : "text-muted/35"}`}>
                   click item to dismiss
                 </span>
                 <button
@@ -495,7 +495,7 @@ function ProfileHeaderCard({
               {username}
             </p>
             {title && (
-              <p className="text-xs text-amber-400/65 leading-tight mt-1">{title}</p>
+              <p className="text-xs text-accent/65 leading-tight mt-1">{title}</p>
             )}
           </div>
           {!hasAnyProfileCosmetic && (
@@ -765,12 +765,12 @@ function LockCallout({
 
   if (reason === "pro") {
     return (
-      <div className="rounded-xl bg-amber-400/[0.04] ring-1 ring-amber-400/20 px-4 py-3 flex items-start gap-3" style={{ animation: "slide-up 0.2s ease-out both" }}>
-        <span className="text-amber-400/60 mt-0.5 shrink-0 text-base leading-none">✦</span>
+      <div className="rounded-xl bg-accent/[0.04] ring-1 ring-accent/20 px-4 py-3 flex items-start gap-3" style={{ animation: "slide-up 0.2s ease-out both" }}>
+        <span className="text-accent/60 mt-0.5 shrink-0 text-base leading-none">✦</span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs font-bold text-amber-400/80">{item.name}</span>
-            <span className="text-[9px] font-black text-amber-400 bg-amber-400/10 ring-1 ring-amber-400/25 px-1.5 py-0.5 rounded uppercase tracking-wider leading-none">
+            <span className="text-xs font-bold text-accent/80">{item.name}</span>
+            <span className="text-[9px] font-black text-accent bg-accent/10 ring-1 ring-accent/25 px-1.5 py-0.5 rounded uppercase tracking-wider leading-none">
               PRO
             </span>
           </div>
@@ -784,7 +784,7 @@ function LockCallout({
         </div>
         <Link
           href="/pro"
-          className="shrink-0 self-center rounded-lg bg-amber-400/10 ring-1 ring-amber-400/25 text-amber-400 text-[11px] font-bold px-3 py-1.5 hover:bg-amber-400/20 transition-colors whitespace-nowrap leading-none"
+          className="shrink-0 self-center rounded-lg bg-accent/10 ring-1 ring-accent/25 text-accent text-[11px] font-bold px-3 py-1.5 hover:bg-accent/20 transition-colors whitespace-nowrap leading-none"
         >
           Get Pro →
         </Link>
@@ -845,10 +845,10 @@ function SectionHeader({
     );
   }
   return (
-    <h3 className="text-[10px] font-bold text-amber-400/60 uppercase tracking-widest mb-2.5 flex items-center gap-2">
-      <span className="text-amber-400/40">✦</span>
+    <h3 className="text-[10px] font-bold text-accent/60 uppercase tracking-widest mb-2.5 flex items-center gap-2">
+      <span className="text-accent/40">✦</span>
       Pro Exclusive
-      <span className="text-amber-400/30 font-normal normal-case tracking-normal">
+      <span className="text-accent/30 font-normal normal-case tracking-normal">
         {count} {count === 1 ? "item" : "items"}
       </span>
     </h3>
@@ -862,7 +862,7 @@ function SlotPreview({ item }: { item: CosmeticReward }) {
     case "badge":
       return <span className="text-xl">{BADGE_EMOJIS[item.id] ?? item.value}</span>;
     case "title":
-      return <span className="text-[10px] text-amber-400/70 font-medium truncate max-w-full px-0.5">{TITLE_TEXTS[item.id] ?? item.value}</span>;
+      return <span className="text-[10px] text-accent/70 font-medium truncate max-w-full px-0.5">{TITLE_TEXTS[item.id] ?? item.value}</span>;
     case "nameColor": {
       const hex = NAME_COLORS[item.id] ?? item.value;
       return (
@@ -950,11 +950,11 @@ function ItemCard({
         onMouseLeave={onHoverOut}
         className={`group relative text-left rounded-xl px-4 py-4 ring-1 transition-all ${
           isPinnedPreview
-            ? "ring-amber-400/35 bg-amber-400/[0.08]"
-            : "ring-amber-400/15 bg-amber-400/[0.03] hover:ring-amber-400/25 hover:bg-amber-400/[0.05]"
+            ? "ring-accent/35 bg-accent/[0.08]"
+            : "ring-accent/15 bg-accent/[0.03] hover:ring-accent/25 hover:bg-accent/[0.05]"
         }`}
       >
-        <span className="absolute top-2.5 right-2.5 text-[9px] font-black text-amber-400/60 bg-amber-400/[0.08] px-1.5 py-0.5 rounded uppercase tracking-wider leading-none">
+        <span className="absolute top-2.5 right-2.5 text-[9px] font-black text-accent/60 bg-accent/[0.08] px-1.5 py-0.5 rounded uppercase tracking-wider leading-none">
           PRO
         </span>
         <div className="mb-3 h-8 flex items-center opacity-50 group-hover:opacity-70 transition-opacity">
@@ -963,7 +963,7 @@ function ItemCard({
         <p className="text-xs font-semibold truncate leading-tight text-muted/65 group-hover:text-muted/80 transition-colors">
           {item.name}
         </p>
-        <p className="text-[10px] mt-0.5 leading-tight text-amber-400/40 group-hover:text-amber-400/60 transition-colors tabular-nums">
+        <p className="text-[10px] mt-0.5 leading-tight text-accent/40 group-hover:text-accent/60 transition-colors tabular-nums">
           Lv. {item.level} · Pro
         </p>
       </button>
@@ -1032,7 +1032,7 @@ function ItemVisual({ item }: { item: CosmeticReward }) {
     case "badge":
       return <span className="text-2xl">{BADGE_EMOJIS[item.id] ?? item.value}</span>;
     case "title":
-      return <span className="text-sm text-amber-400/80 font-medium">{TITLE_TEXTS[item.id] ?? item.value}</span>;
+      return <span className="text-sm text-accent/80 font-medium">{TITLE_TEXTS[item.id] ?? item.value}</span>;
     case "nameColor": {
       const hex = NAME_COLORS[item.id] ?? item.value;
       return (

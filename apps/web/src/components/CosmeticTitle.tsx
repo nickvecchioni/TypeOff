@@ -14,7 +14,7 @@ export function CosmeticTitle({ title }: CosmeticTitleProps) {
   const text = TITLE_TEXTS[title] ?? title;
 
   return (
-    <span className="text-xs text-amber-400/70 font-medium">
+    <span className="text-xs text-accent/70 font-medium">
       {text}
     </span>
   );

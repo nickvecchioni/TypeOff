@@ -9,7 +9,7 @@ const NAV_LINKS = [
   { href: "/ranks", label: "Ranks" },
   { href: "/solo", label: "Solo" },
   { href: "/cosmetics", label: "Cosmetics" },
-  { href: "/pro", label: "Pro", className: "text-amber-400/70" },
+  { href: "/pro", label: "Pro", className: "text-accent/70" },
 ];
 
 export function MobileNav() {
@@ -91,9 +91,9 @@ export function MobileNav() {
                 onClick={close}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
                   isActive
-                    ? "bg-accent/10 text-accent font-medium"
+                    ? "bg-white/[0.06] text-text font-medium"
                     : link.className
-                      ? `${link.className} hover:text-amber-400 hover:bg-white/[0.04]`
+                      ? `${link.className} hover:text-accent hover:bg-white/[0.04]`
                       : "text-muted hover:text-text hover:bg-white/[0.04]"
                 }`}
               >
@@ -107,7 +107,7 @@ export function MobileNav() {
               onClick={close}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
                 pathname === "/bug-report"
-                  ? "bg-accent/10 text-accent font-medium"
+                  ? "bg-white/[0.06] text-text font-medium"
                   : "text-muted/65 hover:text-muted hover:bg-white/[0.04]"
               }`}
             >

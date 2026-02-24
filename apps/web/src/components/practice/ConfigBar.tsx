@@ -285,14 +285,14 @@ function Chip({
       onClick={onClick}
       className={`px-2.5 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1 ${
         proLocked
-          ? "text-amber-400/40 hover:text-amber-400/60 hover:bg-amber-400/[0.04]"
+          ? "text-accent/40 hover:text-accent/60 hover:bg-accent/[0.04]"
           : active
             ? "bg-accent/15 text-accent ring-1 ring-accent/20"
             : "text-muted/65 hover:text-text hover:bg-white/[0.04]"
       }`}
     >
       {children}
-      {proLocked && <span className="text-[8px] font-bold text-amber-400/50 leading-none">PRO</span>}
+      {proLocked && <span className="text-[8px] font-bold text-accent/50 leading-none">PRO</span>}
     </button>
   );
 }

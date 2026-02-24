@@ -428,7 +428,7 @@ function AnimatedXpPanel({
                 </>
               ) : nextProReward ? (
                 <>
-                  <div className="text-[11px] font-semibold text-amber-400/70 truncate leading-none mb-0.5">
+                  <div className="text-[11px] font-semibold text-accent/70 truncate leading-none mb-0.5">
                     {nextProReward.name}
                   </div>
                   <div className="text-[10px] text-muted/60 leading-none">
@@ -440,7 +440,7 @@ function AnimatedXpPanel({
             {proLocked && (
               <Link
                 href="/pro"
-                className="text-[8px] font-black tracking-wider text-amber-400 bg-amber-400/10 ring-1 ring-amber-400/30 px-1.5 py-0.5 rounded shrink-0 leading-none hover:bg-amber-400/20 transition-colors"
+                className="text-[8px] font-black tracking-wider text-accent bg-accent/10 ring-1 ring-accent/30 px-1.5 py-0.5 rounded shrink-0 leading-none hover:bg-accent/20 transition-colors"
               >
                 PRO
               </Link>
@@ -470,7 +470,7 @@ function RewardUnlockCard({ reward, delay }: { reward: RawReward; delay: number 
         <div className="flex items-center gap-1.5 flex-wrap">
           <span className="text-xs font-bold text-text leading-tight truncate">{reward.name}</span>
           {fullReward?.proOnly && (
-            <span className="text-[8px] font-black text-amber-400 bg-amber-400/[0.08] ring-1 ring-amber-400/20 px-1 py-px rounded uppercase tracking-wider leading-none shrink-0">
+            <span className="text-[8px] font-black text-accent bg-accent/[0.08] ring-1 ring-accent/20 px-1 py-px rounded uppercase tracking-wider leading-none shrink-0">
               PRO
             </span>
           )}
@@ -486,7 +486,7 @@ function RewardVisual({ reward }: { reward: RawReward }) {
     case "badge":
       return <span className="text-xl leading-none">{BADGE_EMOJIS[reward.id] ?? reward.value}</span>;
     case "title":
-      return <span className="text-[10px] text-amber-400/80 font-bold leading-none">{TITLE_TEXTS[reward.id] ?? reward.value}</span>;
+      return <span className="text-[10px] text-accent/80 font-bold leading-none">{TITLE_TEXTS[reward.id] ?? reward.value}</span>;
     case "nameColor": {
       const hex = NAME_COLORS[reward.id] ?? reward.value;
       return <span className="w-4 h-4 rounded-full ring-1 ring-white/10" style={{ backgroundColor: hex }} />;
@@ -534,10 +534,10 @@ function ProPanel({ level }: { level: number }) {
   const nextProReward = COSMETIC_REWARDS.find((r) => r.level > level && r.proOnly === true);
 
   return (
-    <div className="rounded-xl overflow-hidden ring-1 ring-amber-400/15 bg-amber-400/[0.02]">
-      <div className="h-px bg-gradient-to-r from-transparent via-amber-400/30 to-transparent" />
+    <div className="rounded-xl overflow-hidden ring-1 ring-accent/15 bg-accent/[0.02]">
+      <div className="h-px bg-gradient-to-r from-transparent via-accent/30 to-transparent" />
       <div className="px-3 py-2.5 flex items-center gap-3">
-        <span className="text-[9px] font-black tracking-[0.15em] text-amber-400 bg-amber-400/10 ring-1 ring-amber-400/25 rounded px-1.5 py-0.5 leading-none shrink-0">
+        <span className="text-[9px] font-black tracking-[0.15em] text-accent bg-accent/10 ring-1 ring-accent/25 rounded px-1.5 py-0.5 leading-none shrink-0">
           PRO
         </span>
         <div className="flex items-center gap-3 flex-1 min-w-0 flex-wrap">
@@ -553,7 +553,7 @@ function ProPanel({ level }: { level: number }) {
         </div>
         <Link
           href="/pro"
-          className="shrink-0 rounded-lg bg-amber-400/10 ring-1 ring-amber-400/30 text-amber-400 text-xs font-bold px-3 py-1.5 hover:bg-amber-400/20 transition-colors whitespace-nowrap leading-none"
+          className="shrink-0 rounded-lg bg-accent/10 ring-1 ring-accent/30 text-accent text-xs font-bold px-3 py-1.5 hover:bg-accent/20 transition-colors whitespace-nowrap leading-none"
         >
           Upgrade →
         </Link>

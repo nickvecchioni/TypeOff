@@ -464,7 +464,7 @@ export default function AnalyticsPage() {
                     </div>
                   </section>
                   {teaserInsight && (
-                    <div className="rounded-lg ring-1 ring-amber-400/10 bg-amber-400/[0.02] px-4 py-3 mb-4">
+                    <div className="rounded-lg ring-1 ring-accent/10 bg-accent/[0.02] px-4 py-3 mb-4">
                       <p className="text-[11px] text-muted/70 leading-relaxed">{teaserInsight.insight}</p>
                       <p className="text-[10px] text-muted/50 mt-1">Upgrade to Pro for all insights and practice drills</p>
                     </div>
@@ -474,14 +474,14 @@ export default function AnalyticsPage() {
             })()}
 
             {/* Pro upsell */}
-            <div className="rounded-xl ring-1 ring-amber-400/10 bg-amber-400/[0.02] px-5 py-4">
-              <p className="text-xs font-bold text-amber-400/60 mb-1">Pro Analytics</p>
+            <div className="rounded-xl ring-1 ring-accent/10 bg-accent/[0.02] px-5 py-4">
+              <p className="text-xs font-bold text-accent/60 mb-1">Pro Analytics</p>
               <p className="text-[11px] text-muted/60 mb-3 leading-relaxed">
                 Unlock smart practice drills, full bigram analysis, WPM impact insights, progress tracking, ELO trends, placement distribution, and more.
               </p>
               <Link
                 href="/pro"
-                className="inline-block text-xs font-bold text-bg bg-amber-400 hover:bg-amber-300 px-4 py-2 rounded-lg transition-colors"
+                className="inline-block text-xs font-bold text-white bg-accent hover:bg-accent/80 px-4 py-2 rounded-lg transition-colors"
               >
                 Upgrade to Pro →
               </Link>

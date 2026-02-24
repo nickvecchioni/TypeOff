@@ -230,39 +230,39 @@ export default function ProPage() {
 
                 {/* Yearly — highlighted */}
                 <div
-                  className="relative rounded-xl px-5 py-5 ring-1 ring-amber-400/25 bg-amber-400/[0.04] flex flex-col"
-                  style={{ boxShadow: "0 0 40px rgba(245,158,11,0.08), inset 0 1px 0 rgba(245,158,11,0.12)" }}
+                  className="relative rounded-xl px-5 py-5 ring-1 ring-accent/25 bg-accent/[0.04] flex flex-col"
+                  style={{ boxShadow: "0 0 40px rgba(77,158,255,0.08), inset 0 1px 0 rgba(77,158,255,0.12)" }}
                 >
                   <div className="absolute -top-3 left-0 right-0 flex justify-center">
-                    <span className="text-[9px] font-black bg-amber-400 text-[#1a0e00] px-3 py-1 rounded-full uppercase tracking-wider shadow-[0_2px_12px_rgba(245,158,11,0.5)]">
+                    <span className="text-[9px] font-black bg-accent text-white px-3 py-1 rounded-full uppercase tracking-wider shadow-[0_2px_12px_rgba(77,158,255,0.5)]">
                       Save 33%
                     </span>
                   </div>
-                  <div className="text-[10px] font-bold text-amber-400/60 uppercase tracking-wider mb-3">
+                  <div className="text-[10px] font-bold text-accent/60 uppercase tracking-wider mb-3">
                     Yearly
                   </div>
                   <div className="text-3xl font-black text-text tabular-nums leading-none mb-0.5">
                     ${PRO_YEARLY_PRICE.toFixed(2)}
                     <span className="text-sm font-normal text-muted/60">/yr</span>
                   </div>
-                  <div className="text-[10px] text-amber-400/40 mb-6">
+                  <div className="text-[10px] text-accent/40 mb-6">
                     ${(PRO_YEARLY_PRICE / 12).toFixed(2)}/mo billed annually
                   </div>
                   <button
                     onClick={() => router.push("/pro/checkout?plan=yearly")}
                     className="mt-auto relative w-full rounded-lg py-2.5 text-[13px] font-black tracking-wide overflow-hidden transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                     style={{
-                      background: "linear-gradient(135deg, #f59e0b 0%, #fcd34d 50%, #f59e0b 100%)",
-                      color: "#1a0e00",
-                      boxShadow: "0 2px 20px rgba(245,158,11,0.35)",
+                      background: "linear-gradient(135deg, #4d9eff 0%, #80bbff 50%, #4d9eff 100%)",
+                      color: "#ffffff",
+                      boxShadow: "0 2px 20px rgba(77,158,255,0.35)",
                     }}
                     onMouseEnter={(e) => {
                       (e.currentTarget as HTMLButtonElement).style.boxShadow =
-                        "0 4px 32px rgba(245,158,11,0.55)";
+                        "0 4px 32px rgba(77,158,255,0.55)";
                     }}
                     onMouseLeave={(e) => {
                       (e.currentTarget as HTMLButtonElement).style.boxShadow =
-                        "0 2px 20px rgba(245,158,11,0.35)";
+                        "0 2px 20px rgba(77,158,255,0.35)";
                     }}
                   >
                     Get Pro →

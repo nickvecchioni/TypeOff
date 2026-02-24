@@ -347,16 +347,16 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
 
       {/* Pro upsell for free users with drill/bigram params */}
       {showProUpsell && !isFinished && (
-        <div className="rounded-lg ring-1 ring-amber-400/15 bg-amber-400/[0.03] px-4 py-3 flex items-center gap-3 animate-fade-in max-w-lg">
+        <div className="rounded-lg ring-1 ring-accent/15 bg-accent/[0.03] px-4 py-3 flex items-center gap-3 animate-fade-in max-w-lg">
           <div className="flex-1">
-            <p className="text-xs font-bold text-amber-400/70">Pro Feature</p>
+            <p className="text-xs font-bold text-accent/70">Pro Feature</p>
             <p className="text-[11px] text-muted/60 leading-relaxed mt-0.5">
               Smart practice and drill modes are available with Pro. Upgrade to target your weakest keys and bigrams.
             </p>
           </div>
           <Link
             href="/pro"
-            className="shrink-0 text-[11px] font-bold text-bg bg-amber-400 hover:bg-amber-300 px-3 py-1.5 rounded-md transition-colors"
+            className="shrink-0 text-[11px] font-bold text-white bg-accent hover:bg-accent/80 px-3 py-1.5 rounded-md transition-colors"
           >
             Upgrade
           </Link>

@@ -96,7 +96,7 @@ export default function HistoryPage() {
           {!isPro && (
             <Link
               href="/pro"
-              className="text-[11px] font-bold text-bg bg-amber-400 hover:bg-amber-300 px-3 py-1.5 rounded-md transition-colors uppercase tracking-wider shrink-0"
+              className="text-[11px] font-bold text-white bg-accent hover:bg-accent/80 px-3 py-1.5 rounded-md transition-colors uppercase tracking-wider shrink-0"
             >
               Upgrade to Pro
             </Link>
@@ -258,7 +258,7 @@ export default function HistoryPage() {
 
         {/* Upgrade CTA for free users */}
         {!isPro && races.length >= 5 && (
-          <div className="mt-6 rounded-xl bg-amber-400/[0.04] ring-1 ring-amber-400/10 px-5 py-4 text-center">
+          <div className="mt-6 rounded-xl bg-accent/[0.04] ring-1 ring-accent/10 px-5 py-4 text-center">
             <p className="text-sm text-text font-medium mb-1">
               Want to see your full race history?
             </p>
@@ -267,7 +267,7 @@ export default function HistoryPage() {
             </p>
             <Link
               href="/pro"
-              className="inline-block text-xs font-bold text-bg bg-amber-400 hover:bg-amber-300 px-4 py-2 rounded-lg transition-colors uppercase tracking-wider"
+              className="inline-block text-xs font-bold text-white bg-accent hover:bg-accent/80 px-4 py-2 rounded-lg transition-colors uppercase tracking-wider"
             >
               Upgrade to Pro
             </Link>

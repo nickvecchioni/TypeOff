@@ -63,7 +63,7 @@ export default async function ReplayPage({
     <main className="flex flex-col items-center px-4 py-8 sm:py-12 min-h-[60vh]">
       {hasReplayData && !isPro ? (
         <div className="flex flex-col items-center gap-6 text-center max-w-sm py-4">
-          <div className="w-14 h-14 rounded-2xl bg-amber-400/10 ring-1 ring-amber-400/20 flex items-center justify-center text-2xl">
+          <div className="w-14 h-14 rounded-2xl bg-accent/10 ring-1 ring-accent/20 flex items-center justify-center text-2xl">
             ▶
           </div>
           <div>
