@@ -23,15 +23,15 @@ const TOTAL_REWARD_COUNT = COSMETIC_REWARDS.length;
 const FREE_REWARD_COUNT = TOTAL_REWARD_COUNT - PRO_REWARD_COUNT;
 
 const COMPARISON_ROWS = [
-  { feature: "Ranked Racing",       free: true,                              pro: true },
-  { feature: "Leaderboard",         free: true,                              pro: true },
-  { feature: "Level Rewards",       free: `${FREE_REWARD_COUNT} cosmetics`,  pro: `All ${TOTAL_REWARD_COUNT}` },
-  { feature: "XP Multiplier",       free: "1×",                              pro: "1.5×" },
-  { feature: "Race History",        free: "Last 20",                         pro: "Full Archive" },
+  { feature: "Smart Practice",      free: false,                             pro: true },
   { feature: "Advanced Analytics",  free: false,                             pro: true },
   { feature: "Race Replays",        free: false,                             pro: true },
   { feature: "Custom Text Mode",    free: false,                             pro: true },
-  { feature: "Focus Drill",         free: false,                             pro: true },
+  { feature: "Race History",        free: "Last 20",                         pro: "Full Archive" },
+  { feature: "XP Multiplier",       free: "1×",                              pro: "1.5×" },
+  { feature: "Level Rewards",       free: `${FREE_REWARD_COUNT} cosmetics`,  pro: `All ${TOTAL_REWARD_COUNT}` },
+  { feature: "Ranked Racing",       free: true,                              pro: true },
+  { feature: "Leaderboard",         free: true,                              pro: true },
 ];
 
 const TEASER_IDS = [
@@ -47,12 +47,12 @@ const FEATURES = [
   {
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
+        <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" />
       </svg>
     ),
-    title: "Race History",
-    description: "Every race preserved forever. Filter by mode, date, opponent, and performance.",
-    amber: false,
+    title: "Smart Practice",
+    description: "Targets your weakest keys and bigrams. Generates custom drills from your accuracy data so every session attacks what slows you down.",
+    amber: true,
   },
   {
     icon: (
@@ -60,8 +60,8 @@ const FEATURES = [
         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
       </svg>
     ),
-    title: "Analytics",
-    description: "Bigram heatmaps, ELO trend, win rate, placement stats, consistency scores, and full WPM history.",
+    title: "Advanced Analytics",
+    description: "Per-key heatmaps, bigram breakdown, WPM curves, consistency scores, and trend tracking. See exactly where your speed leaks.",
     amber: false,
   },
   {
@@ -71,7 +71,7 @@ const FEATURES = [
       </svg>
     ),
     title: "Race Replays",
-    description: "Watch any race back keystroke by keystroke. Study and share your best runs.",
+    description: "Rewatch any race keystroke by keystroke. Study your pacing, find hesitation points, and share your best runs.",
     amber: false,
   },
   {
@@ -82,7 +82,7 @@ const FEATURES = [
     ),
     title: "Pro Cosmetics",
     description: `${PRO_REWARD_COUNT} exclusive rewards in the level track — yours to keep even if you cancel.`,
-    amber: true,
+    amber: false,
   },
 ] as const;
 
@@ -143,22 +143,22 @@ export default function ProPage() {
                 </div>
 
                 <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-tight mb-4">
-                  <span className="text-text">Type at the top.</span>
+                  <span className="text-text">Find your weaknesses.</span>
                   <br />
-                  <span className="text-accent">Look the part.</span>
+                  <span className="text-accent">Destroy them.</span>
                 </h1>
 
                 <p className="text-sm text-muted/65 max-w-md mx-auto leading-relaxed">
-                  1.5× XP on every race. {PRO_REWARD_COUNT} exclusive cosmetics. Full archive,
-                  advanced analytics, and keystroke replays.
+                  Smart practice that targets your worst keys. Analytics that show exactly
+                  where you lose speed. Tools built for typers who want to get faster.
                 </p>
 
                 {/* Stat highlights */}
                 <div className="flex justify-center gap-10 mt-8">
                   {[
                     { value: "1.5×",                     label: "XP Multiplier" },
+                    { value: "∞",                        label: "Race Replays"  },
                     { value: String(PRO_REWARD_COUNT),   label: "Pro Cosmetics" },
-                    { value: "∞",                        label: "Race History"  },
                   ].map((s) => (
                     <div key={s.label} className="text-center">
                       <div className="text-2xl font-black tabular-nums text-accent flex items-center justify-center h-9">
@@ -203,8 +203,38 @@ export default function ProPage() {
               ))}
             </div>
 
-            {/* ── Pricing ── */}
+            {/* ── Cosmetics showcase ── */}
             <div className="animate-slide-up" style={{ animationDelay: "40ms" }}>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[9px] font-bold text-muted/65 uppercase tracking-widest">
+                  {PRO_REWARD_COUNT} Pro Cosmetics
+                </p>
+                <p className="text-[9px] text-muted/20">yours to keep on cancel</p>
+              </div>
+              <div className="rounded-xl ring-1 ring-white/[0.06] overflow-hidden bg-[#0c0c12]">
+                {/* Live name preview */}
+                <NamePreview username={session?.user?.username ?? session?.user?.name ?? "TypeOff"} />
+                {/* Teaser items strip */}
+                <div className="flex divide-x divide-white/[0.03] border-t border-white/[0.03]">
+                  {TEASER_REWARDS.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex-1 flex flex-col items-center justify-center py-5 gap-2 group hover:bg-accent/[0.03] transition-colors"
+                    >
+                      <div className="opacity-60 group-hover:opacity-100 transition-opacity">
+                        <TeaserVisual item={item} />
+                      </div>
+                      <span className="text-[9px] text-muted/45 capitalize">
+                        {item.type === "nameColor" ? "color" : item.type === "cursorStyle" ? "cursor" : item.type === "typingTheme" ? "theme" : item.type}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* ── Pricing ── */}
+            <div className="animate-slide-up" style={{ animationDelay: "60ms" }}>
               <p className="text-[9px] font-bold text-muted/65 uppercase tracking-widest mb-4 text-center">
                 Choose your plan
               </p>
@@ -297,36 +327,6 @@ export default function ProPage() {
                 Subscriptions cancel anytime. Lifetime is permanent.{" "}
                 Cosmetics earned are yours to keep.
               </p>
-            </div>
-
-            {/* ── Cosmetics showcase ── */}
-            <div className="animate-slide-up" style={{ animationDelay: "60ms" }}>
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-[9px] font-bold text-muted/65 uppercase tracking-widest">
-                  {PRO_REWARD_COUNT} Pro Cosmetics
-                </p>
-                <p className="text-[9px] text-muted/20">yours to keep on cancel</p>
-              </div>
-              <div className="rounded-xl ring-1 ring-white/[0.06] overflow-hidden bg-[#0c0c12]">
-                {/* Live name preview */}
-                <NamePreview username={session?.user?.username ?? session?.user?.name ?? "TypeOff"} />
-                {/* Teaser items strip */}
-                <div className="flex divide-x divide-white/[0.03] border-t border-white/[0.03]">
-                  {TEASER_REWARDS.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex-1 flex flex-col items-center justify-center py-5 gap-2 group hover:bg-accent/[0.03] transition-colors"
-                    >
-                      <div className="opacity-60 group-hover:opacity-100 transition-opacity">
-                        <TeaserVisual item={item} />
-                      </div>
-                      <span className="text-[9px] text-muted/45 capitalize">
-                        {item.type === "nameColor" ? "color" : item.type === "cursorStyle" ? "cursor" : item.type === "typingTheme" ? "theme" : item.type}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
 
             {/* ── Comparison table ── */}
