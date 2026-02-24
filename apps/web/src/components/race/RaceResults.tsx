@@ -656,8 +656,7 @@ export function RaceResults({
       {/* ── Hero stats ─────────────────────────────────────── */}
       {myResult ? (
         <div
-          className="shrink-0 rounded-xl overflow-hidden ring-1 ring-white/[0.04] animate-slide-up"
-          style={{ animationFillMode: "both" }}
+          className="shrink-0 rounded-xl overflow-hidden ring-1 ring-white/[0.04] animate-fade-in"
         >
           {/* Placement-colored top bar */}
           <div className={`h-0.5 ${pStyle!.bar} opacity-60`} />
@@ -744,13 +743,13 @@ export function RaceResults({
           </div>
         </div>
       ) : (
-        <h2 className="text-lg font-bold text-text animate-slide-up">Results</h2>
+        <h2 className="text-lg font-bold text-text animate-fade-in">Results</h2>
       )}
 
       {/* ── Standings + WPM Chart ──────────────────────────── */}
       <div
         className="shrink-0 flex flex-col gap-1.5 w-full"
-        style={{ animation: "slide-up 0.5s ease-out 0.05s both" }}
+        style={{ animation: "fade-in 0.3s ease-out 0.05s both" }}
       >
         {/* Standings table */}
         <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden">
@@ -893,7 +892,7 @@ export function RaceResults({
       {/* ── Actions ───────────────────────────────────────── */}
       <div
         className="shrink-0 flex flex-col items-center gap-1.5 w-full"
-        style={{ animation: "slide-up 0.5s ease-out 0.08s both" }}
+        style={{ animation: "fade-in 0.3s ease-out 0.08s both" }}
       >
         {/* Party ready state */}
         {inParty && !isPlacement && (
@@ -1042,7 +1041,7 @@ export function RaceResults({
         {hasAchievements && (
           <div
             className="flex flex-col gap-1 w-full"
-            style={{ animation: "slide-up 0.5s ease-out 0.08s both" }}
+            style={{ animation: "fade-in 0.3s ease-out 0.1s both" }}
           >
             <h3 className="text-[10px] font-bold text-muted/65 uppercase tracking-widest px-0.5">
               Achievements Unlocked
@@ -1054,7 +1053,7 @@ export function RaceResults({
                 return (
                   <div
                     key={id}
-                    className={`flex items-center gap-3 rounded-lg px-3 py-2.5 ring-1 animate-slide-up ${RARITY_BG[def.rarity]} ${RARITY_RING[def.rarity]} ${RARITY_GLOW[def.rarity]}`}
+                    className={`flex items-center gap-3 rounded-lg px-3 py-2.5 ring-1 animate-fade-in ${RARITY_BG[def.rarity]} ${RARITY_RING[def.rarity]} ${RARITY_GLOW[def.rarity]}`}
                   >
                     <span className="text-xl shrink-0">{def.icon}</span>
                     <div className="min-w-0 flex-1">
@@ -1079,7 +1078,7 @@ export function RaceResults({
         {hasProgress && (
           <div
             className={`grid gap-2 w-full ${hasChallenges && hasXpProgress ? "sm:grid-cols-[3fr_2fr]" : ""}`}
-            style={{ animation: "slide-up 0.5s ease-out 0.1s both" }}
+            style={{ animation: "fade-in 0.3s ease-out 0.12s both" }}
           >
             {hasChallenges && (
               <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden px-3 py-2 sm:px-4 sm:py-2.5">
@@ -1138,14 +1137,14 @@ export function RaceResults({
 
         {/* ── Text Leaderboard ──────────────────────────────── */}
         {seed != null && mode && mode !== "words" && mode !== "special" && (
-          <div style={{ animation: "slide-up 0.5s ease-out 0.12s both" }}>
+          <div style={{ animation: "fade-in 0.3s ease-out 0.14s both" }}>
             <TextLeaderboard seed={seed} mode={mode} limit={10} />
           </div>
         )}
 
         {/* ── Pro panel (non-Pro users only) ────────────────── */}
         {showProPanel && (
-          <div style={{ animation: "slide-up 0.5s ease-out 0.14s both" }}>
+          <div style={{ animation: "fade-in 0.3s ease-out 0.16s both" }}>
             <ProPanel level={currentLevel} />
           </div>
         )}
