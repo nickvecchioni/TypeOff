@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import { resolve } from "path";
 
+// prettier-ignore
 const nextConfig: NextConfig = {
   transpilePackages: ["@typeoff/shared", "@typeoff/db"],
   serverExternalPackages: [
