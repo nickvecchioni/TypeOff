@@ -25,7 +25,7 @@ const OPPONENT_COLORS = [
 ];
 
 export function WpmChart({ samples, compact = false, opponents }: WpmChartProps) {
-  const CHART_HEIGHT = compact ? 90 : 140;
+  const CHART_HEIGHT = compact ? 90 : 240;
   const PADDING = compact
     ? { top: 8, right: 16, bottom: 14, left: 36 }
     : { top: 12, right: 16, bottom: 24, left: 44 };
