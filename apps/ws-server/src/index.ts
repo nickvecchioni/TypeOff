@@ -89,6 +89,28 @@ io.use(async (socket, next) => {
 io.on("connection", (socket) => {
   console.log(`[connect] ${socket.id}${socket.data.userId ? ` (userId=${socket.data.userId})` : ""}`);
 
+  // Belt-and-suspenders: if the middleware didn't set userId (token fetch failed
+  // on reconnection, expired token, etc.), try to extract it from the handshake
+  // auth token. This is a lightweight base64 decode — no crypto verification —
+  // because we only use it to FIND an existing race entry (which was created
+  // during a previously authenticated joinQueue call).
+  const getUserId = (): string | undefined => {
+    if (socket.data?.userId) return socket.data.userId;
+    const token = socket.handshake.auth?.token;
+    if (!token || typeof token !== "string") return undefined;
+    try {
+      const parts = token.split(".");
+      if (parts.length >= 2) {
+        const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString());
+        if (payload.sub) {
+          socket.data.userId = payload.sub; // Cache for future events
+          return payload.sub;
+        }
+      }
+    } catch { /* malformed token */ }
+    return undefined;
+  };
+
   // ─── Queue Events ─────────────────────────────────────────────────
 
   socket.on("joinQueue", async (data) => {
@@ -176,11 +198,11 @@ io.on("connection", (socket) => {
   // ─── Race Events ──────────────────────────────────────────────────
 
   socket.on("raceProgress", (data) => {
-    matchmaker.handleProgress(socket.id, data, socket.data?.userId);
+    matchmaker.handleProgress(socket.id, data, getUserId());
   });
 
   socket.on("raceFinish", (data) => {
-    matchmaker.handleFinish(socket.id, data, socket.data?.userId);
+    matchmaker.handleFinish(socket.id, data, getUserId());
   });
 
   // ─── Party Events ─────────────────────────────────────────────────

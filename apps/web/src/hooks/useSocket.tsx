@@ -22,6 +22,8 @@ const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? "http://localhost:3001";
 interface SocketContextValue {
   connected: boolean;
   socketRef: React.RefObject<TypedSocket | null>;
+  /** Update the cached auth token from outside (e.g. after joinQueue fetches one) */
+  updateToken: (token: string) => void;
 }
 
 const SocketContext = createContext<SocketContextValue | null>(null);
@@ -29,6 +31,13 @@ const SocketContext = createContext<SocketContextValue | null>(null);
 export function SocketProvider({ children }: { children: ReactNode }) {
   const socketRef = useRef<TypedSocket | null>(null);
   const [connected, setConnected] = useState(false);
+  // Shared token ref — can be updated from outside (e.g. joinQueue) so that
+  // reconnections always have a valid token even if the initial fetch failed.
+  const tokenRef = useRef<string | null>(null);
+
+  const updateToken = useCallback((token: string) => {
+    tokenRef.current = token;
+  }, []);
 
   useEffect(() => {
     // Token management for Socket.IO auth.
@@ -37,20 +46,18 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     // may have expired — an expired token causes the server middleware to
     // fail authentication, which means socket.data.userId is never set and
     // race mappings can't be restored (root cause of the 0-WPM bug).
-    let cachedToken: string | null = null;
-    let hasConnectedOnce = false;
 
     const fetchFreshToken = async (): Promise<string | null> => {
       try {
         const res = await fetch("/api/ws-token");
         if (res.ok) {
           const data = await res.json();
-          cachedToken = data.token ?? null;
+          tokenRef.current = data.token ?? null;
         }
       } catch {
         // Token fetch failed — will connect without auth
       }
-      return cachedToken;
+      return tokenRef.current;
     };
 
     const socket: TypedSocket = io(WS_URL, {
@@ -60,28 +67,20 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       // The server middleware uses this to identify the socket and
       // proactively restore race mappings BEFORE any events are processed.
       auth: (cb) => {
-        if (hasConnectedOnce) {
-          // Reconnection — ALWAYS fetch a fresh token to avoid sending an
-          // expired one. The small delay (~100ms) is worth the reliability.
-          fetchFreshToken().then((token) => {
-            cb(token ? { token } : {});
-          });
-        } else if (cachedToken) {
-          // First connection with a cached token — use it immediately
-          cb({ token: cachedToken });
-          fetchFreshToken(); // refresh in background
-        } else {
-          // First connection, no cache — wait for fetch
-          fetchFreshToken().then((token) => {
-            cb(token ? { token } : {});
-          });
-        }
+        // Always try to fetch a fresh token first.
+        // If the fetch fails, fall back to tokenRef (which may have been
+        // updated by joinQueue or a previous successful fetch).
+        fetchFreshToken().then((token) => {
+          cb(token ? { token } : {});
+        });
       },
     });
 
     socket.on("connect", () => {
-      hasConnectedOnce = true;
       setConnected(true);
+      // Proactively refresh the token cache after every connection so the
+      // NEXT reconnection always has a valid fallback token.
+      fetchFreshToken();
     });
     socket.on("disconnect", () => setConnected(false));
 
@@ -95,7 +94,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <SocketContext value={{ connected, socketRef }}>
+    <SocketContext value={{ connected, socketRef, updateToken }}>
       {children}
     </SocketContext>
   );
@@ -107,7 +106,7 @@ export function useSocket() {
     throw new Error("useSocket must be used within a SocketProvider");
   }
 
-  const { connected, socketRef } = ctx;
+  const { connected, socketRef, updateToken } = ctx;
 
   const emit = useCallback(
     <E extends keyof ClientToServerEvents>(
@@ -136,5 +135,5 @@ export function useSocket() {
     [socketRef, connected]
   );
 
-  return { connected, emit, on, socket: socketRef };
+  return { connected, emit, on, socket: socketRef, updateToken };
 }

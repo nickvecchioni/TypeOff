@@ -56,7 +56,7 @@ export interface RaceResult {
 }
 
 export function useRace(myPlayerId?: string | null) {
-  const { connected, emit, on } = useSocket();
+  const { connected, emit, on, updateToken } = useSocket();
   const [phase, setPhase] = useState<RacePhase>("idle");
   const [queueCount, setQueueCount] = useState(0);
   const [maxWaitSeconds, setMaxWaitSeconds] = useState(5);
@@ -230,6 +230,7 @@ export function useRace(myPlayerId?: string | null) {
           if (res.ok) {
             const data = await res.json();
             if (data.token) {
+              updateToken(data.token);
               emit("rejoinRace", { token: data.token });
             }
           }
@@ -239,7 +240,7 @@ export function useRace(myPlayerId?: string | null) {
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [connected, phase, emit]);
+  }, [connected, phase, emit, updateToken]);
 
   const queueTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -254,6 +255,9 @@ export function useRace(myPlayerId?: string | null) {
         if (res.ok) {
           const data = await res.json();
           token = data.token;
+          // Share the token with the socket provider so reconnections
+          // always have a valid token (prevents 0-WPM on reconnect)
+          if (token) updateToken(token);
         }
       } catch {
         // Will fail below
@@ -275,7 +279,7 @@ export function useRace(myPlayerId?: string | null) {
         setPhase("idle");
       }
     },
-    [emit]
+    [emit, updateToken]
   );
 
   const leaveQueue = useCallback(() => {
