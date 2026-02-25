@@ -14,7 +14,7 @@ import { SpectatorIndicator } from "./SpectatorIndicator";
 import type { EmoteEvent } from "./FloatingEmote";
 import { useSocket } from "@/hooks/useSocket";
 import { getRankInfo, getCodeSnippet, getQuoteAuthor } from "@typeoff/shared";
-import type { RankTier, WpmSample, ModeCategory } from "@typeoff/shared";
+import type { RankTier, WpmSample, ModeCategory, KeyStatsMap } from "@typeoff/shared";
 
 function FinishTimeoutDisplay({ finishTimeoutEnd }: { finishTimeoutEnd: number | null }) {
   const [remaining, setRemaining] = React.useState<number | null>(null);
@@ -123,20 +123,25 @@ export function RaceArena() {
       .catch(() => {});
   }, [session?.user?.id, session?.user?.placementsCompleted, updateSession]);
 
-  // Smooth transition: race UI fades out, then results fade in
-  const [showResults, setShowResults] = React.useState(false);
-  const [raceFadingOut, setRaceFadingOut] = React.useState(false);
+  // Smooth transition: hold final race state, then crossfade to results
+  // States: "none" → "holding" (final state visible) → "crossfading" (both visible) → "results"
+  const [transitionState, setTransitionState] = React.useState<"none" | "holding" | "crossfading" | "results">("none");
   React.useEffect(() => {
     if (race.phase === "finished") {
-      // Start fading out race UI immediately
-      setRaceFadingOut(true);
-      // After fade-out completes (500ms), swap to results
-      const timer = setTimeout(() => setShowResults(true), 600);
-      return () => clearTimeout(timer);
+      setTransitionState("holding");
+      // Hold final race state for 1.2s so it doesn't feel abrupt
+      const holdTimer = setTimeout(() => setTransitionState("crossfading"), 1200);
+      // After crossfade animation completes (~600ms), unmount race UI
+      const resultsTimer = setTimeout(() => setTransitionState("results"), 1800);
+      return () => { clearTimeout(holdTimer); clearTimeout(resultsTimer); };
     }
-    setShowResults(false);
-    setRaceFadingOut(false);
+    setTransitionState("none");
   }, [race.phase]);
+
+  // Derived booleans for render logic
+  const showResults = transitionState === "crossfading" || transitionState === "results";
+  const raceFadingOut = transitionState === "crossfading" || transitionState === "results";
+  const raceUiVisible = transitionState !== "results";
 
   // Delay showing the queue screen so fast matches (placements) skip it
   const [showQueuing, setShowQueuing] = React.useState(false);
@@ -200,12 +205,14 @@ export function RaceArena() {
     }
   }, [showResults, race.phase, updateSession]);
 
-  // Capture wpmHistory locally (not sent to server, only used for chart)
+  // Capture wpmHistory + keyStats locally (not sent to server, only used for results UI)
   const wpmHistoryRef = React.useRef<WpmSample[]>([]);
+  const keyStatsRef = React.useRef<KeyStatsMap | undefined>(undefined);
   const finishSentAt = React.useRef<number | null>(null);
   const handleFinish = React.useCallback(
-    (data: { wpm: number; rawWpm: number; accuracy: number; misstypedChars: number; wpmHistory?: WpmSample[] }) => {
+    (data: { wpm: number; rawWpm: number; accuracy: number; misstypedChars: number; wpmHistory?: WpmSample[]; keyStats?: KeyStatsMap }) => {
       wpmHistoryRef.current = data.wpmHistory ?? [];
+      keyStatsRef.current = data.keyStats;
       finishSentAt.current = Date.now();
       lastFinishData.current = { wpm: data.wpm, rawWpm: data.rawWpm, accuracy: data.accuracy };
       race.sendFinish(data);
@@ -328,7 +335,7 @@ export function RaceArena() {
         />
       )}
 
-      {(race.phase === "countdown" || race.phase === "racing" || (race.phase === "finished" && !showResults)) && race.raceState && (
+      {(race.phase === "countdown" || race.phase === "racing" || (race.phase === "finished" && raceUiVisible)) && race.raceState && (
         <div
           className={`flex flex-col items-center gap-8 w-full pt-[12vh] transition-opacity duration-500 ease-out ${
             raceFadingOut ? "opacity-0" : "opacity-100"
@@ -398,7 +405,7 @@ export function RaceArena() {
       )}
 
       {race.phase === "finished" && showResults && (
-        <div className="w-full flex-1 min-h-0 flex flex-col" style={{ animation: "fade-in-up 0.4s ease-out both" }}>
+        <div className="w-full flex-1 min-h-0 flex flex-col" style={{ animation: "fade-in-up 0.5s ease-out both" }}>
           <RaceResults
             results={race.results}
             myPlayerId={myPlayerId}
@@ -408,6 +415,7 @@ export function RaceArena() {
             placementTotal={race.placementTotal}
             rankChange={rankChange}
             myWpmHistory={wpmHistoryRef.current}
+            myKeyStats={keyStatsRef.current}
             party={partyHook.party}
             onMarkReady={partyHook.markReady}
             raceId={race.raceId}
