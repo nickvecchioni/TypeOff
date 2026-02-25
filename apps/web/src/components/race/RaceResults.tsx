@@ -1000,14 +1000,13 @@ export function RaceResults({
         <h2 className="text-lg font-bold text-text animate-fade-in">Results</h2>
       )}
 
-      {/* ── TWO-COLUMN GRID ─────────────────────────────── */}
+      {/* ── TOP ROW: Standings + XP ─────────────────────── */}
       <div
-        className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 w-full flex-1 min-h-0 overflow-hidden"
+        className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 w-full"
         style={{ animation: "fade-in 0.3s ease-out 0.05s both" }}
       >
-        {/* ── LEFT COLUMN: Standings + Chat + Actions + Achievements ── */}
+        {/* ── LEFT: Standings table + Chat ── */}
         <div className="flex flex-col gap-1.5 min-h-0">
-          {/* Standings table + chat feed */}
           <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden">
             {/* Header */}
             <div
@@ -1127,155 +1126,40 @@ export function RaceResults({
             {/* Preset chat feed — hidden in bot-only races (#8) */}
             {!isPlacement && !allOpponentsAreBots && <PresetChatFeed emotes={emotes} />}
           </div>
+        </div>
 
-          {/* WPM Chart — flex-1 so action buttons align with right column bottom */}
-          {myWpmHistory && myWpmHistory.length >= 2 && (
-            <div className="flex-1 min-h-[280px] rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 pt-2.5 pb-1.5 flex flex-col">
-              <div className="text-[10px] font-bold text-muted/50 uppercase tracking-widest mb-1.5">WPM over time</div>
-              <div className="flex-1 min-h-0">
-                <WpmChart samples={myWpmHistory} />
+        {/* ── RIGHT: XP ── */}
+        <div className="flex flex-col gap-1.5 min-h-0">
+          {/* XP Progress — always reserve space to prevent jitter */}
+          {!isPlacement && (
+            hasXpProgress ? (
+              <AnimatedXpPanel xp={myResult!.xpProgress!} isPro={isPro} />
+            ) : (
+              /* Skeleton placeholder for XP panel */
+              <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden">
+                <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
+                <div className="px-3 py-2.5 sm:px-4 sm:py-3 flex flex-col gap-2.5">
+                  <div className="h-3 w-12 rounded bg-white/[0.03] animate-pulse" />
+                  <div className="rounded-lg px-3 py-2 ring-1 ring-accent/10 bg-surface/40 flex items-center gap-4">
+                    <div className="w-10 h-10 rounded bg-white/[0.03] animate-pulse" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-3 w-24 rounded bg-white/[0.03] animate-pulse" />
+                      <div className="h-1.5 w-full rounded-full bg-surface" />
+                      <div className="h-2 w-20 rounded bg-white/[0.03] animate-pulse" />
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            )
           )}
 
-          {/* Actions */}
-          <div className="flex flex-col items-center gap-1.5 w-full min-w-0 px-px">
-            {/* Party ready state */}
-            {inParty && !isPlacement && (
-              <div className="flex items-center justify-center gap-3 flex-wrap">
-                {party!.members.map((m) => {
-                  const ready = party!.readyState[m.userId] ?? false;
-                  const isMe = m.userId === myPlayerId;
-                  return (
-                    <div key={m.userId} className="flex items-center gap-1.5 text-xs">
-                      <span className={`w-2 h-2 rounded-full transition-colors ${ready ? "bg-correct" : "bg-white/[0.12]"}`} />
-                      <span className={isMe ? "text-accent" : "text-muted"}>{m.name}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {inParty && !isLeader && !isPlacement ? (
-              <button
-                onClick={() => !amReady && onMarkReady?.()}
-                disabled={amReady}
-                className={`w-full rounded-lg py-2.5 text-sm font-medium transition-all ${
-                  amReady
-                    ? "bg-correct/[0.08] ring-1 ring-correct/20 text-correct cursor-default"
-                    : "bg-accent/[0.06] ring-1 ring-accent/20 text-accent hover:bg-accent hover:text-bg hover:ring-accent"
-                }`}
-              >
-                {amReady ? "Ready!" : "Ready"}
-              </button>
-            ) : (
-              <>
-                <button
-                  onClick={() => onRaceAgain()}
-                  disabled={inParty && !allMembersReady}
-                  className="w-full rounded-lg bg-accent/[0.06] ring-1 ring-accent/20 text-accent py-2.5 text-sm font-medium hover:bg-accent hover:text-bg hover:ring-accent transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent/[0.06] disabled:hover:text-accent disabled:hover:ring-accent/20 flex flex-col items-center gap-1"
-                >
-                  <span>
-                    {isPlacement ? "Next Placement" : "Race Again"}
-                    <span className="inline-block w-[2px] h-[1em] bg-current animate-blink ml-0.5 translate-y-px" />
-                  </span>
-                  {!inParty && (
-                    <span className="text-[9px] font-normal text-accent/40 flex items-center gap-1 group-hover:text-bg/40">
-                      <kbd className="inline-flex items-center px-1 py-px rounded bg-white/[0.04] ring-1 ring-white/[0.07] text-[9px] font-medium">Tab</kbd>
-                      {" + "}
-                      <kbd className="inline-flex items-center px-1 py-px rounded bg-white/[0.04] ring-1 ring-white/[0.07] text-[9px] font-medium">Enter ↵</kbd>
-                    </span>
-                  )}
-                </button>
-                {inParty && !allMembersReady && (
-                  <span className="text-[10px] text-muted/60">
-                    waiting for party to ready up...
-                  </span>
-                )}
-              </>
-            )}
-
-            {/* Secondary actions row — labeled buttons */}
-            <div className="flex items-center gap-2">
-              {/* Go Home */}
-              <button
-                onClick={onGoHome}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 text-muted/50 hover:text-muted transition-colors rounded"
-                aria-label="Go Home"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                  <polyline points="9 22 9 12 15 12 15 22" />
-                </svg>
-                <span className="text-[10px] font-medium">Home</span>
-              </button>
-
-              {/* Watch Replay */}
-              {raceId && (
-                <Link
-                  href={`/races/${raceId}`}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 text-muted/50 hover:text-muted transition-colors rounded"
-                  aria-label="Watch Replay"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polygon points="5 3 19 12 5 21 5 3" />
-                  </svg>
-                  <span className="text-[10px] font-medium">Replay</span>
-                </Link>
-              )}
-
-              {/* Analytics */}
-              {!isPlacement && (
-                <Link
-                  href="/analytics"
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 text-muted/50 hover:text-muted transition-colors rounded"
-                  aria-label="Analytics"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="20" x2="18" y2="10" />
-                    <line x1="12" y1="20" x2="12" y2="4" />
-                    <line x1="6" y1="20" x2="6" y2="14" />
-                  </svg>
-                  <span className="text-[10px] font-medium">Analytics</span>
-                </Link>
-              )}
-
-              {/* Share */}
-              {!isPlacement &&
-                myResult != null &&
-                myResult.elo != null &&
-                myResult.eloChange != null &&
-                session?.user?.username && (
-                  <ShareResultCard
-                    data={{
-                      variant: "ranked",
-                      wpm: myResult.wpm,
-                      accuracy: myResult.accuracy,
-                      placement: myResult.placement,
-                      totalPlayers: results.length,
-                      elo: myResult.elo,
-                      eloChange: myResult.eloChange,
-                      rankLabel: getRankInfo(myResult.elo).label,
-                      rankTier: getRankInfo(myResult.elo).tier,
-                      username: session.user.username,
-                      date: new Date().toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      }),
-                    }}
-                  />
-                )}
-            </div>
-          </div>
-
-          {/* Achievements (left column) */}
+          {/* Achievements */}
           {hasAchievements && (
             <div className="flex flex-col gap-1 w-full">
               <h3 className="text-[10px] font-bold text-muted/65 uppercase tracking-widest px-0.5">
                 Achievements Unlocked
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+              <div className="grid grid-cols-1 gap-1.5">
                 {myResult!.newAchievements!.map((id) => {
                   const def = ACHIEVEMENT_MAP.get(id);
                   if (!def) return null;
@@ -1303,97 +1187,225 @@ export function RaceResults({
             </div>
           )}
         </div>
-
-        {/* ── RIGHT COLUMN: XP + Challenges + Pro ── */}
-        <div className="flex flex-col gap-1.5 min-h-0 overflow-y-auto">
-          {/* XP Progress — always reserve space to prevent jitter */}
-          {!isPlacement && (
-            hasXpProgress ? (
-              <AnimatedXpPanel xp={myResult!.xpProgress!} isPro={isPro} />
-            ) : (
-              /* Skeleton placeholder for XP panel */
-              <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden">
-                <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
-                <div className="px-3 py-2.5 sm:px-4 sm:py-3 flex flex-col gap-2.5">
-                  <div className="h-3 w-12 rounded bg-white/[0.03] animate-pulse" />
-                  <div className="rounded-lg px-3 py-2 ring-1 ring-accent/10 bg-surface/40 flex items-center gap-4">
-                    <div className="w-10 h-10 rounded bg-white/[0.03] animate-pulse" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-3 w-24 rounded bg-white/[0.03] animate-pulse" />
-                      <div className="h-1.5 w-full rounded-full bg-surface" />
-                      <div className="h-2 w-20 rounded bg-white/[0.03] animate-pulse" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )
-          )}
-
-          {/* Challenges — always reserve space to prevent jitter */}
-          {!isPlacement && (
-            <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden px-3 py-2 sm:px-4 sm:py-2.5">
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="text-[10px] font-bold text-muted/65 uppercase tracking-widest">
-                  Challenges
-                </h3>
-                {myResult?.xpEarned != null && myResult.xpEarned > 0 && (
-                  <span className="text-xs font-bold text-accent tabular-nums">
-                    +{myResult.xpEarned} XP
-                  </span>
-                )}
-              </div>
-              {hasChallenges ? (
-                <div className="space-y-0.5">
-                  {myResult!.challengeProgress!.filter((c) => c.progress > 0).map((cp) => {
-                    const def = CHALLENGE_MAP.get(cp.challengeId);
-                    if (!def) return null;
-                    const progress = Math.min(cp.progress, cp.target);
-                    const pct = cp.target > 0 ? (progress / cp.target) * 100 : 0;
-                    return (
-                      <div key={cp.challengeId} className="flex items-center gap-2 py-1">
-                        <span className="text-sm shrink-0">{def.icon}</span>
-                        <div className="min-w-0 flex-1">
-                          <span className="text-xs font-medium text-text truncate block">
-                            {def.name}
-                            {cp.completed && <span className="text-correct ml-1.5">✓</span>}
-                          </span>
-                          <span className="text-[10px] text-muted/65 truncate block">{def.description}</span>
-                        </div>
-                        <span className="text-[11px] text-muted tabular-nums shrink-0">
-                          {progress}/{cp.target}
-                        </span>
-                        <div className="w-16 h-1 rounded-full bg-surface overflow-hidden shrink-0">
-                          <div
-                            className={`h-full rounded-full transition-all ${cp.completed ? "bg-correct" : "bg-accent"}`}
-                            style={{ width: `${Math.round(pct)}%` }}
-                          />
-                        </div>
-                        {cp.justCompleted && (
-                          <span className="text-[10px] font-bold text-correct bg-correct/10 rounded px-1.5 py-0.5 tabular-nums shrink-0">
-                            +{cp.xpAwarded} XP
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                /* Skeleton placeholder — reserves space while data loads */
-                <div className="space-y-1.5 py-1">
-                  <div className="h-3 w-3/4 rounded bg-white/[0.03] animate-pulse" />
-                  <div className="h-3 w-1/2 rounded bg-white/[0.03] animate-pulse" />
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Pro upsell card (non-Pro only) */}
-          {showProPanel && (
-            <ProPanel level={currentLevel} xpEarned={myResult?.xpProgress?.xpEarned ?? 0} />
-          )}
-        </div>
       </div>
 
+      {/* ── WPM CHART (full width, centered) ─────────────── */}
+      {myWpmHistory && myWpmHistory.length >= 2 && (
+        <div
+          className="w-full rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 pt-2.5 pb-1.5 flex flex-col"
+          style={{ animation: "fade-in 0.3s ease-out 0.1s both" }}
+        >
+          <div className="text-[10px] font-bold text-muted/50 uppercase tracking-widest mb-1.5">WPM over time</div>
+          <div className="h-[180px]">
+            <WpmChart samples={myWpmHistory} />
+          </div>
+        </div>
+      )}
+
+      {/* ── BOTTOM ROW: Challenges + Pro ─────────────────── */}
+      {!isPlacement && (
+        <div
+          className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 w-full"
+          style={{ animation: "fade-in 0.3s ease-out 0.15s both" }}
+        >
+          {/* Challenges */}
+          <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden px-3 py-2 sm:px-4 sm:py-2.5">
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="text-[10px] font-bold text-muted/65 uppercase tracking-widest">
+                Challenges
+              </h3>
+              {myResult?.xpEarned != null && myResult.xpEarned > 0 && (
+                <span className="text-xs font-bold text-accent tabular-nums">
+                  +{myResult.xpEarned} XP
+                </span>
+              )}
+            </div>
+            {hasChallenges ? (
+              <div className="space-y-0.5">
+                {myResult!.challengeProgress!.filter((c) => c.progress > 0).map((cp) => {
+                  const def = CHALLENGE_MAP.get(cp.challengeId);
+                  if (!def) return null;
+                  const progress = Math.min(cp.progress, cp.target);
+                  const pct = cp.target > 0 ? (progress / cp.target) * 100 : 0;
+                  return (
+                    <div key={cp.challengeId} className="flex items-center gap-2 py-1">
+                      <span className="text-sm shrink-0">{def.icon}</span>
+                      <div className="min-w-0 flex-1">
+                        <span className="text-xs font-medium text-text truncate block">
+                          {def.name}
+                          {cp.completed && <span className="text-correct ml-1.5">✓</span>}
+                        </span>
+                        <span className="text-[10px] text-muted/65 truncate block">{def.description}</span>
+                      </div>
+                      <span className="text-[11px] text-muted tabular-nums shrink-0">
+                        {progress}/{cp.target}
+                      </span>
+                      <div className="w-16 h-1 rounded-full bg-surface overflow-hidden shrink-0">
+                        <div
+                          className={`h-full rounded-full transition-all ${cp.completed ? "bg-correct" : "bg-accent"}`}
+                          style={{ width: `${Math.round(pct)}%` }}
+                        />
+                      </div>
+                      {cp.justCompleted && (
+                        <span className="text-[10px] font-bold text-correct bg-correct/10 rounded px-1.5 py-0.5 tabular-nums shrink-0">
+                          +{cp.xpAwarded} XP
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              /* Skeleton placeholder — reserves space while data loads */
+              <div className="space-y-1.5 py-1">
+                <div className="h-3 w-3/4 rounded bg-white/[0.03] animate-pulse" />
+                <div className="h-3 w-1/2 rounded bg-white/[0.03] animate-pulse" />
+              </div>
+            )}
+          </div>
+
+          {/* Pro upsell card (non-Pro only) */}
+          {showProPanel ? (
+            <ProPanel level={currentLevel} xpEarned={myResult?.xpProgress?.xpEarned ?? 0} />
+          ) : (
+            <div />
+          )}
+        </div>
+      )}
+
+      {/* ── RACE AGAIN + ACTIONS (centered) ──────────────── */}
+      <div
+        className="flex flex-col items-center gap-1.5 w-full max-w-md mx-auto px-px"
+        style={{ animation: "fade-in 0.3s ease-out 0.2s both" }}
+      >
+        {/* Party ready state */}
+        {inParty && !isPlacement && (
+          <div className="flex items-center justify-center gap-3 flex-wrap">
+            {party!.members.map((m) => {
+              const ready = party!.readyState[m.userId] ?? false;
+              const isMe = m.userId === myPlayerId;
+              return (
+                <div key={m.userId} className="flex items-center gap-1.5 text-xs">
+                  <span className={`w-2 h-2 rounded-full transition-colors ${ready ? "bg-correct" : "bg-white/[0.12]"}`} />
+                  <span className={isMe ? "text-accent" : "text-muted"}>{m.name}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {inParty && !isLeader && !isPlacement ? (
+          <button
+            onClick={() => !amReady && onMarkReady?.()}
+            disabled={amReady}
+            className={`w-full rounded-lg py-2.5 text-sm font-medium transition-all ${
+              amReady
+                ? "bg-correct/[0.08] ring-1 ring-correct/20 text-correct cursor-default"
+                : "bg-accent/[0.06] ring-1 ring-accent/20 text-accent hover:bg-accent hover:text-bg hover:ring-accent"
+            }`}
+          >
+            {amReady ? "Ready!" : "Ready"}
+          </button>
+        ) : (
+          <>
+            <button
+              onClick={() => onRaceAgain()}
+              disabled={inParty && !allMembersReady}
+              className="w-full rounded-lg bg-accent/[0.06] ring-1 ring-accent/20 text-accent py-2.5 text-sm font-medium hover:bg-accent hover:text-bg hover:ring-accent transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent/[0.06] disabled:hover:text-accent disabled:hover:ring-accent/20 flex flex-col items-center gap-1"
+            >
+              <span>
+                {isPlacement ? "Next Placement" : "Race Again"}
+                <span className="inline-block w-[2px] h-[1em] bg-current animate-blink ml-0.5 translate-y-px" />
+              </span>
+              {!inParty && (
+                <span className="text-[9px] font-normal text-accent/40 flex items-center gap-1 group-hover:text-bg/40">
+                  <kbd className="inline-flex items-center px-1 py-px rounded bg-white/[0.04] ring-1 ring-white/[0.07] text-[9px] font-medium">Tab</kbd>
+                  {" + "}
+                  <kbd className="inline-flex items-center px-1 py-px rounded bg-white/[0.04] ring-1 ring-white/[0.07] text-[9px] font-medium">Enter ↵</kbd>
+                </span>
+              )}
+            </button>
+            {inParty && !allMembersReady && (
+              <span className="text-[10px] text-muted/60">
+                waiting for party to ready up...
+              </span>
+            )}
+          </>
+        )}
+
+        {/* Secondary actions row — labeled buttons */}
+        <div className="flex items-center gap-2">
+          {/* Go Home */}
+          <button
+            onClick={onGoHome}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-muted/50 hover:text-muted transition-colors rounded"
+            aria-label="Go Home"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+            <span className="text-[10px] font-medium">Home</span>
+          </button>
+
+          {/* Watch Replay */}
+          {raceId && (
+            <Link
+              href={`/races/${raceId}`}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-muted/50 hover:text-muted transition-colors rounded"
+              aria-label="Watch Replay"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="5 3 19 12 5 21 5 3" />
+              </svg>
+              <span className="text-[10px] font-medium">Replay</span>
+            </Link>
+          )}
+
+          {/* Analytics */}
+          {!isPlacement && (
+            <Link
+              href="/analytics"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-muted/50 hover:text-muted transition-colors rounded"
+              aria-label="Analytics"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="20" x2="18" y2="10" />
+                <line x1="12" y1="20" x2="12" y2="4" />
+                <line x1="6" y1="20" x2="6" y2="14" />
+              </svg>
+              <span className="text-[10px] font-medium">Analytics</span>
+            </Link>
+          )}
+
+          {/* Share */}
+          {!isPlacement &&
+            myResult != null &&
+            myResult.elo != null &&
+            myResult.eloChange != null &&
+            session?.user?.username && (
+              <ShareResultCard
+                data={{
+                  variant: "ranked",
+                  wpm: myResult.wpm,
+                  accuracy: myResult.accuracy,
+                  placement: myResult.placement,
+                  totalPlayers: results.length,
+                  elo: myResult.elo,
+                  eloChange: myResult.eloChange,
+                  rankLabel: getRankInfo(myResult.elo).label,
+                  rankTier: getRankInfo(myResult.elo).tier,
+                  username: session.user.username,
+                  date: new Date().toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  }),
+                }}
+              />
+            )}
+        </div>
+      </div>
 
     </div>
   );

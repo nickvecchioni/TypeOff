@@ -100,6 +100,7 @@ export function WpmChart({ samples, compact = false, opponents }: WpmChartProps)
       ref={svgRef}
       viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
       className="w-full h-full"
+      preserveAspectRatio="none"
       role="img"
       aria-label="WPM over time chart"
       onMouseMove={handleMouseMove}
