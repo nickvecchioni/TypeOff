@@ -3,49 +3,63 @@ import { getDb } from "@/lib/db";
 import { soloResults, userKeyAccuracy, userBigramAccuracy, userAccuracySnapshots } from "@typeoff/db";
 import { eq, and, desc, sql } from "drizzle-orm";
 import type { KeyStatsMap } from "@typeoff/shared";
+import { createRateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
+const postLimit = createRateLimit({ windowMs: 5_000, max: 1 });
+
 export async function GET() {
-  const { auth } = await import("@/lib/auth");
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ pbs: {} });
+  try {
+    const { auth } = await import("@/lib/auth");
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ pbs: {} });
+    }
+
+    const db = getDb();
+
+    // Get best WPM for each (mode, duration, wordPool) combo
+    const rows = await db
+      .select({
+        mode: soloResults.mode,
+        duration: soloResults.duration,
+        wordPool: soloResults.wordPool,
+        bestWpm: sql<number>`max(${soloResults.wpm})`.as("best_wpm"),
+      })
+      .from(soloResults)
+      .where(eq(soloResults.userId, session.user.id))
+      .groupBy(soloResults.mode, soloResults.duration, soloResults.wordPool);
+
+    // Shape as { "timed:15:words:easy:false": 120.5, ... }
+    const pbs: Record<string, number> = {};
+    for (const row of rows) {
+      // Old records with wordPool = null map to "words:easy:false"
+      const pool = row.wordPool ?? "words:easy:false";
+      pbs[`${row.mode}:${row.duration}:${pool}`] = row.bestWpm;
+    }
+
+    return NextResponse.json({ pbs });
+  } catch (err) {
+    console.error("[solo-results] GET error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-
-  const db = getDb();
-
-  // Get best WPM for each (mode, duration, wordPool) combo
-  const rows = await db
-    .select({
-      mode: soloResults.mode,
-      duration: soloResults.duration,
-      wordPool: soloResults.wordPool,
-      bestWpm: sql<number>`max(${soloResults.wpm})`.as("best_wpm"),
-    })
-    .from(soloResults)
-    .where(eq(soloResults.userId, session.user.id))
-    .groupBy(soloResults.mode, soloResults.duration, soloResults.wordPool);
-
-  // Shape as { "timed:15:words:easy:false": 120.5, ... }
-  const pbs: Record<string, number> = {};
-  for (const row of rows) {
-    // Old records with wordPool = null map to "words:easy:false"
-    const pool = row.wordPool ?? "words:easy:false";
-    pbs[`${row.mode}:${row.duration}:${pool}`] = row.bestWpm;
-  }
-
-  return NextResponse.json({ pbs });
 }
 
 export async function POST(request: Request) {
-  const { auth } = await import("@/lib/auth");
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  try {
+    const { auth } = await import("@/lib/auth");
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-  const body = await request.json();
+    const { limited, retryAfter } = postLimit.check(session.user.id);
+    if (limited) {
+      return NextResponse.json({ error: "Too many requests", retryAfter }, { status: 429 });
+    }
+
+    const body = await request.json();
   const {
     mode, duration, wpm, rawWpm, accuracy,
     correctChars, incorrectChars, extraChars, totalChars, time,
@@ -229,5 +243,9 @@ export async function POST(request: Request) {
     }
   }
 
-  return NextResponse.json({ isPb });
+    return NextResponse.json({ isPb });
+  } catch (err) {
+    console.error("[solo-results] POST error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }

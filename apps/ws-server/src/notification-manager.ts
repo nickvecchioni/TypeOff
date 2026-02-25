@@ -4,7 +4,8 @@ import type {
   ServerToClientEvents,
 } from "@typeoff/shared";
 import type { SocialManager } from "./social-manager.js";
-import { createDb, notifications } from "@typeoff/db";
+import { notifications } from "@typeoff/db";
+import { getDb } from "./db.js";
 
 type TypedServer = Server<ClientToServerEvents, ServerToClientEvents>;
 
@@ -25,7 +26,7 @@ export class NotificationManager {
   /** Insert notification into DB and push to user's connected sockets. Fire-and-forget. */
   async notify(userId: string, payload: NotifyPayload): Promise<void> {
     try {
-      const db = createDb(process.env.DATABASE_URL!);
+      const db = getDb();
       const [row] = await db
         .insert(notifications)
         .values({

@@ -162,11 +162,29 @@ export function useRace(myPlayerId?: string | null) {
         }
       }),
       on("raceFinished", (data) => {
+        // If the server auto-finished us with 0 WPM but we have accurate local
+        // finish data, patch the server results so the user sees their real WPM.
+        const finish = localFinishRef.current;
+        const myId = myPlayerIdRef.current;
+        let patchedResults = data.results;
+        if (finish && myId && finish.entry.finalStats) {
+          const localStats = finish.entry.finalStats;
+          const myServerResult = patchedResults.find(r => r.playerId === myId);
+          if (myServerResult && myServerResult.wpm === 0 && localStats.wpm > 0) {
+            console.warn("[useRace] Server returned 0 WPM — patching with local finish data:", localStats);
+            patchedResults = patchedResults.map(r =>
+              r.playerId === myId
+                ? { ...r, wpm: localStats.wpm, rawWpm: localStats.rawWpm, accuracy: localStats.accuracy }
+                : r,
+            );
+          }
+        }
+
         // Merge enriched fields into existing results rather than replacing,
         // so React can diff minimally and avoid a full re-render flash
         setResults(prev => {
-          if (prev.length === 0) return data.results;
-          return data.results.map(r => {
+          if (prev.length === 0) return patchedResults;
+          return patchedResults.map(r => {
             const existing = prev.find(p => p.playerId === r.playerId);
             return existing ? { ...existing, ...r } : r;
           });
@@ -308,14 +326,47 @@ export function useRace(myPlayerId?: string | null) {
       charIndex: number;
       wpm: number;
       progress: number;
+      finalStats?: { wpm: number; rawWpm: number; accuracy: number; misstypedChars?: number };
     }) => {
       // After finishing, keep sending progress=1 so the server's handleProgress
       // safety net can auto-finish us if the raceFinish event was dropped.
       // Block anything below 1 to prevent stale progress regression.
       if (localFinishRef.current && data.progress < 1) return;
+
+      // Piggyback finish stats on progress=1 so the server has accurate WPM
+      // even if the separate raceFinish event is lost.
+      if (data.progress >= 1 && localFinishRef.current) {
+        const finish = localFinishRef.current;
+        if (finish.entry.finalStats) {
+          data = { ...data, finalStats: finish.entry.finalStats };
+        }
+      }
+
       emit("raceProgress", data);
       // Track sent progress for stale connection detection
       lastSentProgressRef.current = { progress: data.progress, time: Date.now() };
+
+      // Optimistically update own progress so the progress bar moves immediately
+      // without waiting for the server's 100ms broadcast round-trip.
+      const myId = myPlayerIdRef.current;
+      if (myId && !localFinishRef.current) {
+        setProgress(prev => {
+          const current = prev[myId];
+          // Don't regress progress and don't override a finished state
+          if (current?.finished) return prev;
+          if (current && current.progress >= data.progress) return prev;
+          return {
+            ...prev,
+            [myId]: {
+              ...(current ?? { playerId: myId, wordIndex: 0, charIndex: 0, wpm: 0, progress: 0, finished: false, placement: null, finalStats: null }),
+              wordIndex: data.wordIndex,
+              charIndex: data.charIndex,
+              wpm: data.wpm,
+              progress: data.progress,
+            },
+          };
+        });
+      }
     },
     [emit]
   );

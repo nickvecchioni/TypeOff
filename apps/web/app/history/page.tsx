@@ -14,6 +14,7 @@ interface RaceRow {
   eloChange: number | null;
   finishedAt: string | null;
   playerCount: number;
+  mode: string | null;
 }
 
 interface HistoryResponse {
@@ -36,6 +37,7 @@ export default function HistoryPage() {
   const [sort, setSort] = useState<SortKey>("date");
   const [minWpm, setMinWpm] = useState("");
   const [loadingMore, setLoadingMore] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/");
@@ -70,6 +72,38 @@ export default function HistoryPage() {
   useEffect(() => {
     if (session?.user?.id) fetchRaces();
   }, [session?.user?.id, fetchRaces]);
+
+  const handleExportCsv = async () => {
+    setExporting(true);
+    try {
+      const params = new URLSearchParams({ export: "true", sort });
+      if (minWpm) params.set("minWpm", minWpm);
+      const res = await fetch(`/api/history?${params}`);
+      if (!res.ok) return;
+      const data: HistoryResponse = await res.json();
+
+      const header = "Date,Placement,WPM,Raw WPM,Accuracy,ELO Change,Players,Mode,Race ID";
+      const rows = data.races.map((r) => {
+        const date = r.finishedAt ? new Date(r.finishedAt).toISOString() : "";
+        const wpm = r.wpm != null ? r.wpm.toFixed(2) : "";
+        const rawWpm = r.rawWpm != null ? r.rawWpm.toFixed(2) : "";
+        const acc = r.accuracy != null ? r.accuracy.toFixed(1) : "";
+        const elo = r.eloChange != null ? String(r.eloChange) : "";
+        return `${date},${r.placement ?? ""},${wpm},${rawWpm},${acc},${elo},${r.playerCount},${r.mode ?? ""},${r.raceId}`;
+      });
+
+      const csv = [header, ...rows].join("\n");
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `typeoff-history-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   if (status === "loading" || loading) {
     return (
@@ -123,6 +157,13 @@ export default function HistoryPage() {
               onChange={(e) => setMinWpm(e.target.value)}
               className="text-xs bg-surface/60 text-text rounded-lg px-3 py-1.5 ring-1 ring-white/[0.06] outline-none w-24 placeholder:text-muted/65"
             />
+            <button
+              onClick={handleExportCsv}
+              disabled={exporting}
+              className="ml-auto text-xs text-accent hover:text-accent/80 transition-colors disabled:opacity-50"
+            >
+              {exporting ? "Exporting..." : "Export CSV"}
+            </button>
           </div>
         )}
 

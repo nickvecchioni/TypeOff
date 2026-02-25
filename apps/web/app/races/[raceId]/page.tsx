@@ -2,10 +2,12 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getDb } from "@/lib/db";
 import { races, raceParticipants, users } from "@typeoff/db";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { ReplayClient } from "@/components/replay/ReplayClient";
 
 export const dynamic = "force-dynamic";
+
+const FREE_REPLAY_LIMIT = 3;
 
 export default async function ReplayPage({
   params,
@@ -26,6 +28,21 @@ export default async function ReplayPage({
     .limit(1);
 
   if (!race) notFound();
+
+  // Free users can view replays for their last N races
+  let replayLocked = false;
+  if (!isPro && session?.user?.id) {
+    const recentRaces = await db
+      .select({ raceId: raceParticipants.raceId })
+      .from(raceParticipants)
+      .where(eq(raceParticipants.userId, session.user.id))
+      .orderBy(desc(raceParticipants.finishedAt))
+      .limit(FREE_REPLAY_LIMIT);
+    const recentIds = new Set(recentRaces.map((r) => r.raceId));
+    replayLocked = !recentIds.has(raceId);
+  } else if (!isPro && !session?.user?.id) {
+    replayLocked = true;
+  }
 
   const participantRows = await db
     .select({
@@ -61,7 +78,7 @@ export default async function ReplayPage({
 
   return (
     <main className="flex flex-col items-center px-4 py-8 sm:py-12 min-h-[60vh]">
-      {hasReplayData && !isPro ? (
+      {hasReplayData && replayLocked ? (
         <div className="flex flex-col items-center gap-6 text-center max-w-sm py-4">
           <div className="w-14 h-14 rounded-2xl bg-accent/10 ring-1 ring-accent/20 flex items-center justify-center text-2xl">
             ▶

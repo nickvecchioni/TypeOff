@@ -11,7 +11,8 @@ import { RaceManager } from "./race-manager.js";
 import type { RaceOwner } from "./race-manager.js";
 import type { SocialManager } from "./social-manager.js";
 import type { NotificationManager } from "./notification-manager.js";
-import { createDb, users, userStats } from "@typeoff/db";
+import { users, userStats } from "@typeoff/db";
+import { getDb } from "./db.js";
 import { eq } from "drizzle-orm";
 
 type TypedServer = Server<ClientToServerEvents, ServerToClientEvents>;
@@ -176,7 +177,7 @@ export class Matchmaker implements RaceOwner {
 
   handleProgress(
     socketId: string,
-    data: { wordIndex: number; charIndex: number; wpm: number; progress: number },
+    data: { wordIndex: number; charIndex: number; wpm: number; progress: number; finalStats?: { wpm: number; rawWpm: number; accuracy: number; misstypedChars?: number } },
     userId?: string,
   ) {
     let raceId = this.socketToRace.get(socketId);
@@ -339,7 +340,7 @@ export class Matchmaker implements RaceOwner {
   private async getPlayerData(userId: string) {
     const start = Date.now();
     try {
-      const db = createDb(process.env.DATABASE_URL!);
+      const db = getDb();
       const result = await Promise.race([
         db
           .select({ racesPlayed: userStats.racesPlayed, placementsCompleted: users.placementsCompleted })

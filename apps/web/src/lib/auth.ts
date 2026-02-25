@@ -24,7 +24,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      allowDangerousEmailAccountLinking: true,
     }),
     Credentials({
       id: "credentials",
@@ -104,7 +103,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           .from(userSubscription)
           .where(eq(userSubscription.userId, token.id as string))
           .limit(1);
-        token.isPro = sub?.status === "active" || sub?.status === "lifetime";
+        token.isPro = sub?.status === "active" || sub?.status === "lifetime" || sub?.status === "past_due";
 
         const [cosmetics] = await db
           .select({

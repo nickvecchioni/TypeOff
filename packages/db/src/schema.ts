@@ -84,69 +84,90 @@ export const races = pgTable("races", {
   finishedAt: timestamp("finished_at", { mode: "date" }),
 });
 
-export const raceParticipants = pgTable("race_participants", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  raceId: uuid("race_id")
-    .notNull()
-    .references(() => races.id, { onDelete: "cascade" }),
-  userId: text("user_id").references(() => users.id, { onDelete: "set null" }),
-  guestName: text("guest_name"),
-  placement: integer("placement"),
-  wpm: real("wpm"),
-  rawWpm: real("raw_wpm"),
-  accuracy: real("accuracy"),
-  finishedAt: timestamp("finished_at", { mode: "date" }),
-  eloBefore: integer("elo_before"),
-  eloAfter: integer("elo_after"),
-  flagged: boolean("flagged").notNull().default(false),
-  flagReason: text("flag_reason"),
-  wpmHistory: text("wpm_history"), // JSON: WpmSample[]
-  replayData: text("replay_data"), // JSON: ReplaySnapshot[]
-  pp: real("pp"),
-});
+export const raceParticipants = pgTable(
+  "race_participants",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    raceId: uuid("race_id")
+      .notNull()
+      .references(() => races.id, { onDelete: "cascade" }),
+    userId: text("user_id").references(() => users.id, { onDelete: "set null" }),
+    guestName: text("guest_name"),
+    placement: integer("placement"),
+    wpm: real("wpm"),
+    rawWpm: real("raw_wpm"),
+    accuracy: real("accuracy"),
+    finishedAt: timestamp("finished_at", { mode: "date" }),
+    eloBefore: integer("elo_before"),
+    eloAfter: integer("elo_after"),
+    flagged: boolean("flagged").notNull().default(false),
+    flagReason: text("flag_reason"),
+    wpmHistory: text("wpm_history"), // JSON: WpmSample[]
+    replayData: text("replay_data"), // JSON: ReplaySnapshot[]
+    pp: real("pp"),
+  },
+  (t) => [
+    index("race_participants_race_id_idx").on(t.raceId),
+    index("race_participants_user_id_idx").on(t.userId),
+  ],
+);
 
 // ─── Friendship Tables ──────────────────────────────────────────────
 
-export const friendships = pgTable("friendships", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  requesterId: text("requester_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  addresseeId: text("addressee_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  status: text("status").notNull().default("pending"), // "pending" | "accepted" | "declined"
-  createdAt: timestamp("created_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
-  updatedAt: timestamp("updated_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
-});
+export const friendships = pgTable(
+  "friendships",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    requesterId: text("requester_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    addresseeId: text("addressee_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    status: text("status").notNull().default("pending"), // "pending" | "accepted" | "declined"
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().$defaultFn(() => new Date()),
+  },
+  (t) => [
+    index("friendships_requester_id_idx").on(t.requesterId),
+    index("friendships_addressee_id_idx").on(t.addresseeId),
+  ],
+);
 
 // ─── Solo Results ──────────────────────────────────────────────────
 
-export const soloResults = pgTable("solo_results", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  mode: text("mode").notNull(), // "timed" | "wordcount"
-  duration: integer("duration").notNull(), // seconds for timed, word count for wordcount
-  wordPool: text("word_pool"), // "common" | "language" | "punctuation" | null
-  wpm: real("wpm").notNull(),
-  rawWpm: real("raw_wpm").notNull(),
-  accuracy: real("accuracy").notNull(),
-  correctChars: integer("correct_chars").notNull(),
-  incorrectChars: integer("incorrect_chars").notNull(),
-  extraChars: integer("extra_chars").notNull(),
-  totalChars: integer("total_chars").notNull(),
-  time: integer("time").notNull(), // actual elapsed seconds
-  isPb: boolean("is_pb").notNull().default(false),
-  consistency: real("consistency"),
-  keyStatsJson: text("key_stats_json"),
-  replayData: text("replay_data"), // JSON: ReplaySnapshot[]
-  seed: integer("seed"),
-  createdAt: timestamp("created_at", { mode: "date" })
-    .notNull()
-    .$defaultFn(() => new Date()),
-});
+export const soloResults = pgTable(
+  "solo_results",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    mode: text("mode").notNull(), // "timed" | "wordcount"
+    duration: integer("duration").notNull(), // seconds for timed, word count for wordcount
+    wordPool: text("word_pool"), // "common" | "language" | "punctuation" | null
+    wpm: real("wpm").notNull(),
+    rawWpm: real("raw_wpm").notNull(),
+    accuracy: real("accuracy").notNull(),
+    correctChars: integer("correct_chars").notNull(),
+    incorrectChars: integer("incorrect_chars").notNull(),
+    extraChars: integer("extra_chars").notNull(),
+    totalChars: integer("total_chars").notNull(),
+    time: integer("time").notNull(), // actual elapsed seconds
+    isPb: boolean("is_pb").notNull().default(false),
+    consistency: real("consistency"),
+    keyStatsJson: text("key_stats_json"),
+    replayData: text("replay_data"), // JSON: ReplaySnapshot[]
+    seed: integer("seed"),
+    createdAt: timestamp("created_at", { mode: "date" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (t) => [
+    index("solo_results_user_id_idx").on(t.userId),
+    index("solo_results_user_created_idx").on(t.userId, t.createdAt),
+  ],
+);
 
 // ─── Key Accuracy (cumulative per-user per-key stats) ───────────────
 
@@ -200,17 +221,25 @@ export const userBlocks = pgTable(
 
 // ─── Direct Messages ────────────────────────────────────────────────
 
-export const directMessages = pgTable("direct_messages", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  senderId: text("sender_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  receiverId: text("receiver_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  content: text("content").notNull(),
-  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
-});
+export const directMessages = pgTable(
+  "direct_messages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    senderId: text("sender_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    receiverId: text("receiver_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    content: text("content").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("direct_messages_sender_id_idx").on(t.senderId),
+    index("direct_messages_receiver_id_idx").on(t.receiverId),
+    index("direct_messages_created_at_idx").on(t.createdAt),
+  ],
+);
 
 // ─── Achievements ───────────────────────────────────────────────────
 
@@ -307,35 +336,48 @@ export const userCosmetics = pgTable(
 
 // ─── Notifications ──────────────────────────────────────────────
 
-export const notifications = pgTable("notifications", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  type: text("type").notNull(), // "friend_request" | "achievement" | "challenge_complete" | "rank_up" | "rank_down"
-  title: text("title").notNull(),
-  body: text("body").notNull(),
-  metadata: text("metadata"), // JSON-stringified
-  actionUrl: text("action_url"),
-  read: boolean("read").notNull().default(false),
-  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
-});
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    type: text("type").notNull(), // "friend_request" | "achievement" | "challenge_complete" | "rank_up" | "rank_down"
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    metadata: text("metadata"), // JSON-stringified
+    actionUrl: text("action_url"),
+    read: boolean("read").notNull().default(false),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("notifications_user_id_idx").on(t.userId),
+    index("notifications_user_created_idx").on(t.userId, t.createdAt),
+  ],
+);
 
 // ─── Pro Subscription ──────────────────────────────────────────────
 
-export const userSubscription = pgTable("user_subscription", {
-  userId: text("user_id")
-    .primaryKey()
-    .references(() => users.id, { onDelete: "cascade" }),
-  stripeCustomerId: text("stripe_customer_id").notNull(),
-  stripeSubscriptionId: text("stripe_subscription_id"),
-  stripePriceId: text("stripe_price_id"),
-  status: text("status").notNull().default("inactive"), // "active" | "past_due" | "canceled" | "inactive"
-  currentPeriodEnd: timestamp("current_period_end", { mode: "date" }),
-  cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
-  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
-});
+export const userSubscription = pgTable(
+  "user_subscription",
+  {
+    userId: text("user_id")
+      .primaryKey()
+      .references(() => users.id, { onDelete: "cascade" }),
+    stripeCustomerId: text("stripe_customer_id").notNull(),
+    stripeSubscriptionId: text("stripe_subscription_id"),
+    stripePriceId: text("stripe_price_id"),
+    status: text("status").notNull().default("inactive"), // "active" | "past_due" | "canceled" | "inactive"
+    currentPeriodEnd: timestamp("current_period_end", { mode: "date" }),
+    cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("user_subscription_stripe_customer_id_idx").on(t.stripeCustomerId),
+  ],
+);
 
 export const userActiveCosmetics = pgTable("user_active_cosmetics", {
   userId: text("user_id")
@@ -371,7 +413,10 @@ export const textLeaderboards = pgTable(
       .notNull()
       .$defaultFn(() => new Date()),
   },
-  (t) => [unique().on(t.textHash, t.userId)],
+  (t) => [
+    unique().on(t.textHash, t.userId),
+    index("text_leaderboards_user_id_idx").on(t.userId),
+  ],
 );
 
 // ─── Bigram Accuracy ─────────────────────────────────────────────

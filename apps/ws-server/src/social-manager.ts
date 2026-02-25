@@ -3,7 +3,8 @@ import type {
   ClientToServerEvents,
   ServerToClientEvents,
 } from "@typeoff/shared";
-import { createDb, friendships, users } from "@typeoff/db";
+import { friendships, users } from "@typeoff/db";
+import { getDb } from "./db.js";
 import { eq, or, and, inArray } from "drizzle-orm";
 
 type TypedServer = Server<ClientToServerEvents, ServerToClientEvents>;
@@ -86,7 +87,7 @@ export class SocialManager {
 
   async getFriendsStatus(userId: string): Promise<Array<{ userId: string; online: boolean; lastSeen?: string | null }>> {
     try {
-      const db = createDb(process.env.DATABASE_URL!);
+      const db = getDb();
       const rows = await db
         .select()
         .from(friendships)
@@ -134,7 +135,7 @@ export class SocialManager {
 
   private async updateLastSeen(userId: string) {
     try {
-      const db = createDb(process.env.DATABASE_URL!);
+      const db = getDb();
       await db.update(users).set({ lastSeen: new Date() }).where(eq(users.id, userId));
     } catch (err) {
       console.error("[social-manager] updateLastSeen error:", err);
@@ -146,7 +147,7 @@ export class SocialManager {
       const onlineUserIds = [...this.onlineUsers.keys()];
       if (onlineUserIds.length === 0) return;
       try {
-        const db = createDb(process.env.DATABASE_URL!);
+        const db = getDb();
         await db.update(users).set({ lastSeen: new Date() }).where(inArray(users.id, onlineUserIds));
       } catch (err) {
         console.error("[social-manager] heartbeat error:", err);
@@ -156,7 +157,7 @@ export class SocialManager {
 
   private async notifyFriends(userId: string, online: boolean) {
     try {
-      const db = createDb(process.env.DATABASE_URL!);
+      const db = getDb();
       const rows = await db
         .select()
         .from(friendships)

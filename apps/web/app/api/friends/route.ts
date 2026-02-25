@@ -5,6 +5,9 @@ export const dynamic = "force-dynamic";
 import { getDb } from "@/lib/db";
 import { friendships, users, notifications } from "@typeoff/db";
 import { eq, or, and } from "drizzle-orm";
+import { createRateLimit } from "@/lib/rate-limit";
+
+const friendRequestLimit = createRateLimit({ windowMs: 60_000, max: 5 });
 
 // GET — list accepted friends
 export async function GET() {
@@ -99,6 +102,11 @@ export async function POST(request: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { limited, retryAfter } = friendRequestLimit.check(session.user.id);
+  if (limited) {
+    return NextResponse.json({ error: "Too many requests", retryAfter }, { status: 429 });
   }
 
   const body = await request.json();

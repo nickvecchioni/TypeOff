@@ -17,6 +17,7 @@ export interface RacePlayer {
   name: string;
   isGuest: boolean;
   elo: number;
+  isPro?: boolean;
   activeBadge?: string | null;
   activeNameColor?: string | null;
   activeNameEffect?: string | null;
@@ -71,6 +72,10 @@ export interface ClientToServerEvents {
     charIndex: number;
     wpm: number;
     progress: number;
+    /** Piggybacked finish stats — sent with progress=1 so the server's
+     *  auto-finish safety net can use accurate WPM even if the separate
+     *  raceFinish event is lost. */
+    finalStats?: { wpm: number; rawWpm: number; accuracy: number; misstypedChars?: number };
   }) => void;
   raceFinish: (data: {
     wpm: number;
@@ -153,9 +158,11 @@ export interface ServerToClientEvents {
           value: string;
         }>;
       };
+      isPro?: boolean;
       activeBadge?: string | null;
       activeNameColor?: string | null;
       activeNameEffect?: string | null;
+      level?: number;
       previousBestWpm?: number;
     }>;
     placementRace?: number;

@@ -45,7 +45,7 @@ export async function checkXpRewards(
       .limit(1),
   ]);
 
-  const isPro = sub?.status === "active";
+  const isPro = sub?.status === "active" || sub?.status === "lifetime" || sub?.status === "past_due";
 
   const baseXp = calculateRaceXp({
     wpm: ctx.raceWpm,

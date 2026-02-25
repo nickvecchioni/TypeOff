@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import type { RaceResult } from "@/hooks/useRace";
-import type { RankTier, WpmSample } from "@typeoff/shared";
+import type { RankTier, WpmSample, KeyStatsMap } from "@typeoff/shared";
 import {
   getRankInfo,
   ACHIEVEMENT_MAP,
@@ -21,6 +21,7 @@ import {
 } from "@typeoff/shared";
 import type { EmoteKey } from "@typeoff/shared";
 import { WpmChart } from "@/components/typing/WpmChart";
+import { KeyboardHeatmap } from "@/components/typing/KeyboardHeatmap";
 import type { AchievementRarity, PartyState } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
 import { CosmeticName } from "@/components/CosmeticName";
@@ -44,6 +45,7 @@ interface RaceResultsProps {
   placementTotal?: number;
   rankChange?: RankChange | null;
   myWpmHistory?: WpmSample[];
+  myKeyStats?: KeyStatsMap;
   party?: PartyState | null;
   onMarkReady?: () => void;
   raceId?: string | null;
@@ -723,6 +725,7 @@ export function RaceResults({
   placementTotal,
   rankChange,
   myWpmHistory,
+  myKeyStats,
   party,
   onMarkReady,
   raceId,
@@ -1063,6 +1066,11 @@ export function RaceResults({
                         {result.level}
                       </span>
                     )}
+                    {!isBot && result.isPro && (
+                      <span className="text-[9px] font-bold text-accent/60 bg-accent/[0.08] rounded px-1.5 py-0.5 shrink-0 uppercase tracking-wider">
+                        Pro
+                      </span>
+                    )}
                     {isBot && (
                       <span className="text-[10px] text-muted/70 bg-white/[0.06] rounded px-1.5 py-0.5 shrink-0 uppercase tracking-wider font-semibold">
                         Bot
@@ -1196,6 +1204,44 @@ export function RaceResults({
           <div className="w-full" style={{ aspectRatio: "5 / 1" }}>
             <WpmChart samples={myWpmHistory} compact />
           </div>
+        </div>
+      )}
+
+      {/* ── TYPING ANALYSIS (Pro-gated) ───────────────────── */}
+      {isPro && myKeyStats && Object.keys(myKeyStats).length > 0 && (
+        <div
+          className="w-full rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 pt-2 pb-3 flex flex-col gap-2"
+          style={{ animation: "fade-in 0.3s ease-out 0.12s both" }}
+        >
+          <div className="flex items-center justify-between">
+            <div className="text-[10px] font-bold text-muted/50 uppercase tracking-widest">Typing Analysis</div>
+            <span className="text-[8px] font-black text-accent/50 bg-accent/[0.06] ring-1 ring-accent/15 rounded px-1.5 py-0.5 uppercase tracking-wider leading-none">
+              PRO
+            </span>
+          </div>
+          <KeyboardHeatmap keyStats={myKeyStats} />
+          {myResult && (
+            <div className="flex items-center gap-4 text-xs text-muted/70 tabular-nums mt-1">
+              {(() => {
+                const totalCorrect = Object.values(myKeyStats).reduce((s, k) => s + k.correct, 0);
+                const totalAll = Object.values(myKeyStats).reduce((s, k) => s + k.total, 0);
+                const totalIncorrect = totalAll - totalCorrect;
+                return (
+                  <>
+                    <span>
+                      <span className="text-correct font-semibold">{totalCorrect}</span> correct
+                    </span>
+                    <span>
+                      <span className="text-error font-semibold">{totalIncorrect}</span> incorrect
+                    </span>
+                    <span>
+                      <span className="text-text font-semibold">{totalAll}</span> total
+                    </span>
+                  </>
+                );
+              })()}
+            </div>
+          )}
         </div>
       )}
 

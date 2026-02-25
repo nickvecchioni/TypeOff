@@ -7,7 +7,7 @@ import { eq, desc, lt, and, gte, lte, sql } from "drizzle-orm";
 export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 20;
-const FREE_LIMIT = 5;
+const FREE_LIMIT = 10;
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -22,14 +22,19 @@ export async function GET(req: NextRequest) {
   const minWpm = params.get("minWpm") ? Number(params.get("minWpm")) : undefined;
   const dateFrom = params.get("dateFrom");
   const dateTo = params.get("dateTo");
+  const isExport = params.get("export") === "true";
+
+  if (isExport && !isPro) {
+    return NextResponse.json({ error: "Pro required" }, { status: 403 });
+  }
 
   const db = getDb();
-  const limit = isPro ? PAGE_SIZE : FREE_LIMIT;
+  const limit = isExport ? undefined : (isPro ? PAGE_SIZE : FREE_LIMIT);
 
   // Build conditions
   const conditions = [eq(raceParticipants.userId, session.user.id)];
 
-  if (cursor) {
+  if (cursor && !isExport) {
     conditions.push(lt(raceParticipants.finishedAt, new Date(cursor)));
   }
   if (minWpm != null && !isNaN(minWpm)) {
@@ -52,7 +57,7 @@ export async function GET(req: NextRequest) {
           ? desc(sql`${raceParticipants.eloAfter} - ${raceParticipants.eloBefore}`)
           : desc(raceParticipants.finishedAt);
 
-  const rows = await db
+  const query = db
     .select({
       raceId: raceParticipants.raceId,
       placement: raceParticipants.placement,
@@ -69,11 +74,14 @@ export async function GET(req: NextRequest) {
     .from(raceParticipants)
     .innerJoin(races, eq(raceParticipants.raceId, races.id))
     .where(and(...conditions))
-    .orderBy(orderBy)
-    .limit(limit + 1);
+    .orderBy(orderBy);
 
-  const hasMore = rows.length > limit;
-  const raceRows = rows.slice(0, limit);
+  const rows = limit != null
+    ? await query.limit(limit + 1)
+    : await query;
+
+  const hasMore = limit != null && rows.length > limit;
+  const raceRows = limit != null ? rows.slice(0, limit) : rows;
   const nextCursor = hasMore && raceRows.length > 0
     ? raceRows[raceRows.length - 1].finishedAt?.toISOString()
     : undefined;

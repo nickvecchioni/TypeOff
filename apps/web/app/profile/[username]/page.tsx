@@ -61,6 +61,11 @@ export default async function ProfilePage({
   if (userRows.length === 0) return notFound();
   const user = userRows[0];
 
+  // Load session early (needed for Pro-gated race limit)
+  const { auth } = await import("@/lib/auth");
+  const session = await auth();
+  const isOwn = session?.user?.id === user.id;
+
   // Load stats
   const statsRows = await db
     .select()
@@ -69,7 +74,9 @@ export default async function ProfilePage({
     .limit(1);
   const stats = statsRows[0] ?? null;
 
-  // Load recent races (last 50)
+  // Load recent races (10 for free users, 50 for Pro — full archive lives on /history)
+  const viewerIsPro = session?.user?.isPro ?? false;
+  const raceLimit = viewerIsPro ? 50 : 10;
   const recentRaces = await db
     .select({
       raceId: raceParticipants.raceId,
@@ -87,7 +94,7 @@ export default async function ProfilePage({
     .innerJoin(races, eq(raceParticipants.raceId, races.id))
     .where(eq(raceParticipants.userId, user.id))
     .orderBy(desc(raceParticipants.finishedAt))
-    .limit(50);
+    .limit(raceLimit);
 
   // Load achievements
   const achievementRows = await db
@@ -180,11 +187,6 @@ export default async function ProfilePage({
     activityMap[row.date] = (activityMap[row.date] ?? 0) + Number(row.count);
   }
   const activityData = Object.entries(activityMap).map(([date, count]) => ({ date, count }));
-
-  // Check if this is own profile
-  const { auth } = await import("@/lib/auth");
-  const session = await auth();
-  const isOwn = session?.user?.id === user.id;
 
   // Build chart data from races with complete info
   const chartData = recentRaces

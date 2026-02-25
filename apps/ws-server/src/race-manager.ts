@@ -12,7 +12,9 @@ import type {
 import { calculateRaceElo, getRankTier, generateWordsForMode, quotes, EMOTE_KEYS, scoreTextDifficulty, calculatePP, calculateTotalPP, CHALLENGE_MAP, ACHIEVEMENT_MAP, getXpLevel } from "@typeoff/shared";
 import type { RankTier, RaceMode, ModeCategory, ReplaySnapshot } from "@typeoff/shared";
 import type { NotificationManager } from "./notification-manager.js";
-import { createDb, races, raceParticipants, userStats, userModeStats, users, userActiveCosmetics, textLeaderboards } from "@typeoff/db";
+import { races, raceParticipants, userStats, userModeStats, users, userActiveCosmetics, textLeaderboards } from "@typeoff/db";
+import type { Database } from "@typeoff/db";
+import { getDb } from "./db.js";
 import { eq, inArray, and, sql, desc } from "drizzle-orm";
 import { checkAchievements } from "./achievement-checker.js";
 import { checkChallenges, type ChallengeCheckResult } from "./challenge-checker.js";
@@ -228,6 +230,10 @@ export class RaceManager {
     this.status = "countdown";
     let countdown = COUNTDOWN_SECONDS;
 
+    // Log player map keys for diagnostics
+    const playerKeys = [...this.players.entries()].map(([k, e]) => `${k}(${e.player.id},bot=${e.isBot})`);
+    console.log(`[race-manager] start race=${this.raceId} players=[${playerKeys.join(", ")}]`);
+
     // Join all sockets to a room (skip bots)
     for (const entry of this.players.values()) {
       entry.socket?.join(this.raceId);
@@ -263,7 +269,7 @@ export class RaceManager {
 
   handleProgress(
     socketId: string,
-    data: { wordIndex: number; charIndex: number; wpm: number; progress: number }
+    data: { wordIndex: number; charIndex: number; wpm: number; progress: number; finalStats?: { wpm: number; rawWpm: number; accuracy: number; misstypedChars?: number } }
   ) {
     let entry = this.players.get(socketId);
     if (!entry) {
@@ -297,7 +303,13 @@ export class RaceManager {
           }
         }
       }
-      if (!entry) return;
+      if (!entry) {
+        console.warn(
+          `[race-manager] handleProgress: no player entry for socketId=${socketId} race=${this.raceId} ` +
+          `(players: ${[...this.players.keys()].join(", ")}, status=${this.status})`,
+        );
+        return;
+      }
     }
     if (this.status !== "racing" || entry.progress.finished) return;
 
@@ -320,14 +332,14 @@ export class RaceManager {
     // event was never received (e.g. client-side finish detection failed, socket
     // reconnected with new id dropping the event, etc.)
     if (validated.progress >= 1 && !entry.progress.finished && validated.wpm > 0) {
+      // Use piggybacked finalStats if available (more accurate than progress-event WPM)
+      const finishData = data.finalStats && data.finalStats.wpm > 0
+        ? { wpm: data.finalStats.wpm, rawWpm: data.finalStats.rawWpm, accuracy: data.finalStats.accuracy, misstypedChars: data.finalStats.misstypedChars }
+        : { wpm: validated.wpm, rawWpm: validated.wpm, accuracy: 100 };
       console.log(
-        `[race-manager] Auto-finishing player ${entry.player.id} via progress safety net (progress=${validated.progress}, wpm=${validated.wpm})`,
+        `[race-manager] Auto-finishing player ${entry.player.id} via progress safety net (progress=${validated.progress}, wpm=${finishData.wpm}, hadFinalStats=${!!data.finalStats})`,
       );
-      this.handleFinish(socketId, {
-        wpm: validated.wpm,
-        rawWpm: validated.wpm,
-        accuracy: 100,
-      });
+      this.handleFinish(socketId, finishData);
     }
   }
 
@@ -792,10 +804,18 @@ export class RaceManager {
     for (const entry of this.players.values()) {
       progress[entry.player.id] = entry.progress;
     }
-    this.io.to(this.raceId).emit("raceProgress", {
+    const payload = {
       progress,
       ...(this.finishTimeoutEnd != null ? { finishTimeoutEnd: this.finishTimeoutEnd } : {}),
-    });
+    };
+    this.io.to(this.raceId).emit("raceProgress", payload);
+    // Also emit directly to each connected socket — ensures delivery even if
+    // the socket is no longer in the room (e.g. after a reconnect race condition).
+    for (const entry of this.players.values()) {
+      if (entry.socket?.connected && !entry.isBot) {
+        entry.socket.emit("raceProgress", payload);
+      }
+    }
 
     // Safety net 1: auto-finish players with high progress who stopped sending events.
     // Catches the case where both raceFinish AND the progress=1 event were dropped
@@ -906,8 +926,16 @@ export class RaceManager {
         : {}),
     };
 
-    // Send results to clients IMMEDIATELY — don't wait for DB
+    // Send results to clients IMMEDIATELY — don't wait for DB.
+    // Emit both to the room AND directly to each player's socket.
+    // Direct emission ensures delivery even if the socket left the room
+    // during a brief disconnect/reconnect cycle.
     this.io.to(this.raceId).emit("raceFinished", immediatePayload);
+    for (const entry of this.players.values()) {
+      if (entry.socket?.connected) {
+        entry.socket.emit("raceFinished", immediatePayload);
+      }
+    }
 
     // Re-send immediate results a few times in case the first emission was dropped
     // by a transient network blip. The client's handler merges idempotently.
@@ -915,6 +943,12 @@ export class RaceManager {
     const rebroadcastTimer = setInterval(() => {
       rebroadcastCount++;
       this.io.to(this.raceId).emit("raceFinished", immediatePayload);
+      // Also emit directly to connected sockets
+      for (const entry of this.players.values()) {
+        if (entry.socket?.connected) {
+          entry.socket.emit("raceFinished", immediatePayload);
+        }
+      }
       if (rebroadcastCount >= 3) clearInterval(rebroadcastTimer);
     }, 500);
 
@@ -930,6 +964,12 @@ export class RaceManager {
         };
         // Send enriched results so clients can update with ELO changes, achievements, etc.
         this.io.to(this.raceId).emit("raceFinished", enrichedPayload);
+        // Also emit directly to each socket for reliability
+        for (const entry of this.players.values()) {
+          if (entry.socket?.connected) {
+            entry.socket.emit("raceFinished", enrichedPayload);
+          }
+        }
       })
       .catch((err) => {
         console.error("[race-manager] persistResults failed:", err);
@@ -987,7 +1027,7 @@ export class RaceManager {
     const cosmeticsMap = new Map<string, { activeBadge: string | null; activeNameColor: string | null; activeNameEffect: string | null }>();
     const previousBestWpmMap = new Map<string, number>();
 
-    const db = createDb(process.env.DATABASE_URL!);
+    const db = getDb();
 
     // Steps 1-3: race insert, participants, stats, ELO
     try {
@@ -1180,30 +1220,39 @@ export class RaceManager {
 
         const changes = calculateRaceElo(eloInput);
 
-        // Only apply ELO changes to real players
+        // Apply ELO changes atomically with SQL expressions to prevent lost updates
         for (const [userId, change] of changes) {
           if (botEntries.some((b) => b.player.id === userId)) continue;
           eloChanges.set(userId, change);
 
-          const user = userMap.get(userId);
-          const currentElo = user?.eloRating ?? 1000;
-          const newElo = Math.max(0, currentElo + change);
-          const peakElo = user?.peakEloRating ?? 1000;
-
-          // Update users table directly
-          const updateData: Record<string, unknown> = {
-            eloRating: newElo,
-            rankTier: getRankTier(newElo),
-          };
-          if (newElo > peakElo) {
-            updateData.peakEloRating = newElo;
-            updateData.peakRankTier = getRankTier(newElo);
-          }
-          await db
+          const [updated] = await db
             .update(users)
-            .set(updateData)
-            .where(eq(users.id, userId));
+            .set({
+              eloRating: sql`GREATEST(0, ${users.eloRating} + ${change})`,
+              rankTier: sql`CASE
+                WHEN GREATEST(0, ${users.eloRating} + ${change}) >= 2500 THEN 'grandmaster'
+                WHEN GREATEST(0, ${users.eloRating} + ${change}) >= 2000 THEN 'master'
+                WHEN GREATEST(0, ${users.eloRating} + ${change}) >= 1750 THEN 'diamond'
+                WHEN GREATEST(0, ${users.eloRating} + ${change}) >= 1500 THEN 'platinum'
+                WHEN GREATEST(0, ${users.eloRating} + ${change}) >= 1250 THEN 'gold'
+                WHEN GREATEST(0, ${users.eloRating} + ${change}) >= 1000 THEN 'silver'
+                ELSE 'bronze'
+              END`,
+              peakEloRating: sql`GREATEST(${users.peakEloRating}, GREATEST(0, ${users.eloRating} + ${change}))`,
+              peakRankTier: sql`CASE
+                WHEN GREATEST(${users.peakEloRating}, GREATEST(0, ${users.eloRating} + ${change})) >= 2500 THEN 'grandmaster'
+                WHEN GREATEST(${users.peakEloRating}, GREATEST(0, ${users.eloRating} + ${change})) >= 2000 THEN 'master'
+                WHEN GREATEST(${users.peakEloRating}, GREATEST(0, ${users.eloRating} + ${change})) >= 1750 THEN 'diamond'
+                WHEN GREATEST(${users.peakEloRating}, GREATEST(0, ${users.eloRating} + ${change})) >= 1500 THEN 'platinum'
+                WHEN GREATEST(${users.peakEloRating}, GREATEST(0, ${users.eloRating} + ${change})) >= 1250 THEN 'gold'
+                WHEN GREATEST(${users.peakEloRating}, GREATEST(0, ${users.eloRating} + ${change})) >= 1000 THEN 'silver'
+                ELSE 'bronze'
+              END`,
+            })
+            .where(eq(users.id, userId))
+            .returning({ eloRating: users.eloRating });
 
+          const newElo = updated?.eloRating ?? 1000;
           eloAfterMap.set(userId, newElo);
         }
 
@@ -1229,13 +1278,12 @@ export class RaceManager {
 
         // Update participant records with elo data
         for (const entry of authPlayers) {
-          const user = userMap.get(entry.player.id);
-          const currentElo = user?.eloRating ?? 1000;
           const change = eloChanges.get(entry.player.id) ?? 0;
-          const newElo = Math.max(0, currentElo + change);
+          const newElo = eloAfterMap.get(entry.player.id) ?? entry.player.elo;
+          const eloBefore = newElo - change; // derive pre-race ELO from the atomic result
           await db
             .update(raceParticipants)
-            .set({ eloBefore: currentElo, eloAfter: newElo })
+            .set({ eloBefore, eloAfter: newElo })
             .where(
               and(
                 eq(raceParticipants.raceId, this.raceId),
@@ -1528,7 +1576,7 @@ export class RaceManager {
   }
 
   /** Calibrate initial ELO after placement races */
-  private async calibratePlacement(db: ReturnType<typeof createDb>, userId: string) {
+  private async calibratePlacement(db: Database, userId: string) {
     // Get avg WPM from this player's recent races
     const recentResults = await db
       .select({ wpm: raceParticipants.wpm })

@@ -2,18 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { users } from "@typeoff/db";
 import { desc, isNotNull } from "drizzle-orm";
+import { validateAdminSecret } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
-function validateSecret(secret: unknown): boolean {
-  const expected = process.env.ADMIN_SECRET;
-  if (!expected || typeof secret !== "string") return false;
-  return secret === expected;
-}
-
 export async function GET(req: NextRequest) {
-  const secret = req.nextUrl.searchParams.get("adminSecret");
-  if (!validateSecret(secret)) {
+  const secret = req.headers.get("authorization")?.replace("Bearer ", "");
+  if (!validateAdminSecret(secret)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

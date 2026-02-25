@@ -3,8 +3,13 @@ import { auth } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { textLeaderboards, users } from "@typeoff/db";
 import { eq, and, desc, sql } from "drizzle-orm";
+import { generateWordsForMode, scoreTextDifficulty, calculatePP } from "@typeoff/shared";
+import type { RaceMode } from "@typeoff/shared";
+import { createRateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
+
+const postLimit = createRateLimit({ windowMs: 5_000, max: 1 });
 
 // GET — returns top entries for a specific text (seed + mode)
 export async function GET(req: NextRequest) {
@@ -45,12 +50,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const { limited, retryAfter } = postLimit.check(session.user.id);
+  if (limited) {
+    return NextResponse.json({ error: "Too many requests", retryAfter }, { status: 429 });
+  }
+
   const body = await req.json();
-  const { seed, mode, wpm, accuracy, raceId, pp, textDifficulty } = body;
+  const { seed, mode, wpm, accuracy, raceId } = body;
 
   if (!seed || !mode || wpm == null || accuracy == null) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
+
+  // Compute PP server-side from the deterministic word list
+  const words = generateWordsForMode(mode as RaceMode, Number(seed));
+  const difficulty = scoreTextDifficulty(words);
+  const computedPP = calculatePP(wpm, accuracy, difficulty.score);
 
   const textHash = `${seed}:${mode}`;
   const db = getDb();
@@ -66,8 +81,8 @@ export async function POST(req: NextRequest) {
       bestWpm: wpm,
       bestAccuracy: accuracy,
       bestRaceId: raceId ?? null,
-      pp: pp ?? 0,
-      textDifficulty: textDifficulty ?? 1,
+      pp: computedPP,
+      textDifficulty: difficulty.score,
     })
     .onConflictDoUpdate({
       target: [textLeaderboards.textHash, textLeaderboards.userId],

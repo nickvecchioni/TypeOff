@@ -27,6 +27,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
+  try {
   const db = getDb();
 
   switch (event.type) {
@@ -267,6 +268,10 @@ export async function POST(request: Request) {
       }
       break;
     }
+  }
+
+  } catch (err) {
+    console.error("[stripe-webhook] handler error:", err);
   }
 
   return NextResponse.json({ received: true });

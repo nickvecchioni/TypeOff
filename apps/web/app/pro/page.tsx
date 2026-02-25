@@ -24,9 +24,9 @@ const FREE_REWARD_COUNT = TOTAL_REWARD_COUNT - PRO_REWARD_COUNT;
 const COMPARISON_ROWS: { feature: string; desc?: string; free: boolean | string; pro: boolean | string }[] = [
   { feature: "Smart Practice",      desc: "AI-generated drills targeting your weakest keys",          free: false,                             pro: true },
   { feature: "Advanced Analytics",  desc: "Per-key heatmaps, bigram breakdown, WPM trends",          free: false,                             pro: true },
-  { feature: "Race Replays",        desc: "Rewatch any race keystroke by keystroke",                  free: false,                             pro: true },
+  { feature: "Race Replays",        desc: "Rewatch any race keystroke by keystroke",                  free: "Last 3",                          pro: "Unlimited" },
   { feature: "Custom Text Mode",    desc: "Practice with your own text or code snippets",             free: false,                             pro: true },
-  { feature: "Race History",        desc: "Browse and filter your past race results",                 free: "Last 20",                         pro: "Full Archive" },
+  { feature: "Race History",        desc: "Browse and filter your past race results",                 free: "Last 10",                         pro: "Full Archive" },
   { feature: "XP Multiplier",       desc: "Earn XP faster to unlock cosmetics sooner",                free: "1×",                              pro: "1.5×" },
   { feature: "Level Rewards",       desc: "Exclusive themes, cursors, effects, and more",             free: `${FREE_REWARD_COUNT} cosmetics`,  pro: `All ${TOTAL_REWARD_COUNT}` },
   { feature: "Ranked Racing",       desc: "Compete in ELO-rated matches with skill-based matchmaking", free: true,                              pro: true },

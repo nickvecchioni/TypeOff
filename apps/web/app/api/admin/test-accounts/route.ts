@@ -2,20 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { users } from "@typeoff/db";
 import { eq, isNull } from "drizzle-orm";
+import { validateAdminSecret } from "@/lib/admin-auth";
 
 function unauthorized() {
   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }
 
-function validateSecret(secret: unknown): boolean {
-  const expected = process.env.ADMIN_SECRET;
-  if (!expected || typeof secret !== "string") return false;
-  return secret === expected;
-}
-
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  if (!validateSecret(body.adminSecret)) return unauthorized();
+  if (!validateAdminSecret(body.adminSecret)) return unauthorized();
 
   const id = crypto.randomUUID();
   const username =
@@ -29,8 +24,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  const secret = req.nextUrl.searchParams.get("adminSecret");
-  if (!validateSecret(secret)) return unauthorized();
+  const secret = req.headers.get("authorization")?.replace("Bearer ", "");
+  if (!validateAdminSecret(secret)) return unauthorized();
 
   const db = getDb();
   const rows = await db
@@ -48,7 +43,7 @@ export async function GET(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   const body = await req.json();
-  if (!validateSecret(body.adminSecret)) return unauthorized();
+  if (!validateAdminSecret(body.adminSecret)) return unauthorized();
 
   const db = getDb();
 

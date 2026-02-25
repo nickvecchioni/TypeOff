@@ -11,7 +11,8 @@ import { Matchmaker } from "./matchmaker.js";
 import { PartyManager } from "./party-manager.js";
 import { SocialManager } from "./social-manager.js";
 import { NotificationManager } from "./notification-manager.js";
-import { createDb, directMessages } from "@typeoff/db";
+import { directMessages } from "@typeoff/db";
+import { getDb } from "./db.js";
 import leoProfanity from "leo-profanity";
 
 const PORT = parseInt(process.env.PORT ?? "3001", 10);
@@ -88,28 +89,6 @@ io.use(async (socket, next) => {
 
 io.on("connection", (socket) => {
   console.log(`[connect] ${socket.id}${socket.data.userId ? ` (userId=${socket.data.userId})` : ""}`);
-
-  // Belt-and-suspenders: if the middleware didn't set userId (token fetch failed
-  // on reconnection, expired token, etc.), try to extract it from the handshake
-  // auth token. This is a lightweight base64 decode — no crypto verification —
-  // because we only use it to FIND an existing race entry (which was created
-  // during a previously authenticated joinQueue call).
-  const getUserId = (): string | undefined => {
-    if (socket.data?.userId) return socket.data.userId;
-    const token = socket.handshake.auth?.token;
-    if (!token || typeof token !== "string") return undefined;
-    try {
-      const parts = token.split(".");
-      if (parts.length >= 2) {
-        const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString());
-        if (payload.sub) {
-          socket.data.userId = payload.sub; // Cache for future events
-          return payload.sub;
-        }
-      }
-    } catch { /* malformed token */ }
-    return undefined;
-  };
 
   // ─── Queue Events ─────────────────────────────────────────────────
 
@@ -198,11 +177,11 @@ io.on("connection", (socket) => {
   // ─── Race Events ──────────────────────────────────────────────────
 
   socket.on("raceProgress", (data) => {
-    matchmaker.handleProgress(socket.id, data, getUserId());
+    matchmaker.handleProgress(socket.id, data, socket.data.userId);
   });
 
   socket.on("raceFinish", (data) => {
-    matchmaker.handleFinish(socket.id, data, getUserId());
+    matchmaker.handleFinish(socket.id, data, socket.data.userId);
   });
 
   // ─── Party Events ─────────────────────────────────────────────────
@@ -275,7 +254,7 @@ io.on("connection", (socket) => {
       if (!toUserId || toUserId === player.id) return;
 
       // Persist to DB
-      const db = createDb(process.env.DATABASE_URL!);
+      const db = getDb();
       const [row] = await db.insert(directMessages).values({
         senderId: player.id,
         receiverId: toUserId,

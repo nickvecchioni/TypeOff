@@ -17,6 +17,7 @@ interface RaceTypingAreaProps {
     charIndex: number;
     wpm: number;
     progress: number;
+    finalStats?: { wpm: number; rawWpm: number; accuracy: number; misstypedChars?: number };
   }) => void;
   onFinish: (data: {
     wpm: number;
@@ -24,6 +25,7 @@ interface RaceTypingAreaProps {
     accuracy: number;
     misstypedChars: number;
     wpmHistory?: import("@typeoff/shared").WpmSample[];
+    keyStats?: import("@typeoff/shared").KeyStatsMap;
   }) => void;
   disabled: boolean;
 }
@@ -175,6 +177,7 @@ export function RaceTypingArea({
         accuracy: engine.stats.accuracy,
         misstypedChars: engine.stats.misstypedChars,
         wpmHistory: engine.stats.wpmHistory,
+        keyStats: engine.stats.keyStats,
       };
       onFinish(finishData);
 
