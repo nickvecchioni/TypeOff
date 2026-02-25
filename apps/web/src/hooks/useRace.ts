@@ -53,6 +53,7 @@ export interface RaceResult {
   activeNameEffect?: string | null;
   level?: number;
   previousBestWpm?: number;
+  previousTextBestWpm?: number;
 }
 
 export function useRace(myPlayerId?: string | null) {
@@ -268,6 +269,7 @@ export function useRace(myPlayerId?: string | null) {
       setPhase("queuing");
 
       let token: string | undefined;
+      let rateLimited = false;
       try {
         const res = await fetch("/api/ws-token");
         if (res.ok) {
@@ -276,6 +278,8 @@ export function useRace(myPlayerId?: string | null) {
           // Share the token with the socket provider so reconnections
           // always have a valid token (prevents 0-WPM on reconnect)
           if (token) updateToken(token);
+        } else if (res.status === 429) {
+          rateLimited = true;
         }
       } catch {
         // Will fail below
@@ -292,6 +296,9 @@ export function useRace(myPlayerId?: string | null) {
           setError("Failed to join race. Please try again.");
           setPhase("idle");
         }, 25_000);
+      } else if (rateLimited) {
+        setError("Too many requests — please wait a moment and try again");
+        setPhase("idle");
       } else {
         setError("Sign in required to play");
         setPhase("idle");

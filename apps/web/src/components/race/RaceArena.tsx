@@ -303,7 +303,8 @@ export function RaceArena() {
   return (
     <div className={`flex flex-col items-center gap-8 w-full max-w-4xl mx-auto flex-1 min-h-0 ${
       race.phase === "queuing" || race.phase === "placed" ? "justify-center" :
-      race.phase === "finished" ? "pt-2" :
+      race.phase === "finished" && transitionState === "results" ? "pt-2" :
+      race.phase === "finished" ? "py-[8vh]" :
       "py-[8vh]"
     }`}>
       {race.error && (
@@ -358,7 +359,6 @@ export function RaceArena() {
               finishTimeoutEnd={race.phase !== "finished" ? race.finishTimeoutEnd : null}
             />
           </div>
-          {race.phase !== "finished" && (
           <div className="relative w-full">
             {/* Countdown overlay — absolutely positioned, no layout shift */}
             <div
@@ -394,11 +394,10 @@ export function RaceArena() {
                 mode={race.raceState.mode}
                 onProgress={race.sendProgress}
                 onFinish={handleFinish}
-                disabled={race.phase === "countdown"}
+                disabled={race.phase !== "racing"}
               />
             </div>
           </div>
-          )}
         </div>
       )}
 
@@ -417,6 +416,8 @@ export function RaceArena() {
             onMarkReady={partyHook.markReady}
             raceId={race.raceId}
             emotes={emotes}
+            raceMode={race.raceState?.mode}
+            raceSeed={race.raceState?.seed}
           />
         </div>
       )}

@@ -19,24 +19,33 @@ export async function GET() {
 
     const db = getDb();
 
-    // Get best WPM for each (mode, duration, wordPool) combo
+    // Get best WPM for each (mode, duration, wordPool, seed) combo
+    // For quotes/code, seed distinguishes individual texts; for others seed is null
     const rows = await db
       .select({
         mode: soloResults.mode,
         duration: soloResults.duration,
         wordPool: soloResults.wordPool,
+        seed: soloResults.seed,
         bestWpm: sql<number>`max(${soloResults.wpm})`.as("best_wpm"),
       })
       .from(soloResults)
       .where(eq(soloResults.userId, session.user.id))
-      .groupBy(soloResults.mode, soloResults.duration, soloResults.wordPool);
+      .groupBy(soloResults.mode, soloResults.duration, soloResults.wordPool, soloResults.seed);
 
-    // Shape as { "timed:15:words:easy:false": 120.5, ... }
+    // Shape as { "timed:15:words:easy:false": 120.5, "timed:60:quotes:easy:false:42": 95.3, ... }
     const pbs: Record<string, number> = {};
     for (const row of rows) {
       // Old records with wordPool = null map to "words:easy:false"
       const pool = row.wordPool ?? "words:easy:false";
-      pbs[`${row.mode}:${row.duration}:${pool}`] = row.bestWpm;
+      const base = `${row.mode}:${row.duration}:${pool}`;
+      const isPerText = pool.startsWith("quotes:") || pool.startsWith("code:");
+      const key = isPerText && row.seed != null ? `${base}:${row.seed}` : base;
+
+      // Keep the highest WPM for each key (multiple seeds may map to same base key for non-text modes)
+      if (!pbs[key] || row.bestWpm > pbs[key]) {
+        pbs[key] = row.bestWpm;
+      }
     }
 
     return NextResponse.json({ pbs });
@@ -89,18 +98,24 @@ export async function POST(request: Request) {
   // Build wordPool key from content config
   const wordPool = `${contentType ?? "words"}:${difficulty ?? "easy"}:${punctuation ?? false}`;
 
-  // PB detection: best WPM for this (userId, mode, duration, wordPool) tuple
+  // For quotes and code, track PBs per individual text (by seed)
+  const isPerText = (contentType === "quotes" || contentType === "code") && typeof seed === "number";
+
+  // PB detection: best WPM for this config tuple (per-text for quotes/code)
+  const conditions = [
+    eq(soloResults.userId, userId),
+    eq(soloResults.mode, mode),
+    eq(soloResults.duration, duration),
+    eq(soloResults.wordPool, wordPool),
+  ];
+  if (isPerText) {
+    conditions.push(eq(soloResults.seed, seed));
+  }
+
   const [bestResult] = await db
     .select({ wpm: soloResults.wpm })
     .from(soloResults)
-    .where(
-      and(
-        eq(soloResults.userId, userId),
-        eq(soloResults.mode, mode),
-        eq(soloResults.duration, duration),
-        eq(soloResults.wordPool, wordPool),
-      )
-    )
+    .where(and(...conditions))
     .orderBy(desc(soloResults.wpm))
     .limit(1);
 

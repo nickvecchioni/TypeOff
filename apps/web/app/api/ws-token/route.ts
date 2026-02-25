@@ -6,7 +6,7 @@ import { createRateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
-const getLimit = createRateLimit({ windowMs: 10_000, max: 1 });
+const getLimit = createRateLimit({ windowMs: 10_000, max: 10 });
 
 export async function GET() {
   try {

@@ -18,6 +18,8 @@ import {
   TYPING_THEMES,
   CURSOR_STYLES,
   EMOTE_KEYS,
+  getQuoteByIndex,
+  getCodeSnippet,
 } from "@typeoff/shared";
 import type { EmoteKey } from "@typeoff/shared";
 import { WpmChart } from "@/components/typing/WpmChart";
@@ -50,6 +52,8 @@ interface RaceResultsProps {
   onMarkReady?: () => void;
   raceId?: string | null;
   emotes?: EmoteEvent[];
+  raceMode?: string;
+  raceSeed?: number;
 }
 
 const RARITY_RING: Record<AchievementRarity, string> = {
@@ -730,6 +734,8 @@ export function RaceResults({
   onMarkReady,
   raceId,
   emotes = [],
+  raceMode,
+  raceSeed,
 }: RaceResultsProps) {
   const { data: session } = useSession();
   const isPro = session?.user?.isPro ?? false;
@@ -810,12 +816,14 @@ export function RaceResults({
   const currentLevel = myResult?.xpProgress?.level ?? 0;
   const showProPanel = !isPro && !isPlacement && myResult != null && session?.user != null;
 
-  // #4: Personal best detection
+  // #4: Personal best detection (per-text when available, global otherwise)
+  // Use per-text best if the user has typed this text before, otherwise global best
+  const prevBest = myResult?.previousTextBestWpm ?? myResult?.previousBestWpm;
   const isPersonalBest =
     myResult != null &&
-    myResult.previousBestWpm != null &&
-    myResult.wpm > myResult.previousBestWpm &&
-    myResult.previousBestWpm > 0;
+    prevBest != null &&
+    myResult.wpm > prevBest &&
+    prevBest > 0;
 
   // #6: Consistency (100 - coefficient of variation) and time
   const raceTime = myWpmHistory && myWpmHistory.length > 0
@@ -999,6 +1007,27 @@ export function RaceResults({
       ) : (
         <h2 className="text-lg font-bold text-text animate-fade-in">Results</h2>
       )}
+
+      {/* ── Quote / Code info ────────────────────────────── */}
+      {raceMode === "quotes" && raceSeed != null && (() => {
+        const quote = getQuoteByIndex(raceSeed);
+        return (
+          <div className="shrink-0 rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-4 py-3 animate-fade-in">
+            <div className="text-sm text-text/70 italic leading-relaxed">&ldquo;{quote.text}&rdquo;</div>
+            <div className="text-xs text-muted/50 mt-1.5">&mdash; {quote.author}</div>
+          </div>
+        );
+      })()}
+      {raceMode === "code" && raceSeed != null && (() => {
+        const snippet = getCodeSnippet(raceSeed);
+        return (
+          <div className="shrink-0 rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-4 py-2.5 flex items-center gap-2 animate-fade-in">
+            <span className="text-xs font-mono text-accent/70">&lt;/&gt;</span>
+            <span className="text-sm text-text/70">{snippet.name}</span>
+            <span className="text-xs text-muted/40">{snippet.language}</span>
+          </div>
+        );
+      })()}
 
       {/* ── TOP ROW: Standings + XP ─────────────────────── */}
       <div

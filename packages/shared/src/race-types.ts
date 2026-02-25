@@ -164,6 +164,7 @@ export interface ServerToClientEvents {
       activeNameEffect?: string | null;
       level?: number;
       previousBestWpm?: number;
+      previousTextBestWpm?: number;
     }>;
     placementRace?: number;
     placementTotal?: number;

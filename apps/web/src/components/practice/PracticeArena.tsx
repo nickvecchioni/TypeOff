@@ -184,6 +184,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
     hasSavedRef.current = true;
     const stats = engine.stats;
     const config = engine.config;
+    const currentSeed = engine.lastSeed;
 
     fetch("/api/solo-results", {
       method: "POST",
@@ -205,19 +206,20 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
         consistency: stats.consistency,
         keyStats: stats.keyStats,
         bigramStats: stats.bigramStats,
+        seed: currentSeed,
       }),
     })
       .then((res) => res.json())
       .then((data) => {
         if (data.isPb) {
           setIsPb(true);
-          // Update local PB cache
-          const key = getPbKey(config);
+          // Update local PB cache (per-text for quotes/code)
+          const key = getPbKey(config, currentSeed);
           setPbs((prev) => ({ ...prev, [key]: stats.wpm }));
         }
       })
       .catch(() => {});
-  }, [engine.status, engine.stats, engine.config, session?.user?.id]);
+  }, [engine.status, engine.stats, engine.config, engine.lastSeed, session?.user?.id]);
 
   // Reset save guard on restart + bump cascade key
   const prevStatusRef = useRef(engine.status);
@@ -241,8 +243,8 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
   const isFinished = engine.status === "finished";
   const capsLock = useCapsLock();
 
-  // Current PB for the active config combo
-  const pbKey = getPbKey(engine.config);
+  // Current PB for the active config combo (per-text for quotes/code)
+  const pbKey = getPbKey(engine.config, engine.lastSeed);
   const currentPb = pbs[pbKey] ?? null;
 
   const containerHeight = lineHeight * visibleLines;
@@ -468,6 +470,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
           config={engine.config}
           isPb={isPb}
           onRestart={handleRestart}
+          seed={engine.lastSeed}
         />
       )}
     </div>

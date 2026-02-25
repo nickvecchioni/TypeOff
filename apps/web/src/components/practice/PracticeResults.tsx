@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from "react";
 import { useSession, signIn } from "next-auth/react";
 import Link from "next/link";
 import type { TestStats, TestConfig } from "@typeoff/shared";
+import { getQuoteByIndex, getCodeSnippet } from "@typeoff/shared";
 import { WpmChart } from "@/components/typing/WpmChart";
 import { KeyboardHeatmap } from "@/components/typing/KeyboardHeatmap";
 import { ShareResultCard } from "@/components/shared/ShareResultCard";
@@ -13,9 +14,10 @@ interface PracticeResultsProps {
   config: TestConfig;
   isPb: boolean | null;
   onRestart: () => void;
+  seed?: number | null;
 }
 
-export function PracticeResults({ stats, config, isPb, onRestart }: PracticeResultsProps) {
+export function PracticeResults({ stats, config, isPb, onRestart, seed }: PracticeResultsProps) {
   const { data: session } = useSession();
   const tabPressedRef = useRef(false);
 
@@ -146,6 +148,27 @@ export function PracticeResults({ stats, config, isPb, onRestart }: PracticeResu
           </div>
         </div>
       </div>
+
+      {/* ── Quote / Code info ────────────────────────────────── */}
+      {config.contentType === "quotes" && seed != null && (() => {
+        const quote = getQuoteByIndex(seed);
+        return (
+          <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-4 py-3">
+            <div className="text-sm text-text/70 italic leading-relaxed">&ldquo;{quote.text}&rdquo;</div>
+            <div className="text-xs text-muted/50 mt-1.5">&mdash; {quote.author}</div>
+          </div>
+        );
+      })()}
+      {config.contentType === "code" && seed != null && (() => {
+        const snippet = getCodeSnippet(seed, config.codeLanguage);
+        return (
+          <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-4 py-2.5 flex items-center gap-2">
+            <span className="text-xs font-mono text-accent/70">&lt;/&gt;</span>
+            <span className="text-sm text-text/70">{snippet.name}</span>
+            <span className="text-xs text-muted/40">{snippet.language}</span>
+          </div>
+        );
+      })()}
 
       {/* ── Two-column grid ────────────────────────────────── */}
       <div

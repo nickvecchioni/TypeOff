@@ -1012,6 +1012,7 @@ export class RaceManager {
       activeNameEffect?: string | null;
       level?: number;
       previousBestWpm?: number;
+      previousTextBestWpm?: number;
     }> = [];
 
     // Track per-player data for results
@@ -1026,6 +1027,7 @@ export class RaceManager {
     const playerStatsMap = new Map<string, { racesPlayed: number; racesWon: number; currentStreak: number; maxStreak: number }>();
     const cosmeticsMap = new Map<string, { activeBadge: string | null; activeNameColor: string | null; activeNameEffect: string | null }>();
     const previousBestWpmMap = new Map<string, number>();
+    const previousTextBestWpmMap = new Map<string, number>();
 
     const db = getDb();
 
@@ -1302,6 +1304,25 @@ export class RaceManager {
         const difficulty = scoreTextDifficulty(this.expectedWords);
         const textHash = `${this.seed}:${this.mode}`;
 
+        // Read existing per-text bests before upserting (for per-text PB detection)
+        const authPlayerIds = entries
+          .filter((e) => !e.isBot && !e.player.isGuest)
+          .map((e) => e.player.id);
+        if (authPlayerIds.length > 0) {
+          const existingTextBests = await db
+            .select({ userId: textLeaderboards.userId, bestWpm: textLeaderboards.bestWpm })
+            .from(textLeaderboards)
+            .where(
+              and(
+                eq(textLeaderboards.textHash, textHash),
+                inArray(textLeaderboards.userId, authPlayerIds),
+              )
+            );
+          for (const row of existingTextBests) {
+            previousTextBestWpmMap.set(row.userId, row.bestWpm);
+          }
+        }
+
         for (const entry of entries) {
           if (entry.isBot || entry.player.isGuest) continue;
           const flags = this.playerFlags.get(entry.player.id);
@@ -1569,6 +1590,7 @@ export class RaceManager {
         activeNameEffect: cosmetics?.activeNameEffect ?? entry.player.activeNameEffect,
         level: levelMap.get(entry.player.id),
         previousBestWpm: previousBestWpmMap.get(entry.player.id),
+        previousTextBestWpm: previousTextBestWpmMap.get(entry.player.id),
       });
     }
 

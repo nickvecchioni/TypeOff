@@ -36,9 +36,14 @@ export function getWordPoolKey(config: TestConfig): string {
   return `${config.contentType ?? "words"}:${config.difficulty ?? "easy"}:${config.punctuation ?? false}`;
 }
 
-/** Build a key for PB lookup: "timed:15:words:easy:false" */
-export function getPbKey(config: TestConfig): string {
-  return `${config.mode}:${config.duration}:${getWordPoolKey(config)}`;
+/** Build a key for PB lookup: "timed:15:words:easy:false" or "timed:60:quotes:easy:false:42" for per-text PBs */
+export function getPbKey(config: TestConfig, seed?: number | null): string {
+  const base = `${config.mode}:${config.duration}:${getWordPoolKey(config)}`;
+  // For quotes and code, include the seed to track PBs per-text
+  if (seed != null && (config.contentType === "quotes" || config.contentType === "code")) {
+    return `${base}:${seed}`;
+  }
+  return base;
 }
 
 export type EngineStatus = "idle" | "typing" | "finished";
