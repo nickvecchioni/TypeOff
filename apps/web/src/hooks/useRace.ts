@@ -47,6 +47,7 @@ export interface RaceResult {
       value: string;
     }>;
   };
+  isPro?: boolean;
   activeBadge?: string | null;
   activeNameColor?: string | null;
   activeNameEffect?: string | null;
@@ -55,7 +56,7 @@ export interface RaceResult {
 }
 
 export function useRace(myPlayerId?: string | null) {
-  const { connected, emit, on, socket } = useSocket();
+  const { connected, emit, on } = useSocket();
   const [phase, setPhase] = useState<RacePhase>("idle");
   const [queueCount, setQueueCount] = useState(0);
   const [maxWaitSeconds, setMaxWaitSeconds] = useState(5);
@@ -84,12 +85,8 @@ export function useRace(myPlayerId?: string | null) {
     entry: RacePlayerProgress;
   } | null>(null);
 
-  // Stale connection detection: track last sent progress and compare with
-  // server broadcasts to detect one-way communication failures.
+  // Track last sent progress for logging/diagnostics
   const lastSentProgressRef = useRef<{ progress: number; time: number } | null>(null);
-  const staleReconnectAttempts = useRef(0);
-  const STALE_THRESHOLD_MS = 3000;
-  const STALE_PROGRESS_GAP = 0.05;
 
   // Post-finish watchdog: track when finish was sent to detect unacknowledged finishes
   const finishSentTimeRef = useRef<number | null>(null);
@@ -126,56 +123,12 @@ export function useRace(myPlayerId?: string | null) {
         }
       }),
       on("raceProgress", (data) => {
-        // Stale connection detection: if we've been sending progress but the
-        // server doesn't reflect it, our client→server path is broken.
-        // Force a socket reconnection to recover.
-        const myId = myPlayerIdRef.current;
+        // Clear finish watchdog if server confirmed our finish
         const finish = localFinishRef.current;
-        const sent = lastSentProgressRef.current;
-
-        if (myId && sent && !finish) {
-          // During typing: detect stale progress
-          const serverProg = data.progress[myId]?.progress ?? 0;
-          const timeSinceSend = Date.now() - sent.time;
-          const progressGap = sent.progress - serverProg;
-
-          if (timeSinceSend > STALE_THRESHOLD_MS && progressGap > STALE_PROGRESS_GAP) {
-            if (staleReconnectAttempts.current < 5) {
-              staleReconnectAttempts.current++;
-              console.warn(
-                `[useRace] Stale progress detected: sent=${sent.progress.toFixed(3)} ` +
-                `server=${serverProg.toFixed(3)} gap=${timeSinceSend}ms — ` +
-                `forcing reconnect (#${staleReconnectAttempts.current})`,
-              );
-              lastSentProgressRef.current = null;
-              socket.current?.disconnect();
-              socket.current?.connect();
-            }
-          } else if (progressGap <= 0.02) {
-            staleReconnectAttempts.current = 0;
-          }
-        }
-
-        // Post-finish watchdog: if we finished locally but the server hasn't
-        // acknowledged it, force a reconnect so the finish retry can resend
-        // on a fresh socket. Without this, all retries go to a dead socket.
         if (finish && finishSentTimeRef.current) {
           const serverEntry = data.progress[finish.playerId];
           if (serverEntry?.finished) {
-            // Server confirmed our finish — clear watchdog
             finishSentTimeRef.current = null;
-          } else {
-            const timeSinceFinish = Date.now() - finishSentTimeRef.current;
-            if (timeSinceFinish > STALE_THRESHOLD_MS && staleReconnectAttempts.current < 5) {
-              staleReconnectAttempts.current++;
-              console.warn(
-                `[useRace] Finish not acknowledged after ${(timeSinceFinish / 1000).toFixed(1)}s — ` +
-                `forcing reconnect (#${staleReconnectAttempts.current})`,
-              );
-              finishSentTimeRef.current = Date.now(); // reset timer for next attempt
-              socket.current?.disconnect();
-              socket.current?.connect();
-            }
           }
         }
 
@@ -193,6 +146,7 @@ export function useRace(myPlayerId?: string | null) {
             // Server hasn't caught up — merge server data but keep our entry
             return { ...data.progress, [finish.playerId]: finish.entry };
           }
+          const myId = myPlayerIdRef.current;
           if (!myId) return data.progress;
           const serverEntry = data.progress[myId];
           if (serverEntry?.finished) return data.progress;
@@ -231,8 +185,13 @@ export function useRace(myPlayerId?: string | null) {
           clearTimeout(queueTimeoutRef.current);
           queueTimeoutRef.current = null;
         }
-        setError(data.message);
-        setPhase("idle");
+        // Don't kick the user back to idle if results are already showing
+        // (e.g. "No active race found" from a reconnection after the race ended)
+        setPhase(prev => {
+          if (prev === "finished" || prev === "placed") return prev;
+          setError(data.message);
+          return "idle";
+        });
       }),
     ];
 
@@ -251,13 +210,21 @@ export function useRace(myPlayerId?: string | null) {
     return () => clearInterval(timer);
   }, [phase]);
 
-  // Reconnect to active race after brief disconnect
+  // Reconnect to active race after brief disconnect.
+  // The server middleware already does proactive reconnection via the auth token,
+  // so this is a fallback for cases where the middleware didn't have a token.
   useEffect(() => {
     const wasDisconnected = !prevConnectedRef.current;
     prevConnectedRef.current = connected;
 
     if (connected && wasDisconnected && (phase === "racing" || phase === "countdown")) {
-      (async () => {
+      // Small delay: the server middleware's proactive reconnect should have
+      // already restored the socket mapping. Only send rejoinRace if we're
+      // still in a racing phase after the middleware had time to act.
+      const timer = setTimeout(async () => {
+        // Re-check phase — it may have transitioned to "finished" by now
+        // (can't read React state directly in async, so rely on the ref)
+        if (localFinishRef.current) return; // Already finished locally, don't rejoin
         try {
           const res = await fetch("/api/ws-token");
           if (res.ok) {
@@ -269,7 +236,8 @@ export function useRace(myPlayerId?: string | null) {
         } catch {
           // Token fetch failed — server will end race after grace period
         }
-      })();
+      }, 500);
+      return () => clearTimeout(timer);
     }
   }, [connected, phase, emit]);
 
@@ -393,7 +361,6 @@ export function useRace(myPlayerId?: string | null) {
     localFinishRef.current = null;
     lastSentProgressRef.current = null;
     finishSentTimeRef.current = null;
-    staleReconnectAttempts.current = 0;
     setPhase("idle");
     setRaceState(null);
     setProgress({});
@@ -411,7 +378,6 @@ export function useRace(myPlayerId?: string | null) {
       localFinishRef.current = null;
       lastSentProgressRef.current = null;
       finishSentTimeRef.current = null;
-      staleReconnectAttempts.current = 0;
       setRaceState(null);
       setProgress({});
       setResults([]);

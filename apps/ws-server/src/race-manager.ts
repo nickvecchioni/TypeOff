@@ -85,6 +85,7 @@ export class RaceManager {
   private mode: RaceMode;
   private modeCategory: ModeCategory;
   private disconnectGraceTimer: ReturnType<typeof setTimeout> | null = null;
+  private playerGraceTimers = new Map<string, ReturnType<typeof setTimeout>>();
   private resultsCleanupTimer: ReturnType<typeof setTimeout> | null = null;
   private spectatorInfo = new Map<string, { userId: string; name: string }>();
 
@@ -456,11 +457,31 @@ export class RaceManager {
     );
 
     if (hasConnectedRealPlayers) {
-      // Multi-human race: immediate forfeit for the disconnected player
+      // Multi-human race: give a grace period for reconnection before forfeiting.
+      // Brief disconnects (network blip, stale detection) should not cause permanent
+      // forfeiture — only sustained disconnects should.
       if (!entry.progress.finished && this.status === "racing") {
-        entry.progress.finished = true;
-        entry.progress.placement = this.nextPlacement++;
-        entry.progress.finalStats = { wpm: 0, rawWpm: 0, accuracy: 0 };
+        const PLAYER_GRACE_MS = 5_000;
+        const playerId = entry.player.id;
+        // Clear any existing grace timer for this player (idempotent)
+        const existing = this.playerGraceTimers.get(playerId);
+        if (existing) clearTimeout(existing);
+        this.playerGraceTimers.set(playerId, setTimeout(() => {
+          this.playerGraceTimers.delete(playerId);
+          // Only forfeit if still disconnected and race still running
+          if (entry.socket == null && !entry.progress.finished && this.status === "racing") {
+            console.log(`[race-manager] grace expired for ${playerId}, forfeiting`);
+            entry.progress.finished = true;
+            entry.progress.placement = this.nextPlacement++;
+            entry.progress.finalStats = { wpm: 0, rawWpm: 0, accuracy: 0 };
+            // Check if all players are now finished
+            const allFinished = [...this.players.values()].every((p) => p.progress.finished);
+            if (allFinished) {
+              if (this.finishTimeoutTimer) clearTimeout(this.finishTimeoutTimer);
+              this.endRace();
+            }
+          }
+        }, PLAYER_GRACE_MS));
       }
     } else {
       // Last human disconnected — start grace period (bots keep ticking)
@@ -511,10 +532,15 @@ export class RaceManager {
     // Join the new socket to the race room
     newSocket.join(this.raceId);
 
-    // Cancel grace timer if running
+    // Cancel grace timers if running
     if (this.disconnectGraceTimer) {
       clearTimeout(this.disconnectGraceTimer);
       this.disconnectGraceTimer = null;
+    }
+    const playerGrace = this.playerGraceTimers.get(userId);
+    if (playerGrace) {
+      clearTimeout(playerGrace);
+      this.playerGraceTimers.delete(userId);
     }
 
     console.log(`[race-manager] reconnectPlayer: ${userId} re-keyed from ${oldSocketId} to ${newSocket.id} in race ${this.raceId}`);
@@ -940,6 +966,7 @@ export class RaceManager {
       }>;
       xpEarned?: number;
       xpProgress?: XpProgress;
+      isPro?: boolean;
       activeBadge?: string | null;
       activeNameColor?: string | null;
       activeNameEffect?: string | null;
@@ -1488,6 +1515,7 @@ export class RaceManager {
         challengeProgress: challengeResult?.results,
         xpEarned: challengeResult?.totalXpEarned,
         xpProgress: xpProgressMap.get(entry.player.id),
+        isPro: entry.player.isPro ?? false,
         activeBadge: cosmetics?.activeBadge ?? entry.player.activeBadge,
         activeNameColor: cosmetics?.activeNameColor ?? entry.player.activeNameColor,
         activeNameEffect: cosmetics?.activeNameEffect ?? entry.player.activeNameEffect,
@@ -1538,6 +1566,8 @@ export class RaceManager {
     if (this.progressTimer) clearInterval(this.progressTimer);
     if (this.finishTimeoutTimer) clearTimeout(this.finishTimeoutTimer);
     if (this.disconnectGraceTimer) clearTimeout(this.disconnectGraceTimer);
+    for (const timer of this.playerGraceTimers.values()) clearTimeout(timer);
+    this.playerGraceTimers.clear();
     if (this.resultsCleanupTimer) { clearTimeout(this.resultsCleanupTimer); this.resultsCleanupTimer = null; }
 
     // Evict spectators from the room
