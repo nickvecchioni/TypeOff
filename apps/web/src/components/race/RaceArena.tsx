@@ -14,7 +14,7 @@ import { SpectatorIndicator } from "./SpectatorIndicator";
 import type { EmoteEvent } from "./FloatingEmote";
 import { useSocket } from "@/hooks/useSocket";
 import { getRankInfo, getCodeSnippet, getQuoteAuthor } from "@typeoff/shared";
-import type { RankTier, WpmSample, ModeCategory, KeyStatsMap } from "@typeoff/shared";
+import type { RankTier, WpmSample, ModeCategory } from "@typeoff/shared";
 
 function FinishTimeoutDisplay({ finishTimeoutEnd }: { finishTimeoutEnd: number | null }) {
   const [remaining, setRemaining] = React.useState<number | null>(null);
@@ -205,14 +205,12 @@ export function RaceArena() {
     }
   }, [showResults, race.phase, updateSession]);
 
-  // Capture wpmHistory + keyStats locally (not sent to server, only used for results UI)
+  // Capture wpmHistory locally (not sent to server, only used for chart)
   const wpmHistoryRef = React.useRef<WpmSample[]>([]);
-  const keyStatsRef = React.useRef<KeyStatsMap | undefined>(undefined);
   const finishSentAt = React.useRef<number | null>(null);
   const handleFinish = React.useCallback(
-    (data: { wpm: number; rawWpm: number; accuracy: number; misstypedChars: number; wpmHistory?: WpmSample[]; keyStats?: KeyStatsMap }) => {
+    (data: { wpm: number; rawWpm: number; accuracy: number; misstypedChars: number; wpmHistory?: WpmSample[] }) => {
       wpmHistoryRef.current = data.wpmHistory ?? [];
-      keyStatsRef.current = data.keyStats;
       finishSentAt.current = Date.now();
       lastFinishData.current = { wpm: data.wpm, rawWpm: data.rawWpm, accuracy: data.accuracy };
       race.sendFinish(data);
@@ -415,7 +413,6 @@ export function RaceArena() {
             placementTotal={race.placementTotal}
             rankChange={rankChange}
             myWpmHistory={wpmHistoryRef.current}
-            myKeyStats={keyStatsRef.current}
             party={partyHook.party}
             onMarkReady={partyHook.markReady}
             raceId={race.raceId}
