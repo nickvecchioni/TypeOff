@@ -657,13 +657,22 @@ function ProPanel({ level, xpEarned }: { level: number; xpEarned: number }) {
 
   return (
     <div className="rounded-xl overflow-hidden ring-1 ring-accent/15 bg-accent/[0.02]">
-      <div className="h-1 bg-gradient-to-r from-accent/40 via-accent/60 to-accent/40" />
-      <div className="px-3 py-3 sm:px-4 sm:py-3.5 flex flex-col gap-2.5">
+      <div className="h-0.5 bg-gradient-to-r from-accent/40 via-accent/60 to-accent/40" />
+      <div className="px-3 py-2 sm:px-4 sm:py-2.5 flex flex-col gap-1.5">
         {/* Header with dismiss */}
         <div className="flex items-center justify-between">
-          <span className="text-[9px] font-black tracking-[0.15em] text-accent bg-accent/10 ring-1 ring-accent/25 rounded px-1.5 py-0.5 leading-none">
-            PRO
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-[9px] font-black tracking-[0.15em] text-accent bg-accent/10 ring-1 ring-accent/25 rounded px-1.5 py-0.5 leading-none">
+              PRO
+            </span>
+            {missedXp > 0 && (
+              <span className="text-[11px] text-text/70">
+                You missed{" "}
+                <span className="font-bold text-accent tabular-nums">+{missedXp} bonus XP</span>
+                <span className="text-muted/60 ml-0.5">(1.5x)</span>
+              </span>
+            )}
+          </div>
           <button
             onClick={() => setDismissed(true)}
             className="text-muted/30 hover:text-muted/60 transition-colors p-0.5"
@@ -676,26 +685,15 @@ function ProPanel({ level, xpEarned }: { level: number; xpEarned: number }) {
           </button>
         </div>
 
-        {/* Missed XP callout */}
-        {missedXp > 0 && (
-          <div className="rounded-lg bg-accent/[0.06] ring-1 ring-accent/15 px-3 py-2">
-            <div className="text-xs text-text/80">
-              You missed out on{" "}
-              <span className="font-bold text-accent tabular-nums">+{missedXp} bonus XP</span>
-              <span className="text-muted/60 ml-1">(1.5x multiplier)</span>
-            </div>
-          </div>
-        )}
-
-        {/* Feature list */}
-        <div className="space-y-1.5">
+        {/* Feature list — inline row */}
+        <div className="flex flex-wrap gap-x-3 gap-y-0.5">
           {[
-            { icon: "🎯", label: "Smart Practice for weak keys" },
-            { icon: "📊", label: "Advanced analytics & ELO trends" },
-            { icon: "🔄", label: "Unlimited race replays" },
-            { icon: "🎨", label: `${proCosmetics} exclusive cosmetics` },
+            { icon: "🎯", label: "Smart Practice" },
+            { icon: "📊", label: "Advanced analytics" },
+            { icon: "🔄", label: "Unlimited replays" },
+            { icon: "🎨", label: `${proCosmetics} cosmetics` },
           ].map(({ icon, label }) => (
-            <div key={label} className="flex items-center gap-2 text-[11px] text-text/55">
+            <div key={label} className="flex items-center gap-1.5 text-[10px] text-text/50">
               <span className="shrink-0">{icon}</span>
               <span>{label}</span>
             </div>
@@ -705,11 +703,10 @@ function ProPanel({ level, xpEarned }: { level: number; xpEarned: number }) {
         {/* CTA */}
         <Link
           href="/pro"
-          className="w-full rounded-lg bg-accent/10 ring-1 ring-accent/30 text-accent text-xs font-bold px-3 py-2 hover:bg-accent/20 transition-colors text-center leading-none"
+          className="w-full rounded-lg bg-accent/10 ring-1 ring-accent/30 text-accent text-xs font-bold px-3 py-1.5 hover:bg-accent/20 transition-colors text-center leading-none"
         >
           Upgrade to Pro — $4.99/mo
         </Link>
-        <p className="text-[9px] text-muted/40 text-center -mt-1">cancel anytime</p>
       </div>
     </div>
   );
@@ -1192,12 +1189,12 @@ export function RaceResults({
       {/* ── WPM CHART (full width, centered) ─────────────── */}
       {myWpmHistory && myWpmHistory.length >= 2 && (
         <div
-          className="w-full rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 pt-2.5 pb-1.5 flex flex-col"
+          className="w-full rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 pt-2 pb-1 flex flex-col"
           style={{ animation: "fade-in 0.3s ease-out 0.1s both" }}
         >
-          <div className="text-[10px] font-bold text-muted/50 uppercase tracking-widest mb-1.5">WPM over time</div>
-          <div className="h-[180px]">
-            <WpmChart samples={myWpmHistory} />
+          <div className="text-[10px] font-bold text-muted/50 uppercase tracking-widest mb-1">WPM over time</div>
+          <div className="w-full" style={{ aspectRatio: "5 / 1" }}>
+            <WpmChart samples={myWpmHistory} compact />
           </div>
         </div>
       )}
@@ -1209,8 +1206,8 @@ export function RaceResults({
           style={{ animation: "fade-in 0.3s ease-out 0.15s both" }}
         >
           {/* Challenges */}
-          <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden px-3 py-2 sm:px-4 sm:py-2.5">
-            <div className="flex items-center justify-between mb-1">
+          <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden px-3 py-1.5 sm:px-4 sm:py-2">
+            <div className="flex items-center justify-between mb-0.5">
               <h3 className="text-[10px] font-bold text-muted/65 uppercase tracking-widest">
                 Challenges
               </h3>
@@ -1221,33 +1218,32 @@ export function RaceResults({
               )}
             </div>
             {hasChallenges ? (
-              <div className="space-y-0.5">
+              <div>
                 {myResult!.challengeProgress!.filter((c) => c.progress > 0).map((cp) => {
                   const def = CHALLENGE_MAP.get(cp.challengeId);
                   if (!def) return null;
                   const progress = Math.min(cp.progress, cp.target);
                   const pct = cp.target > 0 ? (progress / cp.target) * 100 : 0;
                   return (
-                    <div key={cp.challengeId} className="flex items-center gap-2 py-1">
+                    <div key={cp.challengeId} className="flex items-center gap-2 py-0.5">
                       <span className="text-sm shrink-0">{def.icon}</span>
                       <div className="min-w-0 flex-1">
-                        <span className="text-xs font-medium text-text truncate block">
+                        <span className="text-[11px] font-medium text-text truncate block leading-tight">
                           {def.name}
                           {cp.completed && <span className="text-correct ml-1.5">✓</span>}
                         </span>
-                        <span className="text-[10px] text-muted/65 truncate block">{def.description}</span>
                       </div>
-                      <span className="text-[11px] text-muted tabular-nums shrink-0">
+                      <span className="text-[10px] text-muted tabular-nums shrink-0">
                         {progress}/{cp.target}
                       </span>
-                      <div className="w-16 h-1 rounded-full bg-surface overflow-hidden shrink-0">
+                      <div className="w-14 h-1 rounded-full bg-surface overflow-hidden shrink-0">
                         <div
                           className={`h-full rounded-full transition-all ${cp.completed ? "bg-correct" : "bg-accent"}`}
                           style={{ width: `${Math.round(pct)}%` }}
                         />
                       </div>
                       {cp.justCompleted && (
-                        <span className="text-[10px] font-bold text-correct bg-correct/10 rounded px-1.5 py-0.5 tabular-nums shrink-0">
+                        <span className="text-[9px] font-bold text-correct bg-correct/10 rounded px-1 py-0.5 tabular-nums shrink-0">
                           +{cp.xpAwarded} XP
                         </span>
                       )}
@@ -1257,7 +1253,7 @@ export function RaceResults({
               </div>
             ) : (
               /* Skeleton placeholder — reserves space while data loads */
-              <div className="space-y-1.5 py-1">
+              <div className="space-y-1 py-0.5">
                 <div className="h-3 w-3/4 rounded bg-white/[0.03] animate-pulse" />
                 <div className="h-3 w-1/2 rounded bg-white/[0.03] animate-pulse" />
               </div>
@@ -1275,7 +1271,7 @@ export function RaceResults({
 
       {/* ── RACE AGAIN + ACTIONS (centered) ──────────────── */}
       <div
-        className="flex flex-col items-center gap-1.5 w-full max-w-md mx-auto px-px"
+        className="flex flex-col items-center gap-1 w-full max-w-md mx-auto px-px"
         style={{ animation: "fade-in 0.3s ease-out 0.2s both" }}
       >
         {/* Party ready state */}
@@ -1298,7 +1294,7 @@ export function RaceResults({
           <button
             onClick={() => !amReady && onMarkReady?.()}
             disabled={amReady}
-            className={`w-full rounded-lg py-2.5 text-sm font-medium transition-all ${
+            className={`w-full rounded-lg py-2 text-sm font-medium transition-all ${
               amReady
                 ? "bg-correct/[0.08] ring-1 ring-correct/20 text-correct cursor-default"
                 : "bg-accent/[0.06] ring-1 ring-accent/20 text-accent hover:bg-accent hover:text-bg hover:ring-accent"
@@ -1311,7 +1307,7 @@ export function RaceResults({
             <button
               onClick={() => onRaceAgain()}
               disabled={inParty && !allMembersReady}
-              className="w-full rounded-lg bg-accent/[0.06] ring-1 ring-accent/20 text-accent py-2.5 text-sm font-medium hover:bg-accent hover:text-bg hover:ring-accent transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent/[0.06] disabled:hover:text-accent disabled:hover:ring-accent/20 flex flex-col items-center gap-1"
+              className="w-full rounded-lg bg-accent/[0.06] ring-1 ring-accent/20 text-accent py-2 text-sm font-medium hover:bg-accent hover:text-bg hover:ring-accent transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent/[0.06] disabled:hover:text-accent disabled:hover:ring-accent/20 flex flex-col items-center gap-0.5"
             >
               <span>
                 {isPlacement ? "Next Placement" : "Race Again"}

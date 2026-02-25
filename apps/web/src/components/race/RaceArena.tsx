@@ -16,9 +16,10 @@ import { useSocket } from "@/hooks/useSocket";
 import { getRankInfo, getCodeSnippet, getQuoteAuthor } from "@typeoff/shared";
 import type { RankTier, WpmSample, ModeCategory } from "@typeoff/shared";
 
-function FinishTimeoutDisplay({ finishTimeoutEnd }: { finishTimeoutEnd: number }) {
+function FinishTimeoutDisplay({ finishTimeoutEnd }: { finishTimeoutEnd: number | null }) {
   const [remaining, setRemaining] = React.useState<number | null>(null);
   React.useEffect(() => {
+    if (finishTimeoutEnd == null) { setRemaining(null); return; }
     const tick = () => {
       const r = Math.max(0, Math.ceil((finishTimeoutEnd - Date.now()) / 1000));
       setRemaining(r);
@@ -27,10 +28,12 @@ function FinishTimeoutDisplay({ finishTimeoutEnd }: { finishTimeoutEnd: number }
     const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
   }, [finishTimeoutEnd]);
-  if (remaining == null || remaining <= 0) return null;
+  const visible = finishTimeoutEnd != null && remaining != null && remaining > 0;
   return (
-    <div className="text-center text-sm text-muted mt-3 tabular-nums h-5 flex items-center justify-center">
-      Time remaining: <span className="text-accent font-bold ml-1">{remaining}s</span>
+    <div className="h-8 mt-1 flex items-center justify-center">
+      <div className={`text-center text-sm text-muted tabular-nums transition-opacity duration-300 ${visible ? "opacity-100" : "opacity-0"}`}>
+        Time remaining: <span className="text-accent font-bold ml-1">{remaining ?? 0}s</span>
+      </div>
     </div>
   );
 }
@@ -120,14 +123,19 @@ export function RaceArena() {
       .catch(() => {});
   }, [session?.user?.id, session?.user?.placementsCompleted, updateSession]);
 
-  // Delay showing race results by 1s so the final placements can settle visually
+  // Smooth transition: race UI fades out, then results fade in
   const [showResults, setShowResults] = React.useState(false);
+  const [raceFadingOut, setRaceFadingOut] = React.useState(false);
   React.useEffect(() => {
     if (race.phase === "finished") {
-      const timer = setTimeout(() => setShowResults(true), 1000);
+      // Start fading out race UI immediately
+      setRaceFadingOut(true);
+      // After fade-out completes (500ms), swap to results
+      const timer = setTimeout(() => setShowResults(true), 600);
       return () => clearTimeout(timer);
     }
     setShowResults(false);
+    setRaceFadingOut(false);
   }, [race.phase]);
 
   // Delay showing the queue screen so fast matches (placements) skip it
@@ -141,7 +149,7 @@ export function RaceArena() {
   }, [race.phase]);
 
 
-  // Refresh session when race finishes
+  // Refresh session when race results are visible (delayed to avoid navbar flash)
   const sessionRefreshed = React.useRef(false);
   const [rankChange, setRankChange] = React.useState<{
     direction: "up" | "down";
@@ -149,43 +157,48 @@ export function RaceArena() {
     newTier: RankTier;
   } | null>(null);
 
+  // Compute rank change as soon as results arrive (for the results panel)
   React.useEffect(() => {
     const isFinished = race.phase === "finished" || race.phase === "placed";
-    if (isFinished && !sessionRefreshed.current) {
-      sessionRefreshed.current = true;
-      if (session?.user?.id && race.results.length > 0) {
-        const myResult = race.results.find((r) => r.playerId === session.user.id);
-        if (myResult?.eloChange != null) {
-          window.dispatchEvent(
-            new CustomEvent("elo-change", {
-              detail: { change: myResult.eloChange },
-            })
-          );
+    if (isFinished && session?.user?.id && race.results.length > 0) {
+      const myResult = race.results.find((r) => r.playerId === session.user.id);
+      if (myResult?.eloChange != null) {
+        window.dispatchEvent(
+          new CustomEvent("elo-change", {
+            detail: { change: myResult.eloChange },
+          })
+        );
+      }
+      if (myResult?.elo != null && myResult.eloChange != null && session.user.rankTier) {
+        const oldElo = myResult.elo - myResult.eloChange;
+        const oldInfo = getRankInfo(oldElo);
+        const newInfo = getRankInfo(myResult.elo);
+        const oldVal = rankValue(oldInfo.tier, oldInfo.division);
+        const newVal = rankValue(newInfo.tier, newInfo.division);
+        if (newVal !== oldVal) {
+          setRankChange({
+            direction: newVal > oldVal ? "up" : "down",
+            newLabel: newInfo.label,
+            newTier: newInfo.tier,
+          });
+        } else {
+          setRankChange(null);
         }
-        // Compute rank change for inline display
-        if (myResult?.elo != null && myResult.eloChange != null && session.user.rankTier) {
-          const oldElo = myResult.elo - myResult.eloChange;
-          const oldInfo = getRankInfo(oldElo);
-          const newInfo = getRankInfo(myResult.elo);
-          const oldVal = rankValue(oldInfo.tier, oldInfo.division);
-          const newVal = rankValue(newInfo.tier, newInfo.division);
-          if (newVal !== oldVal) {
-            setRankChange({
-              direction: newVal > oldVal ? "up" : "down",
-              newLabel: newInfo.label,
-              newTier: newInfo.tier,
-            });
-          } else {
-            setRankChange(null);
-          }
-        }
-        updateSession({});
       }
     } else if (!isFinished) {
-      sessionRefreshed.current = false;
       setRankChange(null);
     }
-  }, [race.phase, race.results, session?.user?.id, updateSession]);
+  }, [race.phase, race.results, session?.user?.id]);
+
+  // Delay session refresh until results are visible so navbar doesn't flash during transition
+  React.useEffect(() => {
+    if (showResults && !sessionRefreshed.current) {
+      sessionRefreshed.current = true;
+      updateSession({});
+    } else if (race.phase !== "finished" && race.phase !== "placed") {
+      sessionRefreshed.current = false;
+    }
+  }, [showResults, race.phase, updateSession]);
 
   // Capture wpmHistory locally (not sent to server, only used for chart)
   const wpmHistoryRef = React.useRef<WpmSample[]>([]);
@@ -285,7 +298,7 @@ export function RaceArena() {
   return (
     <div className={`flex flex-col items-center gap-8 w-full max-w-4xl mx-auto flex-1 min-h-0 ${
       race.phase === "queuing" || race.phase === "placed" ? "justify-center" :
-      race.phase === "finished" ? "pt-4" :
+      race.phase === "finished" ? "pt-2" :
       "py-[8vh]"
     }`}>
       {race.error && (
@@ -317,8 +330,10 @@ export function RaceArena() {
 
       {(race.phase === "countdown" || race.phase === "racing" || (race.phase === "finished" && !showResults)) && race.raceState && (
         <div
-          className="flex flex-col items-center gap-8 w-full pt-[12vh]"
-          style={{ animation: "fade-in-up 0.4s ease-out both" }}
+          className={`flex flex-col items-center gap-8 w-full pt-[12vh] transition-opacity duration-500 ease-out ${
+            raceFadingOut ? "opacity-0" : "opacity-100"
+          }`}
+          style={{ animation: raceFadingOut ? undefined : "fade-in-up 0.4s ease-out both" }}
         >
           {/* Spectator indicator */}
           {spectatorCount > 0 && (
@@ -333,10 +348,10 @@ export function RaceArena() {
               myPlayerId={myPlayerId}
               isPlacement={isInPlacement}
             />
-            {/* Finish timeout below the race track (under user's WPM row) */}
-            {race.finishTimeoutEnd != null && race.phase !== "finished" && (
-              <FinishTimeoutDisplay finishTimeoutEnd={race.finishTimeoutEnd} />
-            )}
+            {/* Finish timeout — always reserves space to prevent layout shift */}
+            <FinishTimeoutDisplay
+              finishTimeoutEnd={race.phase !== "finished" ? race.finishTimeoutEnd : null}
+            />
           </div>
           {race.phase !== "finished" && (
           <div className="relative w-full">

@@ -25,9 +25,9 @@ const OPPONENT_COLORS = [
 ];
 
 export function WpmChart({ samples, compact = false, opponents }: WpmChartProps) {
-  const CHART_HEIGHT = compact ? 90 : 240;
+  const CHART_HEIGHT = compact ? 120 : 240;
   const PADDING = compact
-    ? { top: 8, right: 16, bottom: 14, left: 36 }
+    ? { top: 8, right: 16, bottom: 16, left: 36 }
     : { top: 12, right: 16, bottom: 24, left: 44 };
   const svgRef = useRef<SVGSVGElement>(null);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
@@ -100,7 +100,6 @@ export function WpmChart({ samples, compact = false, opponents }: WpmChartProps)
       ref={svgRef}
       viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
       className="w-full h-full"
-      preserveAspectRatio="none"
       role="img"
       aria-label="WPM over time chart"
       onMouseMove={handleMouseMove}
