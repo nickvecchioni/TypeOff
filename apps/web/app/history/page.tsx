@@ -2,8 +2,8 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { SignInPrompt } from "@/components/auth/SignInPrompt";
 
 interface RaceRow {
   raceId: string;
@@ -28,7 +28,6 @@ type SortKey = "date" | "wpm" | "accuracy" | "elo";
 
 export default function HistoryPage() {
   const { data: session, status } = useSession();
-  const router = useRouter();
   const [races, setRaces] = useState<RaceRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [nextCursor, setNextCursor] = useState<string | undefined>();
@@ -39,9 +38,14 @@ export default function HistoryPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [exporting, setExporting] = useState(false);
 
-  useEffect(() => {
-    if (status === "unauthenticated") router.push("/");
-  }, [status, router]);
+  if (status === "unauthenticated") {
+    return (
+      <SignInPrompt
+        title="Sign in to view history"
+        message="Sign in to browse your past race results and track your progress over time."
+      />
+    );
+  }
 
   const fetchRaces = useCallback(
     async (cursor?: string, append = false) => {
@@ -124,7 +128,7 @@ export default function HistoryPage() {
             <h1 className="text-lg font-bold text-text tracking-tight">Race History</h1>
             <p className="text-xs text-muted/65 mt-0.5">
               {total} total races
-              {!isPro && " — showing last 5"}
+              {!isPro && " — showing last 10"}
             </p>
           </div>
           {!isPro && (
@@ -298,7 +302,7 @@ export default function HistoryPage() {
         )}
 
         {/* Upgrade CTA for free users */}
-        {!isPro && races.length >= 5 && (
+        {!isPro && races.length >= 10 && (
           <div className="mt-6 rounded-xl bg-accent/[0.04] ring-1 ring-accent/10 px-5 py-4 text-center">
             <p className="text-sm text-text font-medium mb-1">
               Want to see your full race history?

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { SignInPrompt } from "@/components/auth/SignInPrompt";
 import Link from "next/link";
 import { BigramAnalysis } from "@/components/practice/BigramAnalysis";
 import { BigramHeatmap } from "@/components/practice/BigramHeatmap";
@@ -72,9 +73,14 @@ export default function AnalyticsPage() {
 
   const isPro = session?.user?.isPro ?? false;
 
-  useEffect(() => {
-    if (status === "unauthenticated") router.push("/");
-  }, [status, router]);
+  if (status === "unauthenticated") {
+    return (
+      <SignInPrompt
+        title="Sign in to view analytics"
+        message="Sign in to see your per-key heatmaps, bigram accuracy, and WPM trends."
+      />
+    );
+  }
 
   useEffect(() => {
     if (!session?.user?.id) return;

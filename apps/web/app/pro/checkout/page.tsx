@@ -2,16 +2,19 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   EmbeddedCheckoutProvider,
   EmbeddedCheckout,
 } from "@stripe/react-stripe-js";
+import { SignInPrompt } from "@/components/auth/SignInPrompt";
 
 const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = publishableKey ? loadStripe(publishableKey) : null;
 
 export default function ProCheckoutPage() {
+  const { status } = useSession();
   const searchParams = useSearchParams();
   const plan = searchParams.get("plan") ?? "monthly";
   const [error, setError] = useState<string | null>(null);
@@ -53,6 +56,23 @@ export default function ProCheckoutPage() {
     () => ({ fetchClientSecret }),
     [fetchClientSecret],
   );
+
+  if (status === "unauthenticated") {
+    return (
+      <SignInPrompt
+        title="Sign in to checkout"
+        message="Sign in to your TypeOff account before upgrading to Pro."
+      />
+    );
+  }
+
+  if (status === "loading") {
+    return (
+      <main className="flex-1 flex items-center justify-center">
+        <div className="h-8 w-32 rounded bg-surface/40 animate-pulse" />
+      </main>
+    );
+  }
 
   if (error) {
     return (

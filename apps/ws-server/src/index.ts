@@ -15,6 +15,11 @@ import { directMessages } from "@typeoff/db";
 import { getDb } from "./db.js";
 import leoProfanity from "leo-profanity";
 
+// ⚠️  SINGLE-INSTANCE CONSTRAINT
+// Matchmaking queues, active races, party state, and social presence are all
+// held in-process memory. Running multiple instances will split these pools
+// and cause incorrect matchmaking, lost race state, and phantom presence.
+// If horizontal scaling is needed, extract state into Redis or a shared store.
 const PORT = parseInt(process.env.PORT ?? "3001", 10);
 const CORS_ORIGIN = process.env.CORS_ORIGIN ?? "http://localhost:3000";
 const BUILD_TS = new Date().toISOString();
@@ -408,3 +413,26 @@ io.on("connection", (socket) => {
 httpServer.listen(PORT, () => {
   console.log(`[ws-server] listening on port ${PORT}`);
 });
+
+// ─── Graceful Shutdown ──────────────────────────────────────────────────
+function shutdown(signal: string) {
+  console.log(`[ws-server] ${signal} received — shutting down`);
+
+  // Stop accepting new connections
+  io.close(() => {
+    console.log("[ws-server] all sockets closed");
+    httpServer.close(() => {
+      console.log("[ws-server] HTTP server closed");
+      process.exit(0);
+    });
+  });
+
+  // Force exit after 10s if graceful shutdown stalls
+  setTimeout(() => {
+    console.error("[ws-server] forced exit after timeout");
+    process.exit(1);
+  }, 10_000).unref();
+}
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));

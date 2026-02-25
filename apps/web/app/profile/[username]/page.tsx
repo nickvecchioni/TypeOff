@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getDb } from "@/lib/db";
@@ -32,6 +33,18 @@ function formatLastSeen(lastSeen: Date | null): string | null {
   const days = Math.floor(hrs / 24);
   if (days < 30) return `${days}d ago`;
   return null;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ username: string }>;
+}): Promise<Metadata> {
+  const { username } = await params;
+  return {
+    title: `${username} — TypeOff`,
+    description: `View ${username}'s typing stats, achievements, and race history on TypeOff`,
+  };
 }
 
 export default async function ProfilePage({
