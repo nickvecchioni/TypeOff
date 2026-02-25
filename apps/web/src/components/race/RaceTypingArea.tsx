@@ -178,12 +178,20 @@ export function RaceTypingArea({
       };
       onFinish(finishData);
 
-      // Retry every 2s — handles socket reconnections where the first event was lost
+      // Retry every 2s — handles socket reconnections where the first event was lost.
+      // Also resend progress=1 so the server's auto-finish safety net triggers.
+      const progressData = {
+        wordIndex: engine.currentWordIndex,
+        charIndex: engine.currentCharIndex,
+        wpm: engine.liveWpm > 0 ? engine.liveWpm : 1,
+        progress: 1,
+      };
       let retryCount = 0;
       finishRetryTimer.current = setInterval(() => {
         retryCount++;
-        console.warn(`[RaceTypingArea] Finish retry #${retryCount}: resending raceFinish`);
+        console.warn(`[RaceTypingArea] Finish retry #${retryCount}: resending raceFinish + progress=1`);
         onFinish(finishData);
+        onProgress(progressData);
         // Stop after 6 retries (12s) — the stuck detection in RaceArena takes over
         if (retryCount >= 6 && finishRetryTimer.current) {
           clearInterval(finishRetryTimer.current);
@@ -197,7 +205,7 @@ export function RaceTypingArea({
         finishRetryTimer.current = null;
       }
     };
-  }, [engine.status, engine.stats, onFinish]);
+  }, [engine.status, engine.stats, onFinish, onProgress]);
 
   // Safety-net: detect completion from word state and force finish if the engine missed it.
   // Runs on every render — checks if all chars are correct and forces the race to end.

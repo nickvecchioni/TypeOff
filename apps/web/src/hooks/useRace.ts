@@ -91,6 +91,9 @@ export function useRace(myPlayerId?: string | null) {
   const STALE_THRESHOLD_MS = 3000;
   const STALE_PROGRESS_GAP = 0.05;
 
+  // Post-finish watchdog: track when finish was sent to detect unacknowledged finishes
+  const finishSentTimeRef = useRef<number | null>(null);
+
   useEffect(() => {
     const unsubs = [
       on("queueUpdate", (data) => {
@@ -127,14 +130,17 @@ export function useRace(myPlayerId?: string | null) {
         // server doesn't reflect it, our client→server path is broken.
         // Force a socket reconnection to recover.
         const myId = myPlayerIdRef.current;
+        const finish = localFinishRef.current;
         const sent = lastSentProgressRef.current;
-        if (myId && sent && !localFinishRef.current) {
+
+        if (myId && sent && !finish) {
+          // During typing: detect stale progress
           const serverProg = data.progress[myId]?.progress ?? 0;
           const timeSinceSend = Date.now() - sent.time;
           const progressGap = sent.progress - serverProg;
 
           if (timeSinceSend > STALE_THRESHOLD_MS && progressGap > STALE_PROGRESS_GAP) {
-            if (staleReconnectAttempts.current < 3) {
+            if (staleReconnectAttempts.current < 5) {
               staleReconnectAttempts.current++;
               console.warn(
                 `[useRace] Stale progress detected: sent=${sent.progress.toFixed(3)} ` +
@@ -147,6 +153,29 @@ export function useRace(myPlayerId?: string | null) {
             }
           } else if (progressGap <= 0.02) {
             staleReconnectAttempts.current = 0;
+          }
+        }
+
+        // Post-finish watchdog: if we finished locally but the server hasn't
+        // acknowledged it, force a reconnect so the finish retry can resend
+        // on a fresh socket. Without this, all retries go to a dead socket.
+        if (finish && finishSentTimeRef.current) {
+          const serverEntry = data.progress[finish.playerId];
+          if (serverEntry?.finished) {
+            // Server confirmed our finish — clear watchdog
+            finishSentTimeRef.current = null;
+          } else {
+            const timeSinceFinish = Date.now() - finishSentTimeRef.current;
+            if (timeSinceFinish > STALE_THRESHOLD_MS && staleReconnectAttempts.current < 5) {
+              staleReconnectAttempts.current++;
+              console.warn(
+                `[useRace] Finish not acknowledged after ${(timeSinceFinish / 1000).toFixed(1)}s — ` +
+                `forcing reconnect (#${staleReconnectAttempts.current})`,
+              );
+              finishSentTimeRef.current = Date.now(); // reset timer for next attempt
+              socket.current?.disconnect();
+              socket.current?.connect();
+            }
           }
         }
 
@@ -322,6 +351,7 @@ export function useRace(myPlayerId?: string | null) {
   const sendFinish = useCallback(
     (data: { wpm: number; rawWpm: number; accuracy: number; misstypedChars?: number }) => {
       emit("raceFinish", data);
+      finishSentTimeRef.current = Date.now();
       // Optimistically mark self as finished so RaceTrack shows WPM immediately
       // (placement stays null until the server assigns it)
       const myId = myPlayerIdRef.current;
@@ -362,6 +392,7 @@ export function useRace(myPlayerId?: string | null) {
   const reset = useCallback(() => {
     localFinishRef.current = null;
     lastSentProgressRef.current = null;
+    finishSentTimeRef.current = null;
     staleReconnectAttempts.current = 0;
     setPhase("idle");
     setRaceState(null);
@@ -379,6 +410,7 @@ export function useRace(myPlayerId?: string | null) {
     (opts?: { privateRace?: boolean; modeCategories?: ModeCategory[] }) => {
       localFinishRef.current = null;
       lastSentProgressRef.current = null;
+      finishSentTimeRef.current = null;
       staleReconnectAttempts.current = 0;
       setRaceState(null);
       setProgress({});
