@@ -21,7 +21,7 @@ npm run db:push --workspace=packages/db    # Push schema to Neon
 npm run db:studio --workspace=packages/db  # Open Drizzle Studio
 ```
 
-No test runner is configured. No CI/CD pipelines exist. No ESLint/Prettier configs are present — linting is `tsc --noEmit` (typecheck only).
+No test runner is configured. No CI/CD pipelines exist. No ESLint/Prettier configs are present. Linting: web app uses `next lint`, ws-server/shared/db use `tsc --noEmit` (typecheck only).
 
 ## Key conventions
 
@@ -35,7 +35,7 @@ No test runner is configured. No CI/CD pipelines exist. No ESLint/Prettier confi
   - `@/*` → `./src/*` (web only)
   - `@typeoff/shared` → `../../packages/shared/src`
   - `@typeoff/db` → `../../packages/db/src`
-- **TypeScript**: Strict mode, target ES2022, bundler module resolution. Root `tsconfig.json` is extended by all workspaces.
+- **TypeScript**: Strict mode, target ES2022, bundler module resolution. Root `tsconfig.json` is extended by `ws-server`, `shared`, and `db`. The web app has its own standalone Next.js tsconfig.
 - **WS server**: Uses `tsx` for dev (`tsx watch`) and production (`tsx src/index.ts`). Module type ESM.
 - **Profanity filter**: `leo-profanity` in ws-server for chat/message filtering.
 - **No middleware**: No Next.js middleware file exists.
@@ -81,7 +81,7 @@ NextAuth v5 (beta) with JWT strategy (not database sessions). DrizzleAdapter for
 
 **Providers**: Google OAuth + Credentials (test accounts, gated by `ADMIN_SECRET`).
 
-**JWT/session contents**: `id`, `eloRating`, `rankTier`, `peakEloRating`, `peakRankTier`, `username`, `placementsCompleted`, `currentStreak`, `totalXp`, `cosmeticLevel` (derived from `totalXp` via `getXpLevel()`), `isPro`, `clanId`, `clanTag`, `activeBadge`, `activeTitle`, `activeNameColor`, `activeNameEffect`, `activeCursorStyle`, `activeProfileBorder`, `activeTypingTheme`.
+**JWT/session contents**: `id`, `eloRating`, `rankTier`, `username`, `placementsCompleted`, `currentStreak`, `totalXp`, `cosmeticLevel` (derived from `totalXp` via `getXpLevel()`), `isPro`, `activeBadge`, `activeTitle`, `activeNameColor`, `activeNameEffect`, `activeCursorStyle`, `activeProfileBorder`, `activeTypingTheme`.
 
 JWT refreshes user data from DB every 30 seconds on active sessions.
 
@@ -111,7 +111,7 @@ Key tables:
 
 | Table | Purpose |
 |-------|---------|
-| `users` | Core user record (eloRating, rankTier, clanId, lastSeen) |
+| `users` | Core user record (eloRating, rankTier, peakEloRating, peakRankTier, lastSeen) |
 | `userStats` | Aggregate stats (totalXp, totalPp, streaks, WPM bests) |
 | `userModeStats` | Per-mode category stats |
 | `races` | Completed race records (seed, wordCount, mode, playerCount) |
@@ -130,6 +130,7 @@ Key tables:
 | `userPreferences` | Theme overrides, custom theme JSON |
 | `userKeyAccuracy` | Per-key accuracy stats (cumulative) |
 | `userBigramAccuracy` | Bigram (2-char sequence) accuracy |
+| `userAccuracySnapshots` | Periodic key/bigram accuracy snapshots for tracking improvement over time |
 | `textLeaderboards` | Per-text performance leaderboards with PP |
 | `accounts` / `sessions` / `verificationTokens` | NextAuth internals |
 
@@ -140,6 +141,7 @@ Socket.io with typed events (defined in `packages/shared/src/race-types.ts`). He
 Source modules:
 - `index.ts` — Main server entry, socket event wiring, DM/chat handling, spectator/follow logic
 - `auth.ts` — JWT verification for socket connections
+- `db.ts` — Lazy singleton DB connection (`getDb()`)
 - `matchmaker.ts` — ELO-based queue, bot generation after timeout
 - `race-manager.ts` — Race lifecycle (countdown, progress tracking, finish, ELO calculation)
 - `party-manager.ts` — Party creation, invites, ready-state gate, private race mode
@@ -149,7 +151,7 @@ Source modules:
 - `achievement-checker.ts` — Achievement unlock logic (22 achievements)
 - `challenge-checker.ts` — Daily/weekly challenge progress tracking
 
-ELO: K=32 for first 30 games, K=16 after. Matchmaking expands ±50 ELO every 5s (max ±400). Bot opponents after 20s timeout. 3 placement races before ranked.
+ELO: K=32 for first 30 games, K=16 after. Matchmaking expands ±50 ELO every 5s (max ±400). Bot opponents fill immediately (0ms delay). 3 placement races before ranked. Max 4 players per race.
 
 ## Shared package (`packages/shared/src/`)
 
@@ -166,9 +168,10 @@ JIT TypeScript — no build needed. All modules re-exported from `index.ts`.
 | `quotes.ts` | Famous quotes for quote mode |
 | `code-snippets.ts` | Code samples for code mode |
 | `prng.ts` | Mulberry32 seeded PRNG — deterministic word selection so all race players see identical words |
-| `difficulty.ts` | `TextDifficultyAnalyzer` — scores text difficulty from bigram rarity, word length, special chars |
+| `difficulty.ts` | `TextDifficultyAnalyzer` — scores text difficulty from bigram rarity, word length, special chars; `getBigramFrequency()` |
 | `username.ts` | Username validation (pattern + length) |
 | `type-pass.ts` | TypePass (cosmetic battle pass) — tier pricing, progression, reward definitions |
+| `smart-practice.ts` | `rankWeaknesses()`, `estimateWpmImpact()` — ranks key/bigram weaknesses by WPM impact for practice insights |
 
 ## Pages (`apps/web/app/`)
 
@@ -211,12 +214,14 @@ JIT TypeScript — no build needed. All modules re-exported from `index.ts`.
 | `friends` | Friend list / add |
 | `friends/requests` | Friend requests |
 | `friends/search` | Search users for friend add |
-| `direct-messages` | DM list / conversation |
+| `direct-messages/[userId]` | Per-user DM conversation thread (cursor-paginated) |
+| `messages` | DM history (query by `?friendId=`) |
 | `messages/unread` | Unread message count |
 | `notifications` | User notifications |
 | `notifications/count` | Unread notification count |
 | `blocks` | Block / unblock users |
 | `races/[raceId]` | Race details (for replay) |
+| `practice-progress` | Accuracy snapshot history for practice improvement tracking |
 | `solo-results` | Submit solo result |
 | `report-replay` | Report suspicious replay |
 | `pp` | User PP score |
@@ -225,11 +230,14 @@ JIT TypeScript — no build needed. All modules re-exported from `index.ts`.
 | `cosmetics` | Available cosmetics |
 | `cosmetics/[userId]` | User's unlocked cosmetics |
 | `pro/checkout` | Stripe checkout session |
+| `pro/checkout/status` | Stripe checkout session status polling |
 | `pro/portal` | Stripe customer portal |
+| `type-pass` | TypePass progression info (stub — not yet implemented) |
 | `type-pass/checkout` | TypePass checkout |
+| `type-pass/checkout/status` | TypePass checkout status polling |
 | `webhooks/stripe` | Stripe webhook handler |
 | `preferences` | Save user preferences |
-| `seasons/current` | Current season info |
+| `seasons/current` | Current season info (stub — not yet implemented) |
 | `admin/users` | Admin user management |
 | `admin/test-accounts` | Create test accounts |
 | `bug-report` | Submit bug report (creates GitHub issue) |
@@ -241,13 +249,14 @@ JIT TypeScript — no build needed. All modules re-exported from `index.ts`.
 |-----------|---------------|
 | `typing/` | `WordDisplay`, `CodeWordDisplay`, `Word`, `Character`, `Cursor`, `KeyboardHeatmap`, `WpmChart` |
 | `race/` | `RaceArena`, `RaceTypingArea`, `RaceTrack`, `QueueScreen`, `CountdownOverlay`, `RaceResults`, `RaceEmoteBar`, `ChallengesWidget`, `TypePassWidget`, `PlacementReveal`, `GuestPlacement`, `FloatingEmote`, `SpectatorIndicator` |
-| `practice/` | `PracticeArena`, `ConfigBar`, `PracticeResults`, `ZenArena`, `ZenFreeformArena`, `StrictModeSelector`, `CodeLanguagePicker`, `BigramAnalysis`, `BigramHeatmap` |
+| `analytics/` | `AnalyticsInsights` (weakness-based WPM impact insights using `smart-practice` module) |
+| `practice/` | `PracticeArena`, `ConfigBar`, `PracticeResults`, `PracticeProgress`, `ZenArena`, `ZenFreeformArena`, `StrictModeSelector`, `CodeLanguagePicker`, `BigramAnalysis`, `BigramHeatmap` |
 | `social/` | `FriendsButton`, `FriendsDrawer`, `FriendsList`, `AddFriendButton`, `FriendRequests`, `DirectMessageWindow`, `ChatPanel`, `NotificationBell`, `NotificationDrawer`, `NavNotifications`, `NotificationToast`, `PartyInviteToast`, `PartyPanel`, `ReportBlockButton` |
 | `replay/` | `ReplayClient`, `ReplayView`, `ReplayControls`, `ReportButton` |
 | `spectate/` | `SpectatePageClient`, `SpectatorView`, `SpectatorWordDisplay` |
 | `profile/` | `PerformanceCharts`, `ActivityCalendar` |
 | `leaderboard/` | `LeaderboardTabs`, `PPLeaderboard`, `TextLeaderboard`, `UniverseSelector`, `SoloModeSelector` |
-| `auth/` | `SessionProvider`, `AuthNavLinks`, `UsernameGuard`, `UserMenu` |
+| `auth/` | `SessionProvider`, `AuthNavLinks`, `UsernameGuard`, `UserMenu`, `SignInPrompt` |
 | `items/` | `ItemsBrowser` (cosmetics browser) |
 | `settings/` | `ThemePicker` |
 | `shared/` | `ShareResultCard`, `VerifiedBadge`, `ReportIssueButton` |
@@ -270,9 +279,18 @@ JIT TypeScript — no build needed. All modules re-exported from `index.ts`.
 | `useResultCard.ts` | Result card data aggregation |
 | `useCapsLock.ts` | Caps Lock key detection |
 
+## Lib (`apps/web/src/lib/`)
+
+| File | Purpose |
+|------|---------|
+| `auth.ts` | NextAuth v5 configuration (providers, adapter, JWT callbacks) |
+| `db.ts` | Lazy singleton `getDb()` for Neon Postgres connection |
+| `admin-auth.ts` | `validateAdminSecret()` — timing-safe admin secret comparison |
+| `rate-limit.ts` | `createRateLimit()` — in-memory sliding-window rate limiter for API routes |
+
 ## Contexts (`apps/web/src/contexts/`)
 
-- `CosmeticContext.tsx` — Cosmetic availability context provider
+- `CosmeticContext.tsx` — Cosmetic availability context provider (`CosmeticProvider`, `useActiveCosmetics`, `useUpdateCosmetics`)
 
 ## Style
 
@@ -301,15 +319,19 @@ JIT TypeScript — no build needed. All modules re-exported from `index.ts`.
 | Components | `apps/web/src/components/` |
 | Hooks | `apps/web/src/hooks/` |
 | Auth config | `apps/web/src/lib/auth.ts` |
-| DB helper | `apps/web/src/lib/db.ts` |
+| DB helper (web) | `apps/web/src/lib/db.ts` |
+| Admin auth helper | `apps/web/src/lib/admin-auth.ts` |
+| Rate limiter | `apps/web/src/lib/rate-limit.ts` |
 | Session types | `apps/web/src/types/next-auth.d.ts` |
 | Cosmetic context | `apps/web/src/contexts/CosmeticContext.tsx` |
 | Global styles | `apps/web/app/globals.css` |
 | Next.js config | `apps/web/next.config.ts` |
+| PostCSS config | `apps/web/postcss.config.mjs` |
 | Shared types | `packages/shared/src/` |
 | DB schema | `packages/db/src/schema.ts` |
 | DB client | `packages/db/src/client.ts` |
 | Drizzle config | `packages/db/drizzle.config.ts` |
 | WS server entry | `apps/ws-server/src/index.ts` |
+| WS server DB helper | `apps/ws-server/src/db.ts` |
 | Turbo config | `turbo.json` |
 | Root TS config | `tsconfig.json` |
