@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useNotifications } from "@/hooks/useNotifications";
 
 const TYPE_ICONS: Record<string, string> = {
+  dm: "💬",
   friend_request: "👋",
   achievement: "🏆",
   challenge_complete: "✅",

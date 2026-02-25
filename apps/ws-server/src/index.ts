@@ -283,6 +283,13 @@ io.on("connection", (socket) => {
       for (const socketId of socialManager.getSocketsForUser(player.id)) {
         io.to(socketId).emit("dmMessage", payload);
       }
+
+      // Notify recipient (persisted + real-time toast)
+      notificationManager.notify(toUserId, {
+        type: "dm",
+        title: `Message from ${player.name}`,
+        body: content.length > 80 ? content.slice(0, 80) + "…" : content,
+      }).catch(() => {});
     } catch {
       // silently drop auth failures
     }
