@@ -86,6 +86,7 @@ export default function Image() {
           {/* Eyebrow */}
           <div
             style={{
+              display: "flex",
               fontSize: 13,
               letterSpacing: "0.2em",
               color: "#4d9eff",
@@ -100,6 +101,7 @@ export default function Image() {
           {/* Title */}
           <div
             style={{
+              display: "flex",
               fontSize: 116,
               fontWeight: 800,
               color: "#e8e8f0",
@@ -114,6 +116,7 @@ export default function Image() {
           {/* Tagline */}
           <div
             style={{
+              display: "flex",
               fontSize: 26,
               color: "#6b7280",
               lineHeight: 1.5,
@@ -177,6 +180,7 @@ export default function Image() {
           {/* Domain */}
           <div
             style={{
+              display: "flex",
               fontSize: 16,
               color: "rgba(107,114,128,0.45)",
               letterSpacing: "0.06em",
@@ -209,6 +213,7 @@ export default function Image() {
             {/* Top accent line */}
             <div
               style={{
+                display: "flex",
                 height: 2,
                 width: "100%",
                 background: "#4d9eff",
@@ -251,6 +256,7 @@ export default function Image() {
             </div>
             <div
               style={{
+                display: "flex",
                 fontSize: 12,
                 color: "#6b7280",
                 letterSpacing: "0.12em",
@@ -264,6 +270,7 @@ export default function Image() {
             {/* Divider */}
             <div
               style={{
+                display: "flex",
                 height: 1,
                 background: "rgba(255,255,255,0.05)",
                 marginBottom: 24,
@@ -301,6 +308,7 @@ export default function Image() {
             </div>
             <div
               style={{
+                display: "flex",
                 fontSize: 12,
                 color: "#6b7280",
                 letterSpacing: "0.12em",
