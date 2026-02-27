@@ -28,8 +28,6 @@ export async function GET(req: NextRequest) {
     });
   } catch (err) {
     console.error("[checkout/status] Stripe error:", err);
-    const message =
-      err instanceof Error ? err.message : "Failed to retrieve session";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: "Failed to retrieve session" }, { status: 500 });
   }
 }

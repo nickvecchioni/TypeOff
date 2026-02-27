@@ -50,6 +50,13 @@ const spectators = new Map<string, string>();
 
 // DM rate limiting: userId → last send timestamp
 const dmLastSent = new Map<string, number>();
+// Periodically prune stale DM rate-limit entries (older than 60s)
+setInterval(() => {
+  const cutoff = Date.now() - 60_000;
+  for (const [userId, ts] of dmLastSent) {
+    if (ts < cutoff) dmLastSent.delete(userId);
+  }
+}, 60_000).unref();
 
 // Track followers: userId being followed → Set of follower socketIds
 const followers = new Map<string, Set<string>>();
@@ -424,6 +431,10 @@ httpServer.listen(PORT, () => {
 // ─── Graceful Shutdown ──────────────────────────────────────────────────
 function shutdown(signal: string) {
   console.log(`[ws-server] ${signal} received — shutting down`);
+
+  // Clear long-lived timers to allow clean exit
+  matchmaker.destroy();
+  socialManager.destroy();
 
   // Stop accepting new connections
   io.close(() => {

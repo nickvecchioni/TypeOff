@@ -34,6 +34,13 @@ export function getRankTier(elo: number): RankTier {
   return "bronze";
 }
 
+/** Compute integer division boundaries for a tier's range */
+function divisionThresholds(t: { min: number; max: number }): [number, number] {
+  const range = t.max - t.min + 1;
+  const third = Math.floor(range / 3);
+  return [third, third * 2];
+}
+
 /** Get full rank info including division */
 export function getRankInfo(elo: number): RankInfo {
   for (const t of RANK_TIERS) {
@@ -41,12 +48,11 @@ export function getRankInfo(elo: number): RankInfo {
       if (t.tier === "grandmaster") {
         return { tier: "grandmaster", division: null, label: "Grandmaster" };
       }
-      const range = t.max - t.min + 1;
       const offset = elo - t.min;
-      const third = range / 3;
+      const [d3, d2] = divisionThresholds(t);
       let div: number;
-      if (offset >= 2 * third) div = 1;
-      else if (offset >= third) div = 2;
+      if (offset >= d2) div = 1;
+      else if (offset >= d3) div = 2;
       else div = 3;
       const name = t.tier.charAt(0).toUpperCase() + t.tier.slice(1);
       return {
@@ -64,11 +70,21 @@ export function getRankProgress(elo: number): number {
   for (const t of RANK_TIERS) {
     if (elo >= t.min) {
       if (t.tier === "grandmaster") return 1;
-      const range = t.max - t.min + 1;
-      const third = range / 3;
+      const [d3, d2] = divisionThresholds(t);
       const offset = elo - t.min;
-      const divOffset = offset % third;
-      return divOffset / third;
+      let divStart: number;
+      let divSize: number;
+      if (offset >= d2) {
+        divStart = d2;
+        divSize = (t.max - t.min + 1) - d2;
+      } else if (offset >= d3) {
+        divStart = d3;
+        divSize = d2 - d3;
+      } else {
+        divStart = 0;
+        divSize = d3;
+      }
+      return (offset - divStart) / divSize;
     }
   }
   return 0;
@@ -79,15 +95,14 @@ export function getNextDivisionElo(elo: number): number | null {
   for (const t of RANK_TIERS) {
     if (elo >= t.min) {
       if (t.tier === "grandmaster") return null;
-      const range = t.max - t.min + 1;
-      const third = range / 3;
+      const [d3, d2] = divisionThresholds(t);
       const offset = elo - t.min;
-      if (offset >= 2 * third) return t.max + 1; // promote to next tier
-      if (offset >= third) return t.min + Math.ceil(2 * third);
-      return t.min + Math.ceil(third);
+      if (offset >= d2) return t.max + 1; // promote to next tier
+      if (offset >= d3) return t.min + d2;
+      return t.min + d3;
     }
   }
-  return 300; // next Bronze division
+  return 333; // next Bronze division (Bronze III → Bronze II)
 }
 
 /**

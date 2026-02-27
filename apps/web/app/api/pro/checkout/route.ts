@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     ].filter(Boolean).join(", ");
     console.error(`[pro/checkout] Missing env vars: ${missing}`);
     return NextResponse.json(
-      { error: `Server misconfigured — missing: ${missing}` },
+      { error: "Server misconfigured" },
       { status: 500 },
     );
   }
@@ -92,7 +92,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ clientSecret: checkoutSession.client_secret });
   } catch (err) {
     console.error("[pro/checkout] Stripe error:", err);
-    const message = err instanceof Error ? err.message : "Stripe checkout failed";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: "Checkout failed" }, { status: 500 });
   }
 }
