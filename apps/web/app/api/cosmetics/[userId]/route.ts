@@ -12,19 +12,24 @@ export async function GET(
 ) {
   const { userId } = await params;
 
-  const db = getDb();
-  const [active] = await db
-    .select()
-    .from(userActiveCosmetics)
-    .where(eq(userActiveCosmetics.userId, userId))
-    .limit(1);
+  try {
+    const db = getDb();
+    const [active] = await db
+      .select()
+      .from(userActiveCosmetics)
+      .where(eq(userActiveCosmetics.userId, userId))
+      .limit(1);
 
-  return NextResponse.json({
-    active: active ?? {
-      activeBadge: null,
-      activeTitle: null,
-      activeNameColor: null,
-      activeNameEffect: null,
-    },
-  });
+    return NextResponse.json({
+      active: active ?? {
+        activeBadge: null,
+        activeTitle: null,
+        activeNameColor: null,
+        activeNameEffect: null,
+      },
+    });
+  } catch (err) {
+    console.error("[cosmetics/userId] GET error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }

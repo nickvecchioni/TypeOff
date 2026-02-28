@@ -13,11 +13,16 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const db = getDb();
-  const [result] = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(notifications)
-    .where(and(eq(notifications.userId, session.user.id), eq(notifications.read, false)));
+  try {
+    const db = getDb();
+    const [result] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(notifications)
+      .where(and(eq(notifications.userId, session.user.id), eq(notifications.read, false)));
 
-  return NextResponse.json({ unread: result?.count ?? 0 });
+    return NextResponse.json({ unread: result?.count ?? 0 });
+  } catch (err) {
+    console.error("[notifications/count] GET error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }

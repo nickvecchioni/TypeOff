@@ -23,42 +23,47 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Missing friendId" }, { status: 400 });
   }
 
-  const db = getDb();
-  const userId = session.user.id;
+  try {
+    const db = getDb();
+    const userId = session.user.id;
 
-  const conditions = and(
-    or(
-      and(
-        eq(directMessages.senderId, userId),
-        eq(directMessages.receiverId, friendId),
+    const conditions = and(
+      or(
+        and(
+          eq(directMessages.senderId, userId),
+          eq(directMessages.receiverId, friendId),
+        ),
+        and(
+          eq(directMessages.senderId, friendId),
+          eq(directMessages.receiverId, userId),
+        ),
       ),
-      and(
-        eq(directMessages.senderId, friendId),
-        eq(directMessages.receiverId, userId),
-      ),
-    ),
-    cursor ? lt(directMessages.createdAt, new Date(cursor)) : undefined,
-  );
+      cursor ? lt(directMessages.createdAt, new Date(cursor)) : undefined,
+    );
 
-  const rows = await db
-    .select()
-    .from(directMessages)
-    .where(conditions)
-    .orderBy(desc(directMessages.createdAt))
-    .limit(limit + 1);
+    const rows = await db
+      .select()
+      .from(directMessages)
+      .where(conditions)
+      .orderBy(desc(directMessages.createdAt))
+      .limit(limit + 1);
 
-  const hasMore = rows.length > limit;
-  const messages = rows.slice(0, limit).map((m) => ({
-    id: m.id,
-    senderId: m.senderId,
-    recipientId: m.receiverId,
-    content: m.content,
-    createdAt: m.createdAt.toISOString(),
-    readAt: null,
-  }));
+    const hasMore = rows.length > limit;
+    const messages = rows.slice(0, limit).map((m) => ({
+      id: m.id,
+      senderId: m.senderId,
+      recipientId: m.receiverId,
+      content: m.content,
+      createdAt: m.createdAt.toISOString(),
+      readAt: null,
+    }));
 
-  return NextResponse.json({
-    messages,
-    nextCursor: hasMore ? messages[messages.length - 1].createdAt : null,
-  });
+    return NextResponse.json({
+      messages,
+      nextCursor: hasMore ? messages[messages.length - 1].createdAt : null,
+    });
+  } catch (err) {
+    console.error("[messages] GET error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }

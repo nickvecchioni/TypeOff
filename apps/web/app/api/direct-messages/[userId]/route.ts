@@ -24,77 +24,82 @@ export async function GET(
     return NextResponse.json({ error: "Invalid userId" }, { status: 400 });
   }
 
-  const db = getDb();
+  try {
+    const db = getDb();
 
-  // Verify friendship
-  const friendship = await db
-    .select({ id: friendships.id })
-    .from(friendships)
-    .where(
-      and(
-        or(
-          and(eq(friendships.requesterId, myId), eq(friendships.addresseeId, otherId)),
-          and(eq(friendships.requesterId, otherId), eq(friendships.addresseeId, myId)),
+    // Verify friendship
+    const friendship = await db
+      .select({ id: friendships.id })
+      .from(friendships)
+      .where(
+        and(
+          or(
+            and(eq(friendships.requesterId, myId), eq(friendships.addresseeId, otherId)),
+            and(eq(friendships.requesterId, otherId), eq(friendships.addresseeId, myId)),
+          ),
+          eq(friendships.status, "accepted"),
         ),
-        eq(friendships.status, "accepted"),
-      ),
-    )
-    .limit(1);
+      )
+      .limit(1);
 
-  if (friendship.length === 0) {
-    return NextResponse.json({ error: "Not friends" }, { status: 403 });
-  }
+    if (friendship.length === 0) {
+      return NextResponse.json({ error: "Not friends" }, { status: 403 });
+    }
 
-  // Check if blocked in either direction
-  const blocked = await db
-    .select({ blockerId: userBlocks.blockerId })
-    .from(userBlocks)
-    .where(
-      or(
-        and(eq(userBlocks.blockerId, myId), eq(userBlocks.blockedId, otherId)),
-        and(eq(userBlocks.blockerId, otherId), eq(userBlocks.blockedId, myId)),
-      ),
-    )
-    .limit(1);
-
-  if (blocked.length > 0) {
-    return NextResponse.json({ error: "Blocked" }, { status: 403 });
-  }
-
-  // Cursor-based pagination (before= timestamp)
-  const url = new URL(request.url);
-  const before = url.searchParams.get("before");
-
-  const rows = await db
-    .select({
-      id: directMessages.id,
-      senderId: directMessages.senderId,
-      content: directMessages.content,
-      createdAt: directMessages.createdAt,
-      senderUsername: users.username,
-    })
-    .from(directMessages)
-    .innerJoin(users, eq(users.id, directMessages.senderId))
-    .where(
-      and(
+    // Check if blocked in either direction
+    const blocked = await db
+      .select({ blockerId: userBlocks.blockerId })
+      .from(userBlocks)
+      .where(
         or(
-          and(eq(directMessages.senderId, myId), eq(directMessages.receiverId, otherId)),
-          and(eq(directMessages.senderId, otherId), eq(directMessages.receiverId, myId)),
+          and(eq(userBlocks.blockerId, myId), eq(userBlocks.blockedId, otherId)),
+          and(eq(userBlocks.blockerId, otherId), eq(userBlocks.blockedId, myId)),
         ),
-        before ? lt(directMessages.createdAt, new Date(before)) : undefined,
-      ),
-    )
-    .orderBy(desc(directMessages.createdAt))
-    .limit(50);
+      )
+      .limit(1);
 
-  // Return oldest-first
-  const messages = rows.reverse().map((r) => ({
-    id: r.id,
-    fromUserId: r.senderId,
-    fromName: r.senderUsername ?? "Unknown",
-    message: r.content,
-    timestamp: r.createdAt.getTime(),
-  }));
+    if (blocked.length > 0) {
+      return NextResponse.json({ error: "Blocked" }, { status: 403 });
+    }
 
-  return NextResponse.json({ messages });
+    // Cursor-based pagination (before= timestamp)
+    const url = new URL(request.url);
+    const before = url.searchParams.get("before");
+
+    const rows = await db
+      .select({
+        id: directMessages.id,
+        senderId: directMessages.senderId,
+        content: directMessages.content,
+        createdAt: directMessages.createdAt,
+        senderUsername: users.username,
+      })
+      .from(directMessages)
+      .innerJoin(users, eq(users.id, directMessages.senderId))
+      .where(
+        and(
+          or(
+            and(eq(directMessages.senderId, myId), eq(directMessages.receiverId, otherId)),
+            and(eq(directMessages.senderId, otherId), eq(directMessages.receiverId, myId)),
+          ),
+          before ? lt(directMessages.createdAt, new Date(before)) : undefined,
+        ),
+      )
+      .orderBy(desc(directMessages.createdAt))
+      .limit(50);
+
+    // Return oldest-first
+    const messages = rows.reverse().map((r) => ({
+      id: r.id,
+      fromUserId: r.senderId,
+      fromName: r.senderUsername ?? "Unknown",
+      message: r.content,
+      timestamp: r.createdAt.getTime(),
+    }));
+
+    return NextResponse.json({ messages });
+  } catch (err) {
+    console.error("[direct-messages] GET error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }

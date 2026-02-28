@@ -15,50 +15,55 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "userId required" }, { status: 400 });
   }
 
-  const db = getDb();
+  try {
+    const db = getDb();
 
-  // Get top 50 PP scores
-  const topScores = await db
-    .select({
-      textHash: textLeaderboards.textHash,
-      bestWpm: textLeaderboards.bestWpm,
-      bestAccuracy: textLeaderboards.bestAccuracy,
-      pp: textLeaderboards.pp,
-      textDifficulty: textLeaderboards.textDifficulty,
-      mode: textLeaderboards.mode,
-      updatedAt: textLeaderboards.updatedAt,
-    })
-    .from(textLeaderboards)
-    .where(eq(textLeaderboards.userId, userId))
-    .orderBy(desc(textLeaderboards.pp))
-    .limit(50);
+    // Get top 50 PP scores
+    const topScores = await db
+      .select({
+        textHash: textLeaderboards.textHash,
+        bestWpm: textLeaderboards.bestWpm,
+        bestAccuracy: textLeaderboards.bestAccuracy,
+        pp: textLeaderboards.pp,
+        textDifficulty: textLeaderboards.textDifficulty,
+        mode: textLeaderboards.mode,
+        updatedAt: textLeaderboards.updatedAt,
+      })
+      .from(textLeaderboards)
+      .where(eq(textLeaderboards.userId, userId))
+      .orderBy(desc(textLeaderboards.pp))
+      .limit(50);
 
-  const ppScores = topScores.map((s) => s.pp);
-  const totalPp = calculateTotalPP(ppScores);
+    const ppScores = topScores.map((s) => s.pp);
+    const totalPp = calculateTotalPP(ppScores);
 
-  // Get user's rank by total PP
-  const [rankResult] = await db
-    .select({ count: sql<number>`count(*) + 1` })
-    .from(userStats)
-    .where(sql`${userStats.totalPp} > ${totalPp}`);
-  const rank = Number(rankResult?.count ?? 1);
+    // Get user's rank by total PP
+    const [rankResult] = await db
+      .select({ count: sql<number>`count(*) + 1` })
+      .from(userStats)
+      .where(sql`${userStats.totalPp} > ${totalPp}`);
+    const rank = Number(rankResult?.count ?? 1);
 
-  // Get username
-  const [user] = await db
-    .select({ username: users.username })
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1);
+    // Get username
+    const [user] = await db
+      .select({ username: users.username })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
 
-  return NextResponse.json({
-    userId,
-    username: user?.username,
-    totalPp: Math.round(totalPp * 100) / 100,
-    rank,
-    topScores: topScores.map((s, i) => ({
-      ...s,
-      weight: Math.pow(0.95, i),
-      weightedPp: Math.round(s.pp * Math.pow(0.95, i) * 100) / 100,
-    })),
-  });
+    return NextResponse.json({
+      userId,
+      username: user?.username,
+      totalPp: Math.round(totalPp * 100) / 100,
+      rank,
+      topScores: topScores.map((s, i) => ({
+        ...s,
+        weight: Math.pow(0.95, i),
+        weightedPp: Math.round(s.pp * Math.pow(0.95, i) * 100) / 100,
+      })),
+    });
+  } catch (err) {
+    console.error("[pp] GET error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }

@@ -20,16 +20,21 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Missing username" }, { status: 400 });
   }
 
-  const db = getDb();
-  const [user] = await db
-    .select({ id: users.id, username: users.username })
-    .from(users)
-    .where(eq(users.username, username))
-    .limit(1);
+  try {
+    const db = getDb();
+    const [user] = await db
+      .select({ id: users.id, username: users.username })
+      .from(users)
+      .where(eq(users.username, username))
+      .limit(1);
 
-  if (!user) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ user });
+  } catch (err) {
+    console.error("[users] GET error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-
-  return NextResponse.json({ user });
 }

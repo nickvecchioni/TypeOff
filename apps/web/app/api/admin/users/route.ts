@@ -12,19 +12,24 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const db = getDb();
-  const rows = await db
-    .select({
-      id: users.id,
-      username: users.username,
-      email: users.email,
-      eloRating: users.eloRating,
-      rankTier: users.rankTier,
-      placementsCompleted: users.placementsCompleted,
-    })
-    .from(users)
-    .where(isNotNull(users.email))
-    .orderBy(desc(users.eloRating));
+  try {
+    const db = getDb();
+    const rows = await db
+      .select({
+        id: users.id,
+        username: users.username,
+        email: users.email,
+        eloRating: users.eloRating,
+        rankTier: users.rankTier,
+        placementsCompleted: users.placementsCompleted,
+      })
+      .from(users)
+      .where(isNotNull(users.email))
+      .orderBy(desc(users.eloRating));
 
-  return NextResponse.json(rows);
+    return NextResponse.json(rows);
+  } catch (err) {
+    console.error("[admin/users] GET error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }

@@ -28,6 +28,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Pro required" }, { status: 403 });
   }
 
+  try {
+
   const db = getDb();
   const limit = isExport ? undefined : (isPro ? PAGE_SIZE : FREE_LIMIT);
 
@@ -110,4 +112,9 @@ export async function GET(req: NextRequest) {
     total: countRow?.count ?? 0,
     isPro,
   });
+
+  } catch (err) {
+    console.error("[history] GET error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }

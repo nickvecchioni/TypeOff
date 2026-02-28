@@ -23,24 +23,30 @@ export async function GET(req: NextRequest) {
   }
 
   const textHash = `${seed}:${mode}`;
-  const db = getDb();
 
-  const rows = await db
-    .select({
-      userId: textLeaderboards.userId,
-      username: users.username,
-      bestWpm: textLeaderboards.bestWpm,
-      bestAccuracy: textLeaderboards.bestAccuracy,
-      pp: textLeaderboards.pp,
-      updatedAt: textLeaderboards.updatedAt,
-    })
-    .from(textLeaderboards)
-    .innerJoin(users, eq(textLeaderboards.userId, users.id))
-    .where(eq(textLeaderboards.textHash, textHash))
-    .orderBy(desc(textLeaderboards.bestWpm))
-    .limit(limit);
+  try {
+    const db = getDb();
 
-  return NextResponse.json({ entries: rows });
+    const rows = await db
+      .select({
+        userId: textLeaderboards.userId,
+        username: users.username,
+        bestWpm: textLeaderboards.bestWpm,
+        bestAccuracy: textLeaderboards.bestAccuracy,
+        pp: textLeaderboards.pp,
+        updatedAt: textLeaderboards.updatedAt,
+      })
+      .from(textLeaderboards)
+      .innerJoin(users, eq(textLeaderboards.userId, users.id))
+      .where(eq(textLeaderboards.textHash, textHash))
+      .orderBy(desc(textLeaderboards.bestWpm))
+      .limit(limit);
+
+    return NextResponse.json({ entries: rows });
+  } catch (err) {
+    console.error("[text-leaderboard] GET error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }
 
 // POST — upsert user's best for a specific text
@@ -62,38 +68,43 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
-  // Compute PP server-side from the deterministic word list
-  const words = generateWordsForMode(mode as RaceMode, Number(seed));
-  const difficulty = scoreTextDifficulty(words);
-  const computedPP = calculatePP(wpm, accuracy, difficulty.score);
+  try {
+    // Compute PP server-side from the deterministic word list
+    const words = generateWordsForMode(mode as RaceMode, Number(seed));
+    const difficulty = scoreTextDifficulty(words);
+    const computedPP = calculatePP(wpm, accuracy, difficulty.score);
 
-  const textHash = `${seed}:${mode}`;
-  const db = getDb();
+    const textHash = `${seed}:${mode}`;
+    const db = getDb();
 
-  // Upsert — only update if new WPM is higher
-  await db
-    .insert(textLeaderboards)
-    .values({
-      textHash,
-      seed,
-      mode,
-      userId: session.user.id,
-      bestWpm: wpm,
-      bestAccuracy: accuracy,
-      bestRaceId: raceId ?? null,
-      pp: computedPP,
-      textDifficulty: difficulty.score,
-    })
-    .onConflictDoUpdate({
-      target: [textLeaderboards.textHash, textLeaderboards.userId],
-      set: {
-        bestWpm: sql`CASE WHEN excluded.best_wpm > ${textLeaderboards.bestWpm} THEN excluded.best_wpm ELSE ${textLeaderboards.bestWpm} END`,
-        bestAccuracy: sql`CASE WHEN excluded.best_wpm > ${textLeaderboards.bestWpm} THEN excluded.best_accuracy ELSE ${textLeaderboards.bestAccuracy} END`,
-        bestRaceId: sql`CASE WHEN excluded.best_wpm > ${textLeaderboards.bestWpm} THEN excluded.best_race_id ELSE ${textLeaderboards.bestRaceId} END`,
-        pp: sql`CASE WHEN excluded.best_wpm > ${textLeaderboards.bestWpm} THEN excluded.pp ELSE ${textLeaderboards.pp} END`,
-        updatedAt: new Date(),
-      },
-    });
+    // Upsert — only update if new WPM is higher
+    await db
+      .insert(textLeaderboards)
+      .values({
+        textHash,
+        seed,
+        mode,
+        userId: session.user.id,
+        bestWpm: wpm,
+        bestAccuracy: accuracy,
+        bestRaceId: raceId ?? null,
+        pp: computedPP,
+        textDifficulty: difficulty.score,
+      })
+      .onConflictDoUpdate({
+        target: [textLeaderboards.textHash, textLeaderboards.userId],
+        set: {
+          bestWpm: sql`CASE WHEN excluded.best_wpm > ${textLeaderboards.bestWpm} THEN excluded.best_wpm ELSE ${textLeaderboards.bestWpm} END`,
+          bestAccuracy: sql`CASE WHEN excluded.best_wpm > ${textLeaderboards.bestWpm} THEN excluded.best_accuracy ELSE ${textLeaderboards.bestAccuracy} END`,
+          bestRaceId: sql`CASE WHEN excluded.best_wpm > ${textLeaderboards.bestWpm} THEN excluded.best_race_id ELSE ${textLeaderboards.bestRaceId} END`,
+          pp: sql`CASE WHEN excluded.best_wpm > ${textLeaderboards.bestWpm} THEN excluded.pp ELSE ${textLeaderboards.pp} END`,
+          updatedAt: new Date(),
+        },
+      });
 
-  return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error("[text-leaderboard] POST error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }

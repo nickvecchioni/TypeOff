@@ -12,19 +12,24 @@ export async function GET(
 ) {
   const { userId } = await params;
 
-  const db = getDb();
-  const rows = await db
-    .select({
-      achievementId: userAchievements.achievementId,
-      unlockedAt: userAchievements.unlockedAt,
-    })
-    .from(userAchievements)
-    .where(eq(userAchievements.userId, userId));
+  try {
+    const db = getDb();
+    const rows = await db
+      .select({
+        achievementId: userAchievements.achievementId,
+        unlockedAt: userAchievements.unlockedAt,
+      })
+      .from(userAchievements)
+      .where(eq(userAchievements.userId, userId));
 
-  const achievements = rows.map((r) => ({
-    id: r.achievementId,
-    unlockedAt: r.unlockedAt.toISOString(),
-  }));
+    const achievements = rows.map((r) => ({
+      id: r.achievementId,
+      unlockedAt: r.unlockedAt.toISOString(),
+    }));
 
-  return NextResponse.json({ achievements });
+    return NextResponse.json({ achievements });
+  } catch (err) {
+    console.error("[achievements] GET error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }

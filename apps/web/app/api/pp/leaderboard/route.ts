@@ -7,6 +7,7 @@ export const dynamic = "force-dynamic";
 
 // GET — global PP leaderboard
 export async function GET() {
+  try {
   const db = getDb();
 
   const rows = await db
@@ -54,4 +55,8 @@ export async function GET() {
   });
 
   return NextResponse.json({ entries });
+  } catch (err) {
+    console.error("[pp/leaderboard] GET error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }

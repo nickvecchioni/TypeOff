@@ -43,6 +43,8 @@ export async function GET(request: Request) {
   const modeFilter: string | null =
     rawMode && VALID_MODES.has(rawMode) ? rawMode : null;
 
+  try {
+
   const db = getDb();
   const userId = session.user.id;
   const isPro = session.user.isPro ?? false;
@@ -319,4 +321,9 @@ export async function GET(request: Request) {
       maxRankedDayStreak: stats?.maxRankedDayStreak ?? 0,
     },
   });
+
+  } catch (err) {
+    console.error("[analytics] GET error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }
