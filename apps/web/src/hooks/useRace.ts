@@ -163,16 +163,20 @@ export function useRace(myPlayerId?: string | null) {
         }
       }),
       on("raceFinished", (data) => {
-        // If the server auto-finished us with 0 WPM but we have accurate local
-        // finish data, patch the server results so the user sees their real WPM.
+        // Always prefer local finish stats over server stats when available.
+        // The server may have auto-finished us with stale WPM (from the last
+        // progress event it processed before a socket mapping broke) or 0 WPM.
+        // Local stats come directly from the typing engine and are always accurate.
         const finish = localFinishRef.current;
         const myId = myPlayerIdRef.current;
         let patchedResults = data.results;
         if (finish && myId && finish.entry.finalStats) {
           const localStats = finish.entry.finalStats;
           const myServerResult = patchedResults.find(r => r.playerId === myId);
-          if (myServerResult && myServerResult.wpm === 0 && localStats.wpm > 0) {
-            console.warn("[useRace] Server returned 0 WPM — patching with local finish data:", localStats);
+          if (myServerResult && localStats.wpm > 0) {
+            if (myServerResult.wpm !== localStats.wpm) {
+              console.warn(`[useRace] Patching server WPM (${myServerResult.wpm}) with local finish data (${localStats.wpm})`);
+            }
             patchedResults = patchedResults.map(r =>
               r.playerId === myId
                 ? { ...r, wpm: localStats.wpm, rawWpm: localStats.rawWpm, accuracy: localStats.accuracy }
@@ -232,18 +236,20 @@ export function useRace(myPlayerId?: string | null) {
   // Reconnect to active race after brief disconnect.
   // The server middleware already does proactive reconnection via the auth token,
   // so this is a fallback for cases where the middleware didn't have a token.
+  // CRITICAL: We must ALWAYS send rejoinRace after reconnection, even if the
+  // player has already finished locally. Without it, the server's socket-to-race
+  // mappings aren't restored, so raceFinish retry events are silently dropped
+  // and the race gets stuck waiting for the 15s timeout.
   useEffect(() => {
     const wasDisconnected = !prevConnectedRef.current;
     prevConnectedRef.current = connected;
 
     if (connected && wasDisconnected && (phase === "racing" || phase === "countdown")) {
-      // Small delay: the server middleware's proactive reconnect should have
-      // already restored the socket mapping. Only send rejoinRace if we're
-      // still in a racing phase after the middleware had time to act.
+      // If the player already finished locally, restore mappings immediately
+      // (no need to wait 500ms — the finish retries are already in flight).
+      // Otherwise, small delay to let the middleware's proactive reconnect act first.
+      const delay = localFinishRef.current ? 50 : 500;
       const timer = setTimeout(async () => {
-        // Re-check phase — it may have transitioned to "finished" by now
-        // (can't read React state directly in async, so rely on the ref)
-        if (localFinishRef.current) return; // Already finished locally, don't rejoin
         try {
           const res = await fetch("/api/ws-token");
           if (res.ok) {
@@ -256,7 +262,7 @@ export function useRace(myPlayerId?: string | null) {
         } catch {
           // Token fetch failed — server will end race after grace period
         }
-      }, 500);
+      }, delay);
       return () => clearTimeout(timer);
     }
   }, [connected, phase, emit, updateToken]);

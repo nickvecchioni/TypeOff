@@ -871,7 +871,7 @@ export function RaceResults({
       {/* ── Hero stats ─────────────────────────────────────── */}
       {myResult ? (
         <div
-          className="shrink-0 rounded-xl overflow-hidden ring-1 ring-white/[0.04] animate-fade-in"
+          className="shrink-0 rounded-xl overflow-hidden ring-1 ring-white/[0.04]"
         >
           {/* Placement-colored top bar */}
           <div className={`h-0.5 ${pStyle!.bar} opacity-60`} />
@@ -1005,14 +1005,14 @@ export function RaceResults({
           )}
         </div>
       ) : (
-        <h2 className="text-lg font-bold text-text animate-fade-in">Results</h2>
+        <h2 className="text-lg font-bold text-text">Results</h2>
       )}
 
       {/* ── Quote / Code info ────────────────────────────── */}
       {raceMode === "quotes" && raceSeed != null && (() => {
         const quote = getQuoteByIndex(raceSeed);
         return (
-          <div className="shrink-0 rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-4 py-3 animate-fade-in">
+          <div className="shrink-0 rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-4 py-3">
             <div className="text-sm text-text/70 italic leading-relaxed">&ldquo;{quote.text}&rdquo;</div>
             <div className="text-xs text-muted/50 mt-1.5">&mdash; {quote.author}</div>
           </div>
@@ -1021,7 +1021,7 @@ export function RaceResults({
       {raceMode === "code" && raceSeed != null && (() => {
         const snippet = getCodeSnippet(raceSeed);
         return (
-          <div className="shrink-0 rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-4 py-2.5 flex items-center gap-2 animate-fade-in">
+          <div className="shrink-0 rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-4 py-2.5 flex items-center gap-2">
             <span className="text-xs font-mono text-accent/70">&lt;/&gt;</span>
             <span className="text-sm text-text/70">{snippet.name}</span>
             <span className="text-xs text-muted/40">{snippet.language}</span>
@@ -1032,7 +1032,6 @@ export function RaceResults({
       {/* ── TOP ROW: Standings + XP ─────────────────────── */}
       <div
         className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 w-full"
-        style={{ animation: "fade-in 0.3s ease-out 0.05s both" }}
       >
         {/* ── LEFT: Standings table + Chat ── */}
         <div className="flex flex-col gap-1.5 min-h-0">
@@ -1227,7 +1226,6 @@ export function RaceResults({
       {myWpmHistory && myWpmHistory.length >= 2 && (
         <div
           className="w-full rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 pt-2 pb-1 flex flex-col"
-          style={{ animation: "fade-in 0.3s ease-out 0.1s both" }}
         >
           <div className="text-[10px] font-bold text-muted/50 uppercase tracking-widest mb-1">WPM over time</div>
           <div className="w-full" style={{ aspectRatio: "5 / 1" }}>
@@ -1240,7 +1238,6 @@ export function RaceResults({
       {isPro && myKeyStats && Object.keys(myKeyStats).length > 0 && (
         <div
           className="w-full rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 pt-2 pb-3 flex flex-col gap-2"
-          style={{ animation: "fade-in 0.3s ease-out 0.12s both" }}
         >
           <div className="flex items-center justify-between">
             <div className="text-[10px] font-bold text-muted/50 uppercase tracking-widest">Typing Analysis</div>
@@ -1278,7 +1275,6 @@ export function RaceResults({
       {!isPlacement && (
         <div
           className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 w-full"
-          style={{ animation: "fade-in 0.3s ease-out 0.15s both" }}
         >
           {/* Challenges */}
           <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden px-3 py-1.5 sm:px-4 sm:py-2">
@@ -1347,7 +1343,6 @@ export function RaceResults({
       {/* ── RACE AGAIN + ACTIONS (centered) ──────────────── */}
       <div
         className="flex flex-col items-center gap-1 w-full max-w-md mx-auto px-px"
-        style={{ animation: "fade-in 0.3s ease-out 0.2s both" }}
       >
         {/* Party ready state */}
         {inParty && !isPlacement && (

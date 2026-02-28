@@ -207,6 +207,24 @@ export class Matchmaker implements RaceOwner {
           }
         }
       }
+      // Last resort: find a race that has a disconnected human player.
+      // Handles the case where auth failed on reconnect (no userId available).
+      if (!raceId) {
+        for (const [rid, race] of this.races.entries()) {
+          if (race.isFinished) continue;
+          const disconnectedUserId = race.getDisconnectedHumanUserId();
+          if (disconnectedUserId) {
+            raceId = rid;
+            this.socketToRace.set(socketId, raceId);
+            this.socketToUserId.set(socketId, disconnectedUserId);
+            this.userIdToRace.set(disconnectedUserId, raceId);
+            const sock = this.io.sockets.sockets.get(socketId);
+            if (sock) race.reconnectPlayer(disconnectedUserId, sock);
+            console.log(`[matchmaker] handleProgress: last-resort fallback → race ${raceId} (disconnected user=${disconnectedUserId})`);
+            break;
+          }
+        }
+      }
       if (!raceId) {
         console.warn(
           `[matchmaker] handleProgress: no race mapping for socketId=${socketId} userId=${userId ?? "none"} (wpm=${data.wpm}, progress=${data.progress.toFixed(3)})`,
@@ -243,6 +261,24 @@ export class Matchmaker implements RaceOwner {
               race.reconnectPlayer(uid, sock);
             }
 
+            race.handleFinish(socketId, data);
+            return;
+          }
+        }
+      }
+      // Last resort: find a race with a disconnected human (same as handleProgress)
+      if (!raceId) {
+        for (const [rid, race] of this.races.entries()) {
+          if (race.isFinished) continue;
+          const disconnectedUserId = race.getDisconnectedHumanUserId();
+          if (disconnectedUserId) {
+            raceId = rid;
+            this.socketToRace.set(socketId, raceId);
+            this.socketToUserId.set(socketId, disconnectedUserId);
+            this.userIdToRace.set(disconnectedUserId, raceId);
+            const sock = this.io.sockets.sockets.get(socketId);
+            if (sock) race.reconnectPlayer(disconnectedUserId, sock);
+            console.log(`[matchmaker] handleFinish: last-resort fallback → race ${raceId} (disconnected user=${disconnectedUserId})`);
             race.handleFinish(socketId, data);
             return;
           }

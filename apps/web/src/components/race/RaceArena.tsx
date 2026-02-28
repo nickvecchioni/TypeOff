@@ -29,9 +29,14 @@ function FinishTimeoutDisplay({ finishTimeoutEnd }: { finishTimeoutEnd: number |
     return () => clearInterval(interval);
   }, [finishTimeoutEnd]);
   const visible = finishTimeoutEnd != null && remaining != null && remaining > 0;
+  // Absolutely positioned above the track — no layout shift
   return (
-    <div className="h-8 mt-1 flex items-center justify-center">
-      <div className={`text-center text-sm text-muted tabular-nums transition-opacity duration-300 ${visible ? "opacity-100" : "opacity-0"}`}>
+    <div
+      className={`absolute -top-8 left-0 right-0 flex items-center justify-center transition-opacity duration-300 ${
+        visible ? "opacity-100" : "opacity-0 pointer-events-none"
+      }`}
+    >
+      <div className="text-center text-sm text-muted tabular-nums">
         Time remaining: <span className="text-accent font-bold ml-1">{remaining ?? 0}s</span>
       </div>
     </div>
@@ -301,10 +306,9 @@ export function RaceArena() {
     || (race.phase === "finished" && race.placementRace != null);
 
   return (
-    <div className={`flex flex-col items-center gap-8 w-full max-w-4xl mx-auto flex-1 min-h-0 ${
+    <div className={`flex flex-col items-center gap-8 w-full max-w-4xl mx-auto flex-1 min-h-0 transition-[padding] duration-500 ease-out ${
       race.phase === "queuing" || race.phase === "placed" ? "justify-center" :
-      race.phase === "finished" && transitionState === "results" ? "pt-2" :
-      race.phase === "finished" ? "py-[8vh]" :
+      transitionState === "results" ? "pt-2" :
       "py-[8vh]"
     }`}>
       {race.error && (
@@ -334,91 +338,101 @@ export function RaceArena() {
         />
       )}
 
-      {(race.phase === "countdown" || race.phase === "racing" || (race.phase === "finished" && raceUiVisible)) && race.raceState && (
-        <div
-          className={`flex flex-col items-center gap-8 w-full pt-[12vh] transition-opacity duration-500 ease-out ${
-            raceFadingOut ? "opacity-0" : "opacity-100"
-          }`}
-          style={{ animation: raceFadingOut ? undefined : "fade-in-up 0.4s ease-out both" }}
-        >
-          {/* Spectator indicator */}
-          {spectatorCount > 0 && (
-            <div className="w-full flex justify-end -mb-4">
-              <SpectatorIndicator count={spectatorCount} spectators={spectators} />
+      {/* Race UI and Results share a relative container for crossfade layering */}
+      {(race.phase === "countdown" || race.phase === "racing" || race.phase === "finished") && race.raceState && (
+        <div className="relative w-full flex-1 min-h-0">
+          {/* Race UI layer */}
+          {raceUiVisible && (
+            <div
+              className={`flex flex-col items-center gap-8 w-full pt-[12vh] transition-opacity duration-500 ease-out ${
+                raceFadingOut ? "opacity-0 pointer-events-none" : "opacity-100"
+              } ${showResults ? "absolute inset-0" : ""}`}
+              style={{ animation: raceFadingOut ? undefined : "fade-in-up 0.4s ease-out both" }}
+            >
+              {/* Spectator indicator */}
+              {spectatorCount > 0 && (
+                <div className="w-full flex justify-end -mb-4">
+                  <SpectatorIndicator count={spectatorCount} spectators={spectators} />
+                </div>
+              )}
+              <div className="relative w-full">
+                {/* Finish timeout — absolutely positioned above progress bars, no layout shift */}
+                <FinishTimeoutDisplay
+                  finishTimeoutEnd={race.phase !== "finished" ? race.finishTimeoutEnd : null}
+                />
+                <RaceTrack
+                  players={race.raceState.players}
+                  progress={race.progress}
+                  myPlayerId={myPlayerId}
+                  isPlacement={isInPlacement}
+                />
+              </div>
+              <div className="relative w-full">
+                {/* Countdown overlay — absolutely positioned, no layout shift */}
+                <div
+                  className={`absolute inset-0 z-10 flex items-center justify-center pointer-events-none transition-opacity duration-300 ${
+                    race.phase === "countdown"
+                      ? "opacity-100"
+                      : "opacity-0"
+                  }`}
+                >
+                  {(() => {
+                    const snippet = race.raceState!.mode === "code" ? getCodeSnippet(race.raceState!.seed) : undefined;
+                    return (
+                      <CountdownOverlay
+                        countdown={race.countdown}
+                        placementRace={race.raceState!.placementRace}
+                        mode={race.raceState!.mode}
+                        codeLanguage={snippet?.language}
+                        codeSnippetName={snippet?.name}
+                        quoteAuthor={race.raceState!.mode === "quotes" ? getQuoteAuthor(race.raceState!.seed) : undefined}
+                      />
+                    );
+                  })()}
+                </div>
+                {/* Words — hidden during countdown, fades in on GO */}
+                <div
+                  className={`transition-opacity duration-700 ease-out ${
+                    race.phase === "countdown" ? "opacity-0" : "opacity-100"
+                  }`}
+                >
+                  <RaceTypingArea
+                    seed={race.raceState.seed}
+                    wordCount={race.raceState.wordCount}
+                    mode={race.raceState.mode}
+                    onProgress={race.sendProgress}
+                    onFinish={handleFinish}
+                    disabled={race.phase !== "racing"}
+                  />
+                </div>
+              </div>
             </div>
           )}
-          <div className="relative w-full">
-            <RaceTrack
-              players={race.raceState.players}
-              progress={race.progress}
-              myPlayerId={myPlayerId}
-              isPlacement={isInPlacement}
-            />
-            {/* Finish timeout — always reserves space to prevent layout shift */}
-            <FinishTimeoutDisplay
-              finishTimeoutEnd={race.phase !== "finished" ? race.finishTimeoutEnd : null}
-            />
-          </div>
-          <div className="relative w-full">
-            {/* Countdown overlay — absolutely positioned, no layout shift */}
+
+          {/* Results layer — fades in on top */}
+          {showResults && (
             <div
-              className={`absolute inset-0 z-10 flex items-center justify-center pointer-events-none transition-opacity duration-300 ${
-                race.phase === "countdown"
-                  ? "opacity-100"
-                  : "opacity-0"
-              }`}
+              className="w-full flex-1 min-h-0 flex flex-col"
+              style={{ animation: "fade-in-up 0.5s ease-out both" }}
             >
-              {(() => {
-                const snippet = race.raceState!.mode === "code" ? getCodeSnippet(race.raceState!.seed) : undefined;
-                return (
-                  <CountdownOverlay
-                    countdown={race.countdown}
-                    placementRace={race.raceState!.placementRace}
-                    mode={race.raceState!.mode}
-                    codeLanguage={snippet?.language}
-                    codeSnippetName={snippet?.name}
-                    quoteAuthor={race.raceState!.mode === "quotes" ? getQuoteAuthor(race.raceState!.seed) : undefined}
-                  />
-                );
-              })()}
-            </div>
-            {/* Words — hidden during countdown, fades in on GO */}
-            <div
-              className={`transition-opacity duration-700 ease-out ${
-                race.phase === "countdown" ? "opacity-0" : "opacity-100"
-              }`}
-            >
-              <RaceTypingArea
-                seed={race.raceState.seed}
-                wordCount={race.raceState.wordCount}
-                mode={race.raceState.mode}
-                onProgress={race.sendProgress}
-                onFinish={handleFinish}
-                disabled={race.phase !== "racing"}
+              <RaceResults
+                results={race.results}
+                myPlayerId={myPlayerId}
+                onRaceAgain={() => race.raceAgain({ privateRace: partyHook.party?.privateRace, modeCategories })}
+                onGoHome={race.reset}
+                placementRace={race.placementRace}
+                placementTotal={race.placementTotal}
+                rankChange={rankChange}
+                myWpmHistory={wpmHistoryRef.current}
+                party={partyHook.party}
+                onMarkReady={partyHook.markReady}
+                raceId={race.raceId}
+                emotes={emotes}
+                raceMode={race.raceState?.mode}
+                raceSeed={race.raceState?.seed}
               />
             </div>
-          </div>
-        </div>
-      )}
-
-      {race.phase === "finished" && showResults && (
-        <div className="w-full flex-1 min-h-0 flex flex-col" style={{ animation: "fade-in-up 0.5s ease-out both" }}>
-          <RaceResults
-            results={race.results}
-            myPlayerId={myPlayerId}
-            onRaceAgain={() => race.raceAgain({ privateRace: partyHook.party?.privateRace, modeCategories })}
-            onGoHome={race.reset}
-            placementRace={race.placementRace}
-            placementTotal={race.placementTotal}
-            rankChange={rankChange}
-            myWpmHistory={wpmHistoryRef.current}
-            party={partyHook.party}
-            onMarkReady={partyHook.markReady}
-            raceId={race.raceId}
-            emotes={emotes}
-            raceMode={race.raceState?.mode}
-            raceSeed={race.raceState?.seed}
-          />
+          )}
         </div>
       )}
 

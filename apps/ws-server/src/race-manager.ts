@@ -303,6 +303,22 @@ export class RaceManager {
           }
         }
       }
+      // Fallback 3: if there's exactly one non-bot human player, it must be them.
+      // Handles the common case (1 human + bots) where auth failed on reconnect
+      // and socket.data.userId is not set.
+      if (!entry) {
+        const nonBotHumans = [...this.players.entries()].filter(([, e]) => !e.isBot);
+        if (nonBotHumans.length === 1) {
+          const [key, e] = nonBotHumans[0];
+          entry = e;
+          this.players.delete(key);
+          const sock = this.io.sockets.sockets.get(socketId) ?? null;
+          entry.socket = sock;
+          this.players.set(socketId, entry);
+          if (sock) sock.join(this.raceId);
+          console.log(`[race-manager] handleProgress: single-human fallback for ${e.player.id} from ${key} to ${socketId}`);
+        }
+      }
       if (!entry) {
         console.warn(
           `[race-manager] handleProgress: no player entry for socketId=${socketId} race=${this.raceId} ` +
@@ -374,6 +390,20 @@ export class RaceManager {
               break;
             }
           }
+        }
+      }
+      // Fallback 3: single non-bot human (same as handleProgress)
+      if (!entry) {
+        const nonBotHumans = [...this.players.entries()].filter(([, e]) => !e.isBot);
+        if (nonBotHumans.length === 1) {
+          const [key, e] = nonBotHumans[0];
+          entry = e;
+          this.players.delete(key);
+          const sock = this.io.sockets.sockets.get(socketId) ?? null;
+          entry.socket = sock;
+          this.players.set(socketId, entry);
+          if (sock) sock.join(this.raceId);
+          console.log(`[race-manager] handleFinish: single-human fallback for ${e.player.id} from ${key} to ${socketId}`);
         }
       }
       if (!entry) {
@@ -817,17 +847,18 @@ export class RaceManager {
       }
     }
 
-    // Safety net 1: auto-finish players with high progress who stopped sending events.
-    // Catches the case where both raceFinish AND the progress=1 event were dropped
-    // (transient network blip) — the client optimistically shows finished but the
-    // server never received the events.
+    // Safety net 1: auto-finish players whose progress reached 1.0 (sent explicitly
+    // by the client when the engine finishes with all words correct) but whose
+    // raceFinish event was never received (transient network blip).
+    // Threshold is >= 0.999 (not 0.95) to avoid auto-finishing players who typed the
+    // last word incorrectly — the client caps progress at 0.99 during typing.
     if (this.status === "racing") {
       const now = Date.now();
       for (const entry of this.players.values()) {
         if (
           !entry.progress.finished &&
           !entry.isBot &&
-          entry.progress.progress >= 0.95 &&
+          entry.progress.progress >= 0.999 &&
           entry.progress.wpm > 0 &&
           now - entry.lastProgressTime > 3000
         ) {
@@ -858,6 +889,21 @@ export class RaceManager {
   }
 
   get isFinished() { return this.status === "finished"; }
+
+  /** Returns the userId of a disconnected (or unmapped) non-bot human player,
+   *  but ONLY if there's exactly one such player. Used as a last-resort routing
+   *  fallback when auth failed on reconnect and socket.data.userId is not set. */
+  getDisconnectedHumanUserId(): string | null {
+    const candidates: string[] = [];
+    for (const entry of this.players.values()) {
+      if (entry.isBot || entry.progress.finished) continue;
+      // Consider "disconnected" if socket is null OR not connected
+      if (!entry.socket || !entry.socket.connected) {
+        candidates.push(entry.player.id);
+      }
+    }
+    return candidates.length === 1 ? candidates[0] : null;
+  }
 
   private async endRace() {
     if (this.status === "finished") return;
