@@ -52,6 +52,13 @@ export class Matchmaker implements RaceOwner {
     this.queueTimer = setInterval(() => this.checkQueue(), 1000);
   }
 
+  destroy() {
+    if (this.queueTimer) {
+      clearInterval(this.queueTimer);
+      this.queueTimer = null;
+    }
+  }
+
   setOnRaceStarted(cb: (raceId: string, playerUserIds: string[]) => void) {
     this.onRaceStarted = cb;
   }

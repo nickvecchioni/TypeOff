@@ -81,19 +81,25 @@ export async function GET(
       startedAt: race.startedAt.toISOString(),
       finishedAt: race.finishedAt?.toISOString() ?? null,
     },
-    participants: participants.map((p) => ({
-      id: p.id,
-      userId: p.userId,
-      name: p.username ?? p.guestName ?? "Unknown",
-      placement: p.placement,
-      wpm: p.wpm,
-      rawWpm: p.rawWpm,
-      accuracy: p.accuracy,
-      eloBefore: p.eloBefore,
-      eloAfter: p.eloAfter,
-      wpmHistory: p.wpmHistory ? JSON.parse(p.wpmHistory) : null,
-      replayData: p.replayData ? JSON.parse(p.replayData) : null,
-      rankTier: p.rankTier,
-    })),
+    participants: participants.map((p) => {
+      let wpmHistory = null;
+      let replayData = null;
+      try { if (p.wpmHistory) wpmHistory = JSON.parse(p.wpmHistory); } catch { /* malformed data */ }
+      try { if (p.replayData) replayData = JSON.parse(p.replayData); } catch { /* malformed data */ }
+      return {
+        id: p.id,
+        userId: p.userId,
+        name: p.username ?? p.guestName ?? "Unknown",
+        placement: p.placement,
+        wpm: p.wpm,
+        rawWpm: p.rawWpm,
+        accuracy: p.accuracy,
+        eloBefore: p.eloBefore,
+        eloAfter: p.eloAfter,
+        wpmHistory,
+        replayData,
+        rankTier: p.rankTier,
+      };
+    }),
   });
 }

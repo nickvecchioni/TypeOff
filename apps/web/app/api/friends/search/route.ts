@@ -21,13 +21,16 @@ export async function GET(request: Request) {
     return NextResponse.json({ users: [] });
   }
 
+  // Escape ILIKE special characters to prevent wildcard injection
+  const escaped = q.replace(/[%_\\]/g, "\\$&");
+
   const db = getDb();
   const results = await db
     .select({ id: users.id, username: users.username })
     .from(users)
     .where(
       and(
-        ilike(users.username, `${q}%`),
+        ilike(users.username, `${escaped}%`),
         ne(users.id, session.user.id),
       ),
     )

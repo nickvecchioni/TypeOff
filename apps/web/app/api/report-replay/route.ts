@@ -11,24 +11,29 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await req.json();
-  const { raceId, reportedUserId, reason } = body;
+  try {
+    const body = await req.json();
+    const { raceId, reportedUserId, reason } = body;
 
-  if (!reportedUserId || !reason) {
-    return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+    if (!reportedUserId || !reason) {
+      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+    }
+
+    if (reportedUserId === session.user.id) {
+      return NextResponse.json({ error: "Cannot report yourself" }, { status: 400 });
+    }
+
+    const db = getDb();
+    await db.insert(userReports).values({
+      reporterId: session.user.id,
+      reportedId: reportedUserId,
+      reason: String(reason).slice(0, 1000),
+      details: raceId ? `Race: ${String(raceId).slice(0, 100)}` : null,
+    });
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error("[report-replay] error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-
-  if (reportedUserId === session.user.id) {
-    return NextResponse.json({ error: "Cannot report yourself" }, { status: 400 });
-  }
-
-  const db = getDb();
-  await db.insert(userReports).values({
-    reporterId: session.user.id,
-    reportedId: reportedUserId,
-    reason,
-    details: raceId ? `Race: ${raceId}` : null,
-  });
-
-  return NextResponse.json({ ok: true });
 }

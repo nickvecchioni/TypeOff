@@ -17,9 +17,17 @@ export class SocialManager {
   private socketToUser = new Map<string, string>();
   // userId → raceId (in-memory only, tracks active race participation)
   private userRace = new Map<string, string>();
+  private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor(private io: TypedServer) {
     this.startHeartbeat();
+  }
+
+  destroy() {
+    if (this.heartbeatTimer) {
+      clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = null;
+    }
   }
 
   async trackConnection(socket: TypedSocket, userId: string) {
@@ -143,7 +151,7 @@ export class SocialManager {
   }
 
   private startHeartbeat() {
-    setInterval(async () => {
+    this.heartbeatTimer = setInterval(async () => {
       const onlineUserIds = [...this.onlineUsers.keys()];
       if (onlineUserIds.length === 0) return;
       try {
