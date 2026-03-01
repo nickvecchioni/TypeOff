@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { SignInPrompt } from "@/components/auth/SignInPrompt";
@@ -8,8 +8,7 @@ import Link from "next/link";
 import { BigramAnalysis } from "@/components/practice/BigramAnalysis";
 import { BigramHeatmap } from "@/components/practice/BigramHeatmap";
 import { KeyboardHeatmap } from "@/components/typing/KeyboardHeatmap";
-import { WpmChart } from "@/components/typing/WpmChart";
-import type { KeyStatsMap, WpmSample } from "@typeoff/shared";
+import type { KeyStatsMap } from "@typeoff/shared";
 import { estimateWpmImpact, rankWeaknesses } from "@typeoff/shared";
 import { AnalyticsInsights } from "@/components/analytics/AnalyticsInsights";
 import { PracticeProgress } from "@/components/practice/PracticeProgress";
@@ -167,12 +166,6 @@ export default function AnalyticsPage() {
       </main>
     );
   }
-
-  const wpmSamples: WpmSample[] = data.wpmTrend.map((r, i) => ({
-    elapsed: i + 1,
-    wpm: r.wpm,
-    raw: r.wpm,
-  }));
 
   // Trend indicator: compare last 5 vs previous 5
   const trendDelta = (() => {
@@ -360,11 +353,9 @@ export default function AnalyticsPage() {
         {activeTab === "overview" && (
           <div className="space-y-3 animate-fade-in">
             {/* WPM Trend Chart */}
-            {wpmSamples.length >= 2 && (
-              <Card title={`WPM Trend`} subtitle={isPro ? undefined : "(last 20 races)"} delay={0}>
-                <div style={{ minHeight: 160 }}>
-                  <WpmChart samples={wpmSamples} />
-                </div>
+            {data.wpmTrend.length >= 2 && (
+              <Card title="WPM Trend" subtitle={isPro ? undefined : "(last 20 races)"} delay={0}>
+                <WpmTrendChart points={data.wpmTrend} />
               </Card>
             )}
 
@@ -791,6 +782,117 @@ function ProUpsell() {
         <p className="text-[9px] text-muted/35 text-center mt-1.5">cancel anytime</p>
       </div>
     </div>
+  );
+}
+
+function WpmTrendChart({ points }: { points: Array<{ date: string; wpm: number; accuracy: number }> }) {
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  if (points.length < 2) return null;
+
+  const W = 600;
+  const H = 140;
+  const pad = { top: 10, right: 12, bottom: 18, left: 36 };
+  const iW = W - pad.left - pad.right;
+  const iH = H - pad.top - pad.bottom;
+
+  const rawMax = Math.max(...points.map((p) => p.wpm), 10);
+  const niceStep = rawMax <= 50 ? 10 : rawMax <= 120 ? 25 : 50;
+  const yMax = Math.ceil((rawMax * 1.1) / niceStep) * niceStep;
+  const yTicks = Array.from({ length: Math.floor(yMax / niceStep) + 1 }, (_, i) => i * niceStep);
+
+  const sx = (i: number) => pad.left + (i / (points.length - 1)) * iW;
+  const sy = (v: number) => pad.top + iH - (v / yMax) * iH;
+
+  const linePath = points.map((p, i) => `${i === 0 ? "M" : "L"} ${sx(i)} ${sy(p.wpm)}`).join(" ");
+  const areaPath = linePath + ` L ${sx(points.length - 1)} ${pad.top + iH} L ${sx(0)} ${pad.top + iH} Z`;
+
+  function handleMouseMove(e: React.MouseEvent<SVGSVGElement>) {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const rect = svg.getBoundingClientRect();
+    const mouseX = ((e.clientX - rect.left) / rect.width) * W;
+    let closest = 0;
+    let minDist = Infinity;
+    points.forEach((_, i) => {
+      const d = Math.abs(sx(i) - mouseX);
+      if (d < minDist) { minDist = d; closest = i; }
+    });
+    setHoveredIdx(closest);
+  }
+
+  const hovered = hoveredIdx !== null ? points[hoveredIdx] : null;
+
+  return (
+    <svg
+      ref={svgRef}
+      viewBox={`0 0 ${W} ${H}`}
+      className="w-full"
+      style={{ height: 140, cursor: "crosshair" }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={() => setHoveredIdx(null)}
+    >
+      <defs>
+        <linearGradient id="wpmTrendGrad" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.25" />
+          <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0.02" />
+        </linearGradient>
+      </defs>
+
+      {/* Grid */}
+      {yTicks.map((t) => (
+        <g key={t}>
+          <line x1={pad.left} x2={W - pad.right} y1={sy(t)} y2={sy(t)} stroke="rgba(255,255,255,0.06)" strokeWidth={1} />
+          <text x={pad.left - 5} y={sy(t)} fill="var(--color-muted)" fontSize={9} textAnchor="end" dominantBaseline="middle" fillOpacity={0.5}>
+            {t}
+          </text>
+        </g>
+      ))}
+
+      {/* Bottom axis */}
+      <line x1={pad.left} x2={W - pad.right} y1={pad.top + iH} y2={pad.top + iH} stroke="rgba(255,255,255,0.08)" strokeWidth={1} />
+
+      {/* Area + line */}
+      <path d={areaPath} fill="url(#wpmTrendGrad)" />
+      <path d={linePath} fill="none" stroke="var(--color-accent)" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+
+      {/* Dots */}
+      {points.map((p, i) => (
+        <circle key={i} cx={sx(i)} cy={sy(p.wpm)} r={hoveredIdx === i ? 3.5 : 2} fill="var(--color-accent)" />
+      ))}
+
+      {/* X-axis label */}
+      <text x={W / 2} y={H - 2} fill="var(--color-muted)" fontSize={8} textAnchor="middle" fillOpacity={0.3}>
+        races
+      </text>
+
+      {/* Hover tooltip */}
+      {hovered !== null && hoveredIdx !== null && (() => {
+        const x = sx(hoveredIdx);
+        const y = sy(hovered.wpm);
+        const dateStr = new Date(hovered.date).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+        const TOOLTIP_W = 90;
+        const TOOLTIP_H = 32;
+        const flipLeft = x + TOOLTIP_W + 10 > W - pad.right;
+        const tx = flipLeft ? x - TOOLTIP_W - 6 : x + 6;
+        const ty = Math.max(pad.top, Math.min(y - TOOLTIP_H / 2, pad.top + iH - TOOLTIP_H));
+
+        return (
+          <g pointerEvents="none">
+            <line x1={x} x2={x} y1={pad.top} y2={pad.top + iH} stroke="rgba(255,255,255,0.15)" strokeWidth={1} strokeDasharray="3 3" />
+            <circle cx={x} cy={y} r={3.5} fill="var(--color-accent)" />
+            <rect x={tx} y={ty} width={TOOLTIP_W} height={TOOLTIP_H} rx={4} fill="rgba(12,12,20,0.92)" stroke="rgba(255,255,255,0.08)" strokeWidth={1} />
+            <text x={tx + 6} y={ty + 12} fill="var(--color-accent)" fontSize={11} fontWeight="700">
+              {Math.round(hovered.wpm)} wpm
+            </text>
+            <text x={tx + 6} y={ty + 24} fill="var(--color-muted)" fontSize={9} fillOpacity={0.6}>
+              {dateStr} · {hovered.accuracy.toFixed(1)}%
+            </text>
+          </g>
+        );
+      })()}
+    </svg>
   );
 }
 
