@@ -215,6 +215,25 @@ button, [role="button"], a {
   box-shadow: 0 0 20px rgba(239, 68, 68, 0.12), 0 0 60px rgba(239, 68, 68, 0.04);
 }
 
+.glow-bronze {
+  box-shadow: 0 0 16px rgba(217, 119, 6, 0.10), 0 0 48px rgba(217, 119, 6, 0.03);
+}
+.glow-silver {
+  box-shadow: 0 0 16px rgba(156, 163, 175, 0.10), 0 0 48px rgba(156, 163, 175, 0.03);
+}
+.glow-gold {
+  box-shadow: 0 0 16px rgba(234, 179, 8, 0.10), 0 0 48px rgba(234, 179, 8, 0.03);
+}
+.glow-platinum {
+  box-shadow: 0 0 16px rgba(103, 232, 249, 0.10), 0 0 48px rgba(103, 232, 249, 0.03);
+}
+.glow-diamond {
+  box-shadow: 0 0 16px rgba(59, 130, 246, 0.10), 0 0 48px rgba(59, 130, 246, 0.03);
+}
+.glow-master {
+  box-shadow: 0 0 16px rgba(168, 85, 247, 0.10), 0 0 48px rgba(168, 85, 247, 0.03);
+}
+
 /* ── Nav logo hover ──────────────────────────────────────── */
 
 .nav-logo:hover .nav-logo-text {

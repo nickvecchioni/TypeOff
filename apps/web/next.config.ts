@@ -3,6 +3,15 @@ import { resolve } from "path";
 
 // prettier-ignore
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      {
+        source: "/ranks",
+        destination: "/about",
+        permanent: true,
+      },
+    ];
+  },
   transpilePackages: ["@typeoff/shared", "@typeoff/db"],
   serverExternalPackages: [
     "jose",
