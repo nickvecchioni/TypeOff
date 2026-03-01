@@ -123,22 +123,22 @@ export default function AnalyticsPage() {
 
   if (status === "loading" || (loading && !data)) {
     return (
-      <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
-        <div className="max-w-5xl mx-auto space-y-6">
+      <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
+        <div className="max-w-5xl mx-auto space-y-4">
           {/* Hero skeleton */}
-          <div className="rounded-2xl overflow-hidden ring-1 ring-white/[0.06] bg-surface/20">
-            <div className="h-1 bg-accent/20 animate-pulse" />
-            <div className="p-6 sm:p-8">
-              <div className="flex items-end gap-8">
-                <div className="space-y-3">
-                  <div className="h-3 w-16 rounded bg-white/[0.06] animate-pulse" />
-                  <div className="h-14 w-36 rounded bg-white/[0.06] animate-pulse" />
+          <div className="rounded-xl overflow-hidden ring-1 ring-white/[0.06] bg-surface/20">
+            <div className="h-0.5 bg-accent/20 animate-pulse" />
+            <div className="p-4 sm:p-5">
+              <div className="flex items-end gap-6">
+                <div className="space-y-2">
+                  <div className="h-2.5 w-14 rounded bg-white/[0.06] animate-pulse" />
+                  <div className="h-9 w-28 rounded bg-white/[0.06] animate-pulse" />
                 </div>
-                <div className="flex-1 grid grid-cols-3 gap-4">
+                <div className="flex-1 grid grid-cols-3 gap-3">
                   {[...Array(3)].map((_, i) => (
-                    <div key={i} className="space-y-2">
-                      <div className="h-2.5 w-12 rounded bg-white/[0.06] animate-pulse" />
-                      <div className="h-7 w-20 rounded bg-white/[0.06] animate-pulse" />
+                    <div key={i} className="space-y-1.5">
+                      <div className="h-2 w-10 rounded bg-white/[0.06] animate-pulse" />
+                      <div className="h-5 w-16 rounded bg-white/[0.06] animate-pulse" />
                     </div>
                   ))}
                 </div>
@@ -146,9 +146,9 @@ export default function AnalyticsPage() {
             </div>
           </div>
           {/* Content skeleton */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="h-64 rounded-2xl bg-surface/20 ring-1 ring-white/[0.04] animate-pulse" />
-            <div className="h-64 rounded-2xl bg-surface/20 ring-1 ring-white/[0.04] animate-pulse" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="h-48 rounded-xl bg-surface/20 ring-1 ring-white/[0.04] animate-pulse" />
+            <div className="h-48 rounded-xl bg-surface/20 ring-1 ring-white/[0.04] animate-pulse" />
           </div>
         </div>
       </main>
@@ -204,12 +204,12 @@ export default function AnalyticsPage() {
   ];
 
   return (
-    <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
+    <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
       <div className="max-w-5xl mx-auto">
 
         {/* ── Hero Stats ─────────────────────────────────────── */}
         <div
-          className="relative rounded-2xl overflow-hidden ring-1 ring-white/[0.06] mb-6 animate-fade-in"
+          className="relative rounded-xl overflow-hidden ring-1 ring-white/[0.06] mb-4 animate-fade-in"
           style={{ animationDelay: "0ms" }}
         >
           {/* Top accent line */}
@@ -218,11 +218,11 @@ export default function AnalyticsPage() {
           {/* Subtle radial glow */}
           <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top_left,rgba(77,158,255,0.06),transparent_50%)]" />
 
-          <div className="relative px-5 sm:px-7 py-5 sm:py-6">
+          <div className="relative px-4 sm:px-5 py-3.5 sm:py-4">
             {/* Header row */}
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
-                <h1 className="text-base font-bold text-text tracking-tight">Analytics</h1>
+                <h1 className="text-sm font-bold text-text tracking-tight">Analytics</h1>
                 {isPro && data.totalRaces != null && (
                   <span className="text-[10px] text-muted/50 tabular-nums">{data.totalRaces} races analyzed</span>
                 )}
@@ -247,37 +247,37 @@ export default function AnalyticsPage() {
 
             <div className={`transition-opacity duration-200 ${loading && data ? "opacity-50 pointer-events-none" : ""}`}>
               {/* Primary + secondary stats */}
-              <div className="flex flex-col sm:flex-row sm:items-end gap-5 sm:gap-8">
+              <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-6">
                 {/* Primary: Best WPM */}
                 <div className="shrink-0">
-                  <div className="text-[10px] text-muted/50 uppercase tracking-widest mb-1.5">Best WPM</div>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-5xl sm:text-6xl font-black text-accent tabular-nums leading-none tracking-tight">
+                  <div className="text-[10px] text-muted/50 uppercase tracking-widest mb-1">Best WPM</div>
+                  <div className="flex items-baseline gap-0.5">
+                    <span className="text-3xl sm:text-4xl font-black text-accent tabular-nums leading-none tracking-tight">
                       {data.personalRecords.bestWpm ? Math.floor(data.personalRecords.bestWpm.wpm) : "—"}
                     </span>
                     {data.personalRecords.bestWpm && (
-                      <span className="text-2xl font-bold text-accent/30 tabular-nums">
+                      <span className="text-lg font-bold text-accent/30 tabular-nums">
                         .{(data.personalRecords.bestWpm.wpm % 1).toFixed(2).slice(2)}
                       </span>
                     )}
                     {trendDelta !== null && (
-                      <span className={`ml-2 text-xs font-bold tabular-nums ${trendDelta >= 0 ? "text-correct/70" : "text-error/70"}`}>
+                      <span className={`ml-1.5 text-[10px] font-bold tabular-nums ${trendDelta >= 0 ? "text-correct/70" : "text-error/70"}`}>
                         {trendDelta >= 0 ? "+" : ""}{trendDelta.toFixed(1)}
                       </span>
                     )}
                   </div>
                   {data.personalRecords.bestWpm && (
-                    <div className="text-[10px] text-muted/40 mt-1 tabular-nums">
+                    <div className="text-[9px] text-muted/40 mt-0.5 tabular-nums">
                       {new Date(data.personalRecords.bestWpm.date).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
                     </div>
                   )}
                 </div>
 
                 {/* Divider */}
-                <div className="hidden sm:block w-px h-16 bg-white/[0.06] self-center" />
+                <div className="hidden sm:block w-px h-10 bg-white/[0.06] self-center" />
 
                 {/* Secondary stats grid */}
-                <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3">
+                <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-x-5 gap-y-2">
                   <StatCell
                     label="Best Accuracy"
                     value={data.personalRecords.bestAccuracy ? `${data.personalRecords.bestAccuracy.accuracy.toFixed(1)}%` : "—"}
@@ -330,14 +330,14 @@ export default function AnalyticsPage() {
 
         {/* ── Tab Navigation ──────────────────────────────────── */}
         <div
-          className="flex items-center gap-0 mb-5 border-b border-white/[0.06] animate-fade-in"
+          className="flex items-center gap-0 mb-4 border-b border-white/[0.06] animate-fade-in"
           style={{ animationDelay: "60ms" }}
         >
           {TABS.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`relative px-4 py-2.5 text-xs font-medium transition-colors ${
+              className={`relative px-3 py-2 text-[11px] font-medium transition-colors ${
                 activeTab === tab.id
                   ? "text-accent"
                   : "text-muted/50 hover:text-text"
@@ -358,23 +358,23 @@ export default function AnalyticsPage() {
 
         {/* ── Overview Tab ─────────────────────────────────────── */}
         {activeTab === "overview" && (
-          <div className="space-y-4 animate-fade-in">
+          <div className="space-y-3 animate-fade-in">
             {/* WPM Trend Chart */}
             {wpmSamples.length >= 2 && (
               <Card title={`WPM Trend`} subtitle={isPro ? undefined : "(last 20 races)"} delay={0}>
-                <div style={{ minHeight: 200 }}>
+                <div style={{ minHeight: 160 }}>
                   <WpmChart samples={wpmSamples} />
                 </div>
               </Card>
             )}
 
             {isPro ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* ELO Trend */}
                 {(data.eloTrend?.length ?? 0) >= 2 && (
                   <Card title="ELO Trend" delay={60}>
-                    <div style={{ minHeight: 180 }}>
-                      <AreaMiniChart data={data.eloTrend!.map((r) => r.elo)} color="#eab308" height={140} />
+                    <div style={{ minHeight: 140 }}>
+                      <AreaMiniChart data={data.eloTrend!.map((r) => r.elo)} color="#eab308" height={120} />
                     </div>
                   </Card>
                 )}
@@ -387,19 +387,19 @@ export default function AnalyticsPage() {
                         <button
                           key={m.modeCategory}
                           onClick={() => setModeFilter(m.modeCategory)}
-                          className="group rounded-lg bg-white/[0.02] ring-1 ring-white/[0.05] hover:ring-accent/20 px-3 py-2.5 text-left transition-all hover:bg-white/[0.04]"
+                          className="group rounded-lg bg-white/[0.02] ring-1 ring-white/[0.05] hover:ring-accent/20 px-2.5 py-2 text-left transition-all hover:bg-white/[0.04]"
                         >
-                          <div className="text-[10px] text-muted/45 uppercase tracking-wider mb-1 group-hover:text-accent/60 transition-colors">
+                          <div className="text-[9px] text-muted/45 uppercase tracking-wider mb-0.5 group-hover:text-accent/60 transition-colors">
                             {MODE_LABELS[m.modeCategory] ?? m.modeCategory}
                           </div>
-                          <div className="text-lg font-bold text-text tabular-nums leading-tight">
+                          <div className="text-sm font-bold text-text tabular-nums leading-tight">
                             {Math.floor(m.bestWpm)}
                             <span className="text-[0.55em] text-muted/40 ml-1 font-semibold">best</span>
                           </div>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-[10px] text-muted/50 tabular-nums">{Math.floor(m.avgWpm)} avg</span>
-                            <span className="text-[10px] text-muted/35">·</span>
-                            <span className="text-[10px] text-muted/50 tabular-nums">{m.racesPlayed} races</span>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="text-[9px] text-muted/50 tabular-nums">{Math.floor(m.avgWpm)} avg</span>
+                            <span className="text-[9px] text-muted/35">·</span>
+                            <span className="text-[9px] text-muted/50 tabular-nums">{m.racesPlayed} races</span>
                           </div>
                         </button>
                       ))}
@@ -468,7 +468,7 @@ export default function AnalyticsPage() {
               </div>
             ) : (
               /* Free user overview */
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {/* By Mode */}
                 {modeFilter === "all" && (data.modeStats?.length ?? 0) > 0 && (
                   <Card title="By Mode" delay={60}>
@@ -476,16 +476,16 @@ export default function AnalyticsPage() {
                       {(data.modeStats ?? []).map((m) => (
                         <div
                           key={m.modeCategory}
-                          className="rounded-lg bg-white/[0.02] ring-1 ring-white/[0.05] px-3 py-2.5"
+                          className="rounded-lg bg-white/[0.02] ring-1 ring-white/[0.05] px-2.5 py-2"
                         >
-                          <div className="text-[10px] text-muted/45 uppercase tracking-wider mb-1">
+                          <div className="text-[9px] text-muted/45 uppercase tracking-wider mb-0.5">
                             {MODE_LABELS[m.modeCategory] ?? m.modeCategory}
                           </div>
-                          <div className="text-lg font-bold text-text tabular-nums leading-tight">
+                          <div className="text-sm font-bold text-text tabular-nums leading-tight">
                             {Math.floor(m.bestWpm)}
                             <span className="text-[0.55em] text-muted/40 ml-1 font-semibold">best</span>
                           </div>
-                          <div className="text-[10px] text-muted/50 tabular-nums mt-0.5">{m.racesPlayed} races</div>
+                          <div className="text-[9px] text-muted/50 tabular-nums mt-0.5">{m.racesPlayed} races</div>
                         </div>
                       ))}
                     </div>
@@ -504,7 +504,7 @@ export default function AnalyticsPage() {
 
         {/* ── Keys Tab ──────────────────────────────────────── */}
         {activeTab === "keys" && (
-          <div className="space-y-4 animate-fade-in">
+          <div className="space-y-3 animate-fade-in">
             {keyStats && Object.keys(keyStats).length > 0 ? (
               <Card
                 title="Keyboard Heatmap"
@@ -530,7 +530,7 @@ export default function AnalyticsPage() {
 
         {/* ── Bigrams Tab ──────────────────────────────────── */}
         {activeTab === "bigrams" && (
-          <div className="space-y-4 animate-fade-in">
+          <div className="space-y-3 animate-fade-in">
             {bigrams.length > 0 ? (
               <>
                 {isPro ? (
@@ -553,7 +553,7 @@ export default function AnalyticsPage() {
 
         {/* ── Progress Tab (Pro) ────────────────────────────── */}
         {activeTab === "progress" && isPro && (
-          <div className="space-y-4 animate-fade-in">
+          <div className="space-y-3 animate-fade-in">
             <Card title="Practice Progress" subtitle="accuracy trends over time" delay={0}>
               <PracticeProgress />
             </Card>
@@ -571,9 +571,9 @@ export default function AnalyticsPage() {
 function StatCell({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div>
-      <div className="text-[10px] text-muted/40 uppercase tracking-widest mb-0.5">{label}</div>
-      <div className="text-lg font-bold text-text tabular-nums leading-tight">{value}</div>
-      {sub && <div className="text-[10px] text-muted/35 tabular-nums">{sub}</div>}
+      <div className="text-[9px] text-muted/40 uppercase tracking-widest mb-0.5">{label}</div>
+      <div className="text-sm font-bold text-text tabular-nums leading-tight">{value}</div>
+      {sub && <div className="text-[9px] text-muted/35 tabular-nums">{sub}</div>}
     </div>
   );
 }
@@ -596,14 +596,14 @@ function Card({
       className="rounded-xl bg-surface/25 ring-1 ring-white/[0.05] overflow-hidden animate-fade-in"
       style={{ animationDelay: `${delay}ms` }}
     >
-      <div className="px-4 sm:px-5 pt-4 pb-3 flex items-center justify-between">
+      <div className="px-3 sm:px-4 pt-3 pb-2 flex items-center justify-between">
         <div className="flex items-baseline gap-2">
-          <h2 className="text-[11px] font-bold text-muted/60 uppercase tracking-widest">{title}</h2>
-          {subtitle && <span className="text-[10px] text-muted/35">{subtitle}</span>}
+          <h2 className="text-[10px] font-bold text-muted/60 uppercase tracking-widest">{title}</h2>
+          {subtitle && <span className="text-[9px] text-muted/35">{subtitle}</span>}
         </div>
         {headerRight}
       </div>
-      <div className="px-4 sm:px-5 pb-4">{children}</div>
+      <div className="px-3 sm:px-4 pb-3">{children}</div>
     </div>
   );
 }
