@@ -709,7 +709,16 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
         handleBackspace();
       } else if (e.key === " ") {
         e.preventDefault();
-        handleSpace();
+        // If the current word still has untyped chars and the next expected char is a space,
+        // type it as a regular character (e.g. em dash: "word —")
+        const spWi = currentWordIndexRef.current;
+        const spCi = currentCharIndexRef.current;
+        const spWord = wordsRef.current[spWi];
+        if (spWord && spCi < spWord.chars.length && spWord.chars[spCi].expected === " ") {
+          handleCharacter(" ");
+        } else {
+          handleSpace();
+        }
       } else if (e.key.length === 1) {
         handleCharacter(e.key);
       }

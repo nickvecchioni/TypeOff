@@ -35,7 +35,7 @@ const RANK_GLOW: Record<RankTier, string> = {
 
 const MODES = [
   { id: "words" as const, label: "Words", icon: "aa", desc: "plain lowercase words" },
-  { id: "special" as const, label: "Mixed", icon: "Aa.", desc: "sentences with punctuation & numbers" },
+  { id: "special" as const, label: "Mixed", icon: "Aa.", desc: "punctuation & numbers" },
   { id: "quotes" as const, label: "Quotes", icon: "\u201C\u201D", desc: "famous quotations" },
   { id: "code" as const, label: "Code", icon: "</>", desc: "real syntax, real pain" },
 ] as const;
