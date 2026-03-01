@@ -270,9 +270,9 @@ export async function POST(request: Request) {
     }
   }
 
+    return NextResponse.json({ received: true });
   } catch (err) {
     console.error("[stripe-webhook] handler error:", err);
+    return NextResponse.json({ error: "Webhook handler failed" }, { status: 500 });
   }
-
-  return NextResponse.json({ received: true });
 }

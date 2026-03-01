@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 import { getDb } from "@/lib/db";
-import { directMessages } from "@typeoff/db";
+import { directMessages, friendships, userBlocks } from "@typeoff/db";
 import { eq, or, and, desc, lt } from "drizzle-orm";
 
 // GET — message history with cursor pagination
@@ -25,6 +25,41 @@ export async function GET(request: Request) {
 
   const db = getDb();
   const userId = session.user.id;
+
+  // Verify friendship
+  const friendship = await db
+    .select({ id: friendships.id })
+    .from(friendships)
+    .where(
+      and(
+        or(
+          and(eq(friendships.requesterId, userId), eq(friendships.addresseeId, friendId)),
+          and(eq(friendships.requesterId, friendId), eq(friendships.addresseeId, userId)),
+        ),
+        eq(friendships.status, "accepted"),
+      ),
+    )
+    .limit(1);
+
+  if (friendship.length === 0) {
+    return NextResponse.json({ error: "Not friends" }, { status: 403 });
+  }
+
+  // Check if blocked in either direction
+  const blocked = await db
+    .select({ blockerId: userBlocks.blockerId })
+    .from(userBlocks)
+    .where(
+      or(
+        and(eq(userBlocks.blockerId, userId), eq(userBlocks.blockedId, friendId)),
+        and(eq(userBlocks.blockerId, friendId), eq(userBlocks.blockedId, userId)),
+      ),
+    )
+    .limit(1);
+
+  if (blocked.length > 0) {
+    return NextResponse.json({ error: "Blocked" }, { status: 403 });
+  }
 
   const conditions = and(
     or(

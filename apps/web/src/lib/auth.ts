@@ -44,19 +44,42 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       if (shouldRefresh && token.id) {
         const db = getDb();
-        const row = await db
-          .select({
-            eloRating: users.eloRating,
-            rankTier: users.rankTier,
-            username: users.username,
-            placementsCompleted: users.placementsCompleted,
-            currentStreak: userStats.currentStreak,
-            totalXp: userStats.totalXp,
-          })
-          .from(users)
-          .leftJoin(userStats, eq(users.id, userStats.userId))
-          .where(eq(users.id, token.id as string))
-          .limit(1);
+        const userId = token.id as string;
+
+        const [row, subRows, cosmeticRows] = await Promise.all([
+          db
+            .select({
+              eloRating: users.eloRating,
+              rankTier: users.rankTier,
+              username: users.username,
+              placementsCompleted: users.placementsCompleted,
+              currentStreak: userStats.currentStreak,
+              totalXp: userStats.totalXp,
+            })
+            .from(users)
+            .leftJoin(userStats, eq(users.id, userStats.userId))
+            .where(eq(users.id, userId))
+            .limit(1),
+          db
+            .select({ status: userSubscription.status })
+            .from(userSubscription)
+            .where(eq(userSubscription.userId, userId))
+            .limit(1),
+          db
+            .select({
+              activeBadge: userActiveCosmetics.activeBadge,
+              activeTitle: userActiveCosmetics.activeTitle,
+              activeNameColor: userActiveCosmetics.activeNameColor,
+              activeNameEffect: userActiveCosmetics.activeNameEffect,
+              activeCursorStyle: userActiveCosmetics.activeCursorStyle,
+              activeProfileBorder: userActiveCosmetics.activeProfileBorder,
+              activeTypingTheme: userActiveCosmetics.activeTypingTheme,
+            })
+            .from(userActiveCosmetics)
+            .where(eq(userActiveCosmetics.userId, userId))
+            .limit(1),
+        ]);
+
         if (row.length > 0) {
           token.eloRating = row[0].eloRating;
           token.rankTier = row[0].rankTier as any;
@@ -72,27 +95,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // Compute level from totalXp (used for cosmetic unlocks)
         token.cosmeticLevel = getXpLevel(token.totalXp as number ?? 0).level;
 
-        // Fetch Pro subscription status
-        const [sub] = await db
-          .select({ status: userSubscription.status })
-          .from(userSubscription)
-          .where(eq(userSubscription.userId, token.id as string))
-          .limit(1);
+        // Pro subscription status
+        const sub = subRows[0];
         token.isPro = sub?.status === "active" || sub?.status === "lifetime" || sub?.status === "past_due";
 
-        const [cosmetics] = await db
-          .select({
-            activeBadge: userActiveCosmetics.activeBadge,
-            activeTitle: userActiveCosmetics.activeTitle,
-            activeNameColor: userActiveCosmetics.activeNameColor,
-            activeNameEffect: userActiveCosmetics.activeNameEffect,
-            activeCursorStyle: userActiveCosmetics.activeCursorStyle,
-            activeProfileBorder: userActiveCosmetics.activeProfileBorder,
-            activeTypingTheme: userActiveCosmetics.activeTypingTheme,
-          })
-          .from(userActiveCosmetics)
-          .where(eq(userActiveCosmetics.userId, token.id as string))
-          .limit(1);
+        // Active cosmetics
+        const cosmetics = cosmeticRows[0];
         token.activeBadge = cosmetics?.activeBadge ?? null;
         token.activeTitle = cosmetics?.activeTitle ?? null;
         token.activeNameColor = cosmetics?.activeNameColor ?? null;

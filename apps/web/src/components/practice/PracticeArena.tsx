@@ -79,6 +79,32 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
       .catch(() => {});
   }, [session?.user?.id, isPro]);
 
+  // Load practice config from localStorage on mount
+  const configLoadedRef = useRef(false);
+  useEffect(() => {
+    if (configLoadedRef.current) return;
+    configLoadedRef.current = true;
+    try {
+      const saved = localStorage.getItem("typeoff-practice-config");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === "object") {
+          engine.setConfig({ ...engine.config, ...parsed });
+        }
+      }
+    } catch {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Save practice config to localStorage on change (exclude non-persistent fields)
+  useEffect(() => {
+    if (!configLoadedRef.current) return;
+    try {
+      const { customText, weakKeys: _wk, weakBigrams: _wb, ...persistable } = engine.config;
+      localStorage.setItem("typeoff-practice-config", JSON.stringify(persistable));
+    } catch {}
+  }, [engine.config]);
+
   // Measure line height from the words container
   useEffect(() => {
     const el = wordsInnerRef.current?.querySelector(".no-ligatures");

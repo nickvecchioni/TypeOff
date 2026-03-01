@@ -81,7 +81,7 @@ export async function POST(request: Request) {
     (mode !== "timed" && mode !== "wordcount") ||
     typeof duration !== "number" || duration < 0 ||
     typeof wpm !== "number" || wpm < 0 || wpm > 500 ||
-    typeof rawWpm !== "number" || rawWpm < 0 ||
+    typeof rawWpm !== "number" || rawWpm < 0 || rawWpm > 500 ||
     typeof accuracy !== "number" || accuracy < 0 || accuracy > 100 ||
     typeof correctChars !== "number" ||
     typeof incorrectChars !== "number" ||
@@ -90,6 +90,12 @@ export async function POST(request: Request) {
     typeof time !== "number" || time < 1
   ) {
     return NextResponse.json({ error: "Invalid data" }, { status: 400 });
+  }
+
+  // Cross-validate WPM against correctChars and time
+  const expectedWpm = (correctChars / 5) / (time / 60);
+  if (Math.abs(wpm - expectedWpm) > expectedWpm * 0.15) {
+    return NextResponse.json({ error: "WPM mismatch" }, { status: 400 });
   }
 
   const db = getDb();

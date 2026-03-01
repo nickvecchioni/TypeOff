@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
 export async function GET(req: NextRequest) {
+  const { auth } = await import("@/lib/auth");
+  const authSession = await auth();
+  if (!authSession?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const sessionId = req.nextUrl.searchParams.get("session_id");
   if (!sessionId) {
     return NextResponse.json(

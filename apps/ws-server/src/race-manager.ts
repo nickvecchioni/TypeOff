@@ -14,7 +14,7 @@ import type { RankTier, RaceMode, ModeCategory, ReplaySnapshot } from "@typeoff/
 import type { NotificationManager } from "./notification-manager.js";
 import { races, raceParticipants, userStats, userModeStats, users, userActiveCosmetics, textLeaderboards } from "@typeoff/db";
 import type { Database } from "@typeoff/db";
-import { getDb } from "./db.js";
+import { getDb, getPoolDb } from "./db.js";
 import { eq, inArray, and, sql, desc } from "drizzle-orm";
 import { checkAchievements } from "./achievement-checker.js";
 import { checkChallenges, type ChallengeCheckResult } from "./challenge-checker.js";
@@ -138,10 +138,10 @@ export class RaceManager {
       return offset;
     });
 
-    // Add real players first (Map insertion order matters for guest identification)
+    // Add real players first — keyed by player.id for stable lookups across reconnects
     const now = Date.now();
     for (const entry of entries) {
-      this.players.set(entry.socket.id, {
+      this.players.set(entry.player.id, {
         socket: entry.socket,
         player: entry.player,
         progress: {
@@ -271,61 +271,31 @@ export class RaceManager {
     socketId: string,
     data: { wordIndex: number; charIndex: number; wpm: number; progress: number; finalStats?: { wpm: number; rawWpm: number; accuracy: number; misstypedChars?: number } }
   ) {
-    let entry = this.players.get(socketId);
+    // Look up by userId (stable key) via socket.data, with single-human fallback
+    const sock = this.io.sockets.sockets.get(socketId);
+    const userId = sock?.data?.userId as string | undefined;
+    let entry = userId ? this.players.get(userId) : undefined;
     if (!entry) {
-      // Fallback 1: search by socket reference (handles reconnection where entry
-      // was re-keyed but socket object reference was updated)
-      for (const [key, e] of this.players.entries()) {
-        if (e.socket?.id === socketId) {
-          entry = e;
-          this.players.delete(key);
-          this.players.set(socketId, e);
-          console.log(`[race-manager] handleProgress: re-keyed player ${e.player.id} from ${key} to ${socketId}`);
-          break;
-        }
+      // Fallback: if there's exactly one non-bot human player, it must be them
+      const nonBotHumans = [...this.players.values()].filter((e) => !e.isBot);
+      if (nonBotHumans.length === 1) {
+        entry = nonBotHumans[0];
+        entry.socket = sock ?? null;
+        if (sock) sock.join(this.raceId);
+        console.log(`[race-manager] handleProgress: single-human fallback for ${entry.player.id}`);
       }
-      // Fallback 2: search by userId — handles the case where the socket
-      // disconnected (entry.socket = null) and reconnected with a new ID before
-      // reconnectPlayer was called. Uses the io server to get the socket object.
-      if (!entry) {
-        for (const [key, e] of this.players.entries()) {
-          if (!e.isBot && key !== socketId) {
-            const sock = this.io.sockets.sockets.get(socketId);
-            if (sock && sock.data?.userId === e.player.id) {
-              entry = e;
-              this.players.delete(key);
-              entry.socket = sock;
-              this.players.set(socketId, entry);
-              sock.join(this.raceId);
-              console.log(`[race-manager] handleProgress: userId-based re-key for ${e.player.id} from ${key} to ${socketId}`);
-              break;
-            }
-          }
-        }
-      }
-      // Fallback 3: if there's exactly one non-bot human player, it must be them.
-      // Handles the common case (1 human + bots) where auth failed on reconnect
-      // and socket.data.userId is not set.
-      if (!entry) {
-        const nonBotHumans = [...this.players.entries()].filter(([, e]) => !e.isBot);
-        if (nonBotHumans.length === 1) {
-          const [key, e] = nonBotHumans[0];
-          entry = e;
-          this.players.delete(key);
-          const sock = this.io.sockets.sockets.get(socketId) ?? null;
-          entry.socket = sock;
-          this.players.set(socketId, entry);
-          if (sock) sock.join(this.raceId);
-          console.log(`[race-manager] handleProgress: single-human fallback for ${e.player.id} from ${key} to ${socketId}`);
-        }
-      }
-      if (!entry) {
-        console.warn(
-          `[race-manager] handleProgress: no player entry for socketId=${socketId} race=${this.raceId} ` +
-          `(players: ${[...this.players.keys()].join(", ")}, status=${this.status})`,
-        );
-        return;
-      }
+    }
+    if (!entry) {
+      console.warn(
+        `[race-manager] handleProgress: no player entry for socketId=${socketId} userId=${userId} race=${this.raceId} ` +
+        `(players: ${[...this.players.keys()].join(", ")}, status=${this.status})`,
+      );
+      return;
+    }
+    // Update socket reference if it changed (reconnection)
+    if (entry.socket?.id !== socketId && sock) {
+      entry.socket = sock;
+      sock.join(this.raceId);
     }
     if (this.status !== "racing" || entry.progress.finished) return;
 
@@ -356,7 +326,7 @@ export class RaceManager {
       // Use piggybacked finalStats if available (more accurate than progress-event WPM)
       const finishData = data.finalStats && data.finalStats.wpm > 0
         ? { wpm: data.finalStats.wpm, rawWpm: data.finalStats.rawWpm, accuracy: data.finalStats.accuracy, misstypedChars: data.finalStats.misstypedChars }
-        : { wpm: validated.wpm, rawWpm: validated.wpm, accuracy: 100 };
+        : { wpm: validated.wpm, rawWpm: validated.wpm, accuracy: entry.progress.finalStats?.accuracy ?? 95 };
       console.log(
         `[race-manager] Auto-finishing player ${entry.player.id} via progress safety net ` +
         `(serverProgress=${validated.progress}, clientProgress=${data.progress}, wpm=${finishData.wpm}, ` +
@@ -370,53 +340,23 @@ export class RaceManager {
     socketId: string,
     data: { wpm: number; rawWpm: number; accuracy: number; misstypedChars?: number; wpmHistory?: WpmSample[]; keystrokeTimings?: number[] }
   ) {
-    let entry = this.players.get(socketId);
+    // Look up by userId (stable key) via socket.data, with single-human fallback
+    const finishSock = this.io.sockets.sockets.get(socketId);
+    const finishUserId = finishSock?.data?.userId as string | undefined;
+    let entry = finishUserId ? this.players.get(finishUserId) : undefined;
     if (!entry) {
-      // Fallback 1: search by socket reference
-      for (const [key, e] of this.players.entries()) {
-        if (e.socket?.id === socketId) {
-          entry = e;
-          this.players.delete(key);
-          this.players.set(socketId, e);
-          console.log(`[race-manager] handleFinish: re-keyed player ${e.player.id} from ${key} to ${socketId}`);
-          break;
-        }
+      // Fallback: single non-bot human
+      const nonBotHumans = [...this.players.values()].filter((e) => !e.isBot);
+      if (nonBotHumans.length === 1) {
+        entry = nonBotHumans[0];
+        entry.socket = finishSock ?? null;
+        if (finishSock) finishSock.join(this.raceId);
+        console.log(`[race-manager] handleFinish: single-human fallback for ${entry.player.id}`);
       }
-      // Fallback 2: search by userId via socket.data
-      if (!entry) {
-        for (const [key, e] of this.players.entries()) {
-          if (!e.isBot && key !== socketId) {
-            const sock = this.io.sockets.sockets.get(socketId);
-            if (sock && sock.data?.userId === e.player.id) {
-              entry = e;
-              this.players.delete(key);
-              entry.socket = sock;
-              this.players.set(socketId, entry);
-              sock.join(this.raceId);
-              console.log(`[race-manager] handleFinish: userId-based re-key for ${e.player.id} from ${key} to ${socketId}`);
-              break;
-            }
-          }
-        }
-      }
-      // Fallback 3: single non-bot human (same as handleProgress)
-      if (!entry) {
-        const nonBotHumans = [...this.players.entries()].filter(([, e]) => !e.isBot);
-        if (nonBotHumans.length === 1) {
-          const [key, e] = nonBotHumans[0];
-          entry = e;
-          this.players.delete(key);
-          const sock = this.io.sockets.sockets.get(socketId) ?? null;
-          entry.socket = sock;
-          this.players.set(socketId, entry);
-          if (sock) sock.join(this.raceId);
-          console.log(`[race-manager] handleFinish: single-human fallback for ${e.player.id} from ${key} to ${socketId}`);
-        }
-      }
-      if (!entry) {
-        console.warn(`[race-manager] handleFinish: no player entry for socketId=${socketId} race=${this.raceId}`);
-        return;
-      }
+    }
+    if (!entry) {
+      console.warn(`[race-manager] handleFinish: no player entry for socketId=${socketId} userId=${finishUserId} race=${this.raceId}`);
+      return;
     }
     if (this.status !== "racing") {
       console.warn(`[race-manager] handleFinish: race status is ${this.status}, not racing. player=${entry.player.id} race=${this.raceId}`);
@@ -490,11 +430,16 @@ export class RaceManager {
   /** Remove a player during countdown — no penalty, no stats */
   handleLeaveCountdown(socketId: string): boolean {
     if (this.status !== "countdown") return false;
-    const entry = this.players.get(socketId);
-    if (!entry) return false;
+    // Find entry by socket id (key is now userId)
+    let entry: PlayerEntry | undefined;
+    let entryKey: string | undefined;
+    for (const [key, e] of this.players.entries()) {
+      if (e.socket?.id === socketId) { entry = e; entryKey = key; break; }
+    }
+    if (!entry || !entryKey) return false;
 
     entry.socket?.leave(this.raceId);
-    this.players.delete(socketId);
+    this.players.delete(entryKey);
 
     // Cancel race entirely if no real players remain (don't persist anything)
     const hasRealPlayers = [...this.players.values()].some((p) => !p.isBot);
@@ -505,7 +450,11 @@ export class RaceManager {
   }
 
   handleDisconnect(socketId: string) {
-    const entry = this.players.get(socketId);
+    // Find entry by socket id (key is now userId)
+    let entry: PlayerEntry | undefined;
+    for (const e of this.players.values()) {
+      if (e.socket?.id === socketId) { entry = e; break; }
+    }
     if (!entry) return;
 
     // During countdown — clean removal, no penalty
@@ -574,26 +523,12 @@ export class RaceManager {
   reconnectPlayer(userId: string, newSocket: TypedSocket): boolean {
     if (this.status === "finished") return false;
 
-    // Find existing entry by userId
-    let oldSocketId: string | null = null;
-    let entry: PlayerEntry | null = null;
-    for (const [key, e] of this.players.entries()) {
-      if (e.player.id === userId && !e.isBot) {
-        oldSocketId = key;
-        entry = e;
-        break;
-      }
-    }
-    if (!oldSocketId || !entry) return false;
+    const entry = this.players.get(userId);
+    if (!entry || entry.isBot) return false;
 
     // Already connected with this socket — nothing to do
-    if (oldSocketId === newSocket.id && entry.socket === newSocket) return true;
+    if (entry.socket === newSocket) return true;
 
-    // Re-key the entry from old socketId to new socketId
-    if (oldSocketId !== newSocket.id) {
-      this.players.delete(oldSocketId);
-      this.players.set(newSocket.id, entry);
-    }
     entry.socket = newSocket;
 
     // Join the new socket to the race room
@@ -610,7 +545,7 @@ export class RaceManager {
       this.playerGraceTimers.delete(userId);
     }
 
-    console.log(`[race-manager] reconnectPlayer: ${userId} re-keyed from ${oldSocketId} to ${newSocket.id} in race ${this.raceId}`);
+    console.log(`[race-manager] reconnectPlayer: ${userId} reconnected with socket ${newSocket.id} in race ${this.raceId}`);
     return true;
   }
 
@@ -906,7 +841,7 @@ export class RaceManager {
           entry.progress.finalStats = {
             wpm: entry.progress.wpm,
             rawWpm: entry.progress.wpm,
-            accuracy: 100,
+            accuracy: entry.progress.finalStats?.accuracy ?? 95,
           };
         }
       }
@@ -934,7 +869,7 @@ export class RaceManager {
             entry.progress.finalStats = {
               wpm: entry.progress.wpm,
               rawWpm: entry.progress.wpm,
-              accuracy: 100,
+              accuracy: entry.progress.finalStats?.accuracy ?? 95,
             };
           }
         }
@@ -989,7 +924,7 @@ export class RaceManager {
         entry.progress.finalStats = {
           wpm: entry.progress.wpm,
           rawWpm: entry.progress.wpm,
-          accuracy: 100,
+          accuracy: entry.progress.finalStats?.accuracy ?? 95,
         };
       }
     }
@@ -1138,11 +1073,13 @@ export class RaceManager {
     const previousTextBestWpmMap = new Map<string, number>();
 
     const db = getDb();
+    const poolDb = getPoolDb();
 
-    // Steps 1-3: race insert, participants, stats, ELO
+    // Steps 1-3: race insert, participants, stats, ELO (wrapped in transaction)
     try {
+      await poolDb.transaction(async (tx) => {
       // 1. Insert race record
-      await db.insert(races).values({
+      await tx.insert(races).values({
         id: this.raceId,
         seed: this.seed,
         wordCount: this.wordCount,
@@ -1162,7 +1099,7 @@ export class RaceManager {
 
         // Insert participant record (with anti-cheat flags if any)
         const flags = this.playerFlags.get(entry.player.id);
-        await db.insert(raceParticipants).values({
+        await tx.insert(raceParticipants).values({
           raceId: this.raceId,
           userId: entry.player.isGuest ? null : entry.player.id,
           guestName: entry.player.isGuest ? entry.player.name : null,
@@ -1179,7 +1116,7 @@ export class RaceManager {
 
         // Update user stats for authenticated players
         if (!entry.player.isGuest) {
-          const existing = await db
+          const existing = await tx
             .select()
             .from(userStats)
             .where(eq(userStats.userId, entry.player.id));
@@ -1192,7 +1129,7 @@ export class RaceManager {
             streakMap.set(entry.player.id, newStreak);
             playerStatsMap.set(entry.player.id, { racesPlayed: 1, racesWon: newWon, currentStreak: newStreak, maxStreak: newStreak });
             previousBestWpmMap.set(entry.player.id, 0);
-            await db.insert(userStats).values({
+            await tx.insert(userStats).values({
               userId: entry.player.id,
               racesPlayed: 1,
               racesWon: newWon,
@@ -1215,36 +1152,32 @@ export class RaceManager {
             streakMap.set(entry.player.id, newStreak);
             playerStatsMap.set(entry.player.id, { racesPlayed: newPlayed, racesWon: newWon, currentStreak: newStreak, maxStreak: newMaxStreak });
 
-            // Ranked day streak logic
-            let rankedDayStreak = s.rankedDayStreak;
-            if (s.lastRankedDate === todayUTC) {
-              // Already played today — no streak change
-            } else {
-              const yd = new Date();
-              yd.setUTCDate(yd.getUTCDate() - 1);
-              const yesterdayUTC = yd.toISOString().slice(0, 10);
-              if (s.lastRankedDate === yesterdayUTC) {
-                rankedDayStreak = s.rankedDayStreak + 1;
-              } else {
-                rankedDayStreak = 1;
-              }
-            }
-            const maxRankedDayStreak = Math.max(rankedDayStreak, s.maxRankedDayStreak);
+            const wonThisRace = placement === 1 ? 1 : 0;
+            const yd = new Date();
+            yd.setUTCDate(yd.getUTCDate() - 1);
+            const yesterdayUTC = yd.toISOString().slice(0, 10);
 
-            await db
+            await tx
               .update(userStats)
               .set({
-                racesPlayed: newPlayed,
-                racesWon: newWon,
-                avgWpm: (s.avgWpm * s.racesPlayed + stats.wpm) / newPlayed,
-                maxWpm: Math.max(s.maxWpm, stats.wpm),
-                avgAccuracy:
-                  (s.avgAccuracy * s.racesPlayed + stats.accuracy) / newPlayed,
-                currentStreak: newStreak,
-                maxStreak: newMaxStreak,
+                racesPlayed: sql`${userStats.racesPlayed} + 1`,
+                racesWon: sql`${userStats.racesWon} + ${wonThisRace}`,
+                avgWpm: sql`(${userStats.avgWpm} * ${userStats.racesPlayed} + ${stats.wpm}) / (${userStats.racesPlayed} + 1)`,
+                maxWpm: sql`GREATEST(${userStats.maxWpm}, ${stats.wpm})`,
+                avgAccuracy: sql`(${userStats.avgAccuracy} * ${userStats.racesPlayed} + ${stats.accuracy}) / (${userStats.racesPlayed} + 1)`,
+                currentStreak: sql`CASE WHEN ${wonThisRace} = 1 THEN ${userStats.currentStreak} + 1 ELSE 0 END`,
+                maxStreak: sql`CASE WHEN ${wonThisRace} = 1 THEN GREATEST(${userStats.maxStreak}, ${userStats.currentStreak} + 1) ELSE ${userStats.maxStreak} END`,
                 lastRankedDate: todayUTC,
-                rankedDayStreak,
-                maxRankedDayStreak,
+                rankedDayStreak: sql`CASE
+                  WHEN ${userStats.lastRankedDate} = ${todayUTC} THEN ${userStats.rankedDayStreak}
+                  WHEN ${userStats.lastRankedDate} = ${yesterdayUTC} THEN ${userStats.rankedDayStreak} + 1
+                  ELSE 1
+                END`,
+                maxRankedDayStreak: sql`GREATEST(${userStats.maxRankedDayStreak}, CASE
+                  WHEN ${userStats.lastRankedDate} = ${todayUTC} THEN ${userStats.rankedDayStreak}
+                  WHEN ${userStats.lastRankedDate} = ${yesterdayUTC} THEN ${userStats.rankedDayStreak} + 1
+                  ELSE 1
+                END)`,
                 updatedAt: new Date(),
               })
               .where(eq(userStats.userId, entry.player.id));
@@ -1252,7 +1185,7 @@ export class RaceManager {
 
           // Upsert per-mode stats
           const modeWon = placement === 1 ? 1 : 0;
-          await db
+          await tx
             .insert(userModeStats)
             .values({
               userId: entry.player.id,
@@ -1278,7 +1211,7 @@ export class RaceManager {
 
           // Calibrate initial ELO after final placement race
           if (this.placementRace === PLACEMENT_RACE_COUNT) {
-            await this.calibratePlacement(db, entry.player.id);
+            await this.calibratePlacement(tx, entry.player.id);
           }
         }
       }
@@ -1291,7 +1224,7 @@ export class RaceManager {
         const playerIds = authPlayers.map((e) => e.player.id);
 
         // Read ELO from users table
-        const userRows = await db
+        const userRows = await tx
           .select({
             id: users.id,
             eloRating: users.eloRating,
@@ -1301,7 +1234,7 @@ export class RaceManager {
           .where(inArray(users.id, playerIds));
         const userMap = new Map(userRows.map((r) => [r.id, r]));
 
-        const statsRows = await db
+        const statsRows = await tx
           .select()
           .from(userStats)
           .where(inArray(userStats.userId, playerIds));
@@ -1335,26 +1268,26 @@ export class RaceManager {
           if (botEntries.some((b) => b.player.id === userId)) continue;
           eloChanges.set(userId, change);
 
-          const [updated] = await db
+          const [updated] = await tx
             .update(users)
             .set({
               eloRating: sql`GREATEST(0, ${users.eloRating} + ${change})`,
               rankTier: sql`CASE
                 WHEN GREATEST(0, ${users.eloRating} + ${change}) >= 2500 THEN 'grandmaster'
-                WHEN GREATEST(0, ${users.eloRating} + ${change}) >= 2000 THEN 'master'
-                WHEN GREATEST(0, ${users.eloRating} + ${change}) >= 1750 THEN 'diamond'
-                WHEN GREATEST(0, ${users.eloRating} + ${change}) >= 1500 THEN 'platinum'
-                WHEN GREATEST(0, ${users.eloRating} + ${change}) >= 1250 THEN 'gold'
+                WHEN GREATEST(0, ${users.eloRating} + ${change}) >= 2200 THEN 'master'
+                WHEN GREATEST(0, ${users.eloRating} + ${change}) >= 1900 THEN 'diamond'
+                WHEN GREATEST(0, ${users.eloRating} + ${change}) >= 1600 THEN 'platinum'
+                WHEN GREATEST(0, ${users.eloRating} + ${change}) >= 1300 THEN 'gold'
                 WHEN GREATEST(0, ${users.eloRating} + ${change}) >= 1000 THEN 'silver'
                 ELSE 'bronze'
               END`,
               peakEloRating: sql`GREATEST(${users.peakEloRating}, GREATEST(0, ${users.eloRating} + ${change}))`,
               peakRankTier: sql`CASE
                 WHEN GREATEST(${users.peakEloRating}, GREATEST(0, ${users.eloRating} + ${change})) >= 2500 THEN 'grandmaster'
-                WHEN GREATEST(${users.peakEloRating}, GREATEST(0, ${users.eloRating} + ${change})) >= 2000 THEN 'master'
-                WHEN GREATEST(${users.peakEloRating}, GREATEST(0, ${users.eloRating} + ${change})) >= 1750 THEN 'diamond'
-                WHEN GREATEST(${users.peakEloRating}, GREATEST(0, ${users.eloRating} + ${change})) >= 1500 THEN 'platinum'
-                WHEN GREATEST(${users.peakEloRating}, GREATEST(0, ${users.eloRating} + ${change})) >= 1250 THEN 'gold'
+                WHEN GREATEST(${users.peakEloRating}, GREATEST(0, ${users.eloRating} + ${change})) >= 2200 THEN 'master'
+                WHEN GREATEST(${users.peakEloRating}, GREATEST(0, ${users.eloRating} + ${change})) >= 1900 THEN 'diamond'
+                WHEN GREATEST(${users.peakEloRating}, GREATEST(0, ${users.eloRating} + ${change})) >= 1600 THEN 'platinum'
+                WHEN GREATEST(${users.peakEloRating}, GREATEST(0, ${users.eloRating} + ${change})) >= 1300 THEN 'gold'
                 WHEN GREATEST(${users.peakEloRating}, GREATEST(0, ${users.eloRating} + ${change})) >= 1000 THEN 'silver'
                 ELSE 'bronze'
               END`,
@@ -1391,7 +1324,7 @@ export class RaceManager {
           const change = eloChanges.get(entry.player.id) ?? 0;
           const newElo = eloAfterMap.get(entry.player.id) ?? entry.player.elo;
           const eloBefore = newElo - change; // derive pre-race ELO from the atomic result
-          await db
+          await tx
             .update(raceParticipants)
             .set({ eloBefore, eloAfter: newElo })
             .where(
@@ -1402,6 +1335,7 @@ export class RaceManager {
             );
         }
       }
+      }); // end transaction
     } catch (err) {
       console.error("[race-manager] DB error (persist):", err);
     }
@@ -1706,7 +1640,7 @@ export class RaceManager {
   }
 
   /** Calibrate initial ELO after placement races */
-  private async calibratePlacement(db: Database, userId: string) {
+  private async calibratePlacement(db: any, userId: string) {
     // Get avg WPM from this player's recent races
     const recentResults = await db
       .select({ wpm: raceParticipants.wpm })
@@ -1715,8 +1649,8 @@ export class RaceManager {
       .orderBy(sql`${raceParticipants.finishedAt} DESC`)
       .limit(PLACEMENT_RACE_COUNT);
 
-    const wpms = recentResults.map((r) => r.wpm ?? 0);
-    const avgWpm = wpms.length > 0 ? wpms.reduce((a, b) => a + b, 0) / wpms.length : 50;
+    const wpms = recentResults.map((r: { wpm: number | null }) => r.wpm ?? 0);
+    const avgWpm = wpms.length > 0 ? wpms.reduce((a: number, b: number) => a + b, 0) / wpms.length : 50;
     const initialElo = Math.min(2600, Math.max(600, Math.round(500 + avgWpm * 10)));
     const initialTier = getRankTier(initialElo);
 
@@ -1767,7 +1701,11 @@ export class RaceManager {
 
   handleEmote(socketId: string, emote: EmoteKey) {
     if (!EMOTE_KEYS.includes(emote)) return;
-    const entry = this.players.get(socketId);
+    // Find entry by socket id (key is now userId)
+    let entry: PlayerEntry | undefined;
+    for (const e of this.players.values()) {
+      if (e.socket?.id === socketId) { entry = e; break; }
+    }
     if (!entry || (this.status !== "racing" && this.status !== "finished")) return;
 
     // Rate limit: 2s cooldown per player

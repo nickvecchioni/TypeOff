@@ -58,7 +58,22 @@ export function RaceArena() {
   const partyHook = useParty();
   const { on } = useSocket();
 
-  const [modeCategories, setModeCategories] = React.useState<ModeCategory[]>(["words"]);
+  const [modeCategories, setModeCategories] = React.useState<ModeCategory[]>(() => {
+    if (typeof window === "undefined") return ["words"];
+    try {
+      const saved = localStorage.getItem("typeoff-race-mode");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return ["words"];
+  });
+
+  // Persist race mode selection
+  React.useEffect(() => {
+    try { localStorage.setItem("typeoff-race-mode", JSON.stringify(modeCategories)); } catch {}
+  }, [modeCategories]);
 
   // Spectator awareness
   const [spectators, setSpectators] = React.useState<Array<{ userId: string; name: string }>>([]);
