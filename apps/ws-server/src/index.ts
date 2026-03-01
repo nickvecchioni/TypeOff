@@ -128,6 +128,16 @@ io.use(async (socket, next) => {
 io.on("connection", (socket) => {
   console.log(`[connect] ${socket.id}${socket.data.userId ? ` (userId=${socket.data.userId})` : ""}`);
 
+  // Helper: require authenticated socket. Returns userId or null (after emitting error).
+  function requireAuth(s: typeof socket): string | null {
+    const uid = s.data.userId as string | undefined;
+    if (!uid) {
+      s.emit("error", { message: "Authentication required" });
+      return null;
+    }
+    return uid;
+  }
+
   // ─── Queue Events ─────────────────────────────────────────────────
 
   socket.on("joinQueue", async (data) => {
@@ -185,10 +195,12 @@ io.on("connection", (socket) => {
   });
 
   socket.on("leaveQueue", () => {
+    if (!requireAuth(socket)) return;
     matchmaker.removeFromQueue(socket.id);
   });
 
   socket.on("leaveRace", () => {
+    if (!requireAuth(socket)) return;
     matchmaker.handleLeaveRace(socket.id);
   });
 
@@ -215,10 +227,12 @@ io.on("connection", (socket) => {
   // ─── Race Events ──────────────────────────────────────────────────
 
   socket.on("raceProgress", (data) => {
+    if (!socket.data.userId) return; // silent drop — no error emit to avoid spam
     matchmaker.handleProgress(socket.id, data, socket.data.userId);
   });
 
   socket.on("raceFinish", (data) => {
+    if (!socket.data.userId) return; // silent drop
     matchmaker.handleFinish(socket.id, data, socket.data.userId);
   });
 

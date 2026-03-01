@@ -265,6 +265,18 @@ export class RaceManager {
     const existing = this.playerFlags.get(playerId) ?? [];
     existing.push(reason);
     this.playerFlags.set(playerId, existing);
+
+    // Auto-disqualify after 3+ flags: force-finish with zeroed stats
+    if (existing.length >= 3) {
+      const entry = this.players.get(playerId);
+      if (entry && !entry.progress.finished) {
+        console.warn(`[race-manager] auto-disqualifying player ${playerId} (${existing.length} flags: ${existing.join("; ")})`);
+        entry.progress.finished = true;
+        entry.progress.placement = this.nextPlacement++;
+        entry.progress.progress = 1;
+        entry.progress.finalStats = { wpm: 0, rawWpm: 0, accuracy: 0 };
+      }
+    }
   }
 
   handleProgress(
@@ -631,7 +643,7 @@ export class RaceManager {
   ): string | null {
     const socket = entry.socket;
 
-    if (data.wpm > 300) {
+    if (data.wpm > 350) {
       socket?.emit("error", { message: "Invalid finish: WPM exceeds maximum" });
       return "wpm too high";
     }
@@ -648,35 +660,43 @@ export class RaceManager {
       this.addFlag(entry.player.id, `rawWpm (${data.rawWpm}) < wpm (${data.wpm}), auto-corrected`);
       data.rawWpm = data.wpm;
     }
-    // Check elapsed time vs theoretical minimum (300 WPM)
+    // Check elapsed time vs theoretical minimum (350 WPM)
     if (this.startedAt) {
       const elapsedSec = (Date.now() - this.startedAt.getTime()) / 1000;
-      const minTimeSec = (this.totalChars / 5) / (300 / 60); // time at 300 WPM
+      const minTimeSec = (this.totalChars / 5) / (350 / 60); // time at 350 WPM
       if (elapsedSec < minTimeSec * 0.8) {
         socket?.emit("error", { message: "Invalid finish: completed too quickly" });
         return "too fast";
       }
+
+      // Cross-validate claimed WPM against server-measured elapsed time
+      const expectedWpm = (this.totalChars / 5) / (elapsedSec / 60);
+      if (data.wpm > expectedWpm * 1.15) {
+        socket?.emit("error", { message: "Invalid finish: WPM exceeds server-measured rate" });
+        return "wpm exceeds server-measured rate";
+      }
     }
 
-    // Cross-validate wpmHistory if provided (flag, don't reject)
+    // Cross-validate wpmHistory if provided
     if (data.wpmHistory && data.wpmHistory.length > 1) {
-      // Check monotonically increasing elapsed
+      // Reject if elapsed is not monotonic (clear data fabrication)
       for (let i = 1; i < data.wpmHistory.length; i++) {
         if (data.wpmHistory[i].elapsed < data.wpmHistory[i - 1].elapsed) {
-          this.addFlag(entry.player.id, "wpmHistory elapsed not monotonic");
-          break;
+          socket?.emit("error", { message: "Invalid finish: wpmHistory not monotonic" });
+          return "wpmHistory elapsed not monotonic";
         }
       }
       // Check no wpm > 350
       if (data.wpmHistory.some((s) => s.wpm > 350)) {
         this.addFlag(entry.player.id, "wpmHistory wpm exceeds 350");
       }
-      // Check final sample's elapsed roughly matches actual race duration
+      // Reject if final sample's elapsed diverges > 50% from actual race duration
       if (this.startedAt) {
         const actualDuration = (Date.now() - this.startedAt.getTime()) / 1000;
         const lastSample = data.wpmHistory[data.wpmHistory.length - 1];
-        if (Math.abs(lastSample.elapsed - actualDuration) > actualDuration * 0.3) {
-          this.addFlag(entry.player.id, "wpmHistory duration mismatch");
+        if (Math.abs(lastSample.elapsed - actualDuration) > actualDuration * 0.5) {
+          socket?.emit("error", { message: "Invalid finish: wpmHistory duration mismatch" });
+          return "wpmHistory duration mismatch";
         }
       }
     }
@@ -1114,8 +1134,9 @@ export class RaceManager {
           replayData: entry.replaySnapshots.length > 0 ? JSON.stringify(entry.replaySnapshots) : null,
         });
 
-        // Update user stats for authenticated players
-        if (!entry.player.isGuest) {
+        // Update user stats for authenticated, non-flagged players
+        const playerFlags = this.playerFlags.get(entry.player.id);
+        if (!entry.player.isGuest && !(playerFlags && playerFlags.length > 0)) {
           const existing = await tx
             .select()
             .from(userStats)
@@ -1216,8 +1237,8 @@ export class RaceManager {
         }
       }
 
-      // 3. Calculate ELO for non-placement races
-      const authPlayers = entries.filter((e) => !e.player.isGuest && !e.isBot);
+      // 3. Calculate ELO for non-placement races (exclude flagged players)
+      const authPlayers = entries.filter((e) => !e.player.isGuest && !e.isBot && !((this.playerFlags.get(e.player.id)?.length ?? 0) > 0));
       const botEntries = entries.filter((e) => e.isBot);
 
       if (!this.placementRace && authPlayers.length >= 1) {
