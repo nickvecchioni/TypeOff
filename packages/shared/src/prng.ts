@@ -187,86 +187,121 @@ export function generateWordsForMode(mode: RaceMode, seed: number): string[] {
     case "code":
       return tokenizeCode(getCodeSnippet(seed).code);
     case "special": {
-      const base = applyPunctuation(
-        generateNumbersModeWords(LINE_WIDTH_CH, TARGET_LINES, seed),
-        seed + 1
-      );
-      return applyRandomCaps(base, 0.25, seed + 2);
+      const base = generateFromPoolForLines(LINE_WIDTH_CH, TARGET_LINES, seed);
+      const withNumbers = applyMixedNumbers(base, seed + 3);
+      return applyPunctuation(withNumbers, seed + 1);
     }
   }
 }
 
 /**
- * Randomly replace ~20% of word tokens with short number strings (1–4 digits).
- * Used to give solo "mixed" mode the same character as the race "special" mode.
+ * Sprinkle realistic numbers into word tokens (~8% of words).
+ * Produces natural-looking numbers: years, small counts, ages, percentages, etc.
  */
 function applyMixedNumbers(words: string[], seed: number): string[] {
   const rng = mulberry32(seed);
+  // Templates weighted toward common number patterns in real writing
+  const numberTemplates = [
+    () => String(1 + Math.floor(rng() * 99)),                         // small: 1-99
+    () => String(100 + Math.floor(rng() * 900)),                      // hundreds: 100-999
+    () => String(2000 + Math.floor(rng() * 26)),                      // years: 2000-2025
+    () => String(1900 + Math.floor(rng() * 100)),                     // years: 1900-1999
+    () => String(Math.floor(rng() * 100)) + "%",                     // percentage
+    () => "$" + String(1 + Math.floor(rng() * 999)),                  // dollar amount
+    () => String(1 + Math.floor(rng() * 12)) + ":" + String(Math.floor(rng() * 6)) + String(Math.floor(rng() * 10)),  // time
+    () => "#" + String(1 + Math.floor(rng() * 99)),                   // numbered item
+  ];
   return words.map((w) => {
-    if (rng() < 0.2) {
-      const digits = 1 + Math.floor(rng() * 4);
-      let n = "";
-      for (let i = 0; i < digits; i++) n += Math.floor(rng() * 10);
-      return n;
+    if (rng() < 0.08) {
+      const tmpl = numberTemplates[Math.floor(rng() * numberTemplates.length)];
+      return tmpl();
     }
     return w;
   });
 }
 
 /**
- * Randomly capitalize ~`rate` fraction of word tokens (skips numbers and
- * words already capitalized by applyPunctuation).
- */
-function applyRandomCaps(words: string[], rate: number, seed: number): string[] {
-  const rng = mulberry32(seed);
-  return words.map((w) => {
-    const first = w.charAt(0);
-    // Skip tokens that start with a digit or are already uppercased
-    if (!first || first >= "0" && first <= "9" || first === first.toUpperCase()) return w;
-    return rng() < rate ? first.toUpperCase() + w.slice(1) : w;
-  });
-}
-
-/**
- * Deterministic punctuation transform.
- * Capitalizes first word, adds periods every 6-10 words,
- * ~12% commas, occasional ? and !.
+ * Deterministic sentence-like punctuation transform.
+ * Produces natural writing patterns: sentences with varied length,
+ * commas, semicolons, colons, dashes, parentheticals, and quotes.
+ * Capitals only appear at sentence starts (no random caps).
  */
 export function applyPunctuation(words: string[], seed?: number): string[] {
   if (words.length === 0) return words;
   const rng = mulberry32(seed ?? Date.now());
   const result = [...words];
 
+  function capitalize(idx: number) {
+    if (idx < result.length) {
+      result[idx] = result[idx].charAt(0).toUpperCase() + result[idx].slice(1);
+    }
+  }
+
   // Capitalize first word
-  result[0] = result[0].charAt(0).toUpperCase() + result[0].slice(1);
+  capitalize(0);
 
   let sinceLastPeriod = 0;
-  // Random sentence length 6-10 words
-  let nextPeriodAt = 6 + Math.floor(rng() * 5);
+  let nextPeriodAt = 4 + Math.floor(rng() * 8); // sentence length 4-11 words
+  let inParens = false;
 
   for (let i = 0; i < result.length; i++) {
     sinceLastPeriod++;
 
+    // Last word always ends with a period
     if (i === result.length - 1) {
-      // Last word always gets a period
-      result[i] = result[i] + ".";
+      if (inParens) {
+        result[i] = result[i] + ").";
+        inParens = false;
+      } else {
+        result[i] = result[i] + ".";
+      }
       break;
     }
 
     if (sinceLastPeriod >= nextPeriodAt) {
-      // End of sentence
+      // End of sentence — pick terminal punctuation
       const r = rng();
-      const mark = r < 0.1 ? "?" : r < 0.2 ? "!" : ".";
-      result[i] = result[i] + mark;
-      // Capitalize next word
-      if (i + 1 < result.length) {
-        result[i + 1] = result[i + 1].charAt(0).toUpperCase() + result[i + 1].slice(1);
+      let mark: string;
+      if (r < 0.08) mark = "?";
+      else if (r < 0.14) mark = "!";
+      else if (r < 0.18) mark = "...";
+      else mark = ".";
+
+      if (inParens) {
+        result[i] = result[i] + ")" + mark;
+        inParens = false;
+      } else {
+        result[i] = result[i] + mark;
       }
+
+      capitalize(i + 1);
       sinceLastPeriod = 0;
-      nextPeriodAt = 6 + Math.floor(rng() * 5);
-    } else if (sinceLastPeriod > 2 && rng() < 0.12) {
-      // ~12% chance of comma (not at start of sentence)
-      result[i] = result[i] + ",";
+      nextPeriodAt = 4 + Math.floor(rng() * 8);
+    } else if (sinceLastPeriod > 2) {
+      // Mid-sentence punctuation (only after 2+ words into the sentence)
+      const r = rng();
+
+      if (r < 0.10) {
+        // Comma (~10%)
+        result[i] = result[i] + ",";
+      } else if (r < 0.13) {
+        // Semicolon (~3%) — acts as soft sentence break
+        result[i] = result[i] + ";";
+      } else if (r < 0.155 && sinceLastPeriod > 3) {
+        // Colon (~2.5%) — only mid-sentence
+        result[i] = result[i] + ":";
+      } else if (r < 0.175 && sinceLastPeriod > 3 && !inParens) {
+        // Em dash (~2%)
+        result[i] = result[i] + " —";
+      } else if (r < 0.19 && !inParens && i + 3 < result.length && sinceLastPeriod + 3 < nextPeriodAt) {
+        // Open parenthetical (~1.5%) — only if room before sentence end
+        result[i + 1] = "(" + result[i + 1];
+        inParens = true;
+      } else if (inParens && rng() < 0.4) {
+        // Close parenthetical if we're inside one
+        result[i] = result[i] + ")";
+        inParens = false;
+      }
     }
   }
 
@@ -379,11 +414,10 @@ export function generateSoloWords(config: TestConfig, seed?: number): string[] {
       words = generateWords(pool, 200, s);
   }
 
-  // Apply mixed mode (numbers + punctuation + caps) when enabled; skip for quotes/code/zen
+  // Apply mixed mode (numbers + punctuation) when enabled; skip for quotes/code/zen
   if (config.punctuation && config.contentType !== "quotes" && config.contentType !== "code" && config.contentType !== "zen") {
     words = applyMixedNumbers(words, s + 3);
     words = applyPunctuation(words, s + 1);
-    words = applyRandomCaps(words, 0.25, s + 2);
   }
 
   return words;
