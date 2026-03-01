@@ -159,7 +159,15 @@ export function useRace(myPlayerId?: string | null) {
           return data.progress;
         });
         if (data.finishTimeoutEnd != null) {
-          setFinishTimeoutEnd(data.finishTimeoutEnd);
+          // Server sends remaining ms (not absolute timestamp) to avoid clock skew.
+          // Convert to a local deadline for the countdown display.
+          setFinishTimeoutEnd(Date.now() + data.finishTimeoutEnd);
+        }
+        // If all players are finished (including ourselves via localFinishRef),
+        // hide the timer immediately — don't wait for the server's raceFinished event.
+        const allDone = Object.values(data.progress).every((p) => p.finished);
+        if (allDone) {
+          setFinishTimeoutEnd(null);
         }
       }),
       on("raceFinished", (data) => {

@@ -432,6 +432,14 @@ export class RaceManager {
         if (data.misstypedChars != null) entry.misstypedChars = data.misstypedChars;
         if (data.wpmHistory) entry.wpmHistory = data.wpmHistory;
       }
+      // Still check allFinished — the safety net that auto-finished this player
+      // may not have triggered endRace if other players finished between checks.
+      const allFinished = [...this.players.values()].every((p) => p.progress.finished);
+      if (allFinished && this.status === "racing") {
+        console.log(`[race-manager] handleFinish: all players finished (already-finished path), ending race ${this.raceId}`);
+        if (this.finishTimeoutTimer) clearTimeout(this.finishTimeoutTimer);
+        this.endRace();
+      }
       return;
     }
 
@@ -624,7 +632,7 @@ export class RaceManager {
       seed: this.seed,
       wordCount: this.wordCount,
       countdown: 0,
-      finishTimeoutEnd: this.finishTimeoutEnd,
+      finishTimeoutEnd: this.finishTimeoutEnd != null ? Math.max(0, this.finishTimeoutEnd - Date.now()) : null,
       placementRace: this.placementRace,
       mode: this.mode,
     };
@@ -851,9 +859,12 @@ export class RaceManager {
     for (const entry of this.players.values()) {
       progress[entry.player.id] = entry.progress;
     }
+    // Send remaining ms instead of absolute timestamp to avoid clock skew between
+    // server and client causing the timer to display wrong values.
+    const remainingMs = this.finishTimeoutEnd != null ? Math.max(0, this.finishTimeoutEnd - Date.now()) : null;
     const payload = {
       progress,
-      ...(this.finishTimeoutEnd != null ? { finishTimeoutEnd: this.finishTimeoutEnd } : {}),
+      ...(remainingMs != null ? { finishTimeoutEnd: remainingMs } : {}),
     };
     this.io.to(this.raceId).emit("raceProgress", payload);
     // Also emit directly to each connected socket — ensures delivery even if

@@ -48,7 +48,7 @@ export interface RaceState {
   seed: number;
   wordCount: number;
   countdown: number; // seconds remaining in countdown
-  finishTimeoutEnd: number | null; // timestamp when race force-ends
+  finishTimeoutEnd: number | null; // remaining ms until race force-ends (client converts to local deadline)
   placementRace?: number; // 1-3 during placement, undefined for ranked
   mode: RaceMode; // race mode (standard, quotes, marathon, sprint)
 }
