@@ -122,12 +122,20 @@ export function RaceTypingArea({
   useEffect(() => {
     if (engine.status === "finished" && !sentFinalProgress.current) {
       // Send one final progress update with progress=1.0
+      // Include finalStats directly so the server's safety net has accurate WPM
+      // even before localFinishRef is set (the finish effect fires after this one).
       sentFinalProgress.current = true;
       onProgress({
         wordIndex: engine.currentWordIndex,
         charIndex: engine.currentCharIndex,
         wpm: engine.liveWpm > 0 ? engine.liveWpm : 1,
         progress: 1,
+        finalStats: engine.stats ? {
+          wpm: engine.stats.wpm,
+          rawWpm: engine.stats.rawWpm,
+          accuracy: engine.stats.accuracy,
+          misstypedChars: engine.stats.misstypedChars,
+        } : undefined,
       });
       return;
     }

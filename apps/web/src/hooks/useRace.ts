@@ -185,6 +185,16 @@ export function useRace(myPlayerId?: string | null) {
           }
         }
 
+        // Re-sort by WPM and reassign placements after patching.
+        // The server may have sorted with stale/approximate WPM (e.g. from a
+        // progress-event safety net) while the client has accurate local stats.
+        patchedResults = [...patchedResults]
+          .sort((a, b) => {
+            if (b.wpm !== a.wpm) return b.wpm - a.wpm;
+            return b.accuracy - a.accuracy;
+          })
+          .map((r, i) => ({ ...r, placement: i + 1 }));
+
         // Merge enriched fields into existing results rather than replacing,
         // so React can diff minimally and avoid a full re-render flash
         setResults(prev => {
