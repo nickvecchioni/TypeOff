@@ -76,7 +76,7 @@ function CursorInner({ charIndex, isTyping, smooth }: CursorProps) {
             opacity: shape === "block" ? 0.3 : 1,
             animation: isTyping
               ? cosmeticAnimation ? `${cosmeticAnimation} 2s ease-in-out infinite` : "none"
-              : "blink 1s step-end infinite",
+              : shape === "block" ? "blink-block 1s step-end infinite" : "blink 1s step-end infinite",
           }}
         />
       </span>
@@ -87,9 +87,11 @@ function CursorInner({ charIndex, isTyping, smooth }: CursorProps) {
   const positionClass = shape === "underline" ? "absolute bottom-0 left-0" : "absolute top-0 bottom-0";
   const width = shape === "block" || shape === "underline" ? "w-[1ch]" : "w-[2px]";
 
+  const blinkAnim = shape === "block" ? "blink-block 1s step-end infinite" : "blink 1s step-end infinite";
+
   return (
     <span
-      className={`${positionClass} ${width} transition-[left] duration-50 ${isTyping ? "" : "animate-blink"}`}
+      className={`${positionClass} ${width} transition-[left] duration-50`}
       style={{
         left: `${charIndex}ch`,
         backgroundColor: bgColor,
@@ -97,7 +99,9 @@ function CursorInner({ charIndex, isTyping, smooth }: CursorProps) {
         opacity: shape === "block" ? 0.3 : 1,
         height: shape === "underline" ? "2px" : undefined,
         top: shape === "underline" ? "auto" : undefined,
-        animation: cosmeticAnimation ? `${cosmeticAnimation} 2s ease-in-out infinite` : undefined,
+        animation: isTyping
+          ? cosmeticAnimation ? `${cosmeticAnimation} 2s ease-in-out infinite` : "none"
+          : blinkAnim,
       }}
       aria-hidden
     />

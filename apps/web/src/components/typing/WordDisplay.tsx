@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useLayoutEffect, useState } from "react";
 import type { WordState, ContentType } from "@typeoff/shared";
 import { Word } from "./Word";
 import { Cursor, type SmoothCursorPos } from "./Cursor";
@@ -25,7 +25,7 @@ export function WordDisplay({
   const measureRef = useRef<HTMLSpanElement>(null);
   const [smoothPos, setSmoothPos] = useState<SmoothCursorPos>({ x: 0, y: 0, lineH: 32, charW: 12 });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const container = containerRef.current;
     const measureEl = measureRef.current;
     if (!container || !measureEl) return;
