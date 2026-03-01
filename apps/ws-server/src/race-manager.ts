@@ -347,13 +347,20 @@ export class RaceManager {
     // Safety net: auto-finish player when progress reaches 1.0 but raceFinish
     // event was never received (e.g. client-side finish detection failed, socket
     // reconnected with new id dropping the event, etc.)
-    if (validated.progress >= 1 && !entry.progress.finished && validated.wpm > 0) {
+    // Also trust the client's progress=1 when finalStats are piggybacked, even if
+    // the server's validated progress is < 1 (can happen when a micro-disconnect
+    // caused earlier progress events to be dropped, making the server's word-index
+    // lag behind the client's actual position).
+    const clientReportsFinished = data.progress >= 1 && data.finalStats && data.finalStats.wpm > 0;
+    if ((validated.progress >= 1 || clientReportsFinished) && !entry.progress.finished && (validated.wpm > 0 || clientReportsFinished)) {
       // Use piggybacked finalStats if available (more accurate than progress-event WPM)
       const finishData = data.finalStats && data.finalStats.wpm > 0
         ? { wpm: data.finalStats.wpm, rawWpm: data.finalStats.rawWpm, accuracy: data.finalStats.accuracy, misstypedChars: data.finalStats.misstypedChars }
         : { wpm: validated.wpm, rawWpm: validated.wpm, accuracy: 100 };
       console.log(
-        `[race-manager] Auto-finishing player ${entry.player.id} via progress safety net (progress=${validated.progress}, wpm=${finishData.wpm}, hadFinalStats=${!!data.finalStats})`,
+        `[race-manager] Auto-finishing player ${entry.player.id} via progress safety net ` +
+        `(serverProgress=${validated.progress}, clientProgress=${data.progress}, wpm=${finishData.wpm}, ` +
+        `hadFinalStats=${!!data.finalStats}, clientReportsFinished=${!!clientReportsFinished})`,
       );
       this.handleFinish(socketId, finishData);
     }
@@ -455,10 +462,20 @@ export class RaceManager {
     if (allFinished) {
       if (this.finishTimeoutTimer) clearTimeout(this.finishTimeoutTimer);
       this.endRace();
-    } else if (this.finishTimeoutEnd === null) {
-      // First finish — start the finish timeout
-      this.finishTimeoutEnd = Date.now() + FINISH_TIMEOUT_SECONDS * 1000;
-      this.finishTimeoutTimer = setTimeout(() => this.endRace(), FINISH_TIMEOUT_SECONDS * 1000);
+    } else {
+      // Diagnostic: log which players are still unfinished
+      const unfinished = [...this.players.values()]
+        .filter((p) => !p.progress.finished)
+        .map((p) => `${p.player.name}(${p.player.id.slice(0, 8)}, bot=${p.isBot}, progress=${p.progress.progress.toFixed(3)}, wpm=${p.progress.wpm})`);
+      console.log(
+        `[race-manager] handleFinish: player ${entry.player.id} finished but race continues. ` +
+        `Unfinished: [${unfinished.join(", ")}] race=${this.raceId}`,
+      );
+      if (this.finishTimeoutEnd === null) {
+        // First finish — start the finish timeout
+        this.finishTimeoutEnd = Date.now() + FINISH_TIMEOUT_SECONDS * 1000;
+        this.finishTimeoutTimer = setTimeout(() => this.endRace(), FINISH_TIMEOUT_SECONDS * 1000);
+      }
     }
   }
 
@@ -847,25 +864,30 @@ export class RaceManager {
       }
     }
 
-    // Safety net 1: auto-finish players whose progress reached 1.0 (sent explicitly
-    // by the client when the engine finishes with all words correct) but whose
-    // raceFinish event was never received (transient network blip).
-    // Threshold is >= 0.999 (not 0.95) to avoid auto-finishing players who typed the
-    // last word incorrectly — the client caps progress at 0.99 during typing.
+    // Safety net 1: auto-finish players whose progress is high but whose
+    // raceFinish event was never received (transient network blip, socket
+    // micro-disconnect dropping events). Uses a lower threshold when the
+    // finish timeout is active (at least one player already finished) since
+    // the race is clearly ending and we want to avoid the full 15s wait.
     if (this.status === "racing") {
       const now = Date.now();
+      const finishTimeoutActive = this.finishTimeoutEnd !== null;
+      const stallThreshold = finishTimeoutActive ? 0.75 : 0.9;
+      const stallTimeMs = 4000;
+
       for (const entry of this.players.values()) {
         if (
           !entry.progress.finished &&
           !entry.isBot &&
-          entry.progress.progress >= 0.999 &&
+          entry.progress.progress >= stallThreshold &&
           entry.progress.wpm > 0 &&
-          now - entry.lastProgressTime > 3000
+          now - entry.lastProgressTime > stallTimeMs
         ) {
           console.log(
             `[race-manager] broadcastProgress stall safety net: auto-finishing player ${entry.player.id} ` +
             `(progress=${entry.progress.progress.toFixed(3)}, wpm=${entry.progress.wpm}, ` +
-            `stalled ${((now - entry.lastProgressTime) / 1000).toFixed(1)}s) race=${this.raceId}`,
+            `stalled ${((now - entry.lastProgressTime) / 1000).toFixed(1)}s, ` +
+            `threshold=${stallThreshold}, finishTimeoutActive=${finishTimeoutActive}) race=${this.raceId}`,
           );
           entry.progress.finished = true;
           entry.progress.placement = this.nextPlacement++;
@@ -878,7 +900,36 @@ export class RaceManager {
         }
       }
 
-      // Safety net 2: catch "all finished" state that was missed by handleFinish/tickBots
+      // Safety net 2: finish-timeout watchdog — when the finish timeout has been
+      // running for >= 5s, aggressively auto-finish any stalled unfinished players
+      // (no progress updates for > 2s). Catches the case where progress events are
+      // silently dropped at the matchmaker routing level.
+      if (finishTimeoutActive && this.finishTimeoutEnd! - now <= (FINISH_TIMEOUT_SECONDS - 5) * 1000) {
+        for (const entry of this.players.values()) {
+          if (
+            !entry.progress.finished &&
+            !entry.isBot &&
+            now - entry.lastProgressTime > 2000
+          ) {
+            console.log(
+              `[race-manager] finish-timeout watchdog: force-finishing player ${entry.player.id} ` +
+              `(progress=${entry.progress.progress.toFixed(3)}, wpm=${entry.progress.wpm}, ` +
+              `stalled ${((now - entry.lastProgressTime) / 1000).toFixed(1)}s, ` +
+              `timeout remaining ${((this.finishTimeoutEnd! - now) / 1000).toFixed(1)}s) race=${this.raceId}`,
+            );
+            entry.progress.finished = true;
+            entry.progress.placement = this.nextPlacement++;
+            entry.progress.progress = 1;
+            entry.progress.finalStats = {
+              wpm: entry.progress.wpm,
+              rawWpm: entry.progress.wpm,
+              accuracy: 100,
+            };
+          }
+        }
+      }
+
+      // Safety net 3: catch "all finished" state that was missed by handleFinish/tickBots
       const allFinished = [...this.players.values()].every((p) => p.progress.finished);
       if (allFinished) {
         console.log(`[race-manager] broadcastProgress safety net: all players finished, ending race ${this.raceId}`);
