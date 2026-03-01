@@ -878,7 +878,7 @@ export function RaceResults({
   };
 
   return (
-    <div className="flex flex-col gap-1.5 w-full flex-1 min-h-0">
+    <div className="flex flex-col gap-1 w-full flex-1 min-h-0">
 
       {/* ── Hero stats ─────────────────────────────────────── */}
       {myResult ? (
@@ -1084,7 +1084,7 @@ export function RaceResults({
               return (
                 <div
                   key={result.playerId}
-                  className={`relative grid items-center px-3 sm:px-4 py-1.5 border-b border-white/[0.03] last:border-0 transition-colors border-l-2 text-sm ${tableCols} ${
+                  className={`relative grid items-center px-3 sm:px-4 py-1 border-b border-white/[0.03] last:border-0 transition-colors border-l-2 text-sm ${tableCols} ${
                     rowPlacementStyle ? rowPlacementStyle.leftBorder : "border-l-transparent"
                   } ${
                     isMe && isWinner
@@ -1252,7 +1252,7 @@ export function RaceResults({
           className="w-full rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-3 pt-1.5 pb-1 flex flex-col"
         >
           <div className="text-[10px] font-bold text-muted/40 uppercase tracking-widest mb-0.5">WPM over time</div>
-          <div className="w-full" style={{ aspectRatio: "10 / 1" }}>
+          <div className="w-full" style={{ aspectRatio: "12 / 1" }}>
             <WpmChart samples={myWpmHistory} compact />
           </div>
         </div>
@@ -1301,7 +1301,7 @@ export function RaceResults({
           className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 w-full"
         >
           {/* Challenges */}
-          <div className="rounded-xl bg-surface/20 ring-1 ring-white/[0.05] overflow-hidden px-3 py-1.5 sm:px-4 sm:py-2">
+          <div className="rounded-xl bg-surface/20 ring-1 ring-white/[0.05] overflow-hidden px-3 py-1 sm:px-4 sm:py-1.5">
             <div className="flex items-center justify-between mb-0.5">
               <h3 className="text-[10px] font-bold text-muted/65 uppercase tracking-widest">
                 Challenges
