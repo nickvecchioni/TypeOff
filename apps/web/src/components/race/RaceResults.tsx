@@ -161,11 +161,11 @@ function AnimatedElo({
   return (
     <div className="flex flex-col items-center text-center">
       <div className="flex items-baseline gap-2 justify-center">
-        <span className="text-3xl sm:text-4xl font-black text-text tabular-nums leading-none">
+        <span className="text-2xl sm:text-3xl font-black text-text tabular-nums leading-none">
           {displayElo}
         </span>
         <span
-          className={`text-lg font-black tabular-nums transition-opacity duration-300 leading-none ${
+          className={`text-base font-black tabular-nums transition-opacity duration-300 leading-none ${
             showChange ? "opacity-100" : "opacity-0"
           } ${change > 0 ? "text-correct" : change < 0 ? "text-error" : "text-muted"}`}
         >
@@ -173,7 +173,7 @@ function AnimatedElo({
           {change}
         </span>
       </div>
-      <div className="flex items-center gap-1.5 mt-1.5 justify-center">
+      <div className="flex items-center gap-1.5 mt-1 justify-center">
         {rankPulse && rankChange && (
           <span
             className={`text-[10px] font-bold ${
@@ -322,7 +322,7 @@ function AnimatedXpPanel({
   return (
     <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden">
       <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
-      <div className="px-3 py-2.5 sm:px-4 sm:py-3 flex flex-col gap-2.5">
+      <div className="px-3 py-2 sm:px-4 sm:py-2.5 flex flex-col gap-2">
 
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -346,7 +346,7 @@ function AnimatedXpPanel({
           <div className="shrink-0 w-10 text-center">
             <div className="text-[9px] font-black text-muted/60 uppercase tracking-widest leading-none mb-0.5">LV.</div>
             <div
-              className={`text-3xl font-black tabular-nums leading-none transition-colors duration-300 ${
+              className={`text-2xl font-black tabular-nums leading-none transition-colors duration-300 ${
                 levelUpGlow ? "text-accent" : "text-text"
               }`}
             >
@@ -878,7 +878,7 @@ export function RaceResults({
   };
 
   return (
-    <div className="flex flex-col gap-2 w-full flex-1 min-h-0">
+    <div className="flex flex-col gap-1.5 w-full flex-1 min-h-0">
 
       {/* ── Hero stats ─────────────────────────────────────── */}
       {myResult ? (
@@ -901,11 +901,11 @@ export function RaceResults({
             {/* Main hero row — placement + stats side by side */}
             <div className="flex items-stretch">
               {/* Placement — large, dramatic */}
-              <div className="shrink-0 flex flex-col items-center justify-center px-5 sm:px-7 py-3 bg-white/[0.02] border-r border-white/[0.04]">
-                <div className={`text-4xl sm:text-5xl font-black tabular-nums leading-none ${pStyle!.text}`}>
+              <div className="shrink-0 flex flex-col items-center justify-center px-5 sm:px-7 py-2 bg-white/[0.02] border-r border-white/[0.04]">
+                <div className={`text-3xl sm:text-4xl font-black tabular-nums leading-none ${pStyle!.text}`}>
                   {ordinal(myResult.placement)}
                 </div>
-                <div className="text-[10px] text-muted/50 mt-1 uppercase tracking-widest">
+                <div className="text-[10px] text-muted/50 mt-0.5 uppercase tracking-widest">
                   of {results.length}
                 </div>
               </div>
@@ -915,10 +915,10 @@ export function RaceResults({
                 <div className={`grid gap-px ${isPlacement ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-2 sm:grid-cols-3"}`}>
 
                   {/* WPM */}
-                  <div className="bg-surface/30 px-3 py-2.5 sm:px-4">
-                    <div className="text-[10px] text-muted/50 uppercase tracking-widest mb-1">WPM</div>
+                  <div className="bg-surface/30 px-3 py-1.5 sm:px-4">
+                    <div className="text-[10px] text-muted/50 uppercase tracking-widest mb-0.5">WPM</div>
                     <div className="flex items-baseline gap-1.5">
-                      <div className="text-2xl sm:text-3xl font-black text-text tabular-nums leading-none">
+                      <div className="text-xl sm:text-2xl font-black text-text tabular-nums leading-none">
                         {Math.floor(myResult.wpm)}
                         <span className="text-sm opacity-40">
                           .{(myResult.wpm % 1).toFixed(2).slice(2)}
@@ -939,9 +939,9 @@ export function RaceResults({
 
                   {/* Accuracy */}
                   {!isPlacement && (
-                    <div className="bg-surface/30 px-3 py-2.5 sm:px-4">
-                      <div className="text-[10px] text-muted/50 uppercase tracking-widest mb-1">Accuracy</div>
-                      <div className="text-2xl sm:text-3xl font-black text-text tabular-nums leading-none">
+                    <div className="bg-surface/30 px-3 py-1.5 sm:px-4">
+                      <div className="text-[10px] text-muted/50 uppercase tracking-widest mb-0.5">Accuracy</div>
+                      <div className="text-xl sm:text-2xl font-black text-text tabular-nums leading-none">
                         {Math.floor(myResult.accuracy)}
                         <span className="text-sm opacity-40">
                           .{((myResult.accuracy % 1) * 10).toFixed(0)}%
@@ -972,7 +972,7 @@ export function RaceResults({
                       </div>
                     </div>
                   ) : (
-                    <div className="bg-surface/30 px-3 py-2.5 sm:px-4 flex flex-col items-center justify-center">
+                    <div className="bg-surface/30 px-3 py-1.5 sm:px-4 flex flex-col items-center justify-center">
                       {hasElo ? (
                         <AnimatedElo
                           oldElo={myResult.elo! - myResult.eloChange!}
@@ -982,10 +982,10 @@ export function RaceResults({
                         />
                       ) : !isPlacement && myResult?.elo != null ? (
                         <div className="flex flex-col items-center text-center">
-                          <span className="text-3xl sm:text-4xl font-black text-text tabular-nums leading-none">
+                          <span className="text-2xl sm:text-3xl font-black text-text tabular-nums leading-none">
                             {myResult.elo}
                           </span>
-                          <div className="mt-1.5">
+                          <div className="mt-1">
                             <RankBadge tier={getRankInfo(myResult.elo).tier} elo={myResult.elo} showElo={false} size="xs" />
                           </div>
                         </div>
@@ -1052,10 +1052,10 @@ export function RaceResults({
 
       {/* ── TOP ROW: Standings + XP ─────────────────────── */}
       <div
-        className="grid grid-cols-1 sm:grid-cols-[1fr_minmax(0,20rem)] gap-2 w-full"
+        className="grid grid-cols-1 sm:grid-cols-[1fr_minmax(0,20rem)] gap-1.5 w-full"
       >
         {/* ── LEFT: Standings table + Chat ── */}
-        <div className="flex flex-col gap-2 min-h-0">
+        <div className="flex flex-col gap-1.5 min-h-0">
           <div className="rounded-xl overflow-hidden bg-surface/20 ring-1 ring-white/[0.05]">
             {/* Header */}
             <div
@@ -1186,7 +1186,7 @@ export function RaceResults({
         </div>
 
         {/* ── RIGHT: XP + Achievements ── */}
-        <div className="flex flex-col gap-2 min-h-0">
+        <div className="flex flex-col gap-1.5 min-h-0">
           {/* XP Progress — always reserve space to prevent jitter */}
           {!isPlacement && (
             hasXpProgress ? (
@@ -1249,10 +1249,10 @@ export function RaceResults({
       {/* ── WPM CHART (full width, compact) ─────────────── */}
       {myWpmHistory && myWpmHistory.length >= 2 && (
         <div
-          className="w-full rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-3 pt-2 pb-1 flex flex-col"
+          className="w-full rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-3 pt-1.5 pb-1 flex flex-col"
         >
-          <div className="text-[10px] font-bold text-muted/40 uppercase tracking-widest mb-1">WPM over time</div>
-          <div className="w-full" style={{ aspectRatio: "8 / 1" }}>
+          <div className="text-[10px] font-bold text-muted/40 uppercase tracking-widest mb-0.5">WPM over time</div>
+          <div className="w-full" style={{ aspectRatio: "10 / 1" }}>
             <WpmChart samples={myWpmHistory} compact />
           </div>
         </div>
@@ -1298,7 +1298,7 @@ export function RaceResults({
       {/* ── BOTTOM ROW: Challenges + Pro ─────────────────── */}
       {!isPlacement && (
         <div
-          className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full"
+          className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 w-full"
         >
           {/* Challenges */}
           <div className="rounded-xl bg-surface/20 ring-1 ring-white/[0.05] overflow-hidden px-3 py-1.5 sm:px-4 sm:py-2">
@@ -1366,7 +1366,7 @@ export function RaceResults({
 
       {/* ── RACE AGAIN + ACTIONS ──────────────────────────── */}
       <div
-        className="flex flex-col items-center gap-2 w-full max-w-lg mx-auto"
+        className="flex flex-col items-center gap-1.5 w-full max-w-lg mx-auto"
       >
         {/* Party ready state */}
         {inParty && !isPlacement && (
@@ -1401,7 +1401,7 @@ export function RaceResults({
             <button
               onClick={() => onRaceAgain()}
               disabled={inParty && !allMembersReady}
-              className="group w-full rounded-lg bg-accent/10 ring-1 ring-accent/30 text-accent py-2.5 text-sm font-bold hover:bg-accent hover:text-bg hover:ring-accent transition-all shadow-[0_0_20px_rgba(77,158,255,0.08)] hover:shadow-[0_0_30px_rgba(77,158,255,0.2)] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent/10 disabled:hover:text-accent disabled:hover:ring-accent/30 disabled:shadow-none flex flex-col items-center gap-0.5"
+              className="group w-full rounded-lg bg-accent/10 ring-1 ring-accent/30 text-accent py-2 text-sm font-bold hover:bg-accent hover:text-bg hover:ring-accent transition-all shadow-[0_0_20px_rgba(77,158,255,0.08)] hover:shadow-[0_0_30px_rgba(77,158,255,0.2)] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent/10 disabled:hover:text-accent disabled:hover:ring-accent/30 disabled:shadow-none flex flex-col items-center gap-0.5"
             >
               <span className="flex items-center gap-1">
                 {isPlacement ? "Next Placement" : "Race Again"}
