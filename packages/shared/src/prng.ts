@@ -291,8 +291,8 @@ export function applyPunctuation(words: string[], seed?: number): string[] {
         // Colon (~2.5%) — only mid-sentence
         result[i] = result[i] + ":";
       } else if (r < 0.175 && sinceLastPeriod > 3 && !inParens) {
-        // Em dash (~2%)
-        result[i] = result[i] + " —";
+        // Dash (~2%)
+        result[i] = result[i] + " -";
       } else if (r < 0.19 && !inParens && i + 3 < result.length && sinceLastPeriod + 3 < nextPeriodAt) {
         // Open parenthetical (~1.5%) — only if room before sentence end
         result[i + 1] = "(" + result[i + 1];
