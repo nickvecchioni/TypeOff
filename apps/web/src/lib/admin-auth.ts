@@ -1,8 +1,8 @@
-import crypto from "crypto";
+import { auth } from "./auth";
 
-export function validateAdminSecret(secret: unknown): boolean {
-  const expected = process.env.ADMIN_SECRET;
-  if (!expected || typeof secret !== "string") return false;
-  if (secret.length !== expected.length) return false;
-  return crypto.timingSafeEqual(Buffer.from(secret), Buffer.from(expected));
+const ADMIN_USERNAME = "nickvec";
+
+export async function validateAdmin(): Promise<boolean> {
+  const session = await auth();
+  return session?.user?.username === ADMIN_USERNAME;
 }

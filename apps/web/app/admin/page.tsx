@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { signIn } from "next-auth/react";
+import { useSession } from "next-auth/react";
 
 interface TestAccount {
   id: string;
@@ -20,12 +20,7 @@ interface UserRow {
 }
 
 export default function AdminPage() {
-  const [secret, setSecret] = useState(() =>
-    typeof window !== "undefined"
-      ? sessionStorage.getItem("adminSecret") ?? ""
-      : ""
-  );
-  const [authenticated, setAuthenticated] = useState(false);
+  const { data: session, status } = useSession();
   const [accounts, setAccounts] = useState<TestAccount[]>([]);
   const [realUsers, setRealUsers] = useState<UserRow[]>([]);
   const [newUsername, setNewUsername] = useState("");
@@ -33,59 +28,30 @@ export default function AdminPage() {
   const [error, setError] = useState("");
   const [deleteUsername, setDeleteUsername] = useState("");
 
+  const isAdmin = session?.user?.username === "nickvec";
+
   const fetchAccounts = useCallback(async () => {
-    const res = await fetch(
-      `/api/admin/test-accounts?adminSecret=${encodeURIComponent(secret)}`
-    );
+    const res = await fetch("/api/admin/test-accounts");
     if (!res.ok) {
       setError("Failed to fetch accounts");
       return;
     }
     setAccounts(await res.json());
-  }, [secret]);
+  }, []);
 
   const fetchUsers = useCallback(async () => {
-    const res = await fetch(
-      `/api/admin/users?adminSecret=${encodeURIComponent(secret)}`
-    );
+    const res = await fetch("/api/admin/users");
     if (res.ok) {
       setRealUsers(await res.json());
     }
-  }, [secret]);
-
-  const handleAuth = async (overrideSecret?: string) => {
-    const s = overrideSecret ?? secret;
-    setError("");
-    const res = await fetch(
-      `/api/admin/test-accounts?adminSecret=${encodeURIComponent(s)}`
-    );
-    if (!res.ok) {
-      if (overrideSecret) {
-        sessionStorage.removeItem("adminSecret");
-        return;
-      }
-      setError("Invalid admin secret");
-      return;
-    }
-    sessionStorage.setItem("adminSecret", s);
-    setAuthenticated(true);
-    setAccounts(await res.json());
-    const usersRes = await fetch(
-      `/api/admin/users?adminSecret=${encodeURIComponent(s)}`
-    );
-    if (usersRes.ok) {
-      setRealUsers(await usersRes.json());
-    }
-  };
-
-  // Auto-authenticate from stored secret on mount
-  useEffect(() => {
-    const stored = sessionStorage.getItem("adminSecret");
-    if (stored) {
-      handleAuth(stored);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (isAdmin) {
+      fetchAccounts();
+      fetchUsers();
+    }
+  }, [isAdmin, fetchAccounts, fetchUsers]);
 
   const handleCreate = async () => {
     setLoading(true);
@@ -93,10 +59,7 @@ export default function AdminPage() {
     const res = await fetch("/api/admin/test-accounts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        adminSecret: secret,
-        username: newUsername || undefined,
-      }),
+      body: JSON.stringify({ username: newUsername || undefined }),
     });
     if (!res.ok) {
       setError("Failed to create account");
@@ -113,7 +76,7 @@ export default function AdminPage() {
     const res = await fetch("/api/admin/test-accounts", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ adminSecret: secret, id }),
+      body: JSON.stringify({ id }),
     });
     if (!res.ok) {
       setError("Failed to delete account");
@@ -129,7 +92,7 @@ export default function AdminPage() {
     const res = await fetch("/api/admin/test-accounts", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ adminSecret: secret, username }),
+      body: JSON.stringify({ username }),
     });
     if (!res.ok) {
       const data = await res.json().catch(() => null);
@@ -140,40 +103,21 @@ export default function AdminPage() {
     await fetchAccounts();
   };
 
-  const handleSignIn = async (userId: string) => {
-    const result = await signIn("credentials", {
-      userId,
-      adminSecret: secret,
-      redirect: false,
-    });
-    if (result?.error) {
-      setError("Sign-in failed: " + result.error);
-      return;
-    }
-    window.location.href = "/";
-  };
+  if (status === "loading") {
+    return (
+      <main className="flex-1 flex items-center justify-center">
+        <p className="text-muted text-sm">Loading...</p>
+      </main>
+    );
+  }
 
-  if (!authenticated) {
+  if (!isAdmin) {
     return (
       <main className="flex-1 flex flex-col items-center justify-center px-4">
-        <h1 className="text-2xl font-bold text-accent mb-6">Admin</h1>
-        <div className="flex flex-col gap-3 w-full max-w-xs">
-          <input
-            type="password"
-            placeholder="Admin secret"
-            value={secret}
-            onChange={(e) => setSecret(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleAuth()}
-            className="rounded-lg bg-surface px-4 py-3 text-text outline-none focus:ring-1 focus:ring-accent"
-          />
-          <button
-            onClick={() => handleAuth()}
-            className="rounded-lg bg-accent/20 px-4 py-3 text-accent hover:bg-accent/30 transition-colors"
-          >
-            Authenticate
-          </button>
-          {error && <p className="text-error text-sm">{error}</p>}
-        </div>
+        <h1 className="text-2xl font-bold text-accent mb-4">Access Denied</h1>
+        <p className="text-muted text-sm">
+          You don&apos;t have permission to view this page.
+        </p>
       </main>
     );
   }
@@ -254,12 +198,6 @@ export default function AdminPage() {
                     </span>
                   </td>
                   <td className="py-2.5 text-right">
-                    <button
-                      onClick={() => handleSignIn(acc.id)}
-                      className="text-accent hover:text-accent/80 mr-3 transition-colors"
-                    >
-                      Sign in
-                    </button>
                     <button
                       onClick={() => handleDelete(acc.id)}
                       className="text-error hover:text-error/80 transition-colors"

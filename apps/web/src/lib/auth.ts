@@ -1,6 +1,5 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
-import Credentials from "next-auth/providers/credentials";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { getDb } from "./db";
 import { users, accounts, sessions, verificationTokens, userStats, userActiveCosmetics, userSubscription } from "@typeoff/db";
@@ -24,30 +23,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    }),
-    Credentials({
-      id: "credentials",
-      name: "Test Account",
-      credentials: {
-        userId: { type: "text" },
-        adminSecret: { type: "text" },
-      },
-      async authorize(credentials) {
-        const secret = credentials?.adminSecret as string | undefined;
-        const userId = credentials?.userId as string | undefined;
-        if (!secret || !userId) return null;
-        if (secret !== process.env.ADMIN_SECRET) return null;
-
-        const db = getDb();
-        const row = await db
-          .select()
-          .from(users)
-          .where(eq(users.id, userId))
-          .limit(1);
-        if (row.length === 0) return null;
-
-        return { id: row[0].id, name: row[0].username };
-      },
     }),
   ],
   pages: {

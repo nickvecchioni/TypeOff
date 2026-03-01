@@ -2,16 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { users } from "@typeoff/db";
 import { eq, isNull } from "drizzle-orm";
-import { validateAdminSecret } from "@/lib/admin-auth";
+import { validateAdmin } from "@/lib/admin-auth";
 
 function unauthorized() {
   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }
 
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  if (!validateAdminSecret(body.adminSecret)) return unauthorized();
+  if (!(await validateAdmin())) return unauthorized();
 
+  const body = await req.json();
   const id = crypto.randomUUID();
   const username =
     body.username?.trim() ||
@@ -23,9 +23,8 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ id, username });
 }
 
-export async function GET(req: NextRequest) {
-  const secret = req.headers.get("authorization")?.replace("Bearer ", "");
-  if (!validateAdminSecret(secret)) return unauthorized();
+export async function GET() {
+  if (!(await validateAdmin())) return unauthorized();
 
   const db = getDb();
   const rows = await db
@@ -42,9 +41,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const body = await req.json();
-  if (!validateAdminSecret(body.adminSecret)) return unauthorized();
+  if (!(await validateAdmin())) return unauthorized();
 
+  const body = await req.json();
   const db = getDb();
 
   if (body.username) {
