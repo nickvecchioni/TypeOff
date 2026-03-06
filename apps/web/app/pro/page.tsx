@@ -24,9 +24,12 @@ const FREE_REWARD_COUNT = TOTAL_REWARD_COUNT - PRO_REWARD_COUNT;
 const COMPARISON_ROWS: { feature: string; desc?: string; free: boolean | string; pro: boolean | string }[] = [
   { feature: "Smart Practice",      desc: "AI-generated drills targeting your weakest keys",          free: false,                             pro: true },
   { feature: "Advanced Analytics",  desc: "Per-key heatmaps, bigram breakdown, WPM trends",          free: false,                             pro: true },
+  { feature: "Speed Analysis",      desc: "Post-race breakdown: peak sustained WPM, hesitations, warmup curve", free: false,                  pro: true },
   { feature: "Race Replays",        desc: "Rewatch any race keystroke by keystroke",                  free: "Last 3",                          pro: "Unlimited" },
   { feature: "Custom Text Mode",    desc: "Practice with your own text or code snippets",             free: false,                             pro: true },
   { feature: "Race History",        desc: "Browse and filter your past race results",                 free: "Last 10",                         pro: "Full Archive" },
+  { feature: "Profile Bio & Pin",   desc: "Custom bio and pin your best race on your profile",        free: false,                             pro: true },
+  { feature: "Data Export",         desc: "Download your full stats, races, and accuracy as CSV/JSON", free: false,                             pro: true },
   { feature: "XP Multiplier",       desc: "Earn XP faster to unlock cosmetics sooner",                free: "1×",                              pro: "1.5×" },
   { feature: "Level Rewards",       desc: "Exclusive themes, cursors, effects, and more",             free: `${FREE_REWARD_COUNT} cosmetics`,  pro: `All ${TOTAL_REWARD_COUNT}` },
   { feature: "Ranked Racing",       desc: "Compete in ELO-rated matches with skill-based matchmaking", free: true,                              pro: true },
@@ -425,8 +428,11 @@ function SubscriberView({
               {[
                 "1.5x XP on every race",
                 "Full race history & advanced analytics",
+                "Post-race speed analysis & hesitation tracking",
                 "Unlimited replays",
                 "Custom text & focus drill modes",
+                "Profile bio & featured race pin",
+                "Full data export (CSV & JSON)",
                 "Pro badge in every race",
               ].map((perk) => (
                 <li key={perk} className="flex items-center gap-2 text-[11px] text-muted/60">

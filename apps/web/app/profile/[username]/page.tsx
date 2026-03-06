@@ -20,6 +20,8 @@ import { CosmeticTitle } from "@/components/CosmeticTitle";
 import { CosmeticName } from "@/components/CosmeticName";
 import { LocalDateTime } from "./local-date-time";
 import { PerformanceCharts } from "@/components/profile/PerformanceCharts";
+import { BioEditor, BioDisplay } from "./bio-editor";
+import { FeaturedRace, FeaturedRaceSelector } from "./featured-race";
 
 
 function formatLastSeen(lastSeen: Date | null): string | null {
@@ -60,6 +62,8 @@ export default async function ProfilePage({
     .select({
       id: users.id,
       username: users.username,
+      bio: users.bio,
+      featuredRaceId: users.featuredRaceId,
       eloRating: users.eloRating,
       rankTier: users.rankTier,
       peakEloRating: users.peakEloRating,
@@ -172,6 +176,51 @@ export default async function ProfilePage({
     .where(eq(userSubscription.userId, user.id))
     .limit(1);
   const isProUser = subRow?.status === "active";
+
+  // Load featured race data
+  let featuredRaceData: {
+    raceId: string;
+    wpm: number;
+    accuracy: number;
+    placement: number;
+    playerCount: number;
+    finishedAt: string;
+    modeCategory: string | null;
+  } | null = null;
+
+  if (user.featuredRaceId) {
+    const [fr] = await db
+      .select({
+        raceId: raceParticipants.raceId,
+        wpm: raceParticipants.wpm,
+        accuracy: raceParticipants.accuracy,
+        placement: raceParticipants.placement,
+        finishedAt: raceParticipants.finishedAt,
+        playerCount: races.playerCount,
+        modeCategory: races.modeCategory,
+      })
+      .from(raceParticipants)
+      .innerJoin(races, eq(raceParticipants.raceId, races.id))
+      .where(
+        and(
+          eq(raceParticipants.raceId, user.featuredRaceId),
+          eq(raceParticipants.userId, user.id),
+        ),
+      )
+      .limit(1);
+
+    if (fr && fr.wpm != null && fr.accuracy != null && fr.placement != null && fr.finishedAt) {
+      featuredRaceData = {
+        raceId: fr.raceId,
+        wpm: fr.wpm,
+        accuracy: fr.accuracy,
+        placement: fr.placement,
+        playerCount: fr.playerCount,
+        finishedAt: fr.finishedAt.toISOString(),
+        modeCategory: fr.modeCategory,
+      };
+    }
+  }
 
   // Fetch activity data (tests per day for the last year)
   const activityRows = await db
@@ -289,6 +338,14 @@ export default async function ProfilePage({
                   ) : null}
                 </div>
                 <CosmeticTitle title={activeCosmetics?.activeTitle} />
+                {/* Bio */}
+                <div className="mt-1.5">
+                  {isOwn && isProUser ? (
+                    <BioEditor initialBio={user.bio} />
+                  ) : (
+                    <BioDisplay bio={user.bio} />
+                  )}
+                </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 {!isOwn && <WatchLiveButton userId={user.id} />}
@@ -399,6 +456,38 @@ export default async function ProfilePage({
               <path d="M9 18l6-6-6-6" />
             </svg>
           </Link>
+        )}
+
+        {/* ── Featured Race ────────────────────────────────── */}
+        {(featuredRaceData || (isOwn && isProUser)) && (
+          <section className="animate-slide-up" style={{ animationDelay: "110ms" }}>
+            <div className="flex items-center justify-between mb-3">
+              <SectionHeader>Featured Race</SectionHeader>
+              {isOwn && isProUser && (
+                <FeaturedRaceSelector
+                  currentRaceId={user.featuredRaceId}
+                  recentRaces={recentRaces
+                    .filter((r) => r.wpm != null && r.accuracy != null && r.placement != null && r.finishedAt)
+                    .slice(0, 10)
+                    .map((r) => ({
+                      raceId: r.raceId,
+                      wpm: r.wpm!,
+                      accuracy: r.accuracy!,
+                      placement: r.placement!,
+                      playerCount: r.playerCount,
+                      finishedAt: r.finishedAt!.toISOString(),
+                    }))}
+                />
+              )}
+            </div>
+            {featuredRaceData ? (
+              <FeaturedRace race={featuredRaceData} />
+            ) : isOwn && isProUser ? (
+              <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-4 py-3 text-center">
+                <p className="text-xs text-muted/40 italic">Pin your best race to showcase it here</p>
+              </div>
+            ) : null}
+          </section>
         )}
 
         {/* ── Solo Personal Bests ───────────────────────────── */}

@@ -23,6 +23,8 @@ export const users = pgTable("users", {
   image: text("image"),
   // Game-specific fields
   username: text("username").unique(),
+  bio: text("bio"),
+  featuredRaceId: uuid("featured_race_id"),
   eloRating: integer("elo_rating").notNull().default(1000),
   rankTier: text("rank_tier").notNull().default("bronze"),
   peakEloRating: integer("peak_elo_rating").notNull().default(1000),

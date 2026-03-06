@@ -69,8 +69,41 @@ export default function AnalyticsPage() {
   const [keyStats, setKeyStats] = useState<KeyStatsMap | null>(null);
   const [modeFilter, setModeFilter] = useState<string>("all");
   const [activeTab, setActiveTab] = useState<Tab>("overview");
+  const [exporting, setExporting] = useState(false);
 
   const isPro = session?.user?.isPro ?? false;
+
+  const handleExport = async (format: "json" | "csv") => {
+    setExporting(true);
+    try {
+      const res = await fetch(`/api/export?type=all&format=${format}`);
+      if (!res.ok) return;
+
+      if (format === "csv") {
+        const text = await res.text();
+        const blob = new Blob([text], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `typeoff-data-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      } else {
+        const json = await res.json();
+        const blob = new Blob([JSON.stringify(json, null, 2)], {
+          type: "application/json",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `typeoff-data-${new Date().toISOString().slice(0, 10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    } finally {
+      setExporting(false);
+    }
+  };
 
   if (status === "unauthenticated") {
     return (
@@ -220,7 +253,28 @@ export default function AnalyticsPage() {
                   <span className="text-[10px] text-muted/50 tabular-nums">{data.totalRaces} races analyzed</span>
                 )}
               </div>
-              {/* Mode filter pills */}
+              {/* Export + Mode filter pills */}
+              <div className="flex items-center gap-2">
+              {isPro && (
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => handleExport("json")}
+                    disabled={exporting}
+                    className="text-[10px] text-muted/40 hover:text-accent transition-colors disabled:opacity-50 px-1.5 py-1"
+                    title="Export all data as JSON"
+                  >
+                    {exporting ? "..." : "JSON"}
+                  </button>
+                  <button
+                    onClick={() => handleExport("csv")}
+                    disabled={exporting}
+                    className="text-[10px] text-muted/40 hover:text-accent transition-colors disabled:opacity-50 px-1.5 py-1"
+                    title="Export race data as CSV"
+                  >
+                    CSV
+                  </button>
+                </div>
+              )}
               <div className="flex items-center gap-0.5 bg-white/[0.02] rounded-lg p-0.5 ring-1 ring-white/[0.04]">
                 {MODE_FILTERS.map((f) => (
                   <button
@@ -235,6 +289,7 @@ export default function AnalyticsPage() {
                     {f.label}
                   </button>
                 ))}
+              </div>
               </div>
             </div>
 
