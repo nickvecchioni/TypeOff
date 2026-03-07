@@ -3,11 +3,123 @@
 import React, { useEffect, useRef } from "react";
 import { useSession, signIn } from "next-auth/react";
 import Link from "next/link";
-import type { TestStats, TestConfig } from "@typeoff/shared";
+import type { TestStats, TestConfig, WpmSample } from "@typeoff/shared";
 import { getQuoteByIndex, getCodeSnippet } from "@typeoff/shared";
 import { WpmChart } from "@/components/typing/WpmChart";
 import { KeyboardHeatmap } from "@/components/typing/KeyboardHeatmap";
 import { ShareResultCard } from "@/components/shared/ShareResultCard";
+
+/* ── Speed Analysis ──────────────────────────────────────── */
+
+function SpeedAnalysis({ wpmHistory, wpm }: { wpmHistory: WpmSample[]; wpm: number }) {
+  const samples = wpmHistory.filter((s) => s.wpm > 0);
+  if (samples.length < 4) return null;
+
+  const sorted = [...samples].sort((a, b) => b.wpm - a.wpm);
+  const fastest = sorted[0];
+  const slowest = sorted[sorted.length - 1];
+
+  // First half vs second half (warmup analysis)
+  const mid = Math.floor(samples.length / 2);
+  const firstHalf = samples.slice(0, mid);
+  const secondHalf = samples.slice(mid);
+  const firstAvg = firstHalf.reduce((s, v) => s + v.wpm, 0) / firstHalf.length;
+  const secondAvg = secondHalf.reduce((s, v) => s + v.wpm, 0) / secondHalf.length;
+  const warmupDelta = secondAvg - firstAvg;
+  const warmupPct = firstAvg > 0 ? Math.round((warmupDelta / firstAvg) * 100) : 0;
+
+  // Speed variance (coefficient of variation)
+  const mean = samples.reduce((s, v) => s + v.wpm, 0) / samples.length;
+  const variance = samples.reduce((s, v) => s + (v.wpm - mean) ** 2, 0) / samples.length;
+  const cv = mean > 0 ? Math.sqrt(variance) / mean : 0;
+  const stabilityLabel =
+    cv < 0.05 ? "Excellent" : cv < 0.10 ? "Good" : cv < 0.15 ? "Average" : "Inconsistent";
+  const stabilityColor =
+    cv < 0.05 ? "text-correct" : cv < 0.10 ? "text-accent" : cv < 0.15 ? "text-muted/70" : "text-error";
+
+  // Peak sustained WPM (best 3-sample rolling average)
+  let peakSustained = 0;
+  if (samples.length >= 3) {
+    for (let i = 0; i <= samples.length - 3; i++) {
+      const avg = (samples[i].wpm + samples[i + 1].wpm + samples[i + 2].wpm) / 3;
+      if (avg > peakSustained) peakSustained = avg;
+    }
+  }
+
+  // Hesitation points (drops >15% from rolling average)
+  const hesitations: number[] = [];
+  for (let i = 2; i < samples.length; i++) {
+    const prevAvg = (samples[i - 1].wpm + samples[i - 2].wpm) / 2;
+    if (prevAvg > 0 && samples[i].wpm < prevAvg * 0.85) {
+      hesitations.push(samples[i].elapsed);
+    }
+  }
+
+  return (
+    <div className="w-full rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-3 pt-2 pb-3 flex flex-col gap-2.5">
+      <div className="flex items-center justify-between">
+        <div className="text-xs font-bold text-muted/50 uppercase tracking-widest">Speed Analysis</div>
+        <span className="text-[10px] font-black text-accent/50 bg-accent/[0.06] ring-1 ring-accent/15 rounded px-1.5 py-0.5 uppercase tracking-wider leading-none">
+          PRO
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2">
+          <div className="text-[11px] text-muted/50 uppercase tracking-widest mb-1">Peak Sustained</div>
+          <div className="text-lg font-black text-accent tabular-nums leading-none">
+            {Math.floor(peakSustained)}
+            <span className="text-[0.6em] opacity-40">.{(peakSustained % 1).toFixed(2).slice(2)}</span>
+          </div>
+          <div className="text-[11px] text-muted/35 mt-0.5">3-sec rolling avg</div>
+        </div>
+
+        <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2">
+          <div className="text-[11px] text-muted/50 uppercase tracking-widest mb-1">Fastest</div>
+          <div className="text-lg font-black text-correct tabular-nums leading-none">{Math.floor(fastest.wpm)}</div>
+          <div className="text-[11px] text-muted/35 mt-0.5">at {fastest.elapsed}s</div>
+        </div>
+
+        <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2">
+          <div className="text-[11px] text-muted/50 uppercase tracking-widest mb-1">Slowest</div>
+          <div className="text-lg font-black text-error/80 tabular-nums leading-none">{Math.floor(slowest.wpm)}</div>
+          <div className="text-[11px] text-muted/35 mt-0.5">at {slowest.elapsed}s</div>
+        </div>
+
+        <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2">
+          <div className="text-[11px] text-muted/50 uppercase tracking-widest mb-1">Stability</div>
+          <div className={`text-sm font-black leading-none ${stabilityColor}`}>{stabilityLabel}</div>
+          <div className="text-[11px] text-muted/35 mt-0.5">{Math.round((1 - cv) * 100)}% stable</div>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted/60">
+        <div className="flex items-center gap-1.5">
+          <span className="text-muted/40">Warmup:</span>
+          <span className="tabular-nums">{Math.floor(firstAvg)} → {Math.floor(secondAvg)} WPM</span>
+          <span className={`font-bold tabular-nums ${warmupDelta > 0 ? "text-correct" : warmupDelta < 0 ? "text-error/70" : "text-muted/50"}`}>
+            {warmupDelta > 0 ? "+" : ""}{warmupPct}%
+          </span>
+        </div>
+
+        {hesitations.length > 0 ? (
+          <div className="flex items-center gap-1.5">
+            <span className="text-muted/40">Hesitations:</span>
+            <span className="text-error/60 font-medium tabular-nums">
+              {hesitations.length} drop{hesitations.length !== 1 ? "s" : ""}
+            </span>
+            <span className="text-muted/30">at {hesitations.map((t) => `${t}s`).join(", ")}</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5">
+            <span className="text-muted/40">Hesitations:</span>
+            <span className="text-correct/70 font-medium">None</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 interface PracticeResultsProps {
   stats: TestStats;
@@ -19,6 +131,7 @@ interface PracticeResultsProps {
 
 export function PracticeResults({ stats, config, isPb, onRestart, seed }: PracticeResultsProps) {
   const { data: session } = useSession();
+  const isPro = session?.user?.isPro ?? false;
   const tabPressedRef = useRef(false);
 
   useEffect(() => {
@@ -240,10 +353,29 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed }: Practi
             <div className="rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-3 pt-2.5 pb-2 flex flex-col">
               <div className="text-xs font-bold text-muted/50 uppercase tracking-widest mb-2">Key Accuracy</div>
               <KeyboardHeatmap keyStats={stats.keyStats} />
+              <div className="flex items-center gap-4 text-xs text-muted/70 tabular-nums mt-2">
+                {(() => {
+                  const totalCorrect = Object.values(stats.keyStats).reduce((s, k) => s + k.correct, 0);
+                  const totalAll = Object.values(stats.keyStats).reduce((s, k) => s + k.total, 0);
+                  const totalIncorrect = totalAll - totalCorrect;
+                  return (
+                    <>
+                      <span><span className="text-correct font-semibold">{totalCorrect}</span> correct</span>
+                      <span><span className="text-error font-semibold">{totalIncorrect}</span> incorrect</span>
+                      <span><span className="text-text font-semibold">{totalAll}</span> total</span>
+                    </>
+                  );
+                })()}
+              </div>
             </div>
           )}
         </div>
       </div>
+
+      {/* ── Speed Analysis (Pro) ────────────────────────────── */}
+      {isPro && stats.wpmHistory.length >= 4 && (
+        <SpeedAnalysis wpmHistory={stats.wpmHistory} wpm={stats.wpm} />
+      )}
 
       {/* ── Actions ────────────────────────────────────────── */}
       <div className="flex flex-col items-center gap-1.5 w-full max-w-lg mx-auto pt-1">
