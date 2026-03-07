@@ -49,7 +49,7 @@ const MODE_FILTERS = [
   { value: "words", label: "Words" },
   { value: "quotes", label: "Quotes" },
   { value: "code", label: "Code" },
-  { value: "special", label: "Special" },
+  { value: "special", label: "Mixed" },
 ] as const;
 
 const RANGE_FILTERS = [
@@ -63,7 +63,7 @@ const MODE_LABELS: Record<string, string> = {
   words: "Words",
   quotes: "Quotes",
   code: "Code",
-  special: "Special",
+  special: "Mixed",
 };
 
 type Tab = "overview" | "accuracy" | "progress";

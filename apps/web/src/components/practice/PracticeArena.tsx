@@ -44,9 +44,12 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
   useEffect(() => {
     if (!session?.user?.id) return;
     fetch("/api/solo-results")
-      .then((res) => res.json())
-      .then((data) => { if (data.pbs) setPbs(data.pbs); })
-      .catch(() => {});
+      .then(async (res) => {
+        if (!res.ok) { console.warn("[solo-results] PB fetch failed:", res.status); return; }
+        const data = await res.json();
+        if (data.pbs) setPbs(data.pbs);
+      })
+      .catch((err) => console.warn("[solo-results] PB fetch error:", err));
   }, [session?.user?.id]);
 
   // Fetch weak keys + weak bigrams for practice mode (Pro only)
@@ -225,16 +228,25 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
         seed: currentSeed,
       }),
     })
-      .then((res) => res.json())
-      .then((data) => {
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) {
+          console.warn("[solo-results] save failed:", res.status, data);
+          return;
+        }
         if (data.isPb) {
           setIsPb(true);
           // Update local PB cache (per-text for quotes/code)
           const key = getPbKey(config, currentSeed);
           setPbs((prev) => ({ ...prev, [key]: stats.wpm }));
         }
+        // Always refresh PBs from server to stay in sync
+        fetch("/api/solo-results")
+          .then((r) => r.json())
+          .then((d) => { if (d.pbs) setPbs(d.pbs); })
+          .catch(() => {});
       })
-      .catch(() => {});
+      .catch((err) => console.warn("[solo-results] save error:", err));
   }, [engine.status, engine.stats, engine.config, engine.lastSeed, session?.user?.id]);
 
   // Reset save guard on restart + bump cascade key

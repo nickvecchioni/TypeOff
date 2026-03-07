@@ -44,8 +44,9 @@ export async function GET() {
       const key = isPerText && row.seed != null ? `${base}:${row.seed}` : base;
 
       // Keep the highest WPM for each key (multiple seeds may map to same base key for non-text modes)
-      if (!pbs[key] || row.bestWpm > pbs[key]) {
-        pbs[key] = row.bestWpm;
+      const wpm = Number(row.bestWpm);
+      if (!pbs[key] || wpm > pbs[key]) {
+        pbs[key] = wpm;
       }
     }
 
