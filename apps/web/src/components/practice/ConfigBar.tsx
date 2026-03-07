@@ -131,14 +131,27 @@ export function ConfigBar({
           <Sub
             active={mode === "time"}
             onClick={() => set({ mode: "timed", duration: TIME_OPTIONS[0] })}
+            title="Time"
           >
-            time
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="13" r="8" />
+              <path d="M12 9v4l2 2" />
+              <path d="M5 3L2 6" />
+              <path d="M22 6l-3-3" />
+              <line x1="12" y1="1" x2="12" y2="3" />
+            </svg>
           </Sub>
           <Sub
             active={mode === "words"}
             onClick={() => set({ mode: "wordcount", duration: WORD_OPTIONS[0] })}
+            title="Words"
           >
-            words
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="4" y1="9" x2="20" y2="9" />
+              <line x1="4" y1="15" x2="20" y2="15" />
+              <line x1="10" y1="3" x2="8" y2="21" />
+              <line x1="16" y1="3" x2="14" y2="21" />
+            </svg>
           </Sub>
           <MicroDivider />
           {durations.map((d) => (
@@ -277,15 +290,18 @@ function Sub({
   active,
   onClick,
   children,
+  title,
 }: {
   active: boolean;
   onClick: () => void;
   children: React.ReactNode;
+  title?: string;
 }) {
   return (
     <button
       onClick={onClick}
-      className={`px-2 py-1 rounded text-xs font-medium transition-all ${
+      title={title}
+      className={`px-2 py-1 rounded text-xs font-medium transition-all inline-flex items-center ${
         active
           ? "text-accent/80 bg-accent/10"
           : "text-muted/55 hover:text-muted/70 hover:bg-white/[0.03]"
