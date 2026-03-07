@@ -2,12 +2,13 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { raceParticipants, races, userStats, userModeStats, soloResults } from "@typeoff/db";
-import { eq, desc, sql, and } from "drizzle-orm";
+import { eq, desc, sql, and, gte } from "drizzle-orm";
 import type { ModeCategory } from "@typeoff/shared";
 
 export const dynamic = "force-dynamic";
 
 const VALID_MODES = new Set<string>(["words", "special", "quotes", "code", "solo"]);
+const VALID_RANGES = new Set<string>(["7d", "30d", "3m", "all"]);
 
 /** Map solo wordPool (e.g. "words:easy:false") to a mode category for filtering */
 function soloModeCategory(wordPool: string | null): string {
@@ -43,6 +44,19 @@ export async function GET(request: Request) {
   const modeFilter: string | null =
     rawMode && VALID_MODES.has(rawMode) ? rawMode : null;
 
+  const rawRange = searchParams.get("range");
+  const rangeFilter: string | null =
+    rawRange && VALID_RANGES.has(rawRange) ? rawRange : null;
+
+  // Compute the cutoff date for time-range filtering
+  let rangeCutoff: Date | null = null;
+  if (rangeFilter && rangeFilter !== "all") {
+    const now = new Date();
+    if (rangeFilter === "7d") rangeCutoff = new Date(now.getTime() - 7 * 86400000);
+    else if (rangeFilter === "30d") rangeCutoff = new Date(now.getTime() - 30 * 86400000);
+    else if (rangeFilter === "3m") rangeCutoff = new Date(now.getTime() - 90 * 86400000);
+  }
+
   const db = getDb();
   const userId = session.user.id;
   const isPro = session.user.isPro ?? false;
@@ -67,9 +81,9 @@ export async function GET(request: Request) {
     // Fetch ranked races (skip if filtering to solo-only)
     const raceResults: UnifiedResult[] = [];
     if (modeFilter !== "solo") {
-      const raceWhere = modeFilter && modeFilter !== "solo"
-        ? and(eq(raceParticipants.userId, userId), eq(races.modeCategory, modeFilter as ModeCategory))
-        : eq(raceParticipants.userId, userId);
+      const conditions = [eq(raceParticipants.userId, userId)];
+      if (modeFilter && modeFilter !== "solo") conditions.push(eq(races.modeCategory, modeFilter as ModeCategory));
+      if (rangeCutoff) conditions.push(gte(raceParticipants.finishedAt, rangeCutoff));
 
       const freeRaces = await db
         .select({
@@ -79,7 +93,7 @@ export async function GET(request: Request) {
         })
         .from(raceParticipants)
         .innerJoin(races, eq(raceParticipants.raceId, races.id))
-        .where(raceWhere)
+        .where(and(...conditions))
         .orderBy(desc(raceParticipants.finishedAt))
         .limit(20);
 
@@ -96,6 +110,9 @@ export async function GET(request: Request) {
     }
 
     // Fetch solo results
+    const soloConditions = [eq(soloResults.userId, userId)];
+    if (rangeCutoff) soloConditions.push(gte(soloResults.createdAt, rangeCutoff));
+
     const soloRows = await db
       .select({
         wpm: soloResults.wpm,
@@ -104,7 +121,7 @@ export async function GET(request: Request) {
         wordPool: soloResults.wordPool,
       })
       .from(soloResults)
-      .where(eq(soloResults.userId, userId))
+      .where(and(...soloConditions))
       .orderBy(desc(soloResults.createdAt))
       .limit(20);
 
@@ -128,6 +145,13 @@ export async function GET(request: Request) {
       .map((r) => ({ date: r.date.toISOString(), wpm: r.wpm, accuracy: r.accuracy }))
       .reverse();
 
+    // Activity per day
+    const racesPerDay: Record<string, number> = {};
+    for (const r of merged) {
+      const day = r.date.toISOString().slice(0, 10);
+      racesPerDay[day] = (racesPerDay[day] ?? 0) + 1;
+    }
+
     let bestWpm: { wpm: number; date: string } | null = null;
     let bestAccuracy: { accuracy: number; date: string } | null = null;
     for (const r of merged) {
@@ -135,7 +159,7 @@ export async function GET(request: Request) {
       if (!bestAccuracy || r.accuracy > bestAccuracy.accuracy) bestAccuracy = { accuracy: r.accuracy, date: r.date.toISOString() };
     }
 
-    return NextResponse.json({ wpmTrend, personalRecords: { bestWpm, bestAccuracy }, modeStats });
+    return NextResponse.json({ wpmTrend, personalRecords: { bestWpm, bestAccuracy }, modeStats, racesPerDay });
   }
 
   // ── Pro users: fetch everything ──────────────────────────────────
@@ -143,9 +167,9 @@ export async function GET(request: Request) {
   // Fetch ranked races (skip if filtering to solo-only)
   const raceResults: UnifiedResult[] = [];
   if (modeFilter !== "solo") {
-    const raceWhere = modeFilter && modeFilter !== "solo"
-      ? and(eq(raceParticipants.userId, userId), eq(races.modeCategory, modeFilter as ModeCategory))
-      : eq(raceParticipants.userId, userId);
+    const conditions = [eq(raceParticipants.userId, userId)];
+    if (modeFilter && modeFilter !== "solo") conditions.push(eq(races.modeCategory, modeFilter as ModeCategory));
+    if (rangeCutoff) conditions.push(gte(raceParticipants.finishedAt, rangeCutoff));
 
     const allRaces = await db
       .select({
@@ -161,7 +185,7 @@ export async function GET(request: Request) {
       })
       .from(raceParticipants)
       .innerJoin(races, eq(raceParticipants.raceId, races.id))
-      .where(raceWhere)
+      .where(and(...conditions))
       .orderBy(desc(raceParticipants.finishedAt));
 
     for (const r of allRaces) {
@@ -181,6 +205,9 @@ export async function GET(request: Request) {
   }
 
   // Fetch solo results
+  const soloConditionsPro = [eq(soloResults.userId, userId)];
+  if (rangeCutoff) soloConditionsPro.push(gte(soloResults.createdAt, rangeCutoff));
+
   const soloRows = await db
     .select({
       wpm: soloResults.wpm,
@@ -189,7 +216,7 @@ export async function GET(request: Request) {
       wordPool: soloResults.wordPool,
     })
     .from(soloResults)
-    .where(eq(soloResults.userId, userId))
+    .where(and(...soloConditionsPro))
     .orderBy(desc(soloResults.createdAt));
 
   const soloFiltered: UnifiedResult[] = [];
