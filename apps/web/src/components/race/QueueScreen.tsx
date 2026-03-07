@@ -182,8 +182,8 @@ function RewardIcon({ reward }: { reward: CosmeticReward }) {
     }
     case "title":
       return (
-        <span className="text-[10px] font-black tracking-wide text-accent/80 bg-accent/[0.12] ring-1 ring-accent/20 px-1.5 py-[3px] rounded leading-none shrink-0 whitespace-nowrap max-w-[52px] truncate">
-          {reward.value}
+        <span className="text-[10px] font-black tracking-wide text-accent/80 bg-accent/[0.12] ring-1 ring-accent/20 px-1.5 py-[3px] rounded leading-none shrink-0">
+          Tt
         </span>
       );
     case "nameEffect":
@@ -228,7 +228,7 @@ function LevelWidget({
   isPro: boolean;
 }) {
   const xpPct = Math.round((currentXp / nextLevelXp) * 100);
-  const upcomingRewards = COSMETIC_REWARDS.filter((r) => r.level > level).slice(0, 6);
+  const upcomingRewards = COSMETIC_REWARDS.filter((r) => r.level > level).slice(0, 4);
   const xpRemaining = nextLevelXp - currentXp;
   const nextReward = upcomingRewards[0];
 
@@ -679,7 +679,7 @@ export function QueueScreen({
                         className={`flex flex-col items-center gap-1 px-2 py-2.5 rounded-lg text-center transition-all ${
                           active
                             ? "ring-1 ring-accent bg-accent/[0.08] text-accent"
-                            : "ring-1 ring-white/[0.09] bg-white/[0.02] text-muted/80 hover:text-muted hover:ring-white/[0.15] hover:bg-white/[0.04]"
+                            : "ring-1 ring-white/[0.09] bg-white/[0.02] text-text/70 hover:text-text/90 hover:ring-white/[0.15] hover:bg-white/[0.04]"
                         }`}
                       >
                         <span
@@ -689,7 +689,7 @@ export function QueueScreen({
                         </span>
                         <span className="text-xs font-semibold leading-none">{label}</span>
                         <span
-                          className={`text-xs leading-tight hidden sm:block ${active ? "text-accent/70" : "text-muted/60"}`}
+                          className={`text-xs leading-tight hidden sm:block ${active ? "text-accent/70" : "text-text/50"}`}
                         >
                           {desc}
                         </span>
