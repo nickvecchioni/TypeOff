@@ -19,6 +19,7 @@ import { PartyProvider } from "@/hooks/useParty";
 import { DmProvider } from "@/hooks/useDm";
 import { DirectMessageWindow } from "@/components/social/DirectMessageWindow";
 import { CosmeticProvider } from "@/contexts/CosmeticContext";
+import { SettingsProvider } from "@/contexts/SettingsContext";
 import "./globals.css";
 
 const jetbrainsMono = JetBrains_Mono({
@@ -65,6 +66,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${jetbrainsMono.variable} font-mono antialiased h-full flex flex-col`}>
         <SessionProvider>
+          <SettingsProvider>
           <CosmeticProvider>
           <SocketProvider>
           <SocialProvider>
@@ -103,6 +105,7 @@ export default function RootLayout({
           </SocialProvider>
           </SocketProvider>
           </CosmeticProvider>
+          </SettingsProvider>
         </SessionProvider>
       </body>
     </html>

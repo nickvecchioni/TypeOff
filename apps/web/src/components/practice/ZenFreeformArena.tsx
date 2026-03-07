@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useSettings } from "@/contexts/SettingsContext";
 
 export function ZenFreeformArena() {
+  const { focusMode } = useSettings();
   const [typedText, setTypedText] = useState("");
   const [status, setStatus] = useState<"idle" | "typing" | "finished">("idle");
   const [elapsed, setElapsed] = useState(0);
@@ -103,7 +105,7 @@ export function ZenFreeformArena() {
   return (
     <div
       className={`flex flex-col items-center gap-6 w-full max-w-5xl mx-auto ${
-        isTyping ? "focus-active" : ""
+        isTyping && focusMode ? "focus-active" : ""
       }`}
       onClick={() => containerRef.current?.focus()}
     >

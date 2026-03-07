@@ -2,6 +2,7 @@
 
 import React from "react";
 import type { WordState } from "@typeoff/shared";
+import { useSettings } from "@/contexts/SettingsContext";
 
 interface CodeWordDisplayProps {
   words: WordState[];
@@ -21,6 +22,13 @@ export function CodeWordDisplay({
   currentCharIndex,
   isTyping,
 }: CodeWordDisplayProps) {
+  const { fontSize } = useSettings();
+  const sizeClass =
+    fontSize === "small"
+      ? "text-base sm:text-lg leading-[1.625rem] sm:leading-[2rem]"
+      : fontSize === "large"
+      ? "text-2xl sm:text-3xl leading-[2.5rem] sm:leading-[3rem]"
+      : "text-xl sm:text-2xl leading-[2rem] sm:leading-[2.5rem]";
   // Split words into lines at \n tokens
   const lines: { words: { word: WordState; globalIdx: number }[]; }[] = [];
   let currentLine: { word: WordState; globalIdx: number }[] = [];
@@ -44,7 +52,7 @@ export function CodeWordDisplay({
   }
 
   return (
-    <div className="no-ligatures relative text-xl sm:text-2xl leading-[2rem] sm:leading-[2.5rem] font-mono">
+    <div className={`no-ligatures relative ${sizeClass} font-mono`}>
       {lines.map((line, lineIdx) => (
         <div key={lineIdx} className="flex flex-wrap">
           {line.words.map(({ word, globalIdx }) => {

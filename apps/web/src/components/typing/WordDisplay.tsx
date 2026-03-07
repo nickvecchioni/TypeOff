@@ -5,6 +5,7 @@ import type { WordState, ContentType } from "@typeoff/shared";
 import { Word } from "./Word";
 import { Cursor, type CursorHandle } from "./Cursor";
 import { CodeWordDisplay } from "./CodeWordDisplay";
+import { useSettings } from "@/contexts/SettingsContext";
 
 interface WordDisplayProps {
   words: WordState[];
@@ -21,6 +22,7 @@ export function WordDisplay({
   isTyping,
   contentType,
 }: WordDisplayProps) {
+  const { smoothCaret, fontSize } = useSettings();
   const containerRef = useRef<HTMLDivElement>(null);
   const measureRef = useRef<HTMLSpanElement>(null);
   const cursorRef = useRef<CursorHandle>(null);
@@ -52,6 +54,13 @@ export function WordDisplay({
     );
   }, [currentWordIndex, currentCharIndex, isTyping]);
 
+  const sizeClass =
+    fontSize === "small"
+      ? "text-base sm:text-lg leading-[1.625rem] sm:leading-[2rem]"
+      : fontSize === "large"
+      ? "text-2xl sm:text-3xl leading-[2.5rem] sm:leading-[3rem]"
+      : "text-xl sm:text-2xl leading-[2rem] sm:leading-[2.5rem]";
+
   if (contentType === "code") {
     return (
       <div ref={containerRef} className="relative">
@@ -59,7 +68,7 @@ export function WordDisplay({
         <span
           ref={measureRef}
           aria-hidden
-          className="absolute invisible pointer-events-none text-xl sm:text-2xl font-mono"
+          className={`absolute invisible pointer-events-none ${sizeClass} font-mono`}
           style={{ width: "1ch" }}
         />
         <CodeWordDisplay
@@ -68,14 +77,14 @@ export function WordDisplay({
           currentCharIndex={currentCharIndex}
           isTyping={isTyping}
         />
-        <Cursor ref={cursorRef} charIndex={0} isTyping={isTyping} smooth />
+        <Cursor ref={cursorRef} charIndex={0} isTyping={isTyping} smooth={smoothCaret} />
       </div>
     );
   }
 
   return (
     <div ref={containerRef} className="relative">
-      <div className="no-ligatures text-xl sm:text-2xl leading-[2rem] sm:leading-[2.5rem]">
+      <div className={`no-ligatures ${sizeClass}`}>
         {/* Hidden span for measuring 1ch in the current font/size context */}
         <span
           ref={measureRef}
@@ -94,7 +103,7 @@ export function WordDisplay({
           />
         ))}
       </div>
-      <Cursor ref={cursorRef} charIndex={0} isTyping={isTyping} smooth />
+      <Cursor ref={cursorRef} charIndex={0} isTyping={isTyping} smooth={smoothCaret} />
     </div>
   );
 }

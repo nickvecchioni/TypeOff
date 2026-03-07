@@ -30,6 +30,7 @@ const WORD_POOL_SIZE = 200;
 export interface TypingEngine extends EngineAPI {
   handleKeyDown: (e: React.KeyboardEvent) => void;
   timeElapsed: number;
+  liveAccuracy: number;
   stopZen: () => void;
   lastSeed: number | null;
   forceFinish: () => void;
@@ -144,6 +145,12 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
   const liveWpm = useMemo(() => {
     if (timeElapsed === 0) return 0;
     return Math.round((correctCharsRef.current / 5) / (timeElapsed / 60));
+  }, [timeElapsed]);
+
+  const liveAccuracy = useMemo(() => {
+    const total = correctCharsRef.current + incorrectCharsRef.current;
+    if (total === 0) return 100;
+    return Math.round((correctCharsRef.current / total) * 100);
   }, [timeElapsed]);
 
   const stopTimer = useCallback(() => {
@@ -750,6 +757,7 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     timeElapsed,
     config,
     liveWpm,
+    liveAccuracy,
     stats,
     setConfig,
     restart,

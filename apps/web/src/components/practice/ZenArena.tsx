@@ -4,6 +4,7 @@ import React, { useRef, useEffect, useCallback, useState } from "react";
 import { WordDisplay } from "@/components/typing/WordDisplay";
 import type { TypingEngine } from "@/hooks/useTypingEngine";
 import { PracticeResults } from "./PracticeResults";
+import { useSettings } from "@/contexts/SettingsContext";
 
 interface ZenArenaProps {
   engine: TypingEngine;
@@ -69,6 +70,7 @@ export function ZenArena({ engine }: ZenArenaProps) {
     engine.restart();
   }, [engine.restart]);
 
+  const { focusMode } = useSettings();
   const isTyping = engine.status === "typing";
   const isFinished = engine.status === "finished";
   const containerHeight = lineHeight * visibleLines;
@@ -76,7 +78,7 @@ export function ZenArena({ engine }: ZenArenaProps) {
   return (
     <div
       className={`flex flex-col items-center gap-6 w-full max-w-5xl mx-auto ${
-        isTyping ? "focus-active" : ""
+        isTyping && focusMode ? "focus-active" : ""
       }`}
       onClick={() => containerRef.current?.focus()}
     >

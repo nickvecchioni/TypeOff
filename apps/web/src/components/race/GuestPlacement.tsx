@@ -6,6 +6,7 @@ import { useTypingEngine } from "@/hooks/useTypingEngine";
 import { WordDisplay } from "@/components/typing/WordDisplay";
 import { PlacementReveal } from "./PlacementReveal";
 import { calibrateElo } from "@typeoff/shared";
+import { useSettings } from "@/contexts/SettingsContext";
 
 type Phase = "landing" | "idle" | "racing" | "reveal";
 
@@ -389,6 +390,7 @@ export function GuestPlacement({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [phase, restart]);
 
+  const { focusMode } = useSettings();
   const { elo } = calibrateElo(finishedWpm);
   const isTyping = engine.status === "typing";
 
@@ -445,7 +447,7 @@ export function GuestPlacement({
   return (
     <div
       className={`flex flex-col items-center gap-5 w-full max-w-5xl mx-auto pb-20 ${
-        isTyping ? "focus-active" : ""
+        isTyping && focusMode ? "focus-active" : ""
       }`}
       key={cascadeKey}
       onClick={() => containerRef.current?.focus()}

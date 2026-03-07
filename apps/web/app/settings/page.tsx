@@ -4,46 +4,32 @@ import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { signOut } from "next-auth/react";
 import { SignInPrompt } from "@/components/auth/SignInPrompt";
+import { useSettings, useUpdateSettings, DEFAULT_SETTINGS, type UserSettings } from "@/contexts/SettingsContext";
 import Link from "next/link";
-
-interface Settings {
-  smoothCaret: boolean;
-  showLiveWpm: boolean;
-  showLiveAccuracy: boolean;
-  focusMode: boolean;
-  fontSize: "small" | "medium" | "large";
-}
-
-const DEFAULT_SETTINGS: Settings = {
-  smoothCaret: true,
-  showLiveWpm: true,
-  showLiveAccuracy: true,
-  focusMode: true,
-  fontSize: "medium",
-};
 
 export default function SettingsPage() {
   const { data: session, status } = useSession();
-  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
+  const contextSettings = useSettings();
+  const updateContextSettings = useUpdateSettings();
+  const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
+  // Sync from context on mount (context already fetched from API)
   useEffect(() => {
-    if (status !== "authenticated") return;
-    fetch("/api/preferences")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.settings) {
-          setSettings((prev) => ({ ...prev, ...data.settings }));
-        }
-      })
-      .finally(() => setLoading(false));
-  }, [status]);
+    if (status !== "authenticated") {
+      if (status !== "loading") setLoading(false);
+      return;
+    }
+    setSettings(contextSettings);
+    setLoading(false);
+  }, [status, contextSettings]);
 
   const save = useCallback(
-    async (next: Settings) => {
+    async (next: UserSettings) => {
       setSettings(next);
+      updateContextSettings(next);
       setSaving(true);
       setSaved(false);
       try {
@@ -58,15 +44,18 @@ export default function SettingsPage() {
         setSaving(false);
       }
     },
-    []
+    [updateContextSettings]
   );
 
   const update = useCallback(
-    <K extends keyof Settings>(key: K, value: Settings[K]) => {
-      const next = { ...settings, [key]: value };
-      save(next);
+    <K extends keyof UserSettings>(key: K, value: UserSettings[K]) => {
+      setSettings((prev) => {
+        const next = { ...prev, [key]: value };
+        save(next);
+        return next;
+      });
     },
-    [settings, save]
+    [save]
   );
 
   if (status === "loading" || loading) {
@@ -162,7 +151,7 @@ export default function SettingsPage() {
                 { value: "large", label: "Large" },
               ]}
               value={settings.fontSize}
-              onChange={(v) => update("fontSize", v as Settings["fontSize"])}
+              onChange={(v) => update("fontSize", v as UserSettings["fontSize"])}
             />
           </OptionRow>
         </Section>
@@ -202,7 +191,7 @@ export default function SettingsPage() {
                 <p className="text-xs text-muted/65">Help us improve TypeOff</p>
               </div>
               <Link
-                href="/bug-report"
+                href="/report-issue"
                 className="text-sm text-accent hover:text-accent/80 transition-colors"
               >
                 Report

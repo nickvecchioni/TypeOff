@@ -5,6 +5,7 @@ import { useTypingEngine } from "@/hooks/useTypingEngine";
 import { useCapsLock } from "@/hooks/useCapsLock";
 import { WordDisplay } from "@/components/typing/WordDisplay";
 import { useActiveCosmetics } from "@/contexts/CosmeticContext";
+import { useSettings } from "@/contexts/SettingsContext";
 import { TYPING_THEMES, generateWordsForMode, getCodeSnippet } from "@typeoff/shared";
 import type { RaceMode } from "@typeoff/shared";
 
@@ -41,6 +42,7 @@ export function RaceTypingArea({
   disabled,
 }: RaceTypingAreaProps) {
   const { activeTypingTheme } = useActiveCosmetics();
+  const settings = useSettings();
   const capsLock = useCapsLock();
   const themeClass = activeTypingTheme ? TYPING_THEMES[activeTypingTheme]?.className ?? "" : "";
 
@@ -309,10 +311,19 @@ export function RaceTypingArea({
           </div>
         );
       })()}
-      <div className={`flex items-baseline justify-center text-muted text-sm tabular-nums mt-4 transition-opacity duration-200 ${
+      <div className={`flex items-baseline justify-center gap-6 text-muted text-sm tabular-nums mt-4 transition-opacity duration-200 ${
         engine.status === "typing" ? "opacity-100" : "opacity-0"
       }`}>
-        <span className="text-accent font-black text-5xl inline-block w-[3ch] text-right">{engine.liveWpm}</span> wpm
+        {settings.showLiveWpm && (
+          <span className="inline-flex items-baseline">
+            <span className="text-accent font-black text-5xl inline-block w-[3ch] text-right">{engine.liveWpm}</span> wpm
+          </span>
+        )}
+        {settings.showLiveAccuracy && (
+          <span className="inline-flex items-baseline">
+            <span className="text-accent font-black text-5xl inline-block w-[4ch] text-right">{engine.liveAccuracy}</span>%
+          </span>
+        )}
       </div>
       {capsLock && (
         <div className="flex justify-center mt-2">

@@ -10,6 +10,7 @@ import Link from "next/link";
 import { ConfigBar } from "./ConfigBar";
 import { PracticeResults } from "./PracticeResults";
 import { ZenFreeformArena } from "./ZenFreeformArena";
+import { useSettings } from "@/contexts/SettingsContext";
 
 function getVisibleLines(): number {
   return 3;
@@ -18,6 +19,7 @@ function getVisibleLines(): number {
 export function PracticeArena({ initialDrill = false, initialBigrams }: { initialDrill?: boolean; initialBigrams?: string[] }) {
   const { data: session } = useSession();
   const isPro = session?.user?.isPro ?? false;
+  const settings = useSettings();
   const engine = useTypingEngine();
   const visibleLines = getVisibleLines();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -303,7 +305,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
   return (
     <div
       className={`flex flex-col items-center gap-6 w-full max-w-5xl mx-auto ${
-        isTyping ? "focus-active" : ""
+        isTyping && settings.focusMode ? "focus-active" : ""
       }`}
       onClick={(e) => {
         const tag = (e.target as HTMLElement).tagName;
@@ -421,13 +423,20 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
       {/* Live WPM+time / Tab+Enter hint — overlaid in shared space */}
       {!isFinished && (
         <div className="relative flex items-center justify-center h-16 -mt-2 tabular-nums w-full">
-          {/* Live WPM + time (fades in when typing starts) */}
+          {/* Live WPM + accuracy + time (fades in when typing starts) */}
           <div className={`absolute inset-0 flex items-center justify-center gap-6 transition-opacity duration-300 ${
             isTyping ? "opacity-100" : "opacity-0"
           }`}>
-            <span className="text-muted text-sm inline-flex items-baseline">
-              <span className="text-accent font-black text-5xl inline-block w-[3ch] text-right">{engine.liveWpm}</span> wpm
-            </span>
+            {settings.showLiveWpm && (
+              <span className="text-muted text-sm inline-flex items-baseline">
+                <span className="text-accent font-black text-5xl inline-block w-[3ch] text-right">{engine.liveWpm}</span> wpm
+              </span>
+            )}
+            {settings.showLiveAccuracy && (
+              <span className="text-muted text-sm inline-flex items-baseline">
+                <span className="text-accent font-black text-5xl inline-block w-[4ch] text-right">{engine.liveAccuracy}</span>%
+              </span>
+            )}
             {showStopwatch ? (
               <span className="text-muted text-sm inline-flex items-baseline">
                 <span className="text-accent font-black text-5xl inline-block w-[3ch] text-right">{engine.timeElapsed}</span>s
