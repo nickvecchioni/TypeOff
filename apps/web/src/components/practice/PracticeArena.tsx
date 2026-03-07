@@ -73,7 +73,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
         const worst = meaningful.slice(0, 10);
         setWeakBigrams(worst.map((b) => b.bigram));
         const acc: Record<string, number> = {};
-        for (const b of data.bigrams) acc[b.bigram] = b.accuracy;
+        for (const b of data.bigrams) acc[b.bigram] = b.accuracy / 100;
         setWeakBigramAccuracy(acc);
       })
       .catch(() => {});

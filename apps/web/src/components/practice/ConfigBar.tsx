@@ -211,33 +211,43 @@ export function ConfigBar({
 
       {/* ── Practice: weak keys + bigrams info ── */}
       {ct === "practice" && !isTyping && (practiceWeakKeys?.length || practiceWeakBigrams?.length) ? (
-        <div className="flex flex-wrap justify-center gap-1.5">
-          {practiceWeakKeys?.map((k) => {
-            const acc = weakKeyAccuracy?.[k];
-            return (
-              <span key={`key-${k}`} className="flex items-center gap-1 px-2 py-0.5 rounded bg-surface/60 ring-1 ring-white/[0.06]">
-                <span className="text-accent font-bold text-xs">{k}</span>
-                {acc != null && (
-                  <span className={`text-xs tabular-nums ${acc < 0.7 ? "text-error/60" : acc < 0.9 ? "text-amber-400/60" : "text-correct/60"}`}>
-                    {Math.round(acc * 100)}%
+        <div className="flex flex-col items-center gap-2">
+          {practiceWeakKeys && practiceWeakKeys.length > 0 && (
+            <div className="flex flex-wrap justify-center items-center gap-1.5">
+              <span className="text-xs text-muted/50 uppercase tracking-wider mr-1">keys</span>
+              {practiceWeakKeys.map((k) => {
+                const acc = weakKeyAccuracy?.[k];
+                return (
+                  <span key={`key-${k}`} className="flex items-center gap-1 px-2 py-0.5 rounded bg-surface/60 ring-1 ring-white/[0.06]">
+                    <span className="text-accent font-bold text-xs">{k}</span>
+                    {acc != null && (
+                      <span className={`text-xs tabular-nums ${acc < 0.7 ? "text-error/60" : acc < 0.9 ? "text-amber-400/60" : "text-correct/60"}`}>
+                        {Math.round(acc * 100)}%
+                      </span>
+                    )}
                   </span>
-                )}
-              </span>
-            );
-          })}
-          {practiceWeakBigrams?.map((bg) => {
-            const acc = weakBigramAccuracy?.[bg];
-            return (
-              <span key={`bg-${bg}`} className="flex items-center gap-1 px-2 py-0.5 rounded bg-surface/60 ring-1 ring-white/[0.06]">
-                <span className="text-accent font-bold text-xs">{bg}</span>
-                {acc != null && (
-                  <span className={`text-xs tabular-nums ${acc < 0.7 ? "text-error/60" : acc < 0.9 ? "text-amber-400/60" : "text-correct/60"}`}>
-                    {Math.round(acc * 100)}%
+                );
+              })}
+            </div>
+          )}
+          {practiceWeakBigrams && practiceWeakBigrams.length > 0 && (
+            <div className="flex flex-wrap justify-center items-center gap-1.5">
+              <span className="text-xs text-muted/50 uppercase tracking-wider mr-1">bigrams</span>
+              {practiceWeakBigrams.map((bg) => {
+                const acc = weakBigramAccuracy?.[bg];
+                return (
+                  <span key={`bg-${bg}`} className="flex items-center gap-1 px-2 py-0.5 rounded bg-surface/60 ring-1 ring-white/[0.06]">
+                    <span className="text-accent font-bold text-xs">{bg}</span>
+                    {acc != null && (
+                      <span className={`text-xs tabular-nums ${acc < 0.7 ? "text-error/60" : acc < 0.9 ? "text-amber-400/60" : "text-correct/60"}`}>
+                        {Math.round(acc * 100)}%
+                      </span>
+                    )}
                   </span>
-                )}
-              </span>
-            );
-          })}
+                );
+              })}
+            </div>
+          )}
         </div>
       ) : null}
     </div>
