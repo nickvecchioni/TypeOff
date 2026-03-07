@@ -345,7 +345,7 @@ function FeatureCard({
       href={feature.href}
       ref={tilt.ref as React.Ref<HTMLAnchorElement>}
       style={tilt.style}
-      onMouseMove={tilt.handleMouseMove as React.MouseEventHandler<HTMLAnchorElement>}
+      onMouseMove={tilt.handleMouseMove as unknown as React.MouseEventHandler<HTMLAnchorElement>}
       onMouseLeave={() => {
         tilt.handleMouseLeave();
         setHovered(false);
