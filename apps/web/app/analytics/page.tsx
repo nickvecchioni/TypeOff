@@ -409,7 +409,7 @@ export default function AnalyticsPage() {
           <div className="space-y-4 animate-fade-in">
             {/* WPM Trend Chart */}
             {data.wpmTrend.length >= 2 && (
-              <Card title="WPM Trend" subtitle={isPro ? undefined : "(last 20 races)"} delay={0}>
+              <Card title="WPM Trend" subtitle={isPro ? undefined : "(last 20 races)"} delay={0} flush>
                 <WpmTrendChart points={data.wpmTrend} />
               </Card>
             )}
@@ -629,12 +629,14 @@ function Card({
   subtitle,
   delay = 0,
   headerRight,
+  flush,
   children,
 }: {
   title: string;
   subtitle?: string;
   delay?: number;
   headerRight?: React.ReactNode;
+  flush?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -649,7 +651,7 @@ function Card({
         </div>
         {headerRight}
       </div>
-      <div className="px-4 sm:px-5 pb-4">{children}</div>
+      <div className={flush ? "pb-2" : "px-4 sm:px-5 pb-4"}>{children}</div>
     </div>
   );
 }
@@ -909,7 +911,7 @@ function WpmTrendChart({ points }: { points: Array<{ date: string; wpm: number; 
 
   const W = 600;
   const H = 220;
-  const pad = { top: 16, right: 14, bottom: 24, left: 40 };
+  const pad = { top: 16, right: 8, bottom: 24, left: 36 };
   const iW = W - pad.left - pad.right;
   const iH = H - pad.top - pad.bottom;
 
@@ -1047,7 +1049,7 @@ function WpmTrendChart({ points }: { points: Array<{ date: string; wpm: number; 
       </text>
 
       {/* Legend */}
-      <g transform={`translate(${W - pad.right - 120}, ${pad.top - 2})`}>
+      <g transform={`translate(${W - pad.right - 110}, ${pad.top - 2})`}>
         <line x1={0} y1={4} x2={12} y2={4} stroke="var(--color-accent)" strokeWidth={2} strokeLinecap="round" />
         <text x={16} y={7} fill="var(--color-muted)" fontSize={8.5} fillOpacity={0.5}>avg ({avgWindow})</text>
         <circle cx={70} cy={4} r={2} fill="var(--color-accent)" fillOpacity={0.4} />
