@@ -335,7 +335,7 @@ function ItemCard({
         <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-accent shadow-[0_0_6px_rgba(77,158,255,0.5)]" />
       )}
       {locked && (
-        <span className={`absolute top-2.5 right-2.5 ${proLocked ? "text-accent/30" : "text-muted/20"}`}>
+        <span className={`absolute top-2.5 right-2.5 ${proLocked ? "text-accent/55" : "text-muted/50"}`}>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
@@ -352,7 +352,7 @@ function ItemCard({
       }`}>
         {item.name}
       </p>
-      <p className={`text-xs mt-0.5 ${proLocked ? "text-accent/40" : "text-muted/60"}`}>
+      <p className={`text-xs mt-0.5 ${proLocked ? "text-accent/60" : "text-muted/60"}`}>
         {proLocked ? "Pro" : locked ? `Level ${item.level}` : active ? "Equipped" : "Click to equip"}
       </p>
     </button>

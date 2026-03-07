@@ -224,7 +224,7 @@ export function ItemsBrowser({
           />
         </div>
         {!isPro && (
-          <p className="text-xs text-muted/45 mt-2">
+          <p className="text-xs text-muted/60 mt-2">
             Pro subscribers earn 1.5× XP and unlock exclusive items
           </p>
         )}
@@ -258,7 +258,7 @@ export function ItemsBrowser({
       {/* ── Equipped Loadout Strip ────────────────────────── */}
       <div>
         <h2 className="text-xs font-bold text-muted/60 uppercase tracking-widest mb-3 flex items-center gap-2.5">
-          <span className="text-accent/35 text-[10px]">◆</span>
+          <span className="text-accent/55 text-[10px]">◆</span>
           Equipped Loadout
           <span className="flex-1 h-px bg-white/[0.03]" />
         </h2>
@@ -420,7 +420,7 @@ function ProfileHeaderCard({
         <div className="flex items-center justify-between mb-4">
           <span
             className={`text-xs font-bold uppercase tracking-widest ${
-              isPreviewingNewItem ? "text-accent/50" : "text-muted/45"
+              isPreviewingNewItem ? "text-accent/50" : "text-muted/60"
             }`}
           >
             {headerLabel}
@@ -428,12 +428,12 @@ function ProfileHeaderCard({
           <div className="flex items-center gap-2">
             {isPreviewingNewItem && (
               <>
-                <span className={`text-xs ${isPreviewingPro ? "text-accent/40" : "text-muted/35"}`}>
+                <span className={`text-xs ${isPreviewingPro ? "text-accent/60" : "text-muted/60"}`}>
                   click item to dismiss
                 </span>
                 <button
                   onClick={onDismiss}
-                  className="text-xs text-muted/35 hover:text-muted/65 transition-colors"
+                  className="text-xs text-muted/60 hover:text-muted/65 transition-colors"
                   aria-label="Dismiss preview"
                 >
                   ✕
@@ -460,7 +460,7 @@ function ProfileHeaderCard({
             )}
           </div>
           {!hasAnyProfileCosmetic && (
-            <span className="text-xs text-muted/30 italic shrink-0">
+            <span className="text-xs text-muted/55 italic shrink-0">
               Equip cosmetics to customize your look
             </span>
           )}
@@ -513,7 +513,7 @@ function LoadoutSlot({
         {displayItem ? (
           <SlotPreview item={displayItem} />
         ) : (
-          <span className="text-muted/15 text-lg">—</span>
+          <span className="text-muted/50 text-lg">—</span>
         )}
       </div>
       {isSelected && (
@@ -554,7 +554,7 @@ function CategoryTab({
       {cat.label}
       <span
         className={`ml-1.5 tabular-nums text-xs ${
-          isSelected ? "text-accent/40" : "text-muted/45"
+          isSelected ? "text-accent/60" : "text-muted/60"
         }`}
       >
         {owned}/{total}
@@ -626,9 +626,9 @@ function TypingPreview({
       className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] px-5 py-4 cursor-text outline-none focus:ring-white/[0.07] transition-colors"
     >
       <div className="flex items-center justify-between mb-3">
-        <span className="text-xs text-muted/35 uppercase tracking-widest">Try it out</span>
+        <span className="text-xs text-muted/60 uppercase tracking-widest">Try it out</span>
         {focused && (
-          <span className="text-xs text-muted/30">Tab to reset</span>
+          <span className="text-xs text-muted/55">Tab to reset</span>
         )}
       </div>
       <div className="text-lg leading-loose select-none">
@@ -645,7 +645,7 @@ function TypingPreview({
           return (
             <span
               key={i}
-              className={`relative inline-block ${!isTyped ? "text-muted/25" : ""}`}
+              className={`relative inline-block ${!isTyped ? "text-muted/55" : ""}`}
               style={color ? { color } : undefined}
             >
               {isCurrent && focused && <CursorSpan def={cursorDef} />}
@@ -661,7 +661,7 @@ function TypingPreview({
         )}
       </div>
       {!focused && (
-        <p className="text-xs text-muted/25 mt-2">Click to focus · start typing</p>
+        <p className="text-xs text-muted/55 mt-2">Click to focus · start typing</p>
       )}
     </div>
   );
@@ -739,7 +739,7 @@ function LockCallout({
             Pro exclusive · requires{" "}
             <span className="text-text/70 font-semibold">Level {item.level}</span>
             {levelsNeeded > 0 && (
-              <span className="text-muted/45"> ({levelsNeeded} level{levelsNeeded !== 1 ? "s" : ""} away)</span>
+              <span className="text-muted/60"> ({levelsNeeded} level{levelsNeeded !== 1 ? "s" : ""} away)</span>
             )}
           </p>
         </div>
@@ -755,7 +755,7 @@ function LockCallout({
 
   return (
     <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.06] px-4 py-3 flex items-center gap-3" style={{ animation: "slide-up 0.2s ease-out both" }}>
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted/40 shrink-0">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted/60 shrink-0">
         <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
         <path d="M7 11V7a5 5 0 0 1 10 0v4" />
       </svg>
@@ -764,7 +764,7 @@ function LockCallout({
         <span className="text-xs text-muted/55 ml-2">
           unlocks at <span className="text-text/60 font-semibold">Level {item.level}</span>
           {levelsNeeded > 0 && (
-            <span className="text-muted/40"> · {levelsNeeded} level{levelsNeeded !== 1 ? "s" : ""} to go</span>
+            <span className="text-muted/60"> · {levelsNeeded} level{levelsNeeded !== 1 ? "s" : ""} to go</span>
           )}
         </span>
       </div>
@@ -799,7 +799,7 @@ function SectionHeader({
           <path d="M7 11V7a5 5 0 0 1 10 0v4" />
         </svg>
         Level Up to Unlock
-        <span className="text-muted/30 font-normal normal-case tracking-normal">
+        <span className="text-muted/55 font-normal normal-case tracking-normal">
           {count} {count === 1 ? "item" : "items"}
         </span>
       </h3>
@@ -807,9 +807,9 @@ function SectionHeader({
   }
   return (
     <h3 className="text-xs font-bold text-accent/60 uppercase tracking-widest mb-2.5 flex items-center gap-2">
-      <span className="text-accent/40">✦</span>
+      <span className="text-accent/60">✦</span>
       Pro Exclusive
-      <span className="text-accent/30 font-normal normal-case tracking-normal">
+      <span className="text-accent/55 font-normal normal-case tracking-normal">
         {count} {count === 1 ? "item" : "items"}
       </span>
     </h3>
@@ -918,7 +918,7 @@ function ItemCard({
         <p className="text-xs font-semibold truncate leading-tight text-muted/65 group-hover:text-muted/80 transition-colors">
           {item.name}
         </p>
-        <p className="text-xs mt-0.5 leading-tight text-accent/40 group-hover:text-accent/60 transition-colors tabular-nums">
+        <p className="text-xs mt-0.5 leading-tight text-accent/60 group-hover:text-accent/60 transition-colors tabular-nums">
           Level {item.level} · Pro
         </p>
       </button>
@@ -942,7 +942,7 @@ function ItemCard({
         <span className="absolute top-3 right-3 w-1.5 h-1.5 rounded-full bg-accent shadow-[0_0_6px_rgba(77,158,255,0.6)]" />
       )}
       {locked && !isPinnedPreview && (
-        <span className="absolute top-3 right-3 text-muted/20">
+        <span className="absolute top-3 right-3 text-muted/50">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
@@ -950,7 +950,7 @@ function ItemCard({
         </span>
       )}
       {locked && isPinnedPreview && (
-        <span className="absolute top-3 right-3 text-accent/40">
+        <span className="absolute top-3 right-3 text-accent/60">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
             <circle cx="12" cy="12" r="3" />
@@ -971,7 +971,7 @@ function ItemCard({
         ) : active ? (
           <span className="text-accent/50">Equipped · <span className="tabular-nums">Level {item.level}</span></span>
         ) : (
-          <span className="text-muted/45 group-hover:text-muted/65 transition-colors tabular-nums">Level {item.level}</span>
+          <span className="text-muted/60 group-hover:text-muted/65 transition-colors tabular-nums">Level {item.level}</span>
         )}
       </p>
     </button>

@@ -452,7 +452,7 @@ export default async function ProfilePage({
                 <p className="text-xs text-muted/65 mt-0.5">Equip badges, titles, cursors, themes and more</p>
               </div>
             </div>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted/20 group-hover:text-accent/50 transition-colors shrink-0">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted/50 group-hover:text-accent/50 transition-colors shrink-0">
               <path d="M9 18l6-6-6-6" />
             </svg>
           </Link>
@@ -484,7 +484,7 @@ export default async function ProfilePage({
               <FeaturedRace race={featuredRaceData} />
             ) : isOwn && isProUser ? (
               <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-4 py-3 text-center">
-                <p className="text-xs text-muted/40 italic">Pin your best race to showcase it here</p>
+                <p className="text-xs text-muted/60 italic">Pin your best race to showcase it here</p>
               </div>
             ) : null}
           </section>
@@ -509,11 +509,11 @@ export default async function ProfilePage({
                     >
                       <div className="flex items-center gap-1 mb-1.5">
                         {pb.mode === "timed" ? (
-                          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted/40 shrink-0">
+                          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted/60 shrink-0">
                             <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
                           </svg>
                         ) : (
-                          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted/40 shrink-0">
+                          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted/60 shrink-0">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
                           </svg>
                         )}
@@ -550,7 +550,7 @@ export default async function ProfilePage({
                       className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-3 hover:ring-accent/10 hover:bg-surface/60 transition-all"
                     >
                       <div className="flex items-center gap-1.5 mb-1.5">
-                        <span className="text-xs font-bold font-mono text-muted/40 [font-variant-ligatures:none]">{icons[cat]}</span>
+                        <span className="text-xs font-bold font-mono text-muted/60 [font-variant-ligatures:none]">{icons[cat]}</span>
                         <span className="text-xs text-muted/60 uppercase tracking-widest">{labels[cat]}</span>
                       </div>
                       <div className="text-xl font-black text-accent tabular-nums leading-none">
@@ -649,11 +649,11 @@ export default async function ProfilePage({
                         </td>
                         <td className="hidden sm:table-cell px-3 py-3">
                           {race.modeCategory ? (
-                            <span className="text-[11px] font-bold text-muted/40 font-mono [font-variant-ligatures:none]">
+                            <span className="text-[11px] font-bold text-muted/60 font-mono [font-variant-ligatures:none]">
                               {race.modeCategory === "words" ? "aa" : race.modeCategory === "special" ? "A1!" : race.modeCategory === "quotes" ? '""' : race.modeCategory === "code" ? "</>" : ""}
                             </span>
                           ) : (
-                            <span className="text-muted/20">—</span>
+                            <span className="text-muted/50">—</span>
                           )}
                         </td>
                         <td className="px-3 py-3">
@@ -689,13 +689,13 @@ export default async function ProfilePage({
                               {eloChange}
                             </span>
                           ) : (
-                            <span className="text-muted/20 text-xs">—</span>
+                            <span className="text-muted/50 text-xs">—</span>
                           )}
                         </td>
                         <td className="px-3 py-3 text-right">
                           <Link
                             href={`/races/${race.raceId}`}
-                            className="inline-block text-muted/20 hover:text-accent transition-all opacity-0 group-hover:opacity-100"
+                            className="inline-block text-muted/50 hover:text-accent transition-all opacity-0 group-hover:opacity-100"
                             title="Watch replay"
                           >
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
@@ -758,7 +758,7 @@ export default async function ProfilePage({
 function SectionHeader({ children }: { children: React.ReactNode }) {
   return (
     <h2 className="text-xs font-bold text-muted/45 uppercase tracking-widest mb-3.5 flex items-center gap-2.5">
-      <span className="text-accent/35 text-[10px]">◆</span>
+      <span className="text-accent/55 text-[10px]">◆</span>
       {children}
       <span className="flex-1 h-px bg-white/[0.03]" />
     </h2>

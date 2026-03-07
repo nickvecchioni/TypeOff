@@ -72,31 +72,31 @@ function SpeedAnalysis({ wpmHistory, wpm }: { wpmHistory: WpmSample[]; wpm: numb
             {Math.floor(peakSustained)}
             <span className="text-[0.6em] opacity-40">.{(peakSustained % 1).toFixed(2).slice(2)}</span>
           </div>
-          <div className="text-[11px] text-muted/35 mt-0.5">3-sec rolling avg</div>
+          <div className="text-[11px] text-muted/60 mt-0.5">3-sec rolling avg</div>
         </div>
 
         <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2">
           <div className="text-[11px] text-muted/50 uppercase tracking-widest mb-1">Fastest</div>
           <div className="text-lg font-black text-correct tabular-nums leading-none">{Math.floor(fastest.wpm)}</div>
-          <div className="text-[11px] text-muted/35 mt-0.5">at {fastest.elapsed}s</div>
+          <div className="text-[11px] text-muted/60 mt-0.5">at {fastest.elapsed}s</div>
         </div>
 
         <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2">
           <div className="text-[11px] text-muted/50 uppercase tracking-widest mb-1">Slowest</div>
           <div className="text-lg font-black text-error/80 tabular-nums leading-none">{Math.floor(slowest.wpm)}</div>
-          <div className="text-[11px] text-muted/35 mt-0.5">at {slowest.elapsed}s</div>
+          <div className="text-[11px] text-muted/60 mt-0.5">at {slowest.elapsed}s</div>
         </div>
 
         <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2">
           <div className="text-[11px] text-muted/50 uppercase tracking-widest mb-1">Stability</div>
           <div className={`text-sm font-black leading-none ${stabilityColor}`}>{stabilityLabel}</div>
-          <div className="text-[11px] text-muted/35 mt-0.5">{Math.round((1 - cv) * 100)}% stable</div>
+          <div className="text-[11px] text-muted/60 mt-0.5">{Math.round((1 - cv) * 100)}% stable</div>
         </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted/60">
         <div className="flex items-center gap-1.5">
-          <span className="text-muted/40">Warmup:</span>
+          <span className="text-muted/60">Warmup:</span>
           <span className="tabular-nums">{Math.floor(firstAvg)} → {Math.floor(secondAvg)} WPM</span>
           <span className={`font-bold tabular-nums ${warmupDelta > 0 ? "text-correct" : warmupDelta < 0 ? "text-error/70" : "text-muted/50"}`}>
             {warmupDelta > 0 ? "+" : ""}{warmupPct}%
@@ -105,15 +105,15 @@ function SpeedAnalysis({ wpmHistory, wpm }: { wpmHistory: WpmSample[]; wpm: numb
 
         {hesitations.length > 0 ? (
           <div className="flex items-center gap-1.5">
-            <span className="text-muted/40">Hesitations:</span>
+            <span className="text-muted/60">Hesitations:</span>
             <span className="text-error/60 font-medium tabular-nums">
               {hesitations.length} drop{hesitations.length !== 1 ? "s" : ""}
             </span>
-            <span className="text-muted/30">at {hesitations.map((t) => `${t}s`).join(", ")}</span>
+            <span className="text-muted/55">at {hesitations.map((t) => `${t}s`).join(", ")}</span>
           </div>
         ) : (
           <div className="flex items-center gap-1.5">
-            <span className="text-muted/40">Hesitations:</span>
+            <span className="text-muted/60">Hesitations:</span>
             <span className="text-correct/70 font-medium">None</span>
           </div>
         )}
@@ -291,7 +291,7 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed }: Practi
           <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-4 py-2.5 flex items-center gap-2">
             <span className="text-xs font-mono text-accent/70">&lt;/&gt;</span>
             <span className="text-sm text-text/70">{snippet.name}</span>
-            <span className="text-xs text-muted/40">{snippet.language}</span>
+            <span className="text-xs text-muted/60">{snippet.language}</span>
           </div>
         );
       })()}
@@ -392,7 +392,7 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed }: Practi
             Type Again
             <span className="inline-block w-[2px] h-[1em] bg-current animate-blink ml-0.5 translate-y-px" />
           </span>
-          <span className="text-[11px] font-normal text-accent/40 group-hover:text-bg/40 flex items-center gap-1">
+          <span className="text-[11px] font-normal text-accent/60 group-hover:text-bg/40 flex items-center gap-1">
             <kbd className="inline-flex items-center px-1 py-px rounded bg-white/[0.04] ring-1 ring-white/[0.07] text-[11px] font-medium">Tab</kbd>
             {" + "}
             <kbd className="inline-flex items-center px-1 py-px rounded bg-white/[0.04] ring-1 ring-white/[0.07] text-[11px] font-medium">Enter ↵</kbd>
@@ -403,7 +403,7 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed }: Practi
         <div className="flex items-center gap-1">
           <Link
             href="/analytics"
-            className="flex items-center gap-1.5 px-2.5 py-1.5 text-muted/40 hover:text-muted hover:bg-white/[0.02] transition-colors rounded"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-muted/60 hover:text-muted hover:bg-white/[0.02] transition-colors rounded"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="20" x2="18" y2="10" />
@@ -412,10 +412,10 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed }: Practi
             </svg>
             <span className="text-xs font-medium">Analytics</span>
           </Link>
-          <span className="text-muted/20 text-[10px]">·</span>
+          <span className="text-muted/50 text-[10px]">·</span>
           <Link
             href="/history"
-            className="flex items-center gap-1.5 px-2.5 py-1.5 text-muted/40 hover:text-muted hover:bg-white/[0.02] transition-colors rounded"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-muted/60 hover:text-muted hover:bg-white/[0.02] transition-colors rounded"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" />

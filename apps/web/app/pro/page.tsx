@@ -223,7 +223,7 @@ export default function ProPage() {
                 <p className="text-[11px] font-bold text-muted/65 uppercase tracking-widest">
                   {PRO_REWARD_COUNT} Pro Cosmetics
                 </p>
-                <p className="text-[11px] text-muted/20">yours to keep on cancel</p>
+                <p className="text-[11px] text-muted/50">yours to keep on cancel</p>
               </div>
               <div className="rounded-xl ring-1 ring-accent/10 overflow-hidden bg-[#0c0c12]" style={{ boxShadow: "0 0 60px rgba(77,158,255,0.04)" }}>
                 {/* Live name preview */}
@@ -244,7 +244,7 @@ export default function ProPage() {
                         <span className="block text-xs text-text/70 font-medium leading-tight">
                           {item.name}
                         </span>
-                        <span className="block text-[10px] text-accent/40 uppercase tracking-wider mt-0.5">
+                        <span className="block text-[10px] text-accent/60 uppercase tracking-wider mt-0.5">
                           {item.type === "nameColor" ? "color" : item.type === "cursorStyle" ? "cursor" : item.type === "typingTheme" ? "theme" : item.type}
                         </span>
                       </div>
@@ -281,18 +281,18 @@ export default function ProPage() {
                           {row.feature}
                         </span>
                         {row.desc && (
-                          <span className="text-xs text-muted/35 leading-snug block mt-0.5">
+                          <span className="text-xs text-muted/60 leading-snug block mt-0.5">
                             {row.desc}
                           </span>
                         )}
                       </div>
                       <span className="px-3 py-3.5 text-center text-[13px] bg-surface/30 flex items-center justify-center">
                         {row.free === true ? (
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted/30">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted/55">
                             <polyline points="20 6 9 17 4 12" />
                           </svg>
                         ) : row.free === false ? (
-                          <span className="text-muted/20">—</span>
+                          <span className="text-muted/50">—</span>
                         ) : (
                           <span className="text-muted/45 text-[12px]">{row.free}</span>
                         )}
@@ -354,7 +354,7 @@ export default function ProPage() {
                     ${PRO_YEARLY_PRICE.toFixed(2)}
                     <span className="text-sm font-normal text-muted/60">/yr</span>
                   </div>
-                  <div className="text-xs text-accent/40 mb-6">
+                  <div className="text-xs text-accent/60 mb-6">
                     ${(PRO_YEARLY_PRICE / 12).toFixed(2)}/mo billed annually
                   </div>
                   <button
@@ -379,7 +379,7 @@ export default function ProPage() {
                 </div>
 
               </div>
-              <p className="text-center text-xs text-muted/30 mt-3 leading-relaxed">
+              <p className="text-center text-xs text-muted/55 mt-3 leading-relaxed">
                 Subscriptions cancel anytime.{" "}
                 Cosmetics earned are yours to keep.
               </p>
@@ -496,7 +496,7 @@ function SubscriberView({
                 {level}
               </div>
               <div className="pb-2 space-y-0.5">
-                <div className="text-[10px] text-muted/35 uppercase tracking-widest">Level</div>
+                <div className="text-[10px] text-muted/60 uppercase tracking-widest">Level</div>
                 <div className="text-sm font-bold text-text/80">{username}</div>
               </div>
             </div>
@@ -506,11 +506,11 @@ function SubscriberView({
               <div className="flex items-baseline justify-between mb-1.5">
                 <span className="text-[11px] font-bold text-accent/70 tabular-nums">
                   {currentXp.toLocaleString()}{" "}
-                  <span className="text-muted/30 font-normal">
+                  <span className="text-muted/55 font-normal">
                     / {nextLevelXp.toLocaleString()} XP
                   </span>
                 </span>
-                <span className="text-[11px] text-muted/30 tabular-nums">
+                <span className="text-[11px] text-muted/55 tabular-nums">
                   {(nextLevelXp - currentXp).toLocaleString()} to next
                 </span>
               </div>
@@ -537,7 +537,7 @@ function SubscriberView({
                 <span className="text-[11px] text-correct/70 font-medium">Ad-Free</span>
               </div>
               <span className="text-white/[0.08]">|</span>
-              <span className="text-[11px] text-muted/35 tabular-nums">
+              <span className="text-[11px] text-muted/60 tabular-nums">
                 {unlockedProCount}/{totalProCount} Pro cosmetics unlocked
               </span>
             </div>
@@ -552,10 +552,10 @@ function SubscriberView({
             Reward Track
           </p>
           {nextProReward && (
-            <p className="text-[11px] text-muted/30">
+            <p className="text-[11px] text-muted/55">
               Next Pro:{" "}
               <span className="text-accent/50 font-medium">{nextProReward.name}</span>
-              <span className="text-muted/25"> · Level {nextProReward.level}</span>
+              <span className="text-muted/55"> · Level {nextProReward.level}</span>
             </p>
           )}
         </div>
@@ -614,8 +614,8 @@ function SubscriberView({
                         isCurrent
                           ? "text-accent font-bold"
                           : unlocked
-                            ? "text-muted/35"
-                            : "text-muted/18"
+                            ? "text-muted/60"
+                            : "text-muted/50"
                       }`}
                     >
                       {item.level}
@@ -626,7 +626,7 @@ function SubscriberView({
                         className={`absolute -top-1.5 -right-1.5 text-[6px] font-black px-[4px] py-[1px] rounded-sm uppercase ${
                           unlocked
                             ? "text-accent bg-accent/[0.12]"
-                            : "text-muted/20 bg-white/[0.03]"
+                            : "text-muted/50 bg-white/[0.03]"
                         }`}
                       >
                         Pro
@@ -662,7 +662,7 @@ function SubscriberView({
                 <div className="text-[11px] font-bold text-text/65 leading-tight group-hover:text-text/85 transition-colors">
                   {perk.label}
                 </div>
-                <div className="text-[9px] text-muted/30 mt-0.5">{perk.detail}</div>
+                <div className="text-[9px] text-muted/55 mt-0.5">{perk.detail}</div>
               </div>
             </div>
           ))}
@@ -688,7 +688,7 @@ function SubscriberView({
             <div className="text-sm font-bold text-text/75 group-hover:text-accent transition-colors">
               {link.title}
             </div>
-            <p className="text-[11px] text-muted/40 mt-0.5">{link.desc}</p>
+            <p className="text-[11px] text-muted/60 mt-0.5">{link.desc}</p>
           </Link>
         ))}
       </div>
@@ -782,7 +782,7 @@ function NamePreview({ username }: { username: string }) {
 
   return (
     <div className="py-6 px-4 flex flex-col items-center gap-1.5">
-      <p className="text-[10px] font-bold text-muted/30 uppercase tracking-widest mb-1">preview</p>
+      <p className="text-[10px] font-bold text-muted/55 uppercase tracking-widest mb-1">preview</p>
       <div className="flex items-center gap-2 text-base font-bold">
         <span>{badge}</span>
         <span className={effectClass}>{username}</span>

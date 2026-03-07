@@ -307,7 +307,7 @@ export function RaceTypingArea({
         const snippet = getCodeSnippet(seed);
         return (
           <div className="text-center mt-2 text-xs text-muted/50">
-            {snippet.name} <span className="text-muted/35">·</span> <span className="text-muted/40">{snippet.language}</span>
+            {snippet.name} <span className="text-muted/60">·</span> <span className="text-muted/60">{snippet.language}</span>
           </div>
         );
       })()}

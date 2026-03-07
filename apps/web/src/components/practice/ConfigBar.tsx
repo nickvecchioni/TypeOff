@@ -184,7 +184,7 @@ export function ConfigBar({
               </span>
             )}
             {!isPracticeOn && (
-              <span className="text-[10px] text-muted/35 leading-tight">
+              <span className="text-[10px] text-muted/60 leading-tight">
                 drill your weak spots
               </span>
             )}
@@ -260,7 +260,7 @@ function Chip({
       onClick={onClick}
       className={`px-2.5 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1 ${
         proLocked
-          ? "text-accent/40 hover:text-accent/60 hover:bg-accent/[0.04]"
+          ? "text-accent/60 hover:text-accent/60 hover:bg-accent/[0.04]"
           : active
             ? "bg-accent/15 text-accent ring-1 ring-accent/20"
             : "text-muted/65 hover:text-text hover:bg-white/[0.04]"

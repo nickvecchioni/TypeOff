@@ -409,7 +409,7 @@ function AnimatedXpPanel({
             </div>
             <Link
               href="/cosmetics"
-              className="text-[11px] text-accent/40 hover:text-accent/70 transition-colors mt-2 block text-right"
+              className="text-[11px] text-accent/60 hover:text-accent/70 transition-colors mt-2 block text-right"
             >
               Equip in Items →
             </Link>
@@ -606,7 +606,7 @@ function PresetChatFeed({ emotes }: { emotes: EmoteEvent[] }) {
         className="h-[5.5rem] overflow-y-auto px-3 sm:px-4 py-1.5 space-y-0.5 scrollbar-thin"
       >
         {messages.length === 0 ? (
-          <p className="text-xs text-muted/40 italic py-1">No messages yet</p>
+          <p className="text-xs text-muted/60 italic py-1">No messages yet</p>
         ) : (
           messages.map((msg) => (
             <div key={msg.id} className="text-xs flex items-baseline gap-1.5 leading-relaxed">
@@ -627,7 +627,7 @@ function PresetChatFeed({ emotes }: { emotes: EmoteEvent[] }) {
             disabled={cooldown}
             className="text-xs px-2 py-1 rounded bg-surface/60 ring-1 ring-white/[0.06] text-muted hover:text-text hover:ring-accent/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
           >
-            <span className="text-[10px] text-muted/40 tabular-nums">{idx + 1}</span>
+            <span className="text-[10px] text-muted/60 tabular-nums">{idx + 1}</span>
             {emote}
           </button>
         ))}
@@ -682,7 +682,7 @@ function ProPanel({ level, xpEarned }: { level: number; xpEarned: number }) {
           </div>
           <button
             onClick={() => setDismissed(true)}
-            className="text-muted/30 hover:text-muted/60 transition-colors p-0.5"
+            className="text-muted/55 hover:text-muted/60 transition-colors p-0.5"
             aria-label="Dismiss"
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -802,7 +802,7 @@ function SpeedAnalysis({
               .{(peakSustained % 1).toFixed(2).slice(2)}
             </span>
           </div>
-          <div className="text-[11px] text-muted/35 mt-0.5">3-sec rolling avg</div>
+          <div className="text-[11px] text-muted/60 mt-0.5">3-sec rolling avg</div>
         </div>
 
         {/* Fastest second */}
@@ -813,7 +813,7 @@ function SpeedAnalysis({
           <div className="text-lg font-black text-correct tabular-nums leading-none">
             {Math.floor(fastest.wpm)}
           </div>
-          <div className="text-[11px] text-muted/35 mt-0.5">
+          <div className="text-[11px] text-muted/60 mt-0.5">
             at {fastest.elapsed}s
           </div>
         </div>
@@ -826,7 +826,7 @@ function SpeedAnalysis({
           <div className="text-lg font-black text-error/80 tabular-nums leading-none">
             {Math.floor(slowest.wpm)}
           </div>
-          <div className="text-[11px] text-muted/35 mt-0.5">
+          <div className="text-[11px] text-muted/60 mt-0.5">
             at {slowest.elapsed}s
           </div>
         </div>
@@ -839,7 +839,7 @@ function SpeedAnalysis({
           <div className={`text-sm font-black leading-none ${stabilityColor}`}>
             {stabilityLabel}
           </div>
-          <div className="text-[11px] text-muted/35 mt-0.5">
+          <div className="text-[11px] text-muted/60 mt-0.5">
             {Math.round((1 - cv) * 100)}% stable
           </div>
         </div>
@@ -849,7 +849,7 @@ function SpeedAnalysis({
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted/60">
         {/* Warmup trend */}
         <div className="flex items-center gap-1.5">
-          <span className="text-muted/40">Warmup:</span>
+          <span className="text-muted/60">Warmup:</span>
           <span className="tabular-nums">
             {Math.floor(firstAvg)} → {Math.floor(secondAvg)} WPM
           </span>
@@ -866,18 +866,18 @@ function SpeedAnalysis({
         {/* Hesitations */}
         {hesitations.length > 0 && (
           <div className="flex items-center gap-1.5">
-            <span className="text-muted/40">Hesitations:</span>
+            <span className="text-muted/60">Hesitations:</span>
             <span className="text-error/60 font-medium tabular-nums">
               {hesitations.length} drop{hesitations.length !== 1 ? "s" : ""}
             </span>
-            <span className="text-muted/30">
+            <span className="text-muted/55">
               at {hesitations.map((t) => `${t}s`).join(", ")}
             </span>
           </div>
         )}
         {hesitations.length === 0 && (
           <div className="flex items-center gap-1.5">
-            <span className="text-muted/40">Hesitations:</span>
+            <span className="text-muted/60">Hesitations:</span>
             <span className="text-correct/70 font-medium">None</span>
           </div>
         )}
@@ -1099,7 +1099,7 @@ export function RaceResults({
                       )}
                     </div>
                     {myResult.rawWpm > 0 && Math.floor(myResult.rawWpm) !== Math.floor(myResult.wpm) && (
-                      <div className="text-xs text-muted/40 tabular-nums mt-0.5">
+                      <div className="text-xs text-muted/60 tabular-nums mt-0.5">
                         {Math.floor(myResult.rawWpm)} raw
                       </div>
                     )}
@@ -1213,7 +1213,7 @@ export function RaceResults({
           <div className="shrink-0 rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-4 py-2.5 flex items-center gap-2">
             <span className="text-xs font-mono text-accent/70">&lt;/&gt;</span>
             <span className="text-sm text-text/70">{snippet.name}</span>
-            <span className="text-xs text-muted/40">{snippet.language}</span>
+            <span className="text-xs text-muted/60">{snippet.language}</span>
           </div>
         );
       })()}
@@ -1419,7 +1419,7 @@ export function RaceResults({
         <div
           className="w-full rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-3 pt-1.5 pb-1 flex flex-col"
         >
-          <div className="text-xs font-bold text-muted/40 uppercase tracking-widest mb-0.5">WPM over time</div>
+          <div className="text-xs font-bold text-muted/60 uppercase tracking-widest mb-0.5">WPM over time</div>
           <div className="w-full" style={{ aspectRatio: "12 / 1" }}>
             <WpmChart samples={myWpmHistory} compact />
           </div>
@@ -1584,7 +1584,7 @@ export function RaceResults({
                 <span className="inline-block w-[2px] h-[1em] bg-current animate-blink translate-y-px" />
               </span>
               {!inParty && (
-                <span className="text-[11px] font-normal text-accent/40 flex items-center gap-1 group-hover:text-bg/40">
+                <span className="text-[11px] font-normal text-accent/60 flex items-center gap-1 group-hover:text-bg/40">
                   <kbd className="inline-flex items-center px-1 py-px rounded bg-white/[0.04] ring-1 ring-white/[0.07] text-[11px] font-medium">Tab</kbd>
                   {" + "}
                   <kbd className="inline-flex items-center px-1 py-px rounded bg-white/[0.04] ring-1 ring-white/[0.07] text-[11px] font-medium">Enter ↵</kbd>
@@ -1604,7 +1604,7 @@ export function RaceResults({
           {/* Go Home */}
           <button
             onClick={onGoHome}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 text-muted/40 hover:text-muted/70 transition-colors rounded hover:bg-white/[0.02]"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-muted/60 hover:text-muted/70 transition-colors rounded hover:bg-white/[0.02]"
             aria-label="Go Home"
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1621,7 +1621,7 @@ export function RaceResults({
             <>
               <Link
                 href={`/races/${raceId}`}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 text-muted/40 hover:text-muted/70 transition-colors rounded hover:bg-white/[0.02]"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 text-muted/60 hover:text-muted/70 transition-colors rounded hover:bg-white/[0.02]"
                 aria-label="Watch Replay"
               >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1638,7 +1638,7 @@ export function RaceResults({
             <>
               <Link
                 href="/analytics"
-                className="flex items-center gap-1.5 px-2.5 py-1.5 text-muted/40 hover:text-muted/70 transition-colors rounded hover:bg-white/[0.02]"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 text-muted/60 hover:text-muted/70 transition-colors rounded hover:bg-white/[0.02]"
                 aria-label="Analytics"
               >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

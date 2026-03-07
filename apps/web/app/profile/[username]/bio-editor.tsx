@@ -51,10 +51,10 @@ export function BioEditor({ initialBio }: { initialBio: string | null }) {
           }}
           rows={2}
           placeholder="Write something about yourself..."
-          className="w-full text-xs bg-surface/60 text-text rounded-lg px-3 py-2 ring-1 ring-white/[0.08] outline-none resize-none placeholder:text-muted/40 focus:ring-accent/30 transition-colors"
+          className="w-full text-xs bg-surface/60 text-text rounded-lg px-3 py-2 ring-1 ring-white/[0.08] outline-none resize-none placeholder:text-muted/60 focus:ring-accent/30 transition-colors"
         />
         <div className="flex items-center justify-between">
-          <span className="text-xs text-muted/40 tabular-nums">
+          <span className="text-xs text-muted/60 tabular-nums">
             {bio.length}/{MAX_BIO}
           </span>
           <div className="flex items-center gap-2">
@@ -85,11 +85,11 @@ export function BioEditor({ initialBio }: { initialBio: string | null }) {
       {bio ? (
         <p className="text-xs text-muted/70 leading-relaxed flex-1">{bio}</p>
       ) : (
-        <p className="text-xs text-muted/30 italic flex-1">No bio yet</p>
+        <p className="text-xs text-muted/55 italic flex-1">No bio yet</p>
       )}
       <button
         onClick={() => setEditing(true)}
-        className="shrink-0 text-muted/25 hover:text-accent transition-colors opacity-0 group-hover:opacity-100"
+        className="shrink-0 text-muted/55 hover:text-accent transition-colors opacity-0 group-hover:opacity-100"
         title="Edit bio"
       >
         <svg

@@ -96,7 +96,7 @@ export function ChatPanel({ friendId, friendName, online, currentUserId }: ChatP
 
         {!loadingHistory && messages.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 gap-2">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted/15">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted/50">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
             <p className="text-xs text-muted/45">No messages yet</p>
@@ -120,7 +120,7 @@ export function ChatPanel({ friendId, friendName, online, currentUserId }: ChatP
                 <p className="text-sm break-words whitespace-pre-wrap leading-relaxed">{msg.content}</p>
                 <p
                   className={`text-xs mt-0.5 tabular-nums ${
-                    isMine ? "text-accent/30 text-right" : "text-muted/65"
+                    isMine ? "text-accent/55 text-right" : "text-muted/65"
                   }`}
                 >
                   {new Date(msg.createdAt).toLocaleTimeString([], {

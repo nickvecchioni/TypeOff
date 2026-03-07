@@ -94,8 +94,8 @@ function EloProgressBar({ elo, tier }: { elo: number; tier: RankTier }) {
           {currentRankInfo.label}
         </span>
         <div className="flex items-center gap-1 leading-none">
-          <span className="text-xs text-muted/50 tabular-nums">{eloNeeded} away</span>
-          <span className="text-[11px] text-muted/30">·</span>
+          <span className="text-xs text-muted/65 tabular-nums">{eloNeeded} away</span>
+          <span className="text-[11px] text-muted/65">·</span>
           <span
             className="text-[11px] font-bold"
             style={{ color: RANK_HEX[nextRankInfo.tier] }}
@@ -282,7 +282,7 @@ function LevelWidget({
                 />
               </div>
             </div>
-            <div className="text-[11px] text-muted/50 mt-1 tabular-nums">
+            <div className="text-[11px] text-muted/65 mt-1 tabular-nums">
               {xpRemaining.toLocaleString()} XP to level {level + 1}
             </div>
           </div>
@@ -331,7 +331,7 @@ function LevelWidget({
         {/* Upcoming unlocks */}
         {upcomingRewards.length > 1 && (
           <div className="space-y-0.5">
-            <div className="text-[10px] font-bold text-muted/40 uppercase tracking-wider mb-1">Coming up</div>
+            <div className="text-[10px] font-bold text-muted/60 uppercase tracking-wider mb-1">Coming up</div>
             {upcomingRewards.slice(1).map((reward) => {
               const meta = REWARD_TYPE_META[reward.type];
               const proLocked = reward.proOnly && !isPro;
@@ -357,7 +357,7 @@ function LevelWidget({
                       PRO
                     </span>
                   )}
-                  <span className="text-[10px] text-muted/40 leading-none shrink-0 tabular-nums">
+                  <span className="text-[10px] text-muted/60 leading-none shrink-0 tabular-nums">
                     {reward.level}
                   </span>
                 </div>
@@ -370,7 +370,7 @@ function LevelWidget({
 
       {/* Browse all link hint */}
       <div className="px-4 pb-3 pt-0">
-        <div className="text-[10px] text-muted/30 group-hover:text-accent/50 transition-colors text-center">
+        <div className="text-[10px] text-muted/65 group-hover:text-accent/50 transition-colors text-center">
           Browse all cosmetics →
         </div>
       </div>
@@ -639,9 +639,9 @@ export function QueueScreen({
                 ) : (
                   <>
                     press{" "}
-                    <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/60 text-[11px] font-medium">Tab</kbd>
+                    <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/80 text-[11px] font-medium">Tab</kbd>
                     {" + "}
-                    <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/60 text-[11px] font-medium">Enter ↵</kbd>
+                    <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/80 text-[11px] font-medium">Enter ↵</kbd>
                   </>
                 )}
               </span>
@@ -724,9 +724,9 @@ export function QueueScreen({
                   ) : (
                     <>
                       press{" "}
-                      <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/60 text-[11px] font-medium">Tab</kbd>
+                      <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/80 text-[11px] font-medium">Tab</kbd>
                       {" + "}
-                      <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/60 text-[11px] font-medium">Enter ↵</kbd>
+                      <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/80 text-[11px] font-medium">Enter ↵</kbd>
                     </>
                   )}
                 </span>

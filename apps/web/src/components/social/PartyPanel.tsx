@@ -109,7 +109,7 @@ export function PartyPanel({
             className="flex items-center gap-1.5 rounded-lg border border-dashed border-white/[0.06] px-3 py-1.5"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-muted/20" />
-            <span className="text-sm text-muted/20">---</span>
+            <span className="text-sm text-muted/50">---</span>
           </div>
         ))}
       </div>

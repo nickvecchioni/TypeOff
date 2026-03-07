@@ -91,7 +91,7 @@ export function ActivityCalendar({ activity }: ActivityCalendarProps) {
           {DAY_LABELS.map((label, i) => (
             <div
               key={i}
-              className="h-[11px] w-6 text-[11px] text-muted/35 text-right leading-[11px]"
+              className="h-[11px] w-6 text-[11px] text-muted/60 text-right leading-[11px]"
             >
               {label}
             </div>
@@ -104,7 +104,7 @@ export function ActivityCalendar({ activity }: ActivityCalendarProps) {
             {weeks.map((_, wi) => (
               <div
                 key={wi}
-                className="w-[11px] shrink-0 text-[11px] text-muted/40 leading-[14px] overflow-visible whitespace-nowrap"
+                className="w-[11px] shrink-0 text-[11px] text-muted/60 leading-[14px] overflow-visible whitespace-nowrap"
               >
                 {monthLabels[wi] ?? ""}
               </div>

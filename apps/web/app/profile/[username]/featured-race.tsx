@@ -45,7 +45,7 @@ export function FeaturedRace({ race }: { race: FeaturedRaceProps }) {
               </span>
               <span className="text-xs font-normal text-muted/50 ml-1">WPM</span>
             </span>
-            <span className="text-xs text-muted/40">
+            <span className="text-xs text-muted/60">
               {race.accuracy.toFixed(1)}% acc
             </span>
           </div>
@@ -54,7 +54,7 @@ export function FeaturedRace({ race }: { race: FeaturedRaceProps }) {
               {ordinal(race.placement)} of {race.playerCount}
             </span>
             {race.modeCategory && (
-              <span className="text-xs text-muted/35">
+              <span className="text-xs text-muted/60">
                 {modeLabels[race.modeCategory] ?? race.modeCategory}
               </span>
             )}
@@ -70,7 +70,7 @@ export function FeaturedRace({ race }: { race: FeaturedRaceProps }) {
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="text-muted/20 group-hover:text-accent/50 transition-colors shrink-0"
+        className="text-muted/50 group-hover:text-accent/50 transition-colors shrink-0"
       >
         <path d="M9 18l6-6-6-6" />
       </svg>
@@ -124,7 +124,7 @@ export function FeaturedRaceSelector({
     return (
       <button
         onClick={() => setOpen(true)}
-        className="text-xs text-muted/40 hover:text-accent transition-colors"
+        className="text-xs text-muted/60 hover:text-accent transition-colors"
       >
         {selected ? "Change" : "Pin a race"}
       </button>
@@ -139,7 +139,7 @@ export function FeaturedRaceSelector({
         </span>
         <button
           onClick={() => setOpen(false)}
-          className="text-muted/30 hover:text-muted/60 transition-colors"
+          className="text-muted/55 hover:text-muted/60 transition-colors"
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="18" y1="6" x2="6" y2="18" />
@@ -167,7 +167,7 @@ export function FeaturedRaceSelector({
                 {race.accuracy.toFixed(1)}%
               </span>
             </div>
-            <span className="text-xs text-muted/40" suppressHydrationWarning>
+            <span className="text-xs text-muted/60" suppressHydrationWarning>
               {new Date(race.finishedAt).toLocaleDateString(undefined, {
                 month: "short",
                 day: "numeric",

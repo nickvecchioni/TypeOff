@@ -324,7 +324,7 @@ export default function AnalyticsPage() {
                       {data.personalRecords.bestWpm ? Math.floor(data.personalRecords.bestWpm.wpm) : "\u2014"}
                     </span>
                     {data.personalRecords.bestWpm && (
-                      <span className="text-xl font-bold text-accent/35 tabular-nums">
+                      <span className="text-xl font-bold text-accent/55 tabular-nums">
                         .{(data.personalRecords.bestWpm.wpm % 1).toFixed(2).slice(2)}
                       </span>
                     )}
@@ -465,7 +465,7 @@ export default function AnalyticsPage() {
                             </div>
                             <div className="flex items-center gap-1.5 mt-1">
                               <span className="text-xs text-muted/55 tabular-nums">{Math.floor(m.avgWpm)} avg</span>
-                              <span className="text-xs text-muted/40">&middot;</span>
+                              <span className="text-xs text-muted/60">&middot;</span>
                               <span className="text-xs text-muted/55 tabular-nums">{m.racesPlayed} races</span>
                             </div>
                           </button>
@@ -516,7 +516,7 @@ export default function AnalyticsPage() {
                             </div>
                             <div className="flex items-center gap-1.5 mt-1">
                               <span className="text-xs text-muted/55 tabular-nums">{Math.floor(wc.avgWpm)} avg</span>
-                              <span className="text-xs text-muted/40">&middot;</span>
+                              <span className="text-xs text-muted/60">&middot;</span>
                               <span className="text-xs text-muted/55 tabular-nums">{wc.count} tests</span>
                             </div>
                           </div>
@@ -704,7 +704,7 @@ function Card({
 function EmptyState({ message }: { message: string }) {
   return (
     <div className="rounded-xl bg-surface/20 ring-1 ring-white/[0.04] px-6 py-12 text-center animate-fade-in">
-      <div className="text-muted/30 text-2xl mb-3">{"\u2328"}</div>
+      <div className="text-muted/55 text-2xl mb-3">{"\u2328"}</div>
       <p className="text-sm text-muted/55">{message}</p>
     </div>
   );

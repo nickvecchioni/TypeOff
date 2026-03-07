@@ -46,7 +46,7 @@ export function LandingPhase({ onStart, hideSignIn }: { onStart: () => void; hid
           Competitive typing,{" "}
           <span className="text-accent text-glow-accent">ranked.</span>
         </h1>
-        <p className="relative text-muted/60 text-sm sm:text-base text-center max-w-lg leading-relaxed">
+        <p className="relative text-muted/80 text-sm sm:text-base text-center max-w-lg leading-relaxed">
           Race real players in ELO-matched battles.
           <br className="hidden sm:block" />{" "}
           Climb from{" "}
@@ -165,7 +165,7 @@ export function LandingPhase({ onStart, hideSignIn }: { onStart: () => void; hid
               </span>
             </div>
             <p className="relative text-text/80 group-hover:text-text text-sm font-semibold transition-colors duration-200">{card.title}</p>
-            <p className="relative text-muted/65 group-hover:text-muted/65 text-xs leading-relaxed transition-colors duration-200">{card.body}</p>
+            <p className="relative text-muted/80 group-hover:text-muted/80 text-xs leading-relaxed transition-colors duration-200">{card.body}</p>
           </div>
         ))}
       </div>
@@ -193,11 +193,11 @@ export function LandingPhase({ onStart, hideSignIn }: { onStart: () => void; hid
         </button>
 
         {!hideSignIn && (
-          <p className="text-muted/60 text-xs">
+          <p className="text-muted/70 text-xs">
             Already have an account?{" "}
             <button
               onClick={() => signIn("google")}
-              className="text-muted/60 underline underline-offset-2 hover:text-muted/80 transition-colors"
+              className="text-muted/70 underline underline-offset-2 hover:text-muted transition-colors"
             >
               Sign in
             </button>
@@ -462,23 +462,23 @@ export function GuestPlacement({
           style={{ animationDelay: "0ms", animationFillMode: "both" }}
         >
           <span className="text-accent text-xs font-bold uppercase tracking-[0.2em]">Placement Test</span>
-          <span className="text-muted/45">·</span>
-          <span className="text-muted/60 text-xs">{GUEST_WORD_COUNT} words</span>
+          <span className="text-muted/60">·</span>
+          <span className="text-muted/70 text-xs">{GUEST_WORD_COUNT} words</span>
         </div>
         <p
-          className="text-muted/65 text-sm text-center leading-relaxed opacity-0 animate-fade-in"
+          className="text-muted/80 text-sm text-center leading-relaxed opacity-0 animate-fade-in"
           style={{ animationDelay: "40ms", animationFillMode: "both" }}
         >
           Your speed determines your starting rank and who you get matched against.
         </p>
         <p
-          className="text-muted/55 text-xs text-center leading-relaxed opacity-0 animate-fade-in"
+          className="text-muted/70 text-xs text-center leading-relaxed opacity-0 animate-fade-in"
           style={{ animationDelay: "70ms", animationFillMode: "both" }}
         >
           No pressure — your first 30 races use boosted ELO adjustments to get you to your true rank fast.
         </p>
         <p
-          className="text-muted/45 text-xs text-center leading-relaxed opacity-0 animate-fade-in"
+          className="text-muted/60 text-xs text-center leading-relaxed opacity-0 animate-fade-in"
           style={{ animationDelay: "100ms", animationFillMode: "both" }}
         >
           Note: each word must be typed correctly before you can advance.
@@ -522,15 +522,15 @@ export function GuestPlacement({
 
         {/* Tab+Enter hint (fades out when typing starts) */}
         <p
-          className={`absolute text-muted/65 text-xs transition-opacity duration-300 ${
+          className={`absolute text-muted/80 text-xs transition-opacity duration-300 ${
             phase === "idle" ? "opacity-0 animate-fade-in" : "opacity-0"
           }`}
           style={phase === "idle" ? { animationDelay: "320ms", animationFillMode: "both" } : undefined}
         >
           press{" "}
-          <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/65 text-xs">Tab</kbd>
+          <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/80 text-xs">Tab</kbd>
           {" "}+{" "}
-          <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/65 text-xs">Enter</kbd>
+          <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/80 text-xs">Enter</kbd>
           {" "}to restart
         </p>
       </div>

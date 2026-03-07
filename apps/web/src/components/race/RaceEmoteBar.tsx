@@ -57,7 +57,7 @@ export function RaceEmoteBar({ disabled }: RaceEmoteBarProps) {
           disabled={cooldown || disabled}
           className="text-xs px-2 py-1 rounded bg-surface/60 ring-1 ring-white/[0.06] text-muted hover:text-text hover:ring-accent/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
         >
-          <span className="text-[10px] text-muted/40 tabular-nums">{idx + 1}</span>
+          <span className="text-[10px] text-muted/60 tabular-nums">{idx + 1}</span>
           {emote}
         </button>
       ))}
