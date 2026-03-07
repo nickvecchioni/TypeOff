@@ -181,44 +181,10 @@ export function ItemsBrowser({
   const isPreviewingPro = isPreviewingLocked && !!activePreviewItem?.proOnly && !isPro;
   const isPreviewingNewItem = activePreviewItem != null;
 
-  if (!cosmeticsData) {
-    return (
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-end justify-between gap-4">
-          <div>
-            <h1 className="text-lg font-bold text-text tracking-tight">Cosmetics</h1>
-            <p className="text-xs text-muted/60 mt-0.5">Earn cosmetics by levelling up through gameplay</p>
-          </div>
-        </div>
-        {/* XP bar skeleton */}
-        <div className="rounded-xl bg-surface/50 ring-1 ring-white/[0.04] px-5 py-4">
-          <div className="h-4 w-48 rounded bg-surface/60 animate-pulse mb-2.5" />
-          <div className="h-1 rounded-full bg-white/[0.04]" />
-        </div>
-        {/* Profile card skeleton */}
-        <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.06] px-5 py-4">
-          <div className="h-3 w-20 rounded bg-surface/60 animate-pulse mb-4" />
-          <div className="h-7 w-36 rounded bg-surface/60 animate-pulse" />
-        </div>
-        {/* Loadout skeleton */}
-        <div className="grid grid-cols-7 gap-1.5">
-          {Array.from({ length: 7 }).map((_, i) => (
-            <div key={i} className="h-16 rounded-lg bg-surface/40 animate-pulse" style={{ animationDelay: `${i * 40}ms` }} />
-          ))}
-        </div>
-        {/* Item grid skeleton */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="h-24 rounded-xl bg-surface/30 animate-pulse" style={{ animationDelay: `${i * 40}ms` }} />
-          ))}
-        </div>
-      </div>
-    );
-  }
+  const isLoading = !cosmeticsData;
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 animate-fade-in">
+    <div className={`max-w-6xl mx-auto space-y-6 transition-opacity duration-300 ${isLoading ? "opacity-0" : "opacity-100"}`}>
 
       {/* ── Header ────────────────────────────────────────── */}
       <div className="flex items-end justify-between gap-4">
@@ -953,7 +919,7 @@ function ItemCard({
           {item.name}
         </p>
         <p className="text-xs mt-0.5 leading-tight text-accent/40 group-hover:text-accent/60 transition-colors tabular-nums">
-          Lv. {item.level} · Pro
+          Level {item.level} · Pro
         </p>
       </button>
     );
@@ -1001,11 +967,11 @@ function ItemCard({
       </p>
       <p className="text-xs mt-0.5 leading-tight">
         {locked ? (
-          <span className="text-muted/55 tabular-nums">Lv. {item.level}</span>
+          <span className="text-muted/55 tabular-nums">Level {item.level}</span>
         ) : active ? (
-          <span className="text-accent/50">Equipped · <span className="tabular-nums">Lv. {item.level}</span></span>
+          <span className="text-accent/50">Equipped · <span className="tabular-nums">Level {item.level}</span></span>
         ) : (
-          <span className="text-muted/45 group-hover:text-muted/65 transition-colors tabular-nums">Lv. {item.level}</span>
+          <span className="text-muted/45 group-hover:text-muted/65 transition-colors tabular-nums">Level {item.level}</span>
         )}
       </p>
     </button>

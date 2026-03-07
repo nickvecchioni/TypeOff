@@ -101,8 +101,6 @@ export default function RootLayout({
               {children}
             </div>
             <footer className="focus-fade relative z-10 flex items-center justify-center gap-3 py-3 text-xs text-muted/65">
-              <span>TypeOff</span>
-              <span>·</span>
               <Link href="/privacy" className="hover:text-muted transition-colors">Privacy</Link>
               <span>·</span>
               <Link href="/terms" className="hover:text-muted transition-colors">Terms</Link>

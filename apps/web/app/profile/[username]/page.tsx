@@ -404,7 +404,7 @@ export default async function ProfilePage({
             return (
               <div className="flex items-center gap-3">
                 <span className="text-xs font-bold text-accent tabular-nums shrink-0 w-14">
-                  Lv.{xpInfo.level}
+                  Level {xpInfo.level}
                 </span>
                 <div className="flex-1 h-0.5 rounded-full bg-white/[0.04] overflow-hidden">
                   <div

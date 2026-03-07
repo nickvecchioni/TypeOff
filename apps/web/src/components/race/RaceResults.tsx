@@ -345,7 +345,7 @@ function AnimatedXpPanel({
         >
           {/* Big level number */}
           <div className="shrink-0 w-10 text-center">
-            <div className="text-[11px] font-black text-muted/60 uppercase tracking-widest leading-none mb-0.5">LV.</div>
+            <div className="text-[11px] font-black text-muted/60 uppercase tracking-widest leading-none mb-0.5">LEVEL</div>
             <div
               className={`text-2xl font-black tabular-nums leading-none transition-colors duration-300 ${
                 levelUpGlow ? "text-accent" : "text-text"

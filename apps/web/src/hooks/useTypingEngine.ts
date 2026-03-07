@@ -237,7 +237,7 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
 
   // Check timed mode completion (only for pure timed + words mode)
   useEffect(() => {
-    if (config.mode === "timed" && config.contentType === "words" && status === "typing" && timeElapsed >= config.duration) {
+    if (config.mode === "timed" && (config.contentType === "words" || config.contentType === "practice") && status === "typing" && timeElapsed >= config.duration) {
       finishTest();
     }
   }, [config, status, timeElapsed, finishTest]);

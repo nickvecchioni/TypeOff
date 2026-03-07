@@ -40,6 +40,21 @@ export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
   const { party, inviteToParty } = useParty();
   const { openDm, unreadFrom } = useDm();
 
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // Clamp panel so it doesn't overflow the right edge of the viewport
+  useEffect(() => {
+    if (!open || !panelRef.current) return;
+    const el = panelRef.current;
+    const rect = el.getBoundingClientRect();
+    const overflow = rect.right - window.innerWidth + 8; // 8px margin
+    if (overflow > 0) {
+      el.style.transform = `translateX(-${overflow}px)`;
+    } else {
+      el.style.transform = "";
+    }
+  }, [open]);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<
     Array<{ userId: string; username: string | null }>
@@ -146,10 +161,15 @@ export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
           {canInviteToParty && (
             <button
               onClick={() => inviteToParty(friend.userId)}
-              className="text-xs font-bold text-accent/70 hover:text-accent px-1.5 py-0.5 rounded border border-accent/20 hover:border-accent/40 hover:bg-accent/10 transition-all"
+              className="text-accent/70 hover:text-accent w-6 h-6 flex items-center justify-center rounded border border-accent/20 hover:border-accent/40 hover:bg-accent/10 transition-all"
               title="Invite to party"
             >
-              INV
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <line x1="19" y1="8" x2="19" y2="14" />
+                <line x1="22" y1="11" x2="16" y2="11" />
+              </svg>
             </button>
           )}
           <button
@@ -157,14 +177,16 @@ export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
               openDm(friend.userId, friend.username ?? "Unknown");
               onClose();
             }}
-            className={`relative text-xs font-bold px-1.5 py-0.5 rounded border transition-all ${
+            className={`relative w-6 h-6 flex items-center justify-center rounded border transition-all ${
               unreadFrom.has(friend.userId)
                 ? "text-accent border-accent/40 bg-accent/10"
                 : "text-accent/70 hover:text-accent border-accent/20 hover:border-accent/40 hover:bg-accent/10"
             }`}
             title="Send message"
           >
-            MSG
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
             {unreadFrom.has(friend.userId) && (
               <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-accent" />
             )}
@@ -192,7 +214,8 @@ export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
 
       {/* Dropdown panel */}
       <div
-        className="absolute top-full right-0 mt-2 w-80 z-50 flex flex-col overflow-hidden"
+        ref={panelRef}
+        className="absolute top-full left-0 mt-2 w-80 z-50 flex flex-col overflow-hidden"
         style={{
           background: "#0d0d16",
           border: "1px solid rgba(255,255,255,0.08)",

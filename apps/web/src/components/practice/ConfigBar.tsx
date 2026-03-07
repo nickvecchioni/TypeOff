@@ -174,10 +174,20 @@ export function ConfigBar({
       <div className="flex items-center justify-center min-h-[28px]">
         {/* Practice toggle — only for words/mixed, Pro users with weak data */}
         {isWordsVariant && hasPracticeData && (
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
             <Sub active={isPracticeOn} onClick={togglePractice}>
               practice
             </Sub>
+            {isPracticeOn && (
+              <span className="text-[10px] text-muted/45 leading-tight">
+                targeting your weakest keys &amp; bigrams
+              </span>
+            )}
+            {!isPracticeOn && (
+              <span className="text-[10px] text-muted/35 leading-tight">
+                drill your weak spots
+              </span>
+            )}
           </div>
         )}
 

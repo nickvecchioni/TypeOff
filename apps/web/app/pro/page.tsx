@@ -555,7 +555,7 @@ function SubscriberView({
             <p className="text-[11px] text-muted/30">
               Next Pro:{" "}
               <span className="text-accent/50 font-medium">{nextProReward.name}</span>
-              <span className="text-muted/25"> · Lv.{nextProReward.level}</span>
+              <span className="text-muted/25"> · Level {nextProReward.level}</span>
             </p>
           )}
         </div>
