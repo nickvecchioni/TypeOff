@@ -377,6 +377,12 @@ async function SoloLeaderboard({
     ? or(like(soloResults.wordPool, wordPoolPattern), isNull(soloResults.wordPool))
     : like(soloResults.wordPool, wordPoolPattern);
 
+  // For quotes/code, skip mode/duration filters — wordPool already identifies the content type,
+  // and legacy results may have been stored with the user's actual mode/duration before normalization.
+  const mainFilters = isFixedText
+    ? [wordPoolFilter, isNotNull(users.username)]
+    : [eq(soloResults.mode, mode), eq(soloResults.duration, duration), wordPoolFilter, isNotNull(users.username)];
+
   const rows = await db
     .select({
       usrId: soloResults.userId,
@@ -393,14 +399,7 @@ async function SoloLeaderboard({
     .from(soloResults)
     .innerJoin(users, eq(soloResults.userId, users.id))
     .leftJoin(userStats, eq(soloResults.userId, userStats.userId))
-    .where(
-      and(
-        eq(soloResults.mode, mode),
-        eq(soloResults.duration, duration),
-        wordPoolFilter,
-        isNotNull(users.username),
-      ),
-    )
+    .where(and(...mainFilters))
     .groupBy(soloResults.userId, users.username, users.lastSeen, users.eloRating, users.rankTier, userStats.totalXp)
     .orderBy(sql`best_wpm desc`)
     .limit(100);
@@ -408,6 +407,10 @@ async function SoloLeaderboard({
   // "Your rank" anchor for solo
   let myRank: { rank: number; row: (typeof rows)[number] } | null = null;
   if (userId && !rows.some((r) => r.usrId === userId)) {
+    const myFilters = isFixedText
+      ? [eq(soloResults.userId, userId), wordPoolFilter]
+      : [eq(soloResults.userId, userId), eq(soloResults.mode, mode), eq(soloResults.duration, duration), wordPoolFilter];
+
     const [myRow] = await db
       .select({
         usrId: soloResults.userId,
@@ -424,18 +427,15 @@ async function SoloLeaderboard({
       .from(soloResults)
       .innerJoin(users, eq(soloResults.userId, users.id))
       .leftJoin(userStats, eq(soloResults.userId, userStats.userId))
-      .where(
-        and(
-          eq(soloResults.userId, userId),
-          eq(soloResults.mode, mode),
-          eq(soloResults.duration, duration),
-          wordPoolFilter,
-        ),
-      )
+      .where(and(...myFilters))
       .groupBy(soloResults.userId, users.username, users.lastSeen, users.eloRating, users.rankTier, userStats.totalXp)
       .limit(1);
 
     if (myRow) {
+      const rankFilters = isFixedText
+        ? [wordPoolFilter]
+        : [eq(soloResults.mode, mode), eq(soloResults.duration, duration), wordPoolFilter];
+
       const [{ count }] = await db
         .select({ count: sql<number>`count(*)`.as("cnt") })
         .from(
@@ -445,13 +445,7 @@ async function SoloLeaderboard({
               bestWpm: sql<number>`max(${soloResults.wpm})`.as("best_wpm"),
             })
             .from(soloResults)
-            .where(
-              and(
-                eq(soloResults.mode, mode),
-                eq(soloResults.duration, duration),
-                wordPoolFilter,
-              ),
-            )
+            .where(and(...rankFilters))
             .groupBy(soloResults.userId)
             .as("sub"),
         )
@@ -477,7 +471,7 @@ async function SoloLeaderboard({
     : [];
   const soloCosmeticMap = new Map(soloCosmeticRows.map((r) => [r.userId, r]));
 
-  const modeLabel = mode === "timed" ? `${duration}s` : `${duration} words`;
+  const modeLabel = isFixedText ? category : mode === "timed" ? `${duration}s` : `${duration} words`;
   const soloGridCols = "grid-cols-[2rem_1fr_4rem] sm:grid-cols-[2rem_1fr_5rem_4.5rem_4rem_3.5rem]";
 
   return (
