@@ -8,26 +8,18 @@ import Link from "next/link";
 
 interface Settings {
   smoothCaret: boolean;
-  soundEnabled: boolean;
-  soundVolume: number;
   showLiveWpm: boolean;
   showLiveAccuracy: boolean;
   focusMode: boolean;
-  stopOnError: "off" | "word" | "letter";
   fontSize: "small" | "medium" | "large";
-  freedomMode: boolean;
 }
 
 const DEFAULT_SETTINGS: Settings = {
   smoothCaret: true,
-  soundEnabled: false,
-  soundVolume: 50,
   showLiveWpm: true,
   showLiveAccuracy: true,
   focusMode: true,
-  stopOnError: "off",
   fontSize: "medium",
-  freedomMode: false,
 };
 
 export default function SettingsPage() {
@@ -128,26 +120,6 @@ export default function SettingsPage() {
               Customize in Cosmetics
             </Link>
           </div>
-          <OptionRow
-            label="Stop on error"
-            description="Prevent advancing past mistakes"
-          >
-            <SegmentedControl
-              options={[
-                { value: "off", label: "Off" },
-                { value: "word", label: "Word" },
-                { value: "letter", label: "Letter" },
-              ]}
-              value={settings.stopOnError}
-              onChange={(v) => update("stopOnError", v as Settings["stopOnError"])}
-            />
-          </OptionRow>
-          <Toggle
-            label="Freedom mode"
-            description="Allow backspacing across words"
-            checked={settings.freedomMode}
-            onChange={(v) => update("freedomMode", v)}
-          />
         </Section>
 
         {/* Appearance */}
@@ -193,33 +165,6 @@ export default function SettingsPage() {
               onChange={(v) => update("fontSize", v as Settings["fontSize"])}
             />
           </OptionRow>
-        </Section>
-
-        {/* Sound */}
-        <Section title="Sound">
-          <Toggle
-            label="Typing sounds"
-            description="Play a sound on each keypress"
-            checked={settings.soundEnabled}
-            onChange={(v) => update("soundEnabled", v)}
-          />
-          {settings.soundEnabled && (
-            <OptionRow label="Volume" description="Adjust keypress sound volume">
-              <div className="flex items-center gap-3">
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={settings.soundVolume}
-                  onChange={(e) => update("soundVolume", Number(e.target.value))}
-                  className="w-28 h-1.5 accent-accent bg-white/[0.08] rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-accent [&::-webkit-slider-thumb]:shadow-[0_0_6px_rgba(77,158,255,0.4)]"
-                />
-                <span className="text-xs text-muted tabular-nums w-8 text-right">
-                  {settings.soundVolume}%
-                </span>
-              </div>
-            </OptionRow>
-          )}
         </Section>
 
         {/* Account */}
