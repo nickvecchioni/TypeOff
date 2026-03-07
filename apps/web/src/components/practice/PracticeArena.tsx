@@ -33,10 +33,10 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
   const [cascadeKey, setCascadeKey] = useState(0);
   // Custom text words (for "custom" content type)
   const [customWords, setCustomWords] = useState<string[] | null>(null);
-  // Weak keys and accuracy for drill mode (Pro only)
+  // Weak keys and accuracy for practice mode (Pro only)
   const [weakKeys, setWeakKeys] = useState<string[]>([]);
   const [weakKeyAccuracy, setWeakKeyAccuracy] = useState<Record<string, number>>({});
-  // Weak bigrams and accuracy for drill/smart practice (Pro only)
+  // Weak bigrams and accuracy for practice mode (Pro only)
   const [weakBigrams, setWeakBigrams] = useState<string[]>([]);
   const [weakBigramAccuracy, setWeakBigramAccuracy] = useState<Record<string, number>>({});
 
@@ -49,7 +49,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
       .catch(() => {});
   }, [session?.user?.id]);
 
-  // Fetch weak keys + weak bigrams for drill mode (Pro only)
+  // Fetch weak keys + weak bigrams for practice mode (Pro only)
   useEffect(() => {
     if (!session?.user?.id || !isPro) return;
     fetch("/api/key-accuracy")
@@ -178,27 +178,24 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
     requestAnimationFrame(() => containerRef.current?.focus());
   }, []);
 
-  // Auto-start drill mode when ?drill=true is set and weak keys are ready
-  const drillActivatedRef = useRef(false);
+  // Auto-start practice mode when ?drill=true or ?bigrams=... is set
+  const practiceActivatedRef = useRef(false);
   useEffect(() => {
-    if (!initialDrill || !isPro || !weakKeys.length || drillActivatedRef.current) return;
-    drillActivatedRef.current = true;
-    engine.setConfig({ ...engine.config, contentType: "practice", weakKeys });
+    if (practiceActivatedRef.current || !isPro) return;
+    if (initialDrill && !weakKeys.length) return; // wait for weak keys to load
+    if (!initialDrill && !initialBigrams?.length) return; // no practice param set
+    practiceActivatedRef.current = true;
+    engine.setConfig({
+      ...engine.config,
+      contentType: "practice",
+      weakKeys,
+      weakBigrams: initialBigrams?.length ? initialBigrams : weakBigrams,
+    });
     handleAfterConfigChange();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialDrill, isPro, weakKeys]);
+  }, [initialDrill, initialBigrams, isPro, weakKeys, weakBigrams]);
 
-  // Auto-start bigram practice when ?bigrams=... is set
-  const bigramActivatedRef = useRef(false);
-  useEffect(() => {
-    if (!initialBigrams?.length || !isPro || bigramActivatedRef.current) return;
-    bigramActivatedRef.current = true;
-    engine.setConfig({ ...engine.config, contentType: "practice", weakBigrams: initialBigrams });
-    handleAfterConfigChange();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialBigrams, isPro]);
-
-  // Show Pro upsell banner for free users trying drill/bigrams
+  // Show Pro upsell banner for free users trying practice mode
   const showProUpsell = !isPro && session?.user?.id && (initialDrill || !!initialBigrams?.length);
 
   // Save results when test finishes (logged-in only)
@@ -373,13 +370,13 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
         </div>
       )}
 
-      {/* Pro upsell for free users with drill/bigram params */}
+      {/* Pro upsell for free users with practice params */}
       {showProUpsell && !isFinished && (
         <div className="rounded-lg ring-1 ring-accent/15 bg-accent/[0.03] px-4 py-3 flex items-center gap-3 animate-fade-in max-w-lg">
           <div className="flex-1">
             <p className="text-xs font-bold text-accent/70">Pro Feature</p>
             <p className="text-xs text-muted/60 leading-relaxed mt-0.5">
-              Smart practice and drill modes are available with Pro. Upgrade to target your weakest keys and bigrams.
+              Practice mode is available with Pro. Upgrade to target your weakest keys and bigrams.
             </p>
           </div>
           <Link

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Analytics — TypeOff",
+  title: "TypeOff",
   description: "Per-key heatmaps, bigram accuracy, and WPM trends",
 };
 

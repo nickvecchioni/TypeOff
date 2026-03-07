@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Cosmetics — TypeOff",
+  title: "TypeOff",
   description: "Browse and equip badges, titles, name effects, themes, and more",
 };
 

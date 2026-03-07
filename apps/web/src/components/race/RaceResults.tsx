@@ -694,7 +694,7 @@ function ProPanel({ level, xpEarned }: { level: number; xpEarned: number }) {
         {/* Feature list — inline row */}
         <div className="flex flex-wrap gap-x-3 gap-y-0.5">
           {[
-            { icon: "🎯", label: "Smart Practice" },
+            { icon: "🎯", label: "Adaptive Practice" },
             { icon: "📊", label: "Advanced analytics" },
             { icon: "🔄", label: "Unlimited replays" },
             { icon: "🎨", label: `${proCosmetics} cosmetics` },

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Practice — TypeOff",
+  title: "TypeOff",
   description: "Sharpen your typing speed with solo practice drills",
 };
 

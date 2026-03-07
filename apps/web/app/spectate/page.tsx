@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { SpectatePageClient } from "@/components/spectate/SpectatePageClient";
 
 export const metadata = {
-  title: "Spectate — TypeOff",
+  title: "TypeOff",
   description: "Watch live typing races in real-time",
 };
 

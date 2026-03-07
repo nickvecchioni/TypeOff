@@ -22,7 +22,7 @@ const TOTAL_REWARD_COUNT = COSMETIC_REWARDS.length;
 const FREE_REWARD_COUNT = TOTAL_REWARD_COUNT - PRO_REWARD_COUNT;
 
 const COMPARISON_ROWS: { feature: string; desc?: string; free: boolean | string; pro: boolean | string }[] = [
-  { feature: "Smart Practice",      desc: "AI-generated drills targeting your weakest keys",          free: false,                             pro: true },
+  { feature: "Adaptive Practice",   desc: "Targets your weakest keys & bigrams",          free: false,                             pro: true },
   { feature: "Advanced Analytics",  desc: "Per-key heatmaps, bigram breakdown, WPM trends",          free: false,                             pro: true },
   { feature: "Speed Analysis",      desc: "Post-race breakdown: peak sustained WPM, hesitations, warmup curve", free: false,                  pro: true },
   { feature: "Race Replays",        desc: "Rewatch any race keystroke by keystroke",                  free: "Last 3",                          pro: "Unlimited" },
@@ -52,8 +52,8 @@ const FEATURES = [
         <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" />
       </svg>
     ),
-    title: "Smart Practice",
-    description: "Targets your weakest keys and bigrams. Generates custom drills from your accuracy data so every session attacks what slows you down.",
+    title: "Adaptive Practice",
+    description: "Targets your weakest keys and bigrams. Generates words from your accuracy data so every session attacks what slows you down.",
     amber: true,
   },
   {
@@ -151,7 +151,7 @@ export default function ProPage() {
                 </h1>
 
                 <p className="text-sm text-muted/65 max-w-md mx-auto leading-relaxed">
-                  Pro gives you drills built from your accuracy data, analytics that
+                  Pro gives you adaptive practice built from your accuracy data, analytics that
                   pinpoint where you lose speed, and tools to turn weak spots into strengths.
                 </p>
 
@@ -430,7 +430,7 @@ function SubscriberView({
                 "Full race history & advanced analytics",
                 "Post-race speed analysis & hesitation tracking",
                 "Unlimited replays",
-                "Custom text & focus drill modes",
+                "Custom text & adaptive practice",
                 "Profile bio & featured race pin",
                 "Full data export (CSV & JSON)",
                 "Pro badge in every race",

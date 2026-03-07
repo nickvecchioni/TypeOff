@@ -44,7 +44,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { username } = await params;
   return {
-    title: `${username} — TypeOff`,
+    title: "TypeOff",
     description: `View ${username}'s typing stats, achievements, and race history on TypeOff`,
   };
 }

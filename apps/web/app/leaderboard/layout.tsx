@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Leaderboard — TypeOff",
+  title: "TypeOff",
   description: "Global typing leaderboards ranked by PP, text, and universe",
 };
 

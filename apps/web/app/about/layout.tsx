@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "About — TypeOff",
+  title: "TypeOff",
   description: "Learn about TypeOff — game modes, the rank system, and features",
 };
 

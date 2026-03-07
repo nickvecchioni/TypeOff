@@ -309,52 +309,6 @@ export function applyPunctuation(words: string[], seed?: number): string[] {
 }
 
 /**
- * Generate words biased toward keys in `weakKeys`.
- * Words containing more weak keys get proportionally more draw weight.
- * Falls back to normal generation if no weak keys are provided.
- */
-export function generatePracticeWords(
-  pool: string[],
-  count: number,
-  weakKeys: string[],
-  seed?: number
-): string[] {
-  if (weakKeys.length === 0) return generateWords(pool, count, seed);
-
-  const weakSet = new Set(weakKeys.map(k => k.toLowerCase()));
-  const scored = pool.map(word => {
-    const hits = word.split("").filter(ch => weakSet.has(ch)).length;
-    return { word, weight: 1 + hits * 2 };
-  });
-
-  const totalWeight = scored.reduce((s, e) => s + e.weight, 0);
-  const rng = mulberry32(seed ?? Date.now());
-  const words: string[] = [];
-  let prevWord = "";
-
-  for (let i = 0; i < count; i++) {
-    let target = rng() * totalWeight;
-    let chosen = scored[scored.length - 1].word;
-    for (const entry of scored) {
-      target -= entry.weight;
-      if (target <= 0) { chosen = entry.word; break; }
-    }
-    if (chosen === prevWord && scored.length > 1) {
-      target = rng() * totalWeight;
-      for (const entry of scored) {
-        if (entry.word === chosen) continue;
-        target -= entry.weight;
-        if (target <= 0) { chosen = entry.word; break; }
-      }
-    }
-    prevWord = chosen;
-    words.push(chosen);
-  }
-
-  return words;
-}
-
-/**
  * Unified word generator for solo mode.
  * Dispatches based on contentType, applies punctuation if enabled.
  */
@@ -393,11 +347,7 @@ export function generateSoloWords(config: TestConfig, seed?: number): string[] {
       const count = config.mode === "wordcount" ? config.duration : 200;
       const weakKeys = config.weakKeys ?? [];
       const weakBigrams = config.weakBigrams ?? [];
-      if (weakBigrams.length > 0) {
-        words = generatePracticeWordsWithBigrams(pool, count, weakBigrams, s);
-      } else {
-        words = generatePracticeWords(pool, count, weakKeys, s);
-      }
+      words = generatePracticeCombined(pool, count, weakKeys, weakBigrams, s);
       break;
     }
     case "code": {
@@ -425,25 +375,34 @@ export function generateSoloWords(config: TestConfig, seed?: number): string[] {
 
 
 /**
- * Generate words biased toward words containing specified weak bigrams.
- * Words containing more weak bigrams get proportionally more draw weight.
+ * Generate words biased toward both weak keys and weak bigrams.
+ * Combines both signals: +2 per weak-key hit, +3 per weak-bigram hit.
+ * Falls back to normal generation if neither is provided.
  */
-export function generatePracticeWordsWithBigrams(
+export function generatePracticeCombined(
   pool: string[],
   count: number,
+  weakKeys: string[],
   weakBigrams: string[],
   seed?: number
 ): string[] {
-  if (weakBigrams.length === 0) return generateWords(pool, count, seed);
+  if (weakKeys.length === 0 && weakBigrams.length === 0) return generateWords(pool, count, seed);
 
+  const weakKeySet = new Set(weakKeys.map(k => k.toLowerCase()));
   const bigramSet = new Set(weakBigrams.map(b => b.toLowerCase()));
+
   const scored = pool.map(word => {
     const lower = word.toLowerCase();
-    let hits = 0;
-    for (let i = 0; i < lower.length - 1; i++) {
-      if (bigramSet.has(lower[i] + lower[i + 1])) hits++;
+    let weight = 1;
+    if (weakKeySet.size > 0) {
+      weight += lower.split("").filter(ch => weakKeySet.has(ch)).length * 2;
     }
-    return { word, weight: 1 + hits * 3 };
+    if (bigramSet.size > 0) {
+      for (let i = 0; i < lower.length - 1; i++) {
+        if (bigramSet.has(lower[i] + lower[i + 1])) weight += 3;
+      }
+    }
+    return { word, weight };
   });
 
   const totalWeight = scored.reduce((s, e) => s + e.weight, 0);

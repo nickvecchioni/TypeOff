@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Ranks — TypeOff",
+  title: "TypeOff",
   description: "Learn about the ranking system from Bronze to Grandmaster",
 };
 

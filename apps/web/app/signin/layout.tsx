@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Sign In — TypeOff",
+  title: "TypeOff",
   description: "Sign in to TypeOff to track your typing speed and compete in ranked races",
 };
 

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Report Issue — TypeOff",
+  title: "TypeOff",
   description: "Report a bug or issue with TypeOff",
 };
 

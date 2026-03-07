@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Race — TypeOff",
+  title: "TypeOff",
   description: "Queue up for a ranked typing race with ELO matchmaking",
 };
 

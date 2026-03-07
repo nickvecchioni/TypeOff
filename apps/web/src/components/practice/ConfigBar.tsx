@@ -122,20 +122,12 @@ export function ConfigBar({
         >
           custom
         </Chip>
-        {isPro && practiceWeakKeys?.length ? (
+        {isPro && (practiceWeakKeys?.length || practiceWeakBigrams?.length) ? (
           <Chip
-            active={ct === "practice" && !(config.weakBigrams?.length)}
-            onClick={() => set({ contentType: "practice", weakBigrams: undefined })}
-          >
-            drill
-          </Chip>
-        ) : null}
-        {isPro && (practiceWeakBigrams?.length || practiceWeakKeys?.length) ? (
-          <Chip
-            active={ct === "practice" && !!(config.weakBigrams?.length)}
+            active={ct === "practice"}
             onClick={() => set({ contentType: "practice", weakBigrams: practiceWeakBigrams })}
           >
-            smart
+            practice
           </Chip>
         ) : null}
       </div>
@@ -217,13 +209,13 @@ export function ConfigBar({
         </div>
       )}
 
-      {/* ── Drill weak keys info ── */}
-      {ct === "practice" && !isTyping && !config.weakBigrams?.length && practiceWeakKeys && practiceWeakKeys.length > 0 && (
+      {/* ── Practice: weak keys + bigrams info ── */}
+      {ct === "practice" && !isTyping && (practiceWeakKeys?.length || practiceWeakBigrams?.length) ? (
         <div className="flex flex-wrap justify-center gap-1.5">
-          {practiceWeakKeys.map((k) => {
+          {practiceWeakKeys?.map((k) => {
             const acc = weakKeyAccuracy?.[k];
             return (
-              <span key={k} className="flex items-center gap-1 px-2 py-0.5 rounded bg-surface/60 ring-1 ring-white/[0.06]">
+              <span key={`key-${k}`} className="flex items-center gap-1 px-2 py-0.5 rounded bg-surface/60 ring-1 ring-white/[0.06]">
                 <span className="text-accent font-bold text-xs">{k}</span>
                 {acc != null && (
                   <span className={`text-xs tabular-nums ${acc < 0.7 ? "text-error/60" : acc < 0.9 ? "text-amber-400/60" : "text-correct/60"}`}>
@@ -233,16 +225,10 @@ export function ConfigBar({
               </span>
             );
           })}
-        </div>
-      )}
-
-      {/* ── Smart practice: weak bigrams info ── */}
-      {ct === "practice" && !isTyping && config.weakBigrams?.length ? (
-        <div className="flex flex-wrap justify-center gap-1.5">
-          {config.weakBigrams.map((bg) => {
+          {practiceWeakBigrams?.map((bg) => {
             const acc = weakBigramAccuracy?.[bg];
             return (
-              <span key={bg} className="flex items-center gap-1 px-2 py-0.5 rounded bg-surface/60 ring-1 ring-white/[0.06]">
+              <span key={`bg-${bg}`} className="flex items-center gap-1 px-2 py-0.5 rounded bg-surface/60 ring-1 ring-white/[0.06]">
                 <span className="text-accent font-bold text-xs">{bg}</span>
                 {acc != null && (
                   <span className={`text-xs tabular-nums ${acc < 0.7 ? "text-error/60" : acc < 0.9 ? "text-amber-400/60" : "text-correct/60"}`}>
