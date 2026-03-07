@@ -33,12 +33,10 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
   const [cascadeKey, setCascadeKey] = useState(0);
   // Custom text words (for "custom" content type)
   const [customWords, setCustomWords] = useState<string[] | null>(null);
-  // Weak keys and accuracy for practice mode (Pro only)
+  // Weak keys for practice mode (Pro only)
   const [weakKeys, setWeakKeys] = useState<string[]>([]);
-  const [weakKeyAccuracy, setWeakKeyAccuracy] = useState<Record<string, number>>({});
-  // Weak bigrams and accuracy for practice mode (Pro only)
+  // Weak bigrams for practice mode (Pro only)
   const [weakBigrams, setWeakBigrams] = useState<string[]>([]);
-  const [weakBigramAccuracy, setWeakBigramAccuracy] = useState<Record<string, number>>({});
 
   // Fetch PBs on mount (logged-in only)
   useEffect(() => {
@@ -54,13 +52,8 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
     if (!session?.user?.id || !isPro) return;
     fetch("/api/key-accuracy")
       .then((res) => res.json())
-      .then((data: { weakKeys?: string[]; all?: Array<{ key: string; accuracy: number; total: number }> }) => {
+      .then((data: { weakKeys?: string[] }) => {
         if (data.weakKeys) setWeakKeys(data.weakKeys);
-        if (data.all) {
-          const acc: Record<string, number> = {};
-          for (const k of data.all) acc[k.key] = k.accuracy;
-          setWeakKeyAccuracy(acc);
-        }
       })
       .catch(() => {});
     fetch("/api/bigram-accuracy")
@@ -72,9 +65,6 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
         meaningful.sort((a, b) => a.accuracy - b.accuracy);
         const worst = meaningful.slice(0, 10);
         setWeakBigrams(worst.map((b) => b.bigram));
-        const acc: Record<string, number> = {};
-        for (const b of data.bigrams) acc[b.bigram] = b.accuracy / 100;
-        setWeakBigramAccuracy(acc);
       })
       .catch(() => {});
   }, [session?.user?.id, isPro]);
@@ -301,9 +291,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
               engine.setConfig({ ...engine.config, contentType: "custom", customText: words.join(" "), mode: "wordcount", duration: 0 });
             }}
             practiceWeakKeys={weakKeys}
-            weakKeyAccuracy={weakKeyAccuracy}
             practiceWeakBigrams={weakBigrams}
-            weakBigramAccuracy={weakBigramAccuracy}
             isPro={isPro}
           />
         </div>
@@ -362,9 +350,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
               engine.setConfig({ ...engine.config, contentType: "custom", customText: words.join(" "), mode: "wordcount", duration: 0 });
             }}
             practiceWeakKeys={weakKeys}
-            weakKeyAccuracy={weakKeyAccuracy}
             practiceWeakBigrams={weakBigrams}
-            weakBigramAccuracy={weakBigramAccuracy}
             isPro={isPro}
           />
         </div>

@@ -65,8 +65,8 @@ export function PPLeaderboard({ userId }: PPLeaderboardProps) {
         <span></span>
         <span>Player</span>
         <span className="text-right">PP</span>
-        <span className="text-right hidden sm:block">Best WPM</span>
         <span className="text-right hidden sm:block">Avg WPM</span>
+        <span className="text-right hidden sm:block">Best WPM</span>
         <span className="text-right hidden sm:block">Races</span>
       </div>
 
@@ -119,11 +119,11 @@ export function PPLeaderboard({ userId }: PPLeaderboardProps) {
               <span className="text-sm tabular-nums text-right font-semibold text-purple-400">
                 {Math.floor(entry.totalPp)}
               </span>
-              <span className="text-sm text-muted tabular-nums text-right hidden sm:block">
-                {entry.maxWpm != null ? entry.maxWpm.toFixed(2) : "-"}
-              </span>
               <span className="text-sm text-muted/70 tabular-nums text-right hidden sm:block">
                 {entry.avgWpm != null ? entry.avgWpm.toFixed(2) : "-"}
+              </span>
+              <span className="text-sm text-muted tabular-nums text-right hidden sm:block">
+                {entry.maxWpm != null ? entry.maxWpm.toFixed(2) : "-"}
               </span>
               <span className="text-sm text-muted/65 tabular-nums text-right hidden sm:block">
                 {entry.racesPlayed ?? 0}
