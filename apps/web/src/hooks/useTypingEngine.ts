@@ -98,7 +98,6 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     config.contentType === "marathon" ||
     config.contentType === "sprint" ||
     config.contentType === "custom" ||
-    config.contentType === "practice" ||
     config.contentType === "code";
 
   // Track the seed used for word generation (useful for looking up quote authors, etc.)
@@ -551,7 +550,7 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
           const ci = currentCharIndexRef.current;
           const currentWords = wordsRef.current;
           const word = currentWords[wi];
-          if (word && word.chars.every(c => c.expected === " ")) {
+          if (word && word.chars.every(c => c.expected === " " || c.expected === "\t")) {
             // Atomically mark all remaining chars correct and advance to next word
             const remaining = word.chars.length - ci;
             correctCharsRef.current += remaining;

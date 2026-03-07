@@ -352,7 +352,7 @@ export function generateSoloWords(config: TestConfig, seed?: number): string[] {
     }
     case "code": {
       const snippet = getCodeSnippet(s, config.codeLanguage);
-      words = tokenizeCode(snippet.code);
+      words = tokenizeCode(snippet.code, config.codeIndent ?? "spaces");
       break;
     }
     case "zen": {

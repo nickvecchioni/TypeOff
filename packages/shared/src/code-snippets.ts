@@ -59,11 +59,24 @@ export const CODE_LANGUAGES = LANGUAGES;
 
 /**
  * Convert code string into typeable word tokens.
- * Preserves indentation as space characters and newlines as `\n` tokens.
+ * Preserves indentation as space characters (or tabs) and newlines as `\n` tokens.
  */
-export function tokenizeCode(snippet: string): string[] {
+export function tokenizeCode(snippet: string, indentStyle: "spaces" | "tabs" = "spaces"): string[] {
   const lines = snippet.split("\n");
   const tokens: string[] = [];
+
+  // Detect the base indent width (smallest non-zero indent) for tab conversion
+  let baseIndent = Infinity;
+  if (indentStyle === "tabs") {
+    for (const line of lines) {
+      const stripped = line.replace(/^\s+/, "");
+      const indent = line.length - stripped.length;
+      if (indent > 0 && indent < baseIndent) {
+        baseIndent = indent;
+      }
+    }
+    if (!isFinite(baseIndent)) baseIndent = 2;
+  }
 
   for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
     const line = lines[lineIdx];
@@ -75,7 +88,12 @@ export function tokenizeCode(snippet: string): string[] {
     const stripped = line.replace(/^\s+/, "");
     const indent = line.length - stripped.length;
     if (indent > 0) {
-      tokens.push(" ".repeat(indent));
+      if (indentStyle === "tabs") {
+        const tabCount = Math.max(1, Math.round(indent / baseIndent));
+        tokens.push("\t".repeat(tabCount));
+      } else {
+        tokens.push(" ".repeat(indent));
+      }
     }
 
     // Split remaining code into tokens on whitespace

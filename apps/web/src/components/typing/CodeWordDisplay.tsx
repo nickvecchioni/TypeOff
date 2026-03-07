@@ -70,7 +70,9 @@ export function CodeWordDisplay({
             }
 
             if (isIndent) {
-              // Render indent as whitespace
+              // Render indent as whitespace — tabs use 4ch width each
+              const isTabs = text.includes("\t");
+              const displayWidth = isTabs ? text.length * 4 : text.length;
               return (
                 <span
                   key={globalIdx}
@@ -78,18 +80,19 @@ export function CodeWordDisplay({
                   className={`relative inline-block ${
                     isActive ? "border-b-2 border-accent/50" : ""
                   }`}
-                  style={{ width: `${text.length}ch` }}
+                  style={{ width: `${displayWidth}ch` }}
                 >
                   {word.chars.map((char, ci) => (
                     <span
                       key={ci}
-                      className={
+                      className={`${
                         char.status === "correct" ? "text-correct/30" :
                         char.status === "incorrect" ? "text-error" :
                         "text-transparent"
-                      }
+                      }`}
+                      style={isTabs ? { display: "inline-block", width: "4ch", textAlign: "center" } : undefined}
                     >
-                      {"\u00B7"}
+                      {isTabs ? "\u2192" : "\u00B7"}
                     </span>
                   ))}
                 </span>

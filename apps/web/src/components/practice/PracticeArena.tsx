@@ -275,8 +275,8 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
 
   // Whether to show a stopwatch (elapsed time) instead of countdown
   const ct = engine.config.contentType ?? "words";
-  const showStopwatch = ct === "quotes" || ct === "custom" || ct === "practice" || ct === "code" || ct === "zen" ||
-    (ct === "words" && engine.config.mode === "wordcount");
+  const showStopwatch = ct === "quotes" || ct === "custom" || ct === "code" || ct === "zen" ||
+    ((ct === "words" || ct === "practice") && engine.config.mode === "wordcount");
 
   // Route custom mode with no text (freeform) or legacy zen to freeform arena
   const isFreeform = ct === "zen" || (ct === "custom" && !engine.config.customText);

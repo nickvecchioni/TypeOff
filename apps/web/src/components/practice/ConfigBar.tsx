@@ -23,7 +23,7 @@ const TIME_OPTIONS = [15, 30, 60, 120];
 const WORD_OPTIONS = [10, 25, 50, 100];
 
 /** Content types that use a fixed word set (no time/words toggle or duration picker) */
-const FIXED_CONTENT_TYPES: ContentType[] = ["quotes", "custom", "practice", "code", "zen"];
+const FIXED_CONTENT_TYPES: ContentType[] = ["quotes", "custom", "code", "zen"];
 
 export function ConfigBar({
   config,
@@ -40,9 +40,13 @@ export function ConfigBar({
   const [customInput, setCustomInput] = React.useState("");
   const isTyping = status === "typing";
   const ct = config.contentType ?? "words";
+  // Treat "practice" as a words/mixed variant for UI purposes
+  const isWordsVariant = ct === "words" || ct === "practice";
   const isFixed = FIXED_CONTENT_TYPES.includes(ct);
   const mode = config.mode === "wordcount" ? "words" : "time";
   const durations = mode === "time" ? TIME_OPTIONS : WORD_OPTIONS;
+  const hasPracticeData = isPro && !!(practiceWeakKeys?.length || practiceWeakBigrams?.length);
+  const isPracticeOn = ct === "practice";
 
   const set = (patch: Partial<TestConfig>) => {
     onConfigChange({ ...config, ...patch });
@@ -68,19 +72,31 @@ export function ConfigBar({
     }
   };
 
-  // Switches to words content type with punctuation flag set — preserves sub-options
+  // Switches to words (or practice if toggled on) with punctuation flag — preserves sub-options
   const setWordMode = (punctuation: boolean) => {
-    const needsDefaults = FIXED_CONTENT_TYPES.includes(ct);
+    const wasFixed = FIXED_CONTENT_TYPES.includes(ct);
+    const targetCt = isPracticeOn ? "practice" : "words";
     set({
-      contentType: "words",
+      contentType: targetCt,
       punctuation,
-      mode: needsDefaults
+      ...(targetCt === "practice" ? { weakBigrams: practiceWeakBigrams } : {}),
+      mode: wasFixed
         ? "timed"
         : config.mode === "wordcount"
         ? "wordcount"
         : "timed",
-      duration: needsDefaults || config.duration <= 0 ? TIME_OPTIONS[0] : config.duration,
+      duration: wasFixed || config.duration <= 0 ? TIME_OPTIONS[0] : config.duration,
     });
+  };
+
+  const togglePractice = () => {
+    if (isPracticeOn) {
+      // Turn off practice → back to words
+      set({ contentType: "words" });
+    } else {
+      // Turn on practice
+      set({ contentType: "practice", weakBigrams: practiceWeakBigrams });
+    }
   };
 
   return (
@@ -91,16 +107,12 @@ export function ConfigBar({
     >
       {/* ── Primary row: mode / content type ── */}
       <div className="flex items-center gap-0.5">
-        <Chip active={ct === "words" && !(config.punctuation ?? false)} onClick={() => setWordMode(false)}>
+        <Chip active={isWordsVariant && !(config.punctuation ?? false)} onClick={() => setWordMode(false)}>
           words
         </Chip>
-        <Chip active={ct === "words" && (config.punctuation ?? false)} onClick={() => setWordMode(true)}>
+        <Chip active={isWordsVariant && (config.punctuation ?? false)} onClick={() => setWordMode(true)}>
           mixed
         </Chip>
-
-        <Divider />
-
-        {/* Special modes */}
         <Chip active={ct === "quotes"} onClick={() => setContentType("quotes")}>
           quotes
         </Chip>
@@ -110,39 +122,10 @@ export function ConfigBar({
         <Chip active={ct === "custom" || ct === "zen"} onClick={() => setContentType("custom")}>
           custom
         </Chip>
-        {isPro && (practiceWeakKeys?.length || practiceWeakBigrams?.length) ? (
-          <Chip
-            active={ct === "practice"}
-            onClick={() => set({ contentType: "practice", punctuation: false, weakBigrams: practiceWeakBigrams })}
-          >
-            practice
-          </Chip>
-        ) : null}
       </div>
 
       {/* ── Secondary row: timing + accessories ── */}
       <div className="flex items-center gap-1.5">
-        {/* Practice: words / mixed toggle */}
-        {ct === "practice" && (
-          <>
-            <div className="flex items-center gap-0.5">
-              <Sub
-                active={!(config.punctuation ?? false)}
-                onClick={() => set({ punctuation: false })}
-              >
-                words
-              </Sub>
-              <Sub
-                active={config.punctuation ?? false}
-                onClick={() => set({ punctuation: true })}
-              >
-                mixed
-              </Sub>
-            </div>
-            <MicroDivider />
-          </>
-        )}
-
         {/* Time / words toggle + duration (faded for fixed modes) */}
         <div
           className={`flex items-center gap-0.5 transition-opacity ${
@@ -190,7 +173,17 @@ export function ConfigBar({
           />
         </div>
 
-        {/* Code language picker */}
+        {/* Practice toggle — only for words/mixed, Pro users with weak data */}
+        {isWordsVariant && hasPracticeData && (
+          <>
+            <MicroDivider />
+            <Sub active={isPracticeOn} onClick={togglePractice}>
+              practice
+            </Sub>
+          </>
+        )}
+
+        {/* Code language picker + indent style */}
         {ct === "code" && (
           <>
             <MicroDivider />
@@ -198,6 +191,21 @@ export function ConfigBar({
               value={config.codeLanguage}
               onChange={(lang) => set({ codeLanguage: lang })}
             />
+            <MicroDivider />
+            <div className="flex items-center gap-0.5">
+              <Sub
+                active={(config.codeIndent ?? "spaces") === "spaces"}
+                onClick={() => set({ codeIndent: "spaces" })}
+              >
+                spaces
+              </Sub>
+              <Sub
+                active={config.codeIndent === "tabs"}
+                onClick={() => set({ codeIndent: "tabs" })}
+              >
+                tabs
+              </Sub>
+            </div>
           </>
         )}
       </div>
@@ -264,10 +272,6 @@ export function ConfigBar({
 }
 
 /* ── Sub-components ────────────────────────────────────── */
-
-function Divider() {
-  return <div className="w-px h-3.5 bg-white/[0.07] mx-1" />;
-}
 
 function MicroDivider() {
   return <div className="w-px h-3 bg-white/[0.06] mx-0.5" />;

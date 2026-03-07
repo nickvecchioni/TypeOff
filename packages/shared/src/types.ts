@@ -28,6 +28,7 @@ export interface TestConfig {
   weakKeys?: string[];    // populated from server for "practice" mode
   strictMode?: StrictMode;
   codeLanguage?: string;
+  codeIndent?: "spaces" | "tabs";
   weakBigrams?: string[];
 }
 
