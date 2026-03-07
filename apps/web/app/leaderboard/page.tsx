@@ -190,7 +190,7 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
           </div>
 
           {/* Rows */}
-          <div className="divide-y divide-white/[0.03] animate-fade-in">
+          <div className="animate-fade-in">
             {rows.map((row, i) => {
               const rank = i + 1;
               const isMe = userId === row.id;
@@ -521,7 +521,7 @@ async function SoloLeaderboard({
           </div>
 
           {/* Rows */}
-          <div className="divide-y divide-white/[0.03] animate-fade-in">
+          <div className="animate-fade-in">
             {rows.map((row, i) => {
               const rank = i + 1;
               const isMe = userId === row.usrId;
@@ -759,7 +759,7 @@ async function UniverseLeaderboard({
             <span className="text-right hidden sm:block">Wins</span>
           </div>
 
-          <div className="divide-y divide-white/[0.03] animate-fade-in">
+          <div className="animate-fade-in">
             {rows.map((row, i) => {
               const rank = i + 1;
               const isMe = userId === row.usrId;

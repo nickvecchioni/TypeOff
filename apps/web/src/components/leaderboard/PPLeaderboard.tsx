@@ -71,7 +71,7 @@ export function PPLeaderboard({ userId }: PPLeaderboardProps) {
       </div>
 
       {/* Rows */}
-      <div className="divide-y divide-white/[0.03]">
+      <div>
         {entries.map((entry, i) => {
           const isMe = userId === entry.userId;
           const rank = i + 1;

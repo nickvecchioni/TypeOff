@@ -43,7 +43,7 @@ export function TextLeaderboard({ seed, mode, limit = 10 }: TextLeaderboardProps
           Text Leaderboard
         </span>
       </div>
-      <div className="divide-y divide-white/[0.03]">
+      <div>
         {entries.map((entry, i) => {
           const rankColor =
             i === 0 ? "text-rank-gold" :

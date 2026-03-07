@@ -43,7 +43,7 @@ export default function LeaderboardLoading() {
         </div>
 
         {/* Row skeletons */}
-        <div className="divide-y divide-white/[0.03]">
+        <div>
           {[...Array(12)].map((_, i) => (
             <div
               key={i}

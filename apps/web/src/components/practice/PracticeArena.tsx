@@ -297,7 +297,6 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
             onCustomTextChange={(words) => {
               setCustomWords(words);
               engine.setConfig({ ...engine.config, contentType: "custom", customText: words.join(" "), mode: "wordcount", duration: 0 });
-              handleAfterConfigChange();
             }}
             practiceWeakKeys={weakKeys}
             weakKeyAccuracy={weakKeyAccuracy}
@@ -359,7 +358,6 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
             onCustomTextChange={(words) => {
               setCustomWords(words);
               engine.setConfig({ ...engine.config, contentType: "custom", customText: words.join(" "), mode: "wordcount", duration: 0 });
-              handleAfterConfigChange();
             }}
             practiceWeakKeys={weakKeys}
             weakKeyAccuracy={weakKeyAccuracy}
