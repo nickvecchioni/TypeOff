@@ -54,13 +54,13 @@ export function PPLeaderboard({ userId }: PPLeaderboardProps) {
     );
   }
 
-  const gridCols = "grid-cols-[2rem_1fr_4.5rem] sm:grid-cols-[2rem_1fr_4.5rem_5rem_5rem_3.5rem]";
+  const gridCols = "grid-cols-[2rem_1fr_4.5rem] sm:grid-cols-[2.5rem_1fr_5rem_5.5rem_5.5rem_4rem]";
 
   return (
     <div>
       {/* Header */}
       <div
-        className={`grid ${gridCols} items-center gap-3 px-4 py-2 text-xs text-muted/60 uppercase tracking-wider border-b border-white/[0.04]`}
+        className={`grid ${gridCols} items-center gap-3 px-4 py-2.5 text-xs text-muted/60 uppercase tracking-wider border-b border-white/[0.04]`}
       >
         <span></span>
         <span>Player</span>
@@ -91,41 +91,39 @@ export function PPLeaderboard({ userId }: PPLeaderboardProps) {
             <Link
               key={entry.userId}
               href={`/profile/${entry.username}`}
-              className={`grid ${gridCols} items-center gap-3 px-4 py-2.5 rounded-lg transition-colors ${rowBg}`}
+              className={`grid ${gridCols} items-center gap-3 px-4 py-3 rounded-lg transition-colors ${rowBg}`}
             >
-              <span className={`text-sm font-bold tabular-nums ${rankColor}`}>
+              <span className={`text-base font-bold tabular-nums ${rankColor}`}>
                 {rank}
               </span>
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="flex flex-col min-w-0">
-                  <span className={`truncate text-sm leading-tight ${isMe ? "font-bold" : ""}`}>
-                    {isMe ? (
-                      <CosmeticName nameColor={null} nameEffect={entry.activeNameEffect}>
-                        <span className="text-accent">{entry.username}</span>
-                      </CosmeticName>
-                    ) : (
-                      <CosmeticName nameColor={entry.activeNameColor} nameEffect={entry.activeNameEffect}>
-                        {entry.username}
-                      </CosmeticName>
-                    )}
-                    <span className="text-xs font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded ml-1.5">{getXpLevel(entry.totalXp ?? 0).level}</span>
-                  </span>
-                  {entry.activeTitle && (
-                    <span className="text-xs text-muted/60 leading-tight">{TITLE_TEXTS[entry.activeTitle] ?? entry.activeTitle}</span>
+                <span className={`text-base truncate ${isMe ? "font-bold" : ""}`}>
+                  {isMe ? (
+                    <CosmeticName nameColor={null} nameEffect={entry.activeNameEffect}>
+                      <span className="text-accent">{entry.username}</span>
+                    </CosmeticName>
+                  ) : (
+                    <CosmeticName nameColor={entry.activeNameColor} nameEffect={entry.activeNameEffect}>
+                      {entry.username}
+                    </CosmeticName>
                   )}
-                </div>
+                </span>
+                <span className="text-xs font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-0.5 rounded shrink-0">{getXpLevel(entry.totalXp ?? 0).level}</span>
+                {entry.activeTitle && (
+                  <span className="text-xs text-muted/50 shrink-0 hidden sm:inline">{TITLE_TEXTS[entry.activeTitle] ?? entry.activeTitle}</span>
+                )}
                 <CosmeticBadge badge={entry.activeBadge} />
               </div>
-              <span className="text-sm tabular-nums text-right font-semibold text-purple-400">
+              <span className="text-base tabular-nums text-right font-semibold text-purple-400">
                 {Math.floor(entry.totalPp)}
               </span>
-              <span className="text-sm text-muted/70 tabular-nums text-right hidden sm:block">
+              <span className="text-base text-muted/70 tabular-nums text-right hidden sm:block">
                 {entry.avgWpm != null ? entry.avgWpm.toFixed(2) : "-"}
               </span>
-              <span className="text-sm text-muted tabular-nums text-right hidden sm:block">
+              <span className="text-base text-muted tabular-nums text-right hidden sm:block">
                 {entry.maxWpm != null ? entry.maxWpm.toFixed(2) : "-"}
               </span>
-              <span className="text-sm text-muted/65 tabular-nums text-right hidden sm:block">
+              <span className="text-base text-muted/65 tabular-nums text-right hidden sm:block">
                 {entry.racesPlayed ?? 0}
               </span>
             </Link>
