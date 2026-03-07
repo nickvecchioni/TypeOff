@@ -8,6 +8,7 @@ import { getQuoteByIndex, getCodeSnippet } from "@typeoff/shared";
 import { WpmChart } from "@/components/typing/WpmChart";
 import { KeyboardHeatmap } from "@/components/typing/KeyboardHeatmap";
 import { ShareResultCard } from "@/components/shared/ShareResultCard";
+import { AdBanner } from "@/components/AdBanner";
 
 /* ── Speed Analysis ──────────────────────────────────────── */
 
@@ -376,6 +377,9 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed }: Practi
       {isPro && stats.wpmHistory.length >= 4 && (
         <SpeedAnalysis wpmHistory={stats.wpmHistory} wpm={stats.wpm} />
       )}
+
+      {/* ── Ad ──────────────────────────────────────────────── */}
+      <AdBanner slot="practice_results" format="horizontal" className="w-full" />
 
       {/* ── Actions ────────────────────────────────────────── */}
       <div className="flex flex-col items-center gap-1.5 w-full max-w-lg mx-auto pt-1">

@@ -7,6 +7,7 @@ import { users, userStats, userActiveCosmetics, soloResults, raceParticipants, r
 import { and, desc, eq, gt, isNotNull, isNull, like, or, sql, inArray } from "drizzle-orm";
 import type { RankTier } from "@typeoff/shared";
 import { getRankInfo, getXpLevel, TITLE_TEXTS } from "@typeoff/shared";
+import { AdBanner } from "@/components/AdBanner";
 import { LeaderboardTabs } from "@/components/leaderboard/LeaderboardTabs";
 import { SoloModeSelector } from "@/components/leaderboard/SoloModeSelector";
 import { UniverseSelector } from "@/components/leaderboard/UniverseSelector";
@@ -48,6 +49,7 @@ export default async function LeaderboardPage({
       <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
         <div className="max-w-6xl mx-auto">
           <SoloLeaderboard params={params} userId={userId} db={db} />
+          <AdBanner slot="leaderboard" format="horizontal" className="w-full mt-6" />
         </div>
       </main>
     );
@@ -57,6 +59,7 @@ export default async function LeaderboardPage({
     <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
       <div className="max-w-6xl mx-auto">
         <RankedLeaderboard userId={userId} db={db} universe={typeof params.universe === "string" ? params.universe : undefined} />
+        <AdBanner slot="leaderboard" format="horizontal" className="w-full mt-6" />
       </div>
     </main>
   );

@@ -31,6 +31,7 @@ import { CosmeticBadge } from "@/components/CosmeticBadge";
 import type { EmoteEvent } from "./FloatingEmote";
 import { useSocket } from "@/hooks/useSocket";
 import { ShareResultCard } from "@/components/shared/ShareResultCard";
+import { AdBanner } from "@/components/AdBanner";
 
 interface RankChange {
   direction: "up" | "down";
@@ -1534,6 +1535,9 @@ export function RaceResults({
           )}
         </div>
       )}
+
+      {/* ── Ad ──────────────────────────────────────────────── */}
+      <AdBanner slot="race_results" format="horizontal" className="w-full" />
 
       {/* ── RACE AGAIN + ACTIONS ──────────────────────────── */}
       <div

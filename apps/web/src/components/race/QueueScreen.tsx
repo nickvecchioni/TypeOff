@@ -7,6 +7,7 @@ import { PartyPanel } from "@/components/social/PartyPanel";
 import { ChallengesWidget } from "@/components/race/ChallengesWidget";
 import { GuestPlacement } from "@/components/race/GuestPlacement";
 import { getXpLevel, COSMETIC_REWARDS, getRankInfo, getRankProgress, getNextDivisionElo, TYPING_THEMES, NAME_COLORS, CURSOR_STYLES } from "@typeoff/shared";
+import { AdBanner } from "@/components/AdBanner";
 import type { PartyState, RankTier, ModeCategory, CosmeticReward } from "@typeoff/shared";
 
 // ── Rank styling maps ───────────────────────────────────────────────────────
@@ -735,6 +736,7 @@ export function QueueScreen({
                 isPro={session.user.isPro ?? false}
               />
             </div>
+            <AdBanner slot="queue_screen" format="horizontal" className="w-full mt-3" />
             </div>
           )}
         </>
