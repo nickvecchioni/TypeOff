@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { SignInPrompt } from "@/components/auth/SignInPrompt";
-import { AdBanner } from "@/components/AdBanner";
 
 interface RaceRow {
   raceId: string;
@@ -322,9 +321,6 @@ export default function HistoryPage() {
             </button>
           </div>
         )}
-
-        {/* Ad */}
-        <AdBanner slot="history" format="horizontal" className="w-full mt-4" />
 
         {/* Upgrade CTA for free users */}
         {!isPro && races.length >= 10 && (

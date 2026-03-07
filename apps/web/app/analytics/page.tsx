@@ -12,7 +12,6 @@ import type { KeyStatsMap } from "@typeoff/shared";
 import { estimateWpmImpact, rankWeaknesses } from "@typeoff/shared";
 import { AnalyticsInsights } from "@/components/analytics/AnalyticsInsights";
 import { PracticeProgress } from "@/components/practice/PracticeProgress";
-import { AdBanner } from "@/components/AdBanner";
 
 interface ModeStat {
   modeCategory: string;
@@ -580,7 +579,6 @@ export default function AnalyticsPage() {
         )}
 
         </div>
-        <AdBanner slot="analytics" format="horizontal" className="w-full mt-6" />
       </div>
     </main>
   );
