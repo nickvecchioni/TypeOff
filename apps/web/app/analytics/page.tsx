@@ -230,12 +230,12 @@ export default function AnalyticsPage() {
   ];
 
   return (
-    <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
+    <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
       <div className="max-w-7xl mx-auto">
 
         {/* ── Hero Stats ─────────────────────────────────────── */}
         <div
-          className="relative rounded-xl overflow-hidden ring-1 ring-white/[0.06] mb-4 animate-fade-in"
+          className="relative rounded-xl overflow-hidden ring-1 ring-white/[0.06] mb-5 animate-fade-in"
           style={{ animationDelay: "0ms" }}
         >
           {/* Top accent line */}
@@ -244,13 +244,13 @@ export default function AnalyticsPage() {
           {/* Subtle radial glow */}
           <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top_left,rgba(77,158,255,0.06),transparent_50%)]" />
 
-          <div className="relative px-4 sm:px-5 py-3.5 sm:py-4">
+          <div className="relative px-5 sm:px-6 py-5 sm:py-6">
             {/* Header row */}
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
-                <h1 className="text-sm font-bold text-text tracking-tight">Analytics</h1>
+                <h1 className="text-base font-bold text-text tracking-tight">Analytics</h1>
                 {isPro && data.totalRaces != null && (
-                  <span className="text-xs text-muted/50 tabular-nums">{data.totalRaces} races analyzed</span>
+                  <span className="text-sm text-muted/60 tabular-nums">{data.totalRaces} races analyzed</span>
                 )}
               </div>
               {/* Export + Mode filter pills */}
@@ -260,7 +260,7 @@ export default function AnalyticsPage() {
                   <button
                     onClick={() => handleExport("json")}
                     disabled={exporting}
-                    className="text-xs text-muted/40 hover:text-accent transition-colors disabled:opacity-50 px-1.5 py-1"
+                    className="text-xs text-muted/60 hover:text-accent transition-colors disabled:opacity-50 px-2 py-1"
                     title="Export all data as JSON"
                   >
                     {exporting ? "..." : "JSON"}
@@ -268,7 +268,7 @@ export default function AnalyticsPage() {
                   <button
                     onClick={() => handleExport("csv")}
                     disabled={exporting}
-                    className="text-xs text-muted/40 hover:text-accent transition-colors disabled:opacity-50 px-1.5 py-1"
+                    className="text-xs text-muted/60 hover:text-accent transition-colors disabled:opacity-50 px-2 py-1"
                     title="Export race data as CSV"
                   >
                     CSV
@@ -280,10 +280,10 @@ export default function AnalyticsPage() {
                   <button
                     key={f.value}
                     onClick={() => setModeFilter(f.value)}
-                    className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                       modeFilter === f.value
                         ? "bg-accent/15 text-accent shadow-sm shadow-accent/10"
-                        : "text-muted/50 hover:text-text"
+                        : "text-muted/60 hover:text-text"
                     }`}
                   >
                     {f.label}
@@ -295,37 +295,37 @@ export default function AnalyticsPage() {
 
             <div className={`transition-opacity duration-200 ${loading && data ? "opacity-50 pointer-events-none" : ""}`}>
               {/* Primary + secondary stats */}
-              <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-6">
+              <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-8">
                 {/* Primary: Best WPM */}
                 <div className="shrink-0">
-                  <div className="text-xs text-muted/50 uppercase tracking-widest mb-1">Best WPM</div>
+                  <div className="text-xs text-muted/60 uppercase tracking-widest mb-1.5 font-medium">Best WPM</div>
                   <div className="flex items-baseline gap-0.5">
-                    <span className="text-3xl sm:text-4xl font-black text-accent tabular-nums leading-none tracking-tight">
+                    <span className="text-4xl sm:text-5xl font-black text-accent tabular-nums leading-none tracking-tight">
                       {data.personalRecords.bestWpm ? Math.floor(data.personalRecords.bestWpm.wpm) : "—"}
                     </span>
                     {data.personalRecords.bestWpm && (
-                      <span className="text-lg font-bold text-accent/30 tabular-nums">
+                      <span className="text-xl font-bold text-accent/35 tabular-nums">
                         .{(data.personalRecords.bestWpm.wpm % 1).toFixed(2).slice(2)}
                       </span>
                     )}
                     {trendDelta !== null && (
-                      <span className={`ml-1.5 text-xs font-bold tabular-nums ${trendDelta >= 0 ? "text-correct/70" : "text-error/70"}`}>
+                      <span className={`ml-2 text-sm font-bold tabular-nums ${trendDelta >= 0 ? "text-correct/80" : "text-error/80"}`}>
                         {trendDelta >= 0 ? "+" : ""}{trendDelta.toFixed(1)}
                       </span>
                     )}
                   </div>
                   {data.personalRecords.bestWpm && (
-                    <div className="text-[11px] text-muted/40 mt-0.5 tabular-nums">
+                    <div className="text-xs text-muted/50 mt-1 tabular-nums">
                       {new Date(data.personalRecords.bestWpm.date).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
                     </div>
                   )}
                 </div>
 
                 {/* Divider */}
-                <div className="hidden sm:block w-px h-10 bg-white/[0.06] self-center" />
+                <div className="hidden sm:block w-px h-12 bg-white/[0.08] self-center" />
 
                 {/* Secondary stats grid */}
-                <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-x-5 gap-y-2">
+                <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3">
                   <StatCell
                     label="Best Accuracy"
                     value={data.personalRecords.bestAccuracy ? `${data.personalRecords.bestAccuracy.accuracy.toFixed(1)}%` : "—"}
@@ -378,22 +378,22 @@ export default function AnalyticsPage() {
 
         {/* ── Tab Navigation ──────────────────────────────────── */}
         <div
-          className="flex items-center gap-0 mb-4 border-b border-white/[0.06] animate-fade-in"
+          className="flex items-center gap-1 mb-5 border-b border-white/[0.06] animate-fade-in"
           style={{ animationDelay: "60ms" }}
         >
           {TABS.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`relative px-3 py-2 text-xs font-medium transition-colors ${
+              className={`relative px-4 py-2.5 text-sm font-medium transition-colors ${
                 activeTab === tab.id
                   ? "text-accent"
-                  : "text-muted/50 hover:text-text"
+                  : "text-muted/60 hover:text-text"
               }`}
             >
               {tab.label}
               {tab.pro && (
-                <span className="ml-1 text-[10px] font-black tracking-wider text-accent/60 uppercase">pro</span>
+                <span className="ml-1 text-[11px] font-black tracking-wider text-accent/60 uppercase">pro</span>
               )}
               {activeTab === tab.id && (
                 <div className="absolute bottom-0 left-2 right-2 h-[2px] bg-accent rounded-full" />
@@ -406,7 +406,7 @@ export default function AnalyticsPage() {
 
         {/* ── Overview Tab ─────────────────────────────────────── */}
         {activeTab === "overview" && (
-          <div className="space-y-3 animate-fade-in">
+          <div className="space-y-4 animate-fade-in">
             {/* WPM Trend Chart */}
             {data.wpmTrend.length >= 2 && (
               <Card title="WPM Trend" subtitle={isPro ? undefined : "(last 20 races)"} delay={0}>
@@ -415,12 +415,12 @@ export default function AnalyticsPage() {
             )}
 
             {isPro ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* ELO Trend */}
                 {(data.eloTrend?.length ?? 0) >= 2 && (
                   <Card title="ELO Trend" delay={60}>
-                    <div style={{ minHeight: 140 }}>
-                      <AreaMiniChart data={data.eloTrend!.map((r) => r.elo)} color="#eab308" height={120} />
+                    <div style={{ minHeight: 180 }}>
+                      <AreaMiniChart data={data.eloTrend!.map((r) => r.elo)} color="#eab308" height={160} />
                     </div>
                   </Card>
                 )}
@@ -433,19 +433,19 @@ export default function AnalyticsPage() {
                         <button
                           key={m.modeCategory}
                           onClick={() => setModeFilter(m.modeCategory)}
-                          className="group rounded-lg bg-white/[0.02] ring-1 ring-white/[0.05] hover:ring-accent/20 px-2.5 py-2 text-left transition-all hover:bg-white/[0.04]"
+                          className="group rounded-lg bg-white/[0.02] ring-1 ring-white/[0.05] hover:ring-accent/20 px-3 py-2.5 text-left transition-all hover:bg-white/[0.04]"
                         >
-                          <div className="text-[11px] text-muted/45 uppercase tracking-wider mb-0.5 group-hover:text-accent/60 transition-colors">
+                          <div className="text-xs text-muted/55 uppercase tracking-wider mb-1 group-hover:text-accent/60 transition-colors font-medium">
                             {MODE_LABELS[m.modeCategory] ?? m.modeCategory}
                           </div>
-                          <div className="text-sm font-bold text-text tabular-nums leading-tight">
+                          <div className="text-base font-bold text-text tabular-nums leading-tight">
                             {Math.floor(m.bestWpm)}
-                            <span className="text-[0.55em] text-muted/40 ml-1 font-semibold">best</span>
+                            <span className="text-[0.6em] text-muted/50 ml-1 font-semibold">best</span>
                           </div>
-                          <div className="flex items-center gap-1.5 mt-0.5">
-                            <span className="text-[11px] text-muted/50 tabular-nums">{Math.floor(m.avgWpm)} avg</span>
-                            <span className="text-[11px] text-muted/35">·</span>
-                            <span className="text-[11px] text-muted/50 tabular-nums">{m.racesPlayed} races</span>
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <span className="text-xs text-muted/55 tabular-nums">{Math.floor(m.avgWpm)} avg</span>
+                            <span className="text-xs text-muted/40">·</span>
+                            <span className="text-xs text-muted/55 tabular-nums">{m.racesPlayed} races</span>
                           </div>
                         </button>
                       ))}
@@ -456,18 +456,18 @@ export default function AnalyticsPage() {
                 {/* Speed by Placement */}
                 {(data.speedByPlacement?.length ?? 0) > 0 && (
                   <Card title="Speed by Placement" delay={180}>
-                    <div className="grid grid-cols-2 gap-2 mb-3">
+                    <div className="grid grid-cols-2 gap-2.5 mb-3">
                       {data.speedByPlacement!.map((p) => {
                         const ord = p.placement === 1 ? "1st" : p.placement === 2 ? "2nd" : p.placement === 3 ? "3rd" : `${p.placement}th`;
                         const color = p.placement === 1 ? "text-rank-gold" : p.placement === 2 ? "text-rank-silver" : p.placement === 3 ? "text-rank-bronze" : "text-muted/60";
                         return (
-                          <div key={p.placement} className="rounded-lg bg-white/[0.02] ring-1 ring-white/[0.05] px-3 py-2">
-                            <div className={`text-xs font-bold ${color} mb-0.5 uppercase tracking-wider`}>{ord}</div>
-                            <div className="text-base font-bold text-text tabular-nums">
+                          <div key={p.placement} className="rounded-lg bg-white/[0.02] ring-1 ring-white/[0.05] px-3.5 py-2.5">
+                            <div className={`text-xs font-bold ${color} mb-1 uppercase tracking-wider`}>{ord}</div>
+                            <div className="text-lg font-bold text-text tabular-nums">
                               {Math.floor(p.avgWpm)}
-                              <span className="text-[0.65em] text-muted/40 ml-0.5">wpm</span>
+                              <span className="text-[0.6em] text-muted/50 ml-0.5">wpm</span>
                             </div>
-                            <div className="text-xs text-muted/40 tabular-nums">{p.count} races</div>
+                            <div className="text-xs text-muted/50 tabular-nums">{p.count} races</div>
                           </div>
                         );
                       })}
@@ -485,9 +485,9 @@ export default function AnalyticsPage() {
                     subtitle="30 days"
                     delay={240}
                     headerRight={
-                      <span className="text-xs font-bold text-text tabular-nums">
+                      <span className="text-sm font-bold text-text tabular-nums">
                         {totalRacesLast30}
-                        <span className="text-muted/40 font-normal ml-1">races</span>
+                        <span className="text-muted/50 font-normal ml-1">races</span>
                       </span>
                     }
                   >
@@ -514,7 +514,7 @@ export default function AnalyticsPage() {
               </div>
             ) : (
               /* Free user overview */
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {/* By Mode */}
                 {modeFilter === "all" && (data.modeStats?.length ?? 0) > 0 && (
                   <Card title="By Mode" delay={60}>
@@ -522,16 +522,16 @@ export default function AnalyticsPage() {
                       {(data.modeStats ?? []).map((m) => (
                         <div
                           key={m.modeCategory}
-                          className="rounded-lg bg-white/[0.02] ring-1 ring-white/[0.05] px-2.5 py-2"
+                          className="rounded-lg bg-white/[0.02] ring-1 ring-white/[0.05] px-3 py-2.5"
                         >
-                          <div className="text-[11px] text-muted/45 uppercase tracking-wider mb-0.5">
+                          <div className="text-xs text-muted/55 uppercase tracking-wider mb-1 font-medium">
                             {MODE_LABELS[m.modeCategory] ?? m.modeCategory}
                           </div>
-                          <div className="text-sm font-bold text-text tabular-nums leading-tight">
+                          <div className="text-base font-bold text-text tabular-nums leading-tight">
                             {Math.floor(m.bestWpm)}
-                            <span className="text-[0.55em] text-muted/40 ml-1 font-semibold">best</span>
+                            <span className="text-[0.6em] text-muted/50 ml-1 font-semibold">best</span>
                           </div>
-                          <div className="text-[11px] text-muted/50 tabular-nums mt-0.5">{m.racesPlayed} races</div>
+                          <div className="text-xs text-muted/55 tabular-nums mt-0.5">{m.racesPlayed} races</div>
                         </div>
                       ))}
                     </div>
@@ -550,7 +550,7 @@ export default function AnalyticsPage() {
 
         {/* ── Keys Tab ──────────────────────────────────────── */}
         {activeTab === "keys" && (
-          <div className="space-y-3 animate-fade-in">
+          <div className="space-y-4 animate-fade-in">
             {keyStats && Object.keys(keyStats).length > 0 ? (
               <Card
                 title="Keyboard Heatmap"
@@ -559,9 +559,9 @@ export default function AnalyticsPage() {
                   isPro ? (
                     <Link
                       href="/solo?drill=true"
-                      className="px-3 py-1.5 rounded-lg bg-accent/10 ring-1 ring-accent/20 text-xs font-semibold text-accent hover:bg-accent/15 transition-colors"
+                      className="px-3.5 py-1.5 rounded-lg bg-accent/10 ring-1 ring-accent/20 text-sm font-semibold text-accent hover:bg-accent/15 transition-colors"
                     >
-                      Start Drill Session
+                      Start Practice
                     </Link>
                   ) : undefined
                 }
@@ -576,7 +576,7 @@ export default function AnalyticsPage() {
 
         {/* ── Bigrams Tab ──────────────────────────────────── */}
         {activeTab === "bigrams" && (
-          <div className="space-y-3 animate-fade-in">
+          <div className="space-y-4 animate-fade-in">
             {bigrams.length > 0 ? (
               <>
                 {isPro ? (
@@ -599,7 +599,7 @@ export default function AnalyticsPage() {
 
         {/* ── Progress Tab (Pro) ────────────────────────────── */}
         {activeTab === "progress" && isPro && (
-          <div className="space-y-3 animate-fade-in">
+          <div className="space-y-4 animate-fade-in">
             <Card title="Practice Progress" subtitle="accuracy trends over time" delay={0}>
               <PracticeProgress />
             </Card>
@@ -617,9 +617,9 @@ export default function AnalyticsPage() {
 function StatCell({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div>
-      <div className="text-[11px] text-muted/40 uppercase tracking-widest mb-0.5">{label}</div>
-      <div className="text-sm font-bold text-text tabular-nums leading-tight">{value}</div>
-      {sub && <div className="text-[11px] text-muted/35 tabular-nums">{sub}</div>}
+      <div className="text-xs text-muted/55 uppercase tracking-widest mb-1 font-medium">{label}</div>
+      <div className="text-base font-bold text-text tabular-nums leading-tight">{value}</div>
+      {sub && <div className="text-xs text-muted/45 tabular-nums mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -642,14 +642,14 @@ function Card({
       className="rounded-xl bg-surface/25 ring-1 ring-white/[0.05] overflow-hidden animate-fade-in"
       style={{ animationDelay: `${delay}ms` }}
     >
-      <div className="px-3 sm:px-4 pt-3 pb-2 flex items-center justify-between">
-        <div className="flex items-baseline gap-2">
-          <h2 className="text-xs font-bold text-muted/60 uppercase tracking-widest">{title}</h2>
-          {subtitle && <span className="text-[11px] text-muted/35">{subtitle}</span>}
+      <div className="px-4 sm:px-5 pt-4 pb-2.5 flex items-center justify-between">
+        <div className="flex items-baseline gap-2.5">
+          <h2 className="text-sm font-bold text-muted/70 uppercase tracking-widest">{title}</h2>
+          {subtitle && <span className="text-xs text-muted/45">{subtitle}</span>}
         </div>
         {headerRight}
       </div>
-      <div className="px-3 sm:px-4 pb-3">{children}</div>
+      <div className="px-4 sm:px-5 pb-4">{children}</div>
     </div>
   );
 }
@@ -658,7 +658,7 @@ function EmptyState({ message }: { message: string }) {
   return (
     <div className="rounded-xl bg-surface/20 ring-1 ring-white/[0.04] px-6 py-12 text-center animate-fade-in">
       <div className="text-muted/30 text-2xl mb-3">⌨</div>
-      <p className="text-xs text-muted/50">{message}</p>
+      <p className="text-sm text-muted/55">{message}</p>
     </div>
   );
 }
@@ -666,7 +666,7 @@ function EmptyState({ message }: { message: string }) {
 function ActivityChart({ days, maxCount }: { days: { date: string; count: number; dayOfWeek: number }[]; maxCount: number }) {
   return (
     <div>
-      <div className="flex items-end gap-[3px] h-20">
+      <div className="flex items-end gap-[3px] h-24">
         {days.map((d) => {
           const pct = (d.count / maxCount) * 100;
           const intensity = d.count === 0 ? 0 : 0.3 + (pct / 100) * 0.7;
@@ -685,7 +685,7 @@ function ActivityChart({ days, maxCount }: { days: { date: string; count: number
           );
         })}
       </div>
-      <div className="flex justify-between mt-2 text-[11px] text-muted/40 tabular-nums">
+      <div className="flex justify-between mt-2 text-xs text-muted/50 tabular-nums">
         <span>{days[0]?.date.slice(5)}</span>
         <span>today</span>
       </div>
@@ -723,7 +723,7 @@ function PlacementBar({ dist }: {
         {segments.map((s) => (
           <div key={s.label} className="flex items-center gap-1">
             <span className={`text-xs font-bold tabular-nums ${s.textColor}`}>{s.pct}%</span>
-            <span className="text-[11px] text-muted/40">{s.label}</span>
+            <span className="text-xs text-muted/50">{s.label}</span>
           </div>
         ))}
       </div>
@@ -769,10 +769,10 @@ function FreeBigramPreview({
             const textColor = b.accuracy < 70 ? "text-error" : b.accuracy < 90 ? "text-amber-400" : "text-correct";
             const barColor = b.accuracy < 70 ? "bg-error/40" : b.accuracy < 90 ? "bg-amber-400/40" : "bg-correct/40";
             return (
-              <div key={b.bigram} className="rounded-lg bg-white/[0.02] ring-1 ring-white/[0.05] px-3 py-2.5">
+              <div key={b.bigram} className="rounded-lg bg-white/[0.02] ring-1 ring-white/[0.05] px-3.5 py-3">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-accent font-bold text-sm">{b.bigram}</span>
-                  <span className={`text-xs font-bold tabular-nums ${textColor}`}>
+                  <span className="text-accent font-bold text-base">{b.bigram}</span>
+                  <span className={`text-sm font-bold tabular-nums ${textColor}`}>
                     {Math.round(b.accuracy)}%
                   </span>
                 </div>
@@ -786,8 +786,8 @@ function FreeBigramPreview({
       </Card>
       {teaserInsight && (
         <div className="rounded-xl ring-1 ring-accent/10 bg-accent/[0.03] px-4 py-3 animate-fade-in" style={{ animationDelay: "180ms" }}>
-          <p className="text-xs text-muted/65 leading-relaxed">{teaserInsight.insight}</p>
-          <p className="text-xs text-muted/40 mt-1.5">Upgrade to Pro for all insights and practice drills</p>
+          <p className="text-sm text-muted/70 leading-relaxed">{teaserInsight.insight}</p>
+          <p className="text-xs text-muted/50 mt-1.5">Upgrade to Pro for all insights and adaptive practice</p>
         </div>
       )}
     </>
@@ -807,21 +807,21 @@ function ProUpsell() {
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,rgba(77,158,255,0.04),transparent_60%)]" />
 
       <div className="relative px-5 py-5">
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-[11px] font-black tracking-[0.15em] text-accent bg-accent/10 ring-1 ring-accent/25 rounded px-1.5 py-0.5 leading-none">
+        <div className="flex items-center gap-2.5 mb-4">
+          <span className="text-xs font-black tracking-[0.15em] text-accent bg-accent/10 ring-1 ring-accent/25 rounded px-2 py-0.5 leading-none">
             PRO
           </span>
-          <span className="text-xs font-bold text-text/70">Unlock Full Analytics</span>
+          <span className="text-sm font-bold text-text/75">Unlock Full Analytics</span>
         </div>
 
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2 mb-5">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 mb-5">
           {[
-            "Smart practice drills for weak keys",
+            "Adaptive practice for weak keys & bigrams",
             "ELO trends & placement distribution",
             "Full bigram analysis & WPM insights",
             "Activity tracking & consistency scores",
           ].map((label) => (
-            <div key={label} className="flex items-start gap-2 text-xs text-text/45">
+            <div key={label} className="flex items-start gap-2 text-sm text-text/55">
               <span className="text-accent/60 mt-px shrink-0">+</span>
               <span>{label}</span>
             </div>
@@ -830,11 +830,11 @@ function ProUpsell() {
 
         <Link
           href="/pro"
-          className="block w-full rounded-lg bg-accent/10 ring-1 ring-accent/30 text-accent text-xs font-bold px-4 py-2.5 hover:bg-accent/20 transition-colors text-center"
+          className="block w-full rounded-lg bg-accent/10 ring-1 ring-accent/30 text-accent text-sm font-bold px-4 py-2.5 hover:bg-accent/20 transition-colors text-center"
         >
           Upgrade to Pro — $4.99/mo
         </Link>
-        <p className="text-[11px] text-muted/35 text-center mt-1.5">cancel anytime</p>
+        <p className="text-xs text-muted/45 text-center mt-1.5">cancel anytime</p>
       </div>
     </div>
   );
@@ -847,8 +847,8 @@ function WpmTrendChart({ points }: { points: Array<{ date: string; wpm: number; 
   if (points.length < 2) return null;
 
   const W = 600;
-  const H = 140;
-  const pad = { top: 10, right: 12, bottom: 18, left: 36 };
+  const H = 200;
+  const pad = { top: 12, right: 14, bottom: 20, left: 40 };
   const iW = W - pad.left - pad.right;
   const iH = H - pad.top - pad.bottom;
 
@@ -884,7 +884,7 @@ function WpmTrendChart({ points }: { points: Array<{ date: string; wpm: number; 
       ref={svgRef}
       viewBox={`0 0 ${W} ${H}`}
       className="w-full"
-      style={{ height: 140, cursor: "crosshair" }}
+      style={{ height: 200, cursor: "crosshair" }}
       onMouseMove={handleMouseMove}
       onMouseLeave={() => setHoveredIdx(null)}
     >
@@ -899,7 +899,7 @@ function WpmTrendChart({ points }: { points: Array<{ date: string; wpm: number; 
       {yTicks.map((t) => (
         <g key={t}>
           <line x1={pad.left} x2={W - pad.right} y1={sy(t)} y2={sy(t)} stroke="rgba(255,255,255,0.06)" strokeWidth={1} />
-          <text x={pad.left - 5} y={sy(t)} fill="var(--color-muted)" fontSize={9} textAnchor="end" dominantBaseline="middle" fillOpacity={0.5}>
+          <text x={pad.left - 6} y={sy(t)} fill="var(--color-muted)" fontSize={10} textAnchor="end" dominantBaseline="middle" fillOpacity={0.55}>
             {t}
           </text>
         </g>
@@ -918,7 +918,7 @@ function WpmTrendChart({ points }: { points: Array<{ date: string; wpm: number; 
       ))}
 
       {/* X-axis label */}
-      <text x={W / 2} y={H - 2} fill="var(--color-muted)" fontSize={8} textAnchor="middle" fillOpacity={0.3}>
+      <text x={W / 2} y={H - 3} fill="var(--color-muted)" fontSize={10} textAnchor="middle" fillOpacity={0.4}>
         races
       </text>
 
@@ -1043,9 +1043,9 @@ function AreaMiniChart({ data, color, height }: { data: number[]; color: string;
         x={w / 2}
         y={padding.top + innerH + 14}
         fill="var(--color-muted)"
-        fontSize={9}
+        fontSize={10}
         textAnchor="middle"
-        fillOpacity={0.3}
+        fillOpacity={0.4}
       >
         races
       </text>
