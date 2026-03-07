@@ -4,7 +4,7 @@ export default function LeaderboardLoading() {
 
   return (
     <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-baseline justify-between mb-6">
           <div className="flex items-center gap-4">

@@ -321,9 +321,9 @@ export function RaceArena() {
     || (race.phase === "finished" && race.placementRace != null);
 
   return (
-    <div className={`flex flex-col items-center gap-8 w-full max-w-4xl mx-auto flex-1 min-h-0 transition-[padding] duration-500 ease-out ${
+    <div className={`flex flex-col items-center gap-8 w-full max-w-5xl mx-auto flex-1 min-h-0 transition-[padding] duration-500 ease-out ${
       race.phase === "queuing" || race.phase === "placed" ? "justify-center" :
-      transitionState === "results" ? "pt-2" :
+      showResults ? "pt-2" :
       "py-[8vh]"
     }`}>
       {race.error && (

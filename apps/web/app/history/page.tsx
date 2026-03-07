@@ -124,7 +124,7 @@ export default function HistoryPage() {
   if (status === "loading" || loading) {
     return (
       <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
-        <div className="max-w-3xl mx-auto space-y-4">
+        <div className="max-w-5xl mx-auto space-y-4">
           <div className="h-8 w-48 rounded bg-surface/40 animate-pulse" />
           <div className="h-64 rounded-xl bg-surface/30 animate-pulse" />
         </div>
@@ -134,7 +134,7 @@ export default function HistoryPage() {
 
   return (
     <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
-      <div className="max-w-3xl mx-auto animate-fade-in">
+      <div className="max-w-5xl mx-auto animate-fade-in">
         <div className="flex items-start justify-between gap-4 mb-5">
           <div>
             <h1 className="text-lg font-bold text-text tracking-tight">Race History</h1>

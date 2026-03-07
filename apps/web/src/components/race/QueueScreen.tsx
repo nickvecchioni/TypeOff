@@ -393,7 +393,7 @@ export function QueueScreen({
   /* ── Loading skeleton ─────────────────────────────────────────────────── */
   if (status === "loading") {
     return (
-      <div className="flex flex-col items-center w-full max-w-4xl gap-5">
+      <div className="flex flex-col items-center w-full max-w-5xl gap-5">
         <div className="w-full h-[68px] rounded-xl bg-surface-bright/10 animate-pulse" />
         <div className="w-full max-w-lg">
           <div className="grid grid-cols-4 gap-1.5 mb-4">
@@ -469,7 +469,7 @@ export function QueueScreen({
 
   /* ── Idle state ───────────────────────────────────────────────────────── */
   return (
-    <div className="flex flex-col items-center w-full max-w-4xl gap-3">
+    <div className="flex flex-col items-center w-full max-w-5xl gap-3">
       {session?.user ? (
         !session.user.placementsCompleted ? (
           <GuestPlacement startFromIdle onPlacementComplete={handlePlacementClaim} />

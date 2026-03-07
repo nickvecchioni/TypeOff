@@ -27,7 +27,7 @@ export function LandingPhase({ onStart, hideSignIn }: { onStart: () => void; hid
   const [hoveredBar, setHoveredBar] = useState<number | null>(null);
 
   return (
-    <div className="flex flex-col items-center w-full max-w-4xl mx-auto px-4">
+    <div className="flex flex-col items-center w-full max-w-5xl mx-auto px-4">
 
       {/* Headline */}
       <div
@@ -444,7 +444,7 @@ export function GuestPlacement({
   /* ── Idle / Racing ───────────────────────────────────── */
   return (
     <div
-      className={`flex flex-col items-center gap-5 w-full max-w-4xl mx-auto pb-20 ${
+      className={`flex flex-col items-center gap-5 w-full max-w-5xl mx-auto pb-20 ${
         isTyping ? "focus-active" : ""
       }`}
       key={cascadeKey}

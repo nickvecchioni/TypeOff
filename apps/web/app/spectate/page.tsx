@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function SpectatePage() {
   return (
-    <main className="flex-1 flex flex-col px-4 py-8 max-w-4xl mx-auto w-full">
+    <main className="flex-1 flex flex-col px-4 py-8 max-w-6xl mx-auto w-full">
       <Suspense>
         <SpectatePageClient />
       </Suspense>

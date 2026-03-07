@@ -111,7 +111,7 @@ export default function ProPage() {
   if (status === "loading") {
     return (
       <main className="flex-1 flex flex-col min-h-0 overflow-hidden px-4 sm:px-5 py-4">
-        <div className="flex-1 min-h-0 max-w-[960px] mx-auto w-full space-y-3">
+        <div className="flex-1 min-h-0 max-w-5xl mx-auto w-full space-y-3">
           <div className="h-6 w-40 rounded bg-surface/40 animate-pulse" />
           <div className="h-4 w-64 rounded bg-surface/30 animate-pulse" />
           <div className="h-32 rounded-xl bg-surface/40 animate-pulse" />
@@ -127,7 +127,7 @@ export default function ProPage() {
 
   return (
     <main className="flex-1 flex flex-col min-h-0 overflow-y-auto px-4 sm:px-6 py-6">
-      <div className="max-w-[960px] mx-auto w-full">
+      <div className="max-w-5xl mx-auto w-full">
         {isPro ? (
           <SubscriberView
             session={session}

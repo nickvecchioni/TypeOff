@@ -102,7 +102,7 @@ export function ZenFreeformArena() {
 
   return (
     <div
-      className={`flex flex-col items-center gap-6 w-full max-w-4xl mx-auto ${
+      className={`flex flex-col items-center gap-6 w-full max-w-5xl mx-auto ${
         isTyping ? "focus-active" : ""
       }`}
       onClick={() => containerRef.current?.focus()}

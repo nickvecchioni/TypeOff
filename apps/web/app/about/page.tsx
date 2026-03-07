@@ -120,7 +120,7 @@ const GLOW_CLASS: Record<string, string> = {
 export default function AboutPage() {
   return (
     <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         {/* ── 1. Hero Intro ─────────────────────────────────────── */}
         <div className="mb-14 animate-slide-up">
           <h1 className="text-2xl font-black text-accent uppercase tracking-wider text-glow-accent">

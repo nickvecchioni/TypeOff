@@ -283,7 +283,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
   // Route zen mode to freeform arena (no predefined words)
   if (ct === "zen") {
     return (
-      <div className="flex flex-col items-center gap-6 w-full max-w-4xl mx-auto">
+      <div className="flex flex-col items-center gap-6 w-full max-w-5xl mx-auto">
         {/* Config bar — always accessible for mode switching */}
         <div className="focus-fade flex flex-col items-center gap-2">
           <ConfigBar
@@ -316,7 +316,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
 
   return (
     <div
-      className={`flex flex-col items-center gap-6 w-full max-w-4xl mx-auto ${
+      className={`flex flex-col items-center gap-6 w-full max-w-5xl mx-auto ${
         isTyping ? "focus-active" : ""
       }`}
       onClick={(e) => {

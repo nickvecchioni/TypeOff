@@ -46,7 +46,7 @@ export default async function LeaderboardPage({
   if (tab === "solo") {
     return (
       <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <SoloLeaderboard params={params} userId={userId} db={db} />
         </div>
       </main>
@@ -55,7 +55,7 @@ export default async function LeaderboardPage({
 
   return (
     <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <RankedLeaderboard userId={userId} db={db} universe={typeof params.universe === "string" ? params.universe : undefined} />
       </div>
     </main>
