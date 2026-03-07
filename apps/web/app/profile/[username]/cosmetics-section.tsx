@@ -145,7 +145,7 @@ export function CosmeticsSection({ totalXp }: { totalXp: number }) {
           </svg>
           Cosmetics
         </span>
-        {saving && <span className="text-[10px] text-accent/50 normal-case tracking-normal font-normal">saving...</span>}
+        {saving && <span className="text-xs text-accent/50 normal-case tracking-normal font-normal">saving...</span>}
         <span className="flex-1 h-px bg-white/[0.03]" />
       </button>
 
@@ -157,7 +157,7 @@ export function CosmeticsSection({ totalXp }: { totalXp: number }) {
               <span className="text-xs font-bold text-accent tabular-nums">
                 Level {cosmeticLevel}
               </span>
-              <span className="text-[11px] text-muted/65 tabular-nums">
+              <span className="text-xs text-muted/65 tabular-nums">
                 {xpInLevel} / {nextLevelXp} XP
               </span>
             </div>
@@ -167,7 +167,7 @@ export function CosmeticsSection({ totalXp }: { totalXp: number }) {
                 style={{ width: `${Math.round(levelPct)}%` }}
               />
             </div>
-            <p className="text-[11px] text-muted/60 mt-2">
+            <p className="text-xs text-muted/60 mt-2">
               All cosmetics are free to earn through gameplay
             </p>
           </div>
@@ -219,7 +219,7 @@ export function CosmeticsSection({ totalXp }: { totalXp: number }) {
               <div className="space-y-4">
                 {ownedItems.length > 0 && (
                   <div>
-                    <h3 className="text-[11px] font-bold text-correct/70 uppercase tracking-widest mb-2">
+                    <h3 className="text-xs font-bold text-correct/70 uppercase tracking-widest mb-2">
                       Unlocked
                     </h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -238,7 +238,7 @@ export function CosmeticsSection({ totalXp }: { totalXp: number }) {
 
                 {levelLockedItems.length > 0 && (
                   <div>
-                    <h3 className="text-[11px] font-bold text-muted/50 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                    <h3 className="text-xs font-bold text-muted/50 uppercase tracking-widest mb-2 flex items-center gap-1.5">
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                         <path d="M7 11V7a5 5 0 0 1 10 0v4" />
@@ -262,13 +262,13 @@ export function CosmeticsSection({ totalXp }: { totalXp: number }) {
                 {proLockedItems.length > 0 && (
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-[11px] font-bold text-accent/55 uppercase tracking-widest flex items-center gap-1.5">
+                      <h3 className="text-xs font-bold text-accent/55 uppercase tracking-widest flex items-center gap-1.5">
                         <span>✦</span>
                         Pro Exclusive
                       </h3>
                       <Link
                         href="/pro"
-                        className="text-[9px] font-bold text-accent/50 hover:text-accent/80 transition-colors"
+                        className="text-[11px] font-bold text-accent/50 hover:text-accent/80 transition-colors"
                       >
                         Unlock with Pro →
                       </Link>
@@ -352,7 +352,7 @@ function ItemCard({
       }`}>
         {item.name}
       </p>
-      <p className={`text-[10px] mt-0.5 ${proLocked ? "text-accent/40" : "text-muted/60"}`}>
+      <p className={`text-xs mt-0.5 ${proLocked ? "text-accent/40" : "text-muted/60"}`}>
         {proLocked ? "Pro" : locked ? `Level ${item.level}` : active ? "Equipped" : "Click to equip"}
       </p>
     </button>
@@ -396,7 +396,7 @@ function ItemVisual({ item }: { item: CosmeticReward }) {
               animation: def.animation ? `${def.animation} 2s ease-in-out infinite` : undefined,
             }}
           />
-          <span className="text-[10px] text-muted/60 capitalize">{def.shape}</span>
+          <span className="text-xs text-muted/60 capitalize">{def.shape}</span>
         </div>
       );
     }

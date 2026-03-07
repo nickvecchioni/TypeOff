@@ -22,7 +22,7 @@ export function StrictModeSelector({ value, onChange }: StrictModeSelectorProps)
           key={mode.value}
           onClick={() => onChange(mode.value)}
           title={mode.tooltip}
-          className={`px-2 py-1 rounded text-[11px] font-medium transition-all ${
+          className={`px-2 py-1 rounded text-xs font-medium transition-all ${
             value === mode.value
               ? mode.value === "hard"
                 ? "text-error/80 bg-error/10"

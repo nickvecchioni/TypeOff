@@ -200,10 +200,10 @@ export function ItemsBrowser({
         </div>
         <div className="flex items-center gap-2">
           {saving && (
-            <span className="text-[10px] text-accent/50 tabular-nums">saving...</span>
+            <span className="text-xs text-accent/50 tabular-nums">saving...</span>
           )}
           {isPro && (
-            <span className="text-[10px] font-bold text-accent/70 bg-accent/[0.08] px-2 py-0.5 rounded uppercase tracking-wider">
+            <span className="text-xs font-bold text-accent/70 bg-accent/[0.08] px-2 py-0.5 rounded uppercase tracking-wider">
               Pro
             </span>
           )}
@@ -215,11 +215,11 @@ export function ItemsBrowser({
         <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center gap-3">
             <span className="text-sm font-black text-accent tabular-nums">Level {xpInfo.level}</span>
-            <span className="text-[11px] text-muted/55 tabular-nums">
+            <span className="text-xs text-muted/55 tabular-nums">
               {xpInfo.currentXp.toLocaleString()} / {xpInfo.nextLevelXp.toLocaleString()} XP
             </span>
           </div>
-          <span className="text-[11px] text-muted/65 tabular-nums">
+          <span className="text-xs text-muted/65 tabular-nums">
             {(xpInfo.nextLevelXp - xpInfo.currentXp).toLocaleString()} to next level
           </span>
         </div>
@@ -230,7 +230,7 @@ export function ItemsBrowser({
           />
         </div>
         {!isPro && (
-          <p className="text-[10px] text-muted/45 mt-2">
+          <p className="text-xs text-muted/45 mt-2">
             Pro subscribers earn 1.5× XP and unlock exclusive items
           </p>
         )}
@@ -264,8 +264,8 @@ export function ItemsBrowser({
 
       {/* ── Equipped Loadout Strip ────────────────────────── */}
       <div>
-        <h2 className="text-[10px] font-bold text-muted/60 uppercase tracking-widest mb-3 flex items-center gap-2.5">
-          <span className="text-accent/35 text-[8px]">◆</span>
+        <h2 className="text-xs font-bold text-muted/60 uppercase tracking-widest mb-3 flex items-center gap-2.5">
+          <span className="text-accent/35 text-[10px]">◆</span>
           Equipped Loadout
           <span className="flex-1 h-px bg-white/[0.03]" />
         </h2>
@@ -451,7 +451,7 @@ function ProfileHeaderCard({
         {/* Header row */}
         <div className="flex items-center justify-between mb-4">
           <span
-            className={`text-[10px] font-bold uppercase tracking-widest ${
+            className={`text-xs font-bold uppercase tracking-widest ${
               isPreviewingPro && isLockedPinned
                 ? "text-accent/50"
                 : isPreviewingNewItem
@@ -463,16 +463,16 @@ function ProfileHeaderCard({
           </span>
           <div className="flex items-center gap-2">
             {isPreviewingNewItem && !isLockedPinned && (
-              <span className="text-[10px] text-accent/45 animate-pulse">live</span>
+              <span className="text-xs text-accent/45 animate-pulse">live</span>
             )}
             {isLockedPinned && (
               <>
-                <span className={`text-[10px] ${isPreviewingPro ? "text-accent/40" : "text-muted/35"}`}>
+                <span className={`text-xs ${isPreviewingPro ? "text-accent/40" : "text-muted/35"}`}>
                   click item to dismiss
                 </span>
                 <button
                   onClick={onDismiss}
-                  className="text-[10px] text-muted/35 hover:text-muted/65 transition-colors"
+                  className="text-xs text-muted/35 hover:text-muted/65 transition-colors"
                   aria-label="Dismiss preview"
                 >
                   ✕
@@ -545,7 +545,7 @@ function LoadoutSlot({
             : "ring-white/[0.05] bg-surface/40 hover:ring-white/[0.1] hover:bg-surface/60"
       }`}
     >
-      <div className="text-[8px] uppercase tracking-widest text-muted/65 leading-none">
+      <div className="text-[10px] uppercase tracking-widest text-muted/65 leading-none">
         {cat.slotLabel}
       </div>
       <div className="h-7 flex items-center justify-center">
@@ -592,7 +592,7 @@ function CategoryTab({
     >
       {cat.label}
       <span
-        className={`ml-1.5 tabular-nums text-[10px] ${
+        className={`ml-1.5 tabular-nums text-xs ${
           isSelected ? "text-accent/40" : "text-muted/45"
         }`}
       >
@@ -665,9 +665,9 @@ function TypingPreview({
       className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] px-5 py-4 cursor-text outline-none focus:ring-white/[0.07] transition-colors"
     >
       <div className="flex items-center justify-between mb-3">
-        <span className="text-[10px] text-muted/35 uppercase tracking-widest">Try it out</span>
+        <span className="text-xs text-muted/35 uppercase tracking-widest">Try it out</span>
         {focused && (
-          <span className="text-[10px] text-muted/30">Tab to reset</span>
+          <span className="text-xs text-muted/30">Tab to reset</span>
         )}
       </div>
       <div className="text-lg leading-loose select-none">
@@ -700,7 +700,7 @@ function TypingPreview({
         )}
       </div>
       {!focused && (
-        <p className="text-[11px] text-muted/25 mt-2">Click to focus · start typing</p>
+        <p className="text-xs text-muted/25 mt-2">Click to focus · start typing</p>
       )}
     </div>
   );
@@ -770,11 +770,11 @@ function LockCallout({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs font-bold text-accent/80">{item.name}</span>
-            <span className="text-[9px] font-black text-accent bg-accent/10 ring-1 ring-accent/25 px-1.5 py-0.5 rounded uppercase tracking-wider leading-none">
+            <span className="text-[11px] font-black text-accent bg-accent/10 ring-1 ring-accent/25 px-1.5 py-0.5 rounded uppercase tracking-wider leading-none">
               PRO
             </span>
           </div>
-          <p className="text-[11px] text-muted/60 mt-0.5 leading-snug">
+          <p className="text-xs text-muted/60 mt-0.5 leading-snug">
             Pro exclusive · requires{" "}
             <span className="text-text/70 font-semibold">Level {item.level}</span>
             {levelsNeeded > 0 && (
@@ -784,7 +784,7 @@ function LockCallout({
         </div>
         <Link
           href="/pro"
-          className="shrink-0 self-center rounded-lg bg-accent/10 ring-1 ring-accent/25 text-accent text-[11px] font-bold px-3 py-1.5 hover:bg-accent/20 transition-colors whitespace-nowrap leading-none"
+          className="shrink-0 self-center rounded-lg bg-accent/10 ring-1 ring-accent/25 text-accent text-xs font-bold px-3 py-1.5 hover:bg-accent/20 transition-colors whitespace-nowrap leading-none"
         >
           Get Pro →
         </Link>
@@ -800,7 +800,7 @@ function LockCallout({
       </svg>
       <div className="flex-1 min-w-0">
         <span className="text-xs font-semibold text-text/70">{item.name}</span>
-        <span className="text-[11px] text-muted/55 ml-2">
+        <span className="text-xs text-muted/55 ml-2">
           unlocks at <span className="text-text/60 font-semibold">Level {item.level}</span>
           {levelsNeeded > 0 && (
             <span className="text-muted/40"> · {levelsNeeded} level{levelsNeeded !== 1 ? "s" : ""} to go</span>
@@ -822,7 +822,7 @@ function SectionHeader({
 }) {
   if (variant === "owned") {
     return (
-      <h3 className="text-[10px] font-bold text-correct/50 uppercase tracking-widest mb-2.5 flex items-center gap-2">
+      <h3 className="text-xs font-bold text-correct/50 uppercase tracking-widest mb-2.5 flex items-center gap-2">
         Unlocked
         <span className="text-correct/25 font-normal normal-case tracking-normal">
           {count} {count === 1 ? "item" : "items"}
@@ -832,7 +832,7 @@ function SectionHeader({
   }
   if (variant === "level") {
     return (
-      <h3 className="text-[10px] font-bold text-muted/50 uppercase tracking-widest mb-2.5 flex items-center gap-2">
+      <h3 className="text-xs font-bold text-muted/50 uppercase tracking-widest mb-2.5 flex items-center gap-2">
         <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-60">
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
           <path d="M7 11V7a5 5 0 0 1 10 0v4" />
@@ -845,7 +845,7 @@ function SectionHeader({
     );
   }
   return (
-    <h3 className="text-[10px] font-bold text-accent/60 uppercase tracking-widest mb-2.5 flex items-center gap-2">
+    <h3 className="text-xs font-bold text-accent/60 uppercase tracking-widest mb-2.5 flex items-center gap-2">
       <span className="text-accent/40">✦</span>
       Pro Exclusive
       <span className="text-accent/30 font-normal normal-case tracking-normal">
@@ -862,7 +862,7 @@ function SlotPreview({ item }: { item: CosmeticReward }) {
     case "badge":
       return <span className="text-xl">{BADGE_EMOJIS[item.id] ?? item.value}</span>;
     case "title":
-      return <span className="text-[10px] text-accent/70 font-medium truncate max-w-full px-0.5">{TITLE_TEXTS[item.id] ?? item.value}</span>;
+      return <span className="text-xs text-accent/70 font-medium truncate max-w-full px-0.5">{TITLE_TEXTS[item.id] ?? item.value}</span>;
     case "nameColor": {
       const hex = NAME_COLORS[item.id] ?? item.value;
       return (
@@ -954,7 +954,7 @@ function ItemCard({
             : "ring-accent/15 bg-accent/[0.03] hover:ring-accent/25 hover:bg-accent/[0.05]"
         }`}
       >
-        <span className="absolute top-2.5 right-2.5 text-[9px] font-black text-accent/60 bg-accent/[0.08] px-1.5 py-0.5 rounded uppercase tracking-wider leading-none">
+        <span className="absolute top-2.5 right-2.5 text-[11px] font-black text-accent/60 bg-accent/[0.08] px-1.5 py-0.5 rounded uppercase tracking-wider leading-none">
           PRO
         </span>
         <div className="mb-3 h-8 flex items-center opacity-50 group-hover:opacity-70 transition-opacity">
@@ -963,7 +963,7 @@ function ItemCard({
         <p className="text-xs font-semibold truncate leading-tight text-muted/65 group-hover:text-muted/80 transition-colors">
           {item.name}
         </p>
-        <p className="text-[10px] mt-0.5 leading-tight text-accent/40 group-hover:text-accent/60 transition-colors tabular-nums">
+        <p className="text-xs mt-0.5 leading-tight text-accent/40 group-hover:text-accent/60 transition-colors tabular-nums">
           Lv. {item.level} · Pro
         </p>
       </button>
@@ -1012,7 +1012,7 @@ function ItemCard({
       }`}>
         {item.name}
       </p>
-      <p className="text-[10px] mt-0.5 leading-tight">
+      <p className="text-xs mt-0.5 leading-tight">
         {locked ? (
           <span className="text-muted/55 tabular-nums">Lv. {item.level}</span>
         ) : active ? (
@@ -1062,7 +1062,7 @@ function ItemVisual({ item }: { item: CosmeticReward }) {
               animation: def.animation ? `${def.animation} 2s ease-in-out infinite` : undefined,
             }}
           />
-          <span className="text-[10px] text-muted/60 capitalize">{def.shape}</span>
+          <span className="text-xs text-muted/60 capitalize">{def.shape}</span>
         </div>
       );
     }
@@ -1074,7 +1074,7 @@ function ItemVisual({ item }: { item: CosmeticReward }) {
             className="w-8 h-8 rounded-full bg-surface/60 shrink-0 border-2"
             style={{ borderColor: color, boxShadow: `0 0 8px ${color}55` }}
           />
-          <span className="text-[10px] text-muted/60">{PROFILE_BORDERS[item.id]?.label ?? item.name}</span>
+          <span className="text-xs text-muted/60">{PROFILE_BORDERS[item.id]?.label ?? item.name}</span>
         </div>
       );
     }

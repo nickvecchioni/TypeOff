@@ -65,7 +65,7 @@ function PlayerTab({
         )}
       </span>
       {progress && (
-        <span className="tabular-nums text-[10px] text-muted/65 ml-0.5">
+        <span className="tabular-nums text-xs text-muted/65 ml-0.5">
           {Math.floor(progress.wpm)}
         </span>
       )}
@@ -101,7 +101,7 @@ export function SpectatorView({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {/* LIVE badge */}
-          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest ${
+          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-widest ${
             finished
               ? "bg-muted/10 text-muted/60 ring-1 ring-white/[0.06]"
               : "bg-red-500/[0.12] text-red-400 ring-1 ring-red-500/25"
@@ -122,7 +122,7 @@ export function SpectatorView({
           )}
 
           {/* Mode badge */}
-          <span className="text-[10px] text-muted/45 uppercase tracking-wider font-medium">
+          <span className="text-xs text-muted/45 uppercase tracking-wider font-medium">
             {raceState.mode}
           </span>
         </div>
@@ -160,7 +160,7 @@ export function SpectatorView({
         >
           <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
           <div className="p-4">
-            <h3 className="text-[10px] font-bold text-muted/60 uppercase tracking-widest mb-3">
+            <h3 className="text-xs font-bold text-muted/60 uppercase tracking-widest mb-3">
               Results
             </h3>
             <div className="space-y-2">
@@ -215,7 +215,7 @@ export function SpectatorView({
             className="flex items-center gap-1.5 overflow-x-auto pb-1 opacity-0 animate-fade-in"
             style={{ animationDelay: "150ms", animationFillMode: "both" }}
           >
-            <span className="text-[10px] text-muted/45 uppercase tracking-wider font-bold shrink-0 mr-1">
+            <span className="text-xs text-muted/45 uppercase tracking-wider font-bold shrink-0 mr-1">
               Watching
             </span>
             {raceState.players.map((player) => (

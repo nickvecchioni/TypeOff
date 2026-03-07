@@ -58,7 +58,7 @@ export function BigramAnalysis({ bigrams, onPractice }: BigramAnalysisProps) {
                 <span className={`text-sm font-bold tabular-nums ${color}`}>
                   {b.accuracy.toFixed(1)}%
                 </span>
-                <span className="text-[10px] text-muted/60 tabular-nums">
+                <span className="text-xs text-muted/60 tabular-nums">
                   {b.total} typed
                 </span>
               </div>

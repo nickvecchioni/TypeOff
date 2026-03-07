@@ -50,11 +50,11 @@ export function FeaturedRace({ race }: { race: FeaturedRaceProps }) {
             </span>
           </div>
           <div className="flex items-center gap-2 mt-0.5">
-            <span className="text-[10px] text-muted/50">
+            <span className="text-xs text-muted/50">
               {ordinal(race.placement)} of {race.playerCount}
             </span>
             {race.modeCategory && (
-              <span className="text-[10px] text-muted/35">
+              <span className="text-xs text-muted/35">
                 {modeLabels[race.modeCategory] ?? race.modeCategory}
               </span>
             )}
@@ -124,7 +124,7 @@ export function FeaturedRaceSelector({
     return (
       <button
         onClick={() => setOpen(true)}
-        className="text-[10px] text-muted/40 hover:text-accent transition-colors"
+        className="text-xs text-muted/40 hover:text-accent transition-colors"
       >
         {selected ? "Change" : "Pin a race"}
       </button>
@@ -134,7 +134,7 @@ export function FeaturedRaceSelector({
   return (
     <div className="rounded-xl bg-surface/50 ring-1 ring-white/[0.06] p-3 space-y-2">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-bold text-muted/50 uppercase tracking-widest">
+        <span className="text-xs font-bold text-muted/50 uppercase tracking-widest">
           Select Featured Race
         </span>
         <button
@@ -167,7 +167,7 @@ export function FeaturedRaceSelector({
                 {race.accuracy.toFixed(1)}%
               </span>
             </div>
-            <span className="text-[10px] text-muted/40" suppressHydrationWarning>
+            <span className="text-xs text-muted/40" suppressHydrationWarning>
               {new Date(race.finishedAt).toLocaleDateString(undefined, {
                 month: "short",
                 day: "numeric",
@@ -180,7 +180,7 @@ export function FeaturedRaceSelector({
         <button
           onClick={() => setFeaturedRace(null)}
           disabled={saving}
-          className="text-[10px] text-error/60 hover:text-error transition-colors disabled:opacity-50"
+          className="text-xs text-error/60 hover:text-error transition-colors disabled:opacity-50"
         >
           Remove featured race
         </button>

@@ -75,10 +75,10 @@ export function DirectMessageWindow() {
         style={{ height: 280 }}
       >
         {openConversation.loading && openConversation.messages.length === 0 && (
-          <p className="text-[11px] text-muted/65 text-center py-6">Loading...</p>
+          <p className="text-xs text-muted/65 text-center py-6">Loading...</p>
         )}
         {!openConversation.loading && openConversation.messages.length === 0 && (
-          <p className="text-[11px] text-muted/45 text-center py-6 leading-relaxed">
+          <p className="text-xs text-muted/45 text-center py-6 leading-relaxed">
             No messages yet. Say hi!
           </p>
         )}
@@ -87,7 +87,7 @@ export function DirectMessageWindow() {
           return (
             <div key={msg.id} className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}>
               {!isMe && (
-                <span className="text-[10px] text-muted/60 mb-0.5 px-1">{msg.fromName}</span>
+                <span className="text-xs text-muted/60 mb-0.5 px-1">{msg.fromName}</span>
               )}
               <div
                 className={`max-w-[85%] rounded-lg px-2.5 py-1.5 text-xs break-words ${

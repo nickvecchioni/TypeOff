@@ -146,7 +146,7 @@ export default function HistoryPage() {
           {!isPro && (
             <Link
               href="/pro"
-              className="text-[11px] font-bold text-white bg-accent hover:bg-accent/80 px-3 py-1.5 rounded-md transition-colors uppercase tracking-wider shrink-0"
+              className="text-xs font-bold text-white bg-accent hover:bg-accent/80 px-3 py-1.5 rounded-md transition-colors uppercase tracking-wider shrink-0"
             >
               Upgrade to Pro
             </Link>

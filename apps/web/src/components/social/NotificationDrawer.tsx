@@ -119,16 +119,16 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
         {/* Header */}
         <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-white/[0.06] shrink-0">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold text-muted/60 uppercase tracking-widest">Notifications</span>
+            <span className="text-xs font-bold text-muted/60 uppercase tracking-widest">Notifications</span>
             {unreadCount > 0 && (
-              <span className="text-[10px] tabular-nums text-accent/60">{unreadCount}</span>
+              <span className="text-xs tabular-nums text-accent/60">{unreadCount}</span>
             )}
           </div>
           <div className="flex items-center gap-2">
             {notifications.length > 0 && (
               <button
                 onClick={clearAll}
-                className="text-[10px] text-muted/60 hover:text-accent transition-colors uppercase tracking-wider"
+                className="text-xs text-muted/60 hover:text-accent transition-colors uppercase tracking-wider"
               >
                 Clear all
               </button>
@@ -182,8 +182,8 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
                         <span className="w-1 h-1 rounded-full bg-accent shrink-0" />
                       )}
                     </div>
-                    <p className="text-[11px] text-muted/65 truncate mt-0.5">{notif.body}</p>
-                    <span className="text-[10px] text-muted/65 tabular-nums mt-0.5 block">
+                    <p className="text-xs text-muted/65 truncate mt-0.5">{notif.body}</p>
+                    <span className="text-xs text-muted/65 tabular-nums mt-0.5 block">
                       {timeAgo(notif.createdAt)}
                     </span>
                   </div>

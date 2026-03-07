@@ -54,7 +54,7 @@ export function BioEditor({ initialBio }: { initialBio: string | null }) {
           className="w-full text-xs bg-surface/60 text-text rounded-lg px-3 py-2 ring-1 ring-white/[0.08] outline-none resize-none placeholder:text-muted/40 focus:ring-accent/30 transition-colors"
         />
         <div className="flex items-center justify-between">
-          <span className="text-[10px] text-muted/40 tabular-nums">
+          <span className="text-xs text-muted/40 tabular-nums">
             {bio.length}/{MAX_BIO}
           </span>
           <div className="flex items-center gap-2">
@@ -63,14 +63,14 @@ export function BioEditor({ initialBio }: { initialBio: string | null }) {
                 setBio(initialBio ?? "");
                 setEditing(false);
               }}
-              className="text-[11px] text-muted/60 hover:text-text transition-colors"
+              className="text-xs text-muted/60 hover:text-text transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={save}
               disabled={saving}
-              className="text-[11px] font-bold text-accent hover:text-accent/80 transition-colors disabled:opacity-50"
+              className="text-xs font-bold text-accent hover:text-accent/80 transition-colors disabled:opacity-50"
             >
               {saving ? "Saving..." : "Save"}
             </button>

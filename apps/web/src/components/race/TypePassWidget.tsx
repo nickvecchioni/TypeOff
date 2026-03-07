@@ -52,7 +52,7 @@ export function XpProgressWidget() {
           <span className="text-xs font-bold uppercase tracking-wider text-accent">
             Cosmetics
           </span>
-          <span className="text-[11px] text-muted tabular-nums">
+          <span className="text-xs text-muted tabular-nums">
             Lvl {level}
           </span>
         </div>
@@ -90,7 +90,7 @@ export function XpProgressWidget() {
                   : "\u2728"}
               </span>
               {nextRewardProLocked && (
-                <span className="absolute -top-1.5 -right-2 text-[7px] font-black tracking-wider text-accent bg-accent/10 ring-1 ring-accent/30 px-1 py-px rounded leading-none">
+                <span className="absolute -top-1.5 -right-2 text-[10px] font-black tracking-wider text-accent bg-accent/10 ring-1 ring-accent/30 px-1 py-px rounded leading-none">
                   PRO
                 </span>
               )}
@@ -98,7 +98,7 @@ export function XpProgressWidget() {
           )}
         </div>
 
-        <p className="text-[11px] text-muted/65 mt-1.5 group-hover:text-muted/70 transition-colors">
+        <p className="text-xs text-muted/65 mt-1.5 group-hover:text-muted/70 transition-colors">
           {xpToNext} XP to next level
         </p>
       </div>

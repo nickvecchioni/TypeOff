@@ -250,7 +250,7 @@ export default function AnalyticsPage() {
               <div className="flex items-center gap-3">
                 <h1 className="text-sm font-bold text-text tracking-tight">Analytics</h1>
                 {isPro && data.totalRaces != null && (
-                  <span className="text-[10px] text-muted/50 tabular-nums">{data.totalRaces} races analyzed</span>
+                  <span className="text-xs text-muted/50 tabular-nums">{data.totalRaces} races analyzed</span>
                 )}
               </div>
               {/* Export + Mode filter pills */}
@@ -260,7 +260,7 @@ export default function AnalyticsPage() {
                   <button
                     onClick={() => handleExport("json")}
                     disabled={exporting}
-                    className="text-[10px] text-muted/40 hover:text-accent transition-colors disabled:opacity-50 px-1.5 py-1"
+                    className="text-xs text-muted/40 hover:text-accent transition-colors disabled:opacity-50 px-1.5 py-1"
                     title="Export all data as JSON"
                   >
                     {exporting ? "..." : "JSON"}
@@ -268,7 +268,7 @@ export default function AnalyticsPage() {
                   <button
                     onClick={() => handleExport("csv")}
                     disabled={exporting}
-                    className="text-[10px] text-muted/40 hover:text-accent transition-colors disabled:opacity-50 px-1.5 py-1"
+                    className="text-xs text-muted/40 hover:text-accent transition-colors disabled:opacity-50 px-1.5 py-1"
                     title="Export race data as CSV"
                   >
                     CSV
@@ -280,7 +280,7 @@ export default function AnalyticsPage() {
                   <button
                     key={f.value}
                     onClick={() => setModeFilter(f.value)}
-                    className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all ${
+                    className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
                       modeFilter === f.value
                         ? "bg-accent/15 text-accent shadow-sm shadow-accent/10"
                         : "text-muted/50 hover:text-text"
@@ -298,7 +298,7 @@ export default function AnalyticsPage() {
               <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-6">
                 {/* Primary: Best WPM */}
                 <div className="shrink-0">
-                  <div className="text-[10px] text-muted/50 uppercase tracking-widest mb-1">Best WPM</div>
+                  <div className="text-xs text-muted/50 uppercase tracking-widest mb-1">Best WPM</div>
                   <div className="flex items-baseline gap-0.5">
                     <span className="text-3xl sm:text-4xl font-black text-accent tabular-nums leading-none tracking-tight">
                       {data.personalRecords.bestWpm ? Math.floor(data.personalRecords.bestWpm.wpm) : "—"}
@@ -309,13 +309,13 @@ export default function AnalyticsPage() {
                       </span>
                     )}
                     {trendDelta !== null && (
-                      <span className={`ml-1.5 text-[10px] font-bold tabular-nums ${trendDelta >= 0 ? "text-correct/70" : "text-error/70"}`}>
+                      <span className={`ml-1.5 text-xs font-bold tabular-nums ${trendDelta >= 0 ? "text-correct/70" : "text-error/70"}`}>
                         {trendDelta >= 0 ? "+" : ""}{trendDelta.toFixed(1)}
                       </span>
                     )}
                   </div>
                   {data.personalRecords.bestWpm && (
-                    <div className="text-[9px] text-muted/40 mt-0.5 tabular-nums">
+                    <div className="text-[11px] text-muted/40 mt-0.5 tabular-nums">
                       {new Date(data.personalRecords.bestWpm.date).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
                     </div>
                   )}
@@ -385,7 +385,7 @@ export default function AnalyticsPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`relative px-3 py-2 text-[11px] font-medium transition-colors ${
+              className={`relative px-3 py-2 text-xs font-medium transition-colors ${
                 activeTab === tab.id
                   ? "text-accent"
                   : "text-muted/50 hover:text-text"
@@ -393,7 +393,7 @@ export default function AnalyticsPage() {
             >
               {tab.label}
               {tab.pro && (
-                <span className="ml-1 text-[8px] font-black tracking-wider text-accent/60 uppercase">pro</span>
+                <span className="ml-1 text-[10px] font-black tracking-wider text-accent/60 uppercase">pro</span>
               )}
               {activeTab === tab.id && (
                 <div className="absolute bottom-0 left-2 right-2 h-[2px] bg-accent rounded-full" />
@@ -435,7 +435,7 @@ export default function AnalyticsPage() {
                           onClick={() => setModeFilter(m.modeCategory)}
                           className="group rounded-lg bg-white/[0.02] ring-1 ring-white/[0.05] hover:ring-accent/20 px-2.5 py-2 text-left transition-all hover:bg-white/[0.04]"
                         >
-                          <div className="text-[9px] text-muted/45 uppercase tracking-wider mb-0.5 group-hover:text-accent/60 transition-colors">
+                          <div className="text-[11px] text-muted/45 uppercase tracking-wider mb-0.5 group-hover:text-accent/60 transition-colors">
                             {MODE_LABELS[m.modeCategory] ?? m.modeCategory}
                           </div>
                           <div className="text-sm font-bold text-text tabular-nums leading-tight">
@@ -443,9 +443,9 @@ export default function AnalyticsPage() {
                             <span className="text-[0.55em] text-muted/40 ml-1 font-semibold">best</span>
                           </div>
                           <div className="flex items-center gap-1.5 mt-0.5">
-                            <span className="text-[9px] text-muted/50 tabular-nums">{Math.floor(m.avgWpm)} avg</span>
-                            <span className="text-[9px] text-muted/35">·</span>
-                            <span className="text-[9px] text-muted/50 tabular-nums">{m.racesPlayed} races</span>
+                            <span className="text-[11px] text-muted/50 tabular-nums">{Math.floor(m.avgWpm)} avg</span>
+                            <span className="text-[11px] text-muted/35">·</span>
+                            <span className="text-[11px] text-muted/50 tabular-nums">{m.racesPlayed} races</span>
                           </div>
                         </button>
                       ))}
@@ -462,12 +462,12 @@ export default function AnalyticsPage() {
                         const color = p.placement === 1 ? "text-rank-gold" : p.placement === 2 ? "text-rank-silver" : p.placement === 3 ? "text-rank-bronze" : "text-muted/60";
                         return (
                           <div key={p.placement} className="rounded-lg bg-white/[0.02] ring-1 ring-white/[0.05] px-3 py-2">
-                            <div className={`text-[10px] font-bold ${color} mb-0.5 uppercase tracking-wider`}>{ord}</div>
+                            <div className={`text-xs font-bold ${color} mb-0.5 uppercase tracking-wider`}>{ord}</div>
                             <div className="text-base font-bold text-text tabular-nums">
                               {Math.floor(p.avgWpm)}
                               <span className="text-[0.65em] text-muted/40 ml-0.5">wpm</span>
                             </div>
-                            <div className="text-[10px] text-muted/40 tabular-nums">{p.count} races</div>
+                            <div className="text-xs text-muted/40 tabular-nums">{p.count} races</div>
                           </div>
                         );
                       })}
@@ -524,14 +524,14 @@ export default function AnalyticsPage() {
                           key={m.modeCategory}
                           className="rounded-lg bg-white/[0.02] ring-1 ring-white/[0.05] px-2.5 py-2"
                         >
-                          <div className="text-[9px] text-muted/45 uppercase tracking-wider mb-0.5">
+                          <div className="text-[11px] text-muted/45 uppercase tracking-wider mb-0.5">
                             {MODE_LABELS[m.modeCategory] ?? m.modeCategory}
                           </div>
                           <div className="text-sm font-bold text-text tabular-nums leading-tight">
                             {Math.floor(m.bestWpm)}
                             <span className="text-[0.55em] text-muted/40 ml-1 font-semibold">best</span>
                           </div>
-                          <div className="text-[9px] text-muted/50 tabular-nums mt-0.5">{m.racesPlayed} races</div>
+                          <div className="text-[11px] text-muted/50 tabular-nums mt-0.5">{m.racesPlayed} races</div>
                         </div>
                       ))}
                     </div>
@@ -559,7 +559,7 @@ export default function AnalyticsPage() {
                   isPro ? (
                     <Link
                       href="/solo?drill=true"
-                      className="px-3 py-1.5 rounded-lg bg-accent/10 ring-1 ring-accent/20 text-[10px] font-semibold text-accent hover:bg-accent/15 transition-colors"
+                      className="px-3 py-1.5 rounded-lg bg-accent/10 ring-1 ring-accent/20 text-xs font-semibold text-accent hover:bg-accent/15 transition-colors"
                     >
                       Start Drill Session
                     </Link>
@@ -617,9 +617,9 @@ export default function AnalyticsPage() {
 function StatCell({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div>
-      <div className="text-[9px] text-muted/40 uppercase tracking-widest mb-0.5">{label}</div>
+      <div className="text-[11px] text-muted/40 uppercase tracking-widest mb-0.5">{label}</div>
       <div className="text-sm font-bold text-text tabular-nums leading-tight">{value}</div>
-      {sub && <div className="text-[9px] text-muted/35 tabular-nums">{sub}</div>}
+      {sub && <div className="text-[11px] text-muted/35 tabular-nums">{sub}</div>}
     </div>
   );
 }
@@ -644,8 +644,8 @@ function Card({
     >
       <div className="px-3 sm:px-4 pt-3 pb-2 flex items-center justify-between">
         <div className="flex items-baseline gap-2">
-          <h2 className="text-[10px] font-bold text-muted/60 uppercase tracking-widest">{title}</h2>
-          {subtitle && <span className="text-[9px] text-muted/35">{subtitle}</span>}
+          <h2 className="text-xs font-bold text-muted/60 uppercase tracking-widest">{title}</h2>
+          {subtitle && <span className="text-[11px] text-muted/35">{subtitle}</span>}
         </div>
         {headerRight}
       </div>
@@ -685,7 +685,7 @@ function ActivityChart({ days, maxCount }: { days: { date: string; count: number
           );
         })}
       </div>
-      <div className="flex justify-between mt-2 text-[9px] text-muted/40 tabular-nums">
+      <div className="flex justify-between mt-2 text-[11px] text-muted/40 tabular-nums">
         <span>{days[0]?.date.slice(5)}</span>
         <span>today</span>
       </div>
@@ -722,8 +722,8 @@ function PlacementBar({ dist }: {
       <div className="flex gap-4 mt-2">
         {segments.map((s) => (
           <div key={s.label} className="flex items-center gap-1">
-            <span className={`text-[10px] font-bold tabular-nums ${s.textColor}`}>{s.pct}%</span>
-            <span className="text-[9px] text-muted/40">{s.label}</span>
+            <span className={`text-xs font-bold tabular-nums ${s.textColor}`}>{s.pct}%</span>
+            <span className="text-[11px] text-muted/40">{s.label}</span>
           </div>
         ))}
       </div>
@@ -786,8 +786,8 @@ function FreeBigramPreview({
       </Card>
       {teaserInsight && (
         <div className="rounded-xl ring-1 ring-accent/10 bg-accent/[0.03] px-4 py-3 animate-fade-in" style={{ animationDelay: "180ms" }}>
-          <p className="text-[11px] text-muted/65 leading-relaxed">{teaserInsight.insight}</p>
-          <p className="text-[10px] text-muted/40 mt-1.5">Upgrade to Pro for all insights and practice drills</p>
+          <p className="text-xs text-muted/65 leading-relaxed">{teaserInsight.insight}</p>
+          <p className="text-xs text-muted/40 mt-1.5">Upgrade to Pro for all insights and practice drills</p>
         </div>
       )}
     </>
@@ -808,7 +808,7 @@ function ProUpsell() {
 
       <div className="relative px-5 py-5">
         <div className="flex items-center gap-2 mb-4">
-          <span className="text-[9px] font-black tracking-[0.15em] text-accent bg-accent/10 ring-1 ring-accent/25 rounded px-1.5 py-0.5 leading-none">
+          <span className="text-[11px] font-black tracking-[0.15em] text-accent bg-accent/10 ring-1 ring-accent/25 rounded px-1.5 py-0.5 leading-none">
             PRO
           </span>
           <span className="text-xs font-bold text-text/70">Unlock Full Analytics</span>
@@ -821,7 +821,7 @@ function ProUpsell() {
             "Full bigram analysis & WPM insights",
             "Activity tracking & consistency scores",
           ].map((label) => (
-            <div key={label} className="flex items-start gap-2 text-[11px] text-text/45">
+            <div key={label} className="flex items-start gap-2 text-xs text-text/45">
               <span className="text-accent/60 mt-px shrink-0">+</span>
               <span>{label}</span>
             </div>
@@ -834,7 +834,7 @@ function ProUpsell() {
         >
           Upgrade to Pro — $4.99/mo
         </Link>
-        <p className="text-[9px] text-muted/35 text-center mt-1.5">cancel anytime</p>
+        <p className="text-[11px] text-muted/35 text-center mt-1.5">cancel anytime</p>
       </div>
     </div>
   );

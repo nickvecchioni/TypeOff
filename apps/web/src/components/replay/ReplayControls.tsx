@@ -76,7 +76,7 @@ export function ReplayControls({
           <button
             key={s}
             onClick={() => onSetSpeed(s)}
-            className={`text-[10px] font-bold px-1.5 py-0.5 rounded transition-colors tabular-nums ${
+            className={`text-xs font-bold px-1.5 py-0.5 rounded transition-colors tabular-nums ${
               speed === s
                 ? "bg-accent/20 text-accent"
                 : "text-muted/60 hover:text-muted"

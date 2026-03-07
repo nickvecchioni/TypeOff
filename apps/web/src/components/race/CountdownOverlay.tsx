@@ -77,11 +77,11 @@ export function CountdownOverlay({
       )}
       {/* Code snippet name below language */}
       {mode === "code" && codeSnippetName && !placementRace && (
-        <p className="text-muted/40 text-[11px] text-center -mt-0.5">{codeSnippetName}</p>
+        <p className="text-muted/40 text-xs text-center -mt-0.5">{codeSnippetName}</p>
       )}
       {/* Quote author */}
       {mode === "quotes" && quoteAuthor && !placementRace && (
-        <p className="text-muted/40 text-[11px] text-center italic -mt-0.5">— {quoteAuthor}</p>
+        <p className="text-muted/40 text-xs text-center italic -mt-0.5">— {quoteAuthor}</p>
       )}
       {placementRace != null && (
         <p className="text-muted text-xs">

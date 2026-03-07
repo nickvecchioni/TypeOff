@@ -59,7 +59,7 @@ export function PlacementReveal({ elo, wpm, accuracy, onContinue, subtitle, ctaL
       />
 
       {/* Label */}
-      <span className="relative text-[11px] font-bold uppercase tracking-[0.25em] text-muted/60">
+      <span className="relative text-xs font-bold uppercase tracking-[0.25em] text-muted/60">
         Placement Complete
       </span>
 
@@ -106,14 +106,14 @@ export function PlacementReveal({ elo, wpm, accuracy, onContinue, subtitle, ctaL
             <div className="text-4xl font-black tabular-nums" style={{ color, textShadow: `0 0 20px ${color}55` }}>
               {Math.round(wpm)}
             </div>
-            <div className="text-[10px] uppercase tracking-widest text-muted/60 font-bold">WPM</div>
+            <div className="text-xs uppercase tracking-widest text-muted/60 font-bold">WPM</div>
           </div>
           <div className="w-px bg-white/[0.06] self-stretch" />
           <div className="flex flex-col items-center gap-1">
             <div className="text-4xl font-black tabular-nums text-text/80">
               {accuracy.toFixed(1)}<span className="text-2xl text-text/60">%</span>
             </div>
-            <div className="text-[10px] uppercase tracking-widest text-muted/60 font-bold">Accuracy</div>
+            <div className="text-xs uppercase tracking-widest text-muted/60 font-bold">Accuracy</div>
           </div>
         </div>
       )}
@@ -137,7 +137,7 @@ export function PlacementReveal({ elo, wpm, accuracy, onContinue, subtitle, ctaL
           transform: phase === "reveal" ? "translateY(0)" : "translateY(8px)",
         }}
       >
-        <p className="text-[11px] text-muted/65 text-center">
+        <p className="text-xs text-muted/65 text-center">
           Sign in to save your rank and start climbing.
         </p>
         {ctaContent ?? (

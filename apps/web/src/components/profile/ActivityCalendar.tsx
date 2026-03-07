@@ -91,7 +91,7 @@ export function ActivityCalendar({ activity }: ActivityCalendarProps) {
           {DAY_LABELS.map((label, i) => (
             <div
               key={i}
-              className="h-[11px] w-6 text-[9px] text-muted/35 text-right leading-[11px]"
+              className="h-[11px] w-6 text-[11px] text-muted/35 text-right leading-[11px]"
             >
               {label}
             </div>
@@ -104,7 +104,7 @@ export function ActivityCalendar({ activity }: ActivityCalendarProps) {
             {weeks.map((_, wi) => (
               <div
                 key={wi}
-                className="w-[11px] shrink-0 text-[9px] text-muted/40 leading-[14px] overflow-visible whitespace-nowrap"
+                className="w-[11px] shrink-0 text-[11px] text-muted/40 leading-[14px] overflow-visible whitespace-nowrap"
               >
                 {monthLabels[wi] ?? ""}
               </div>
@@ -152,7 +152,7 @@ export function ActivityCalendar({ activity }: ActivityCalendarProps) {
             <span className="font-bold text-accent tabular-nums">{tooltip.count}</span>
             <span className="text-muted/70">{tooltip.count === 1 ? "race" : "races"}</span>
           </div>
-          <div className="text-[10px] text-muted/50 mt-0.5">
+          <div className="text-xs text-muted/50 mt-0.5">
             {new Date(tooltip.date + "T12:00:00").toLocaleDateString("en-US", {
               weekday: "short",
               month: "short",

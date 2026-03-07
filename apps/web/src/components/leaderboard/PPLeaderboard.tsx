@@ -108,10 +108,10 @@ export function PPLeaderboard({ userId }: PPLeaderboardProps) {
                         {entry.username}
                       </CosmeticName>
                     )}
-                    <span className="text-[10px] font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded ml-1.5">{getXpLevel(entry.totalXp ?? 0).level}</span>
+                    <span className="text-xs font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded ml-1.5">{getXpLevel(entry.totalXp ?? 0).level}</span>
                   </span>
                   {entry.activeTitle && (
-                    <span className="text-[10px] text-muted/60 leading-tight">{TITLE_TEXTS[entry.activeTitle] ?? entry.activeTitle}</span>
+                    <span className="text-xs text-muted/60 leading-tight">{TITLE_TEXTS[entry.activeTitle] ?? entry.activeTitle}</span>
                   )}
                 </div>
                 <CosmeticBadge badge={entry.activeBadge} />

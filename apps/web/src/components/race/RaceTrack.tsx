@@ -51,7 +51,7 @@ export function RaceTrack({ players, progress, myPlayerId, isPlacement }: RaceTr
                   )}
                 </span>
                 {isBot && <span className="text-xs text-muted bg-surface rounded px-1.5 py-0.5 font-normal">BOT</span>}
-                {!isBot && player.isPro && <span className="text-[9px] font-bold text-accent/60 bg-accent/[0.08] rounded px-1.5 py-0.5">PRO</span>}
+                {!isBot && player.isPro && <span className="text-[11px] font-bold text-accent/60 bg-accent/[0.08] rounded px-1.5 py-0.5">PRO</span>}
                 {isMe && " (you)"}
                 {finished && p?.placement && ` #${p.placement}`}
               </span>

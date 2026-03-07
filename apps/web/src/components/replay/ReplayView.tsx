@@ -85,7 +85,7 @@ export function ReplayView({
     <div className="flex flex-col gap-3 w-full max-w-5xl mx-auto">
       {/* Badge */}
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-bold text-accent/60 uppercase tracking-wider bg-accent/[0.06] rounded px-2 py-0.5">
+        <span className="text-xs font-bold text-accent/60 uppercase tracking-wider bg-accent/[0.06] rounded px-2 py-0.5">
           Replay
         </span>
       </div>

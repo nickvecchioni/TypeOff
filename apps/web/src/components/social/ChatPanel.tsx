@@ -83,7 +83,7 @@ export function ChatPanel({ friendId, friendName, online, currentUserId }: ChatP
             <button
               onClick={loadMore}
               disabled={loadingHistory}
-              className="text-[11px] text-muted/60 hover:text-muted transition-colors disabled:opacity-50"
+              className="text-xs text-muted/60 hover:text-muted transition-colors disabled:opacity-50"
             >
               {loadingHistory ? "Loading..." : "Load older messages"}
             </button>
@@ -119,7 +119,7 @@ export function ChatPanel({ friendId, friendName, online, currentUserId }: ChatP
               >
                 <p className="text-sm break-words whitespace-pre-wrap leading-relaxed">{msg.content}</p>
                 <p
-                  className={`text-[10px] mt-0.5 tabular-nums ${
+                  className={`text-xs mt-0.5 tabular-nums ${
                     isMine ? "text-accent/30 text-right" : "text-muted/65"
                   }`}
                 >

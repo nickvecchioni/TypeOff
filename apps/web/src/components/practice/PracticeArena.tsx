@@ -378,13 +378,13 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
         <div className="rounded-lg ring-1 ring-accent/15 bg-accent/[0.03] px-4 py-3 flex items-center gap-3 animate-fade-in max-w-lg">
           <div className="flex-1">
             <p className="text-xs font-bold text-accent/70">Pro Feature</p>
-            <p className="text-[11px] text-muted/60 leading-relaxed mt-0.5">
+            <p className="text-xs text-muted/60 leading-relaxed mt-0.5">
               Smart practice and drill modes are available with Pro. Upgrade to target your weakest keys and bigrams.
             </p>
           </div>
           <Link
             href="/pro"
-            className="shrink-0 text-[11px] font-bold text-white bg-accent hover:bg-accent/80 px-3 py-1.5 rounded-md transition-colors"
+            className="shrink-0 text-xs font-bold text-white bg-accent hover:bg-accent/80 px-3 py-1.5 rounded-md transition-colors"
           >
             Upgrade
           </Link>
@@ -426,7 +426,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
 
       {/* Quote attribution */}
       {ct === "quotes" && engine.lastSeed != null && (
-        <div className="text-center mt-1 -mb-2 text-[11px] text-muted/50 italic">
+        <div className="text-center mt-1 -mb-2 text-xs text-muted/50 italic">
           — {getQuoteAuthor(engine.lastSeed)}
         </div>
       )}
@@ -435,7 +435,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
       {ct === "code" && engine.lastSeed != null && (() => {
         const snippet = getCodeSnippet(engine.lastSeed);
         return (
-          <div className="text-center mt-1 -mb-2 text-[11px] text-muted/50">
+          <div className="text-center mt-1 -mb-2 text-xs text-muted/50">
             {snippet.name} <span className="text-muted/35">·</span> <span className="text-muted/40">{snippet.language}</span>
           </div>
         );
@@ -472,9 +472,9 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
             style={engine.status === "idle" ? { animationDelay: "100ms", animationFillMode: "both" } : undefined}
           >
             press{" "}
-            <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/65 text-[10px]">Tab</kbd>
+            <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/65 text-xs">Tab</kbd>
             {" "}+{" "}
-            <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/65 text-[10px]">Enter</kbd>
+            <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/65 text-xs">Enter</kbd>
             {" "}to restart
           </p>
         </div>

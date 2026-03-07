@@ -29,7 +29,7 @@ export function PlayerEmotePill({ event }: PlayerEmotePillProps) {
 
   return (
     <span
-      className="absolute z-20 pointer-events-none select-none text-[11px] font-bold text-accent whitespace-nowrap"
+      className="absolute z-20 pointer-events-none select-none text-xs font-bold text-accent whitespace-nowrap"
       style={{
         left: "6px",
         top: "50%",

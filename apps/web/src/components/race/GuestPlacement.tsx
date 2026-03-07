@@ -91,7 +91,7 @@ export function LandingPhase({ onStart, hideSignIn }: { onStart: () => void; hid
                 }}
               />
               <span
-                className="mt-1.5 text-[9px] sm:text-[10px] font-bold tracking-wide uppercase transition-all duration-150"
+                className="mt-1.5 text-[11px] sm:text-xs font-bold tracking-wide uppercase transition-all duration-150"
                 style={{
                   color: tier.color,
                   opacity: isHovered ? 1 : i === 6 ? 0.85 : 0.6,
@@ -526,9 +526,9 @@ export function GuestPlacement({
           style={phase === "idle" ? { animationDelay: "320ms", animationFillMode: "both" } : undefined}
         >
           press{" "}
-          <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/65 text-[10px]">Tab</kbd>
+          <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/65 text-xs">Tab</kbd>
           {" "}+{" "}
-          <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/65 text-[10px]">Enter</kbd>
+          <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/65 text-xs">Enter</kbd>
           {" "}to restart
         </p>
       </div>

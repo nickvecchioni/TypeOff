@@ -166,7 +166,7 @@ export function PartyPanel({
         {/* Message list */}
         <div className="h-28 overflow-y-auto px-3 py-2 flex flex-col gap-1 scroll-smooth">
           {messages.length === 0 ? (
-            <p className="text-[11px] text-muted/45 italic m-auto select-none">
+            <p className="text-xs text-muted/45 italic m-auto select-none">
               Say something to your party!
             </p>
           ) : (
@@ -208,7 +208,7 @@ export function PartyPanel({
           <button
             type="submit"
             disabled={!draft.trim()}
-            className="px-3 py-2 text-[11px] text-accent/60 hover:text-accent disabled:opacity-25 transition-colors shrink-0"
+            className="px-3 py-2 text-xs text-accent/60 hover:text-accent disabled:opacity-25 transition-colors shrink-0"
           >
             Send
           </button>

@@ -86,7 +86,7 @@ export function ZenArena({ engine }: ZenArenaProps) {
           <span className="text-accent/60 font-medium">zen mode</span>
           {isTyping && (
             <span className="text-xs text-muted/65">
-              press <kbd className="px-1 py-0.5 rounded bg-white/[0.05] text-muted/65 text-[10px]">Esc</kbd> to stop
+              press <kbd className="px-1 py-0.5 rounded bg-white/[0.05] text-muted/65 text-xs">Esc</kbd> to stop
             </span>
           )}
         </div>

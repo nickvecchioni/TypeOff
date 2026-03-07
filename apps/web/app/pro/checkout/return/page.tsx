@@ -75,7 +75,7 @@ export default function ProCheckoutReturnPage() {
                 </p>
               )}
             </div>
-            <p className="text-[11px] text-muted/60">
+            <p className="text-xs text-muted/60">
               Redirecting...
             </p>
           </>

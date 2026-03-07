@@ -80,7 +80,7 @@ function ProgressRow({ item }: { item: ProgressItem }) {
     <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-4 py-2.5 flex items-center gap-3">
       <div className="w-12 shrink-0">
         <span className="text-accent font-bold text-sm">{item.target}</span>
-        <span className="text-[9px] text-muted/50 block">{item.type}</span>
+        <span className="text-[11px] text-muted/50 block">{item.type}</span>
       </div>
 
       {/* Sparkline */}
@@ -93,7 +93,7 @@ function ProgressRow({ item }: { item: ProgressItem }) {
         <span className="text-xs font-bold text-text tabular-nums">
           {Math.round(last.accuracy * 100)}%
         </span>
-        <span className={`block text-[10px] font-medium tabular-nums ${
+        <span className={`block text-xs font-medium tabular-nums ${
           isPositive ? "text-correct/70" : delta < 0 ? "text-error/70" : "text-muted/50"
         }`}>
           {isPositive ? "↑" : delta < 0 ? "↓" : "—"}{" "}

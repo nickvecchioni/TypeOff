@@ -80,7 +80,7 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed }: Practi
         <div className="relative flex flex-col sm:flex-row">
           {/* WPM — primary stat */}
           <div className="px-5 sm:px-7 py-3 flex flex-col justify-center sm:border-r sm:border-white/[0.04]">
-            <div className="text-[10px] text-muted/60 uppercase tracking-wide mb-1">wpm</div>
+            <div className="text-xs text-muted/60 uppercase tracking-wide mb-1">wpm</div>
             <div className="flex items-baseline gap-2">
               <div className="text-4xl sm:text-5xl font-black text-accent tabular-nums leading-none">
                 {Math.floor(stats.wpm)}
@@ -89,13 +89,13 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed }: Practi
                 </span>
               </div>
               {isPb && (
-                <span className="text-[10px] font-black text-correct bg-correct/10 ring-1 ring-correct/30 rounded px-1.5 py-0.5 uppercase tracking-wider leading-none animate-fade-in">
+                <span className="text-xs font-black text-correct bg-correct/10 ring-1 ring-correct/30 rounded px-1.5 py-0.5 uppercase tracking-wider leading-none animate-fade-in">
                   PB
                 </span>
               )}
             </div>
             {showRawWpm && (
-              <div className="text-[10px] text-muted/65 tabular-nums mt-1">
+              <div className="text-xs text-muted/65 tabular-nums mt-1">
                 {Math.floor(stats.rawWpm)} raw
               </div>
             )}
@@ -105,7 +105,7 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed }: Practi
           <div className="flex-1 grid grid-cols-3 divide-x divide-white/[0.04]">
             {/* Accuracy */}
             <div className="px-3 py-3 sm:px-4 flex flex-col justify-center">
-              <div className="text-[10px] text-muted/60 uppercase tracking-wide mb-1">accuracy</div>
+              <div className="text-xs text-muted/60 uppercase tracking-wide mb-1">accuracy</div>
               <div className="text-2xl sm:text-3xl font-black text-text tabular-nums leading-none">
                 {Math.floor(stats.accuracy)}
                 <span className="text-sm opacity-50">
@@ -113,7 +113,7 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed }: Practi
                 </span>
               </div>
               {stats.misstypedChars > 0 && (
-                <div className="text-[10px] text-error/50 tabular-nums mt-1">
+                <div className="text-xs text-error/50 tabular-nums mt-1">
                   {stats.misstypedChars} mistakes
                 </div>
               )}
@@ -121,7 +121,7 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed }: Practi
 
             {/* Consistency */}
             <div className="px-3 py-3 sm:px-4 flex flex-col justify-center">
-              <div className="text-[10px] text-muted/60 uppercase tracking-wide mb-1">consistency</div>
+              <div className="text-xs text-muted/60 uppercase tracking-wide mb-1">consistency</div>
               <div className="text-2xl sm:text-3xl font-black text-text tabular-nums leading-none">
                 {Math.floor(stats.consistency)}
                 <span className="text-sm opacity-50">%</span>
@@ -130,7 +130,7 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed }: Practi
 
             {/* Time + Mode */}
             <div className="px-3 py-3 sm:px-4 flex flex-col justify-center">
-              <div className="text-[10px] text-muted/60 uppercase tracking-wide mb-1">{modeLabel}</div>
+              <div className="text-xs text-muted/60 uppercase tracking-wide mb-1">{modeLabel}</div>
               <div className="text-2xl sm:text-3xl font-black text-text tabular-nums leading-none">
                 {stats.time >= 60
                   ? <>{Math.floor(stats.time / 60)}<span className="text-sm opacity-50">:{String(Math.round(stats.time % 60)).padStart(2, "0")}</span></>
@@ -142,7 +142,7 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed }: Practi
 
         {/* Character breakdown row */}
         <div className="relative flex items-center divide-x divide-white/[0.04] border-t border-white/[0.04]">
-          <div className="flex items-center gap-3 px-4 py-1.5 text-[11px] tabular-nums">
+          <div className="flex items-center gap-3 px-4 py-1.5 text-xs tabular-nums">
             <span className="text-correct/70">
               <span className="font-bold">{stats.correctChars}</span>
               <span className="text-muted/50 ml-1">correct</span>
@@ -191,7 +191,7 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed }: Practi
         <div className="flex flex-col gap-2">
           {stats.wpmHistory.length >= 2 && (
             <div className="rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-3 pt-2.5 pb-1.5 flex flex-col" style={{ aspectRatio: "8 / 1" }}>
-              <div className="text-[10px] font-bold text-muted/50 uppercase tracking-widest mb-1.5">WPM over time</div>
+              <div className="text-xs font-bold text-muted/50 uppercase tracking-widest mb-1.5">WPM over time</div>
               <div className="flex-1 min-h-0">
                 <WpmChart samples={stats.wpmHistory} />
               </div>
@@ -238,7 +238,7 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed }: Practi
         <div className="flex flex-col gap-2">
           {stats.keyStats && Object.keys(stats.keyStats).length > 0 && (
             <div className="rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-3 pt-2.5 pb-2 flex flex-col">
-              <div className="text-[10px] font-bold text-muted/50 uppercase tracking-widest mb-2">Key Accuracy</div>
+              <div className="text-xs font-bold text-muted/50 uppercase tracking-widest mb-2">Key Accuracy</div>
               <KeyboardHeatmap keyStats={stats.keyStats} />
             </div>
           )}
@@ -256,10 +256,10 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed }: Practi
             Type Again
             <span className="inline-block w-[2px] h-[1em] bg-current animate-blink ml-0.5 translate-y-px" />
           </span>
-          <span className="text-[9px] font-normal text-accent/40 group-hover:text-bg/40 flex items-center gap-1">
-            <kbd className="inline-flex items-center px-1 py-px rounded bg-white/[0.04] ring-1 ring-white/[0.07] text-[9px] font-medium">Tab</kbd>
+          <span className="text-[11px] font-normal text-accent/40 group-hover:text-bg/40 flex items-center gap-1">
+            <kbd className="inline-flex items-center px-1 py-px rounded bg-white/[0.04] ring-1 ring-white/[0.07] text-[11px] font-medium">Tab</kbd>
             {" + "}
-            <kbd className="inline-flex items-center px-1 py-px rounded bg-white/[0.04] ring-1 ring-white/[0.07] text-[9px] font-medium">Enter ↵</kbd>
+            <kbd className="inline-flex items-center px-1 py-px rounded bg-white/[0.04] ring-1 ring-white/[0.07] text-[11px] font-medium">Enter ↵</kbd>
           </span>
         </button>
 
@@ -274,9 +274,9 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed }: Practi
               <line x1="12" y1="20" x2="12" y2="4" />
               <line x1="6" y1="20" x2="6" y2="14" />
             </svg>
-            <span className="text-[10px] font-medium">Analytics</span>
+            <span className="text-xs font-medium">Analytics</span>
           </Link>
-          <span className="text-muted/20 text-[8px]">·</span>
+          <span className="text-muted/20 text-[10px]">·</span>
           <Link
             href="/history"
             className="flex items-center gap-1.5 px-2.5 py-1.5 text-muted/40 hover:text-muted hover:bg-white/[0.02] transition-colors rounded"
@@ -285,7 +285,7 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed }: Practi
               <circle cx="12" cy="12" r="10" />
               <polyline points="12 6 12 12 16 14" />
             </svg>
-            <span className="text-[10px] font-medium">History</span>
+            <span className="text-xs font-medium">History</span>
           </Link>
         </div>
       </div>

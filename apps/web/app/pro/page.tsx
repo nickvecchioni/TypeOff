@@ -140,7 +140,7 @@ export default function ProPage() {
             {/* ── Hero ── */}
             <div className="relative animate-fade-in">
               <div className="relative text-center pt-8 pb-6 px-4">
-                <div className="inline-flex items-center text-[11px] font-bold leading-none text-accent/70 ring-1 ring-accent/20 px-4 py-2 rounded-full uppercase tracking-widest mb-5">
+                <div className="inline-flex items-center text-xs font-bold leading-none text-accent/70 ring-1 ring-accent/20 px-4 py-2 rounded-full uppercase tracking-widest mb-5">
                   TypeOff Pro
                 </div>
 
@@ -170,7 +170,7 @@ export default function ProPage() {
                           </svg>
                         ) : s.value}
                       </div>
-                      <div className="text-[10px] text-muted/55 uppercase tracking-wider mt-0.5">
+                      <div className="text-xs text-muted/55 uppercase tracking-wider mt-0.5">
                         {s.label}
                       </div>
                     </div>
@@ -200,7 +200,7 @@ export default function ProPage() {
                     {f.icon}
                   </div>
                   <p className="text-sm font-bold text-text mb-1.5">{f.title}</p>
-                  <p className="text-[11px] text-muted/60 leading-relaxed">{f.description}</p>
+                  <p className="text-xs text-muted/60 leading-relaxed">{f.description}</p>
                 </div>
               ))}
             </div>
@@ -208,10 +208,10 @@ export default function ProPage() {
             {/* ── Cosmetics showcase ── */}
             <div className="animate-slide-up" style={{ animationDelay: "40ms" }}>
               <div className="flex items-center justify-between mb-3">
-                <p className="text-[9px] font-bold text-muted/65 uppercase tracking-widest">
+                <p className="text-[11px] font-bold text-muted/65 uppercase tracking-widest">
                   {PRO_REWARD_COUNT} Pro Cosmetics
                 </p>
-                <p className="text-[9px] text-muted/20">yours to keep on cancel</p>
+                <p className="text-[11px] text-muted/20">yours to keep on cancel</p>
               </div>
               <div className="rounded-xl ring-1 ring-accent/10 overflow-hidden bg-[#0c0c12]" style={{ boxShadow: "0 0 60px rgba(77,158,255,0.04)" }}>
                 {/* Live name preview */}
@@ -229,10 +229,10 @@ export default function ProPage() {
                         <TeaserVisual item={item} />
                       </div>
                       <div className="text-center">
-                        <span className="block text-[10px] text-text/70 font-medium leading-tight">
+                        <span className="block text-xs text-text/70 font-medium leading-tight">
                           {item.name}
                         </span>
-                        <span className="block text-[8px] text-accent/40 uppercase tracking-wider mt-0.5">
+                        <span className="block text-[10px] text-accent/40 uppercase tracking-wider mt-0.5">
                           {item.type === "nameColor" ? "color" : item.type === "cursorStyle" ? "cursor" : item.type === "typingTheme" ? "theme" : item.type}
                         </span>
                       </div>
@@ -249,7 +249,7 @@ export default function ProPage() {
               </p>
               <div className="rounded-xl ring-1 ring-white/[0.06] overflow-hidden">
                 {/* Header */}
-                <div className="grid grid-cols-[1fr_7rem_7rem] text-[11px] font-bold uppercase tracking-wider border-b border-white/[0.08]">
+                <div className="grid grid-cols-[1fr_7rem_7rem] text-xs font-bold uppercase tracking-wider border-b border-white/[0.08]">
                   <span className="px-5 py-3.5 bg-surface/30" />
                   <span className="px-3 py-3.5 text-center text-muted/50 bg-surface/30">Free</span>
                   <span className="px-3 py-3.5 text-center text-accent bg-accent/[0.06]">Pro</span>
@@ -269,7 +269,7 @@ export default function ProPage() {
                           {row.feature}
                         </span>
                         {row.desc && (
-                          <span className="text-[11px] text-muted/35 leading-snug block mt-0.5">
+                          <span className="text-xs text-muted/35 leading-snug block mt-0.5">
                             {row.desc}
                           </span>
                         )}
@@ -309,14 +309,14 @@ export default function ProPage() {
 
                 {/* Monthly */}
                 <div className="rounded-xl px-5 py-5 ring-1 ring-white/[0.06] bg-surface/30 flex flex-col">
-                  <div className="text-[11px] font-bold text-muted/60 uppercase tracking-wider mb-3">
+                  <div className="text-xs font-bold text-muted/60 uppercase tracking-wider mb-3">
                     Monthly
                   </div>
                   <div className="text-3xl font-black text-text tabular-nums leading-none mb-0.5">
                     ${PRO_MONTHLY_PRICE.toFixed(2)}
                     <span className="text-sm font-normal text-muted/60">/mo</span>
                   </div>
-                  <div className="text-[11px] text-muted/45 mb-6">Billed monthly, cancel anytime</div>
+                  <div className="text-xs text-muted/45 mb-6">Billed monthly, cancel anytime</div>
                   <button
                     onClick={() => router.push("/pro/checkout?plan=monthly")}
                     className="mt-auto w-full rounded-lg py-3 text-sm font-bold ring-1 ring-white/[0.10] bg-white/[0.04] text-text/70 hover:ring-accent/30 hover:bg-accent/[0.05] hover:text-accent/80 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
@@ -331,18 +331,18 @@ export default function ProPage() {
                   style={{ boxShadow: "0 0 40px rgba(77,158,255,0.08), inset 0 1px 0 rgba(77,158,255,0.12)" }}
                 >
                   <div className="absolute -top-3 left-0 right-0 flex justify-center">
-                    <span className="text-[9px] font-black bg-accent text-white px-3 py-1 rounded-full uppercase tracking-wider shadow-[0_2px_12px_rgba(77,158,255,0.5)]">
+                    <span className="text-[11px] font-black bg-accent text-white px-3 py-1 rounded-full uppercase tracking-wider shadow-[0_2px_12px_rgba(77,158,255,0.5)]">
                       Save 50%
                     </span>
                   </div>
-                  <div className="text-[11px] font-bold text-accent/60 uppercase tracking-wider mb-3">
+                  <div className="text-xs font-bold text-accent/60 uppercase tracking-wider mb-3">
                     Yearly
                   </div>
                   <div className="text-3xl font-black text-text tabular-nums leading-none mb-0.5">
                     ${PRO_YEARLY_PRICE.toFixed(2)}
                     <span className="text-sm font-normal text-muted/60">/yr</span>
                   </div>
-                  <div className="text-[11px] text-accent/40 mb-6">
+                  <div className="text-xs text-accent/40 mb-6">
                     ${(PRO_YEARLY_PRICE / 12).toFixed(2)}/mo billed annually
                   </div>
                   <button
@@ -367,7 +367,7 @@ export default function ProPage() {
                 </div>
 
               </div>
-              <p className="text-center text-[11px] text-muted/30 mt-3 leading-relaxed">
+              <p className="text-center text-xs text-muted/30 mt-3 leading-relaxed">
                 Subscriptions cancel anytime.{" "}
                 Cosmetics earned are yours to keep.
               </p>
@@ -410,7 +410,7 @@ function SubscriberView({
       <div className="animate-fade-in">
         <h1 className="text-lg font-bold text-text tracking-tight flex items-center gap-2">
           TypeOff Pro
-          <span className="text-[9px] font-bold text-accent/70 bg-accent/[0.08] px-2 py-0.5 rounded uppercase tracking-wider">
+          <span className="text-[11px] font-bold text-accent/70 bg-accent/[0.08] px-2 py-0.5 rounded uppercase tracking-wider">
             Active
           </span>
         </h1>
@@ -435,7 +435,7 @@ function SubscriberView({
                 "Full data export (CSV & JSON)",
                 "Pro badge in every race",
               ].map((perk) => (
-                <li key={perk} className="flex items-center gap-2 text-[11px] text-muted/60">
+                <li key={perk} className="flex items-center gap-2 text-xs text-muted/60">
                   <span className="text-accent/60">✓</span>
                   {perk}
                 </li>
@@ -459,7 +459,7 @@ function SubscriberView({
       >
         <div className="flex items-center justify-between mb-1.5">
           <span className="text-xs font-bold text-accent tabular-nums">Level {level}</span>
-          <span className="text-[11px] text-muted/60 tabular-nums">
+          <span className="text-xs text-muted/60 tabular-nums">
             {currentXp} / {nextLevelXp} XP
           </span>
         </div>
@@ -472,25 +472,25 @@ function SubscriberView({
         {nextProReward ? (
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[11px] text-muted/65">Next Pro cosmetic</p>
+              <p className="text-xs text-muted/65">Next Pro cosmetic</p>
               <p className="text-xs font-bold text-accent/80 mt-0.5">
                 {nextProReward.name}
-                <span className="text-[10px] font-normal text-muted/60 ml-1">
+                <span className="text-xs font-normal text-muted/60 ml-1">
                   at level {nextProReward.level}
                 </span>
               </p>
             </div>
             <div className="text-right">
-              <p className="text-[11px] text-muted/60 tabular-nums">
+              <p className="text-xs text-muted/60 tabular-nums">
                 {xpToNextPro?.toLocaleString()} XP away
               </p>
-              <p className="text-[10px] text-muted/65 mt-0.5">
+              <p className="text-xs text-muted/65 mt-0.5">
                 {xpToNext} to level {level + 1}
               </p>
             </div>
           </div>
         ) : (
-          <p className="text-[11px] text-muted/60">
+          <p className="text-xs text-muted/60">
             You&apos;ve unlocked all Pro cosmetics. Impressive.
           </p>
         )}
@@ -515,7 +515,7 @@ function SubscriberView({
             <div className="text-sm font-bold text-text group-hover:text-accent transition-colors">
               {link.title}
             </div>
-            <p className="text-[11px] text-muted/65 mt-0.5">{link.desc}</p>
+            <p className="text-xs text-muted/65 mt-0.5">{link.desc}</p>
           </Link>
         ))}
       </div>
@@ -547,12 +547,12 @@ function NamePreview({ username }: { username: string }) {
 
   return (
     <div className="py-6 px-4 flex flex-col items-center gap-1.5">
-      <p className="text-[8px] font-bold text-muted/30 uppercase tracking-widest mb-1">preview</p>
+      <p className="text-[10px] font-bold text-muted/30 uppercase tracking-widest mb-1">preview</p>
       <div className="flex items-center gap-2 text-base font-bold">
         <span>{badge}</span>
         <span className={effectClass}>{username}</span>
       </div>
-      {title && <span className="text-[10px] text-muted/50">{title}</span>}
+      {title && <span className="text-xs text-muted/50">{title}</span>}
       <div className="flex items-center gap-1.5 mt-2">
         {SHOWCASE_STATES.map((s, i) => (
           <button
@@ -564,7 +564,7 @@ function NamePreview({ username }: { username: string }) {
           />
         ))}
       </div>
-      <p className="text-[9px] text-accent/45 uppercase tracking-wider mt-0.5">
+      <p className="text-[11px] text-accent/45 uppercase tracking-wider mt-0.5">
         {state.label} · Pro Only
       </p>
     </div>
@@ -579,7 +579,7 @@ function TeaserVisual({ item }: { item: (typeof COSMETIC_REWARDS)[number] }) {
       return <span className="text-xl">{BADGE_EMOJIS[item.id] ?? item.value}</span>;
     case "title":
       return (
-        <span className="text-[10px] text-accent/70 font-medium">
+        <span className="text-xs text-accent/70 font-medium">
           {TITLE_TEXTS[item.id] ?? item.value}
         </span>
       );
@@ -588,7 +588,7 @@ function TeaserVisual({ item }: { item: (typeof COSMETIC_REWARDS)[number] }) {
       return (
         <div className="flex items-center gap-1">
           <span className="w-3 h-3 rounded-full ring-1 ring-white/10" style={{ backgroundColor: hex }} />
-          <span className="text-[10px] font-bold" style={{ color: hex }}>Aa</span>
+          <span className="text-xs font-bold" style={{ color: hex }}>Aa</span>
         </div>
       );
     }

@@ -159,7 +159,7 @@ export function ZenFreeformArena() {
           style={{ animationDelay: "100ms", animationFillMode: "both" }}
         >
           start typing anything —{" "}
-          <kbd className="px-1 py-0.5 rounded bg-white/[0.05] text-muted/65 text-[10px]">
+          <kbd className="px-1 py-0.5 rounded bg-white/[0.05] text-muted/65 text-xs">
             Esc
           </kbd>{" "}
           to stop
@@ -185,11 +185,11 @@ export function ZenFreeformArena() {
           </div>
           <p className="text-muted/65 text-xs">
             press{" "}
-            <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/65 text-[10px]">
+            <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/65 text-xs">
               Tab
             </kbd>{" "}
             +{" "}
-            <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/65 text-[10px]">
+            <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/65 text-xs">
               Enter
             </kbd>{" "}
             to restart

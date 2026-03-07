@@ -237,14 +237,14 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
                               <CosmeticName nameColor={cosmetic?.activeNameColor} nameEffect={cosmetic?.activeNameEffect}>
                                 {row.username}
                               </CosmeticName>
-                              <span className="text-[10px] font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded ml-1.5">{lvl}</span>
+                              <span className="text-xs font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded ml-1.5">{lvl}</span>
                             </span>
                             <span className="flex items-center gap-1.5">
                               <span className={`text-xs leading-tight ${tierColor}`}>
                                 {info.label}
                               </span>
                               {cosmetic?.activeTitle && (
-                                <span className="text-[10px] text-muted/60 leading-tight">{TITLE_TEXTS[cosmetic.activeTitle] ?? cosmetic.activeTitle}</span>
+                                <span className="text-xs text-muted/60 leading-tight">{TITLE_TEXTS[cosmetic.activeTitle] ?? cosmetic.activeTitle}</span>
                               )}
                             </span>
                           </div>
@@ -305,14 +305,14 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
                         <CosmeticName nameColor={myCosmetic?.activeNameColor} nameEffect={myCosmetic?.activeNameEffect}>
                           {row.username}
                         </CosmeticName>
-                        <span className="text-[10px] font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded ml-1.5">{myLvl}</span>
+                        <span className="text-xs font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded ml-1.5">{myLvl}</span>
                       </span>
                       <span className="flex items-center gap-1.5">
                         <span className={`text-xs leading-tight ${tierColor}`}>
                           {info.label}
                         </span>
                         {myCosmetic?.activeTitle && (
-                          <span className="text-[10px] text-muted/60 leading-tight">{TITLE_TEXTS[myCosmetic.activeTitle] ?? myCosmetic.activeTitle}</span>
+                          <span className="text-xs text-muted/60 leading-tight">{TITLE_TEXTS[myCosmetic.activeTitle] ?? myCosmetic.activeTitle}</span>
                         )}
                       </span>
                     </div>
@@ -564,14 +564,14 @@ async function SoloLeaderboard({
                           <CosmeticName nameColor={soloCosmetic?.activeNameColor} nameEffect={soloCosmetic?.activeNameEffect}>
                             {row.username}
                           </CosmeticName>
-                          <span className="text-[10px] font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded ml-1.5">{getXpLevel(row.totalXp ?? 0).level}</span>
+                          <span className="text-xs font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded ml-1.5">{getXpLevel(row.totalXp ?? 0).level}</span>
                         </span>
                         <span className="flex items-center gap-1.5">
                           <span className={`text-xs leading-tight ${tierColor}`}>
                             {info.label}
                           </span>
                           {soloCosmetic?.activeTitle && (
-                            <span className="text-[10px] text-muted/60 leading-tight">{TITLE_TEXTS[soloCosmetic.activeTitle] ?? soloCosmetic.activeTitle}</span>
+                            <span className="text-xs text-muted/60 leading-tight">{TITLE_TEXTS[soloCosmetic.activeTitle] ?? soloCosmetic.activeTitle}</span>
                           )}
                         </span>
                       </div>
@@ -623,14 +623,14 @@ async function SoloLeaderboard({
                           <CosmeticName nameColor={mySoloCosmetic?.activeNameColor} nameEffect={mySoloCosmetic?.activeNameEffect}>
                             {row.username}
                           </CosmeticName>
-                          <span className="text-[10px] font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded ml-1.5">{getXpLevel(row.totalXp ?? 0).level}</span>
+                          <span className="text-xs font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded ml-1.5">{getXpLevel(row.totalXp ?? 0).level}</span>
                         </span>
                         <span className="flex items-center gap-1.5">
                           <span className={`text-xs leading-tight ${myTierColor}`}>
                             {myInfo.label}
                           </span>
                           {mySoloCosmetic?.activeTitle && (
-                            <span className="text-[10px] text-muted/60 leading-tight">{TITLE_TEXTS[mySoloCosmetic.activeTitle] ?? mySoloCosmetic.activeTitle}</span>
+                            <span className="text-xs text-muted/60 leading-tight">{TITLE_TEXTS[mySoloCosmetic.activeTitle] ?? mySoloCosmetic.activeTitle}</span>
                           )}
                         </span>
                       </div>
@@ -798,14 +798,14 @@ async function UniverseLeaderboard({
                           <CosmeticName nameColor={cosmetic?.activeNameColor} nameEffect={cosmetic?.activeNameEffect}>
                             {row.username}
                           </CosmeticName>
-                          <span className="text-[10px] font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded ml-1.5">{getXpLevel(row.totalXp ?? 0).level}</span>
+                          <span className="text-xs font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded ml-1.5">{getXpLevel(row.totalXp ?? 0).level}</span>
                         </span>
                         <span className="flex items-center gap-1.5">
                           <span className={`text-xs leading-tight ${tierColor}`}>
                             {info.label}
                           </span>
                           {cosmetic?.activeTitle && (
-                            <span className="text-[10px] text-muted/60 leading-tight">{TITLE_TEXTS[cosmetic.activeTitle] ?? cosmetic.activeTitle}</span>
+                            <span className="text-xs text-muted/60 leading-tight">{TITLE_TEXTS[cosmetic.activeTitle] ?? cosmetic.activeTitle}</span>
                           )}
                         </span>
                       </div>

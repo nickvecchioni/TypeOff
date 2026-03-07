@@ -86,7 +86,7 @@ export default function RootLayout({
             <div className="relative z-10 flex-1 flex flex-col min-h-0">
               {children}
             </div>
-            <footer className="focus-fade relative z-10 flex items-center justify-center gap-3 py-3 text-[10px] text-muted/65">
+            <footer className="focus-fade relative z-10 flex items-center justify-center gap-3 py-3 text-xs text-muted/65">
               <span>TypeOff</span>
               <span>·</span>
               <ReportIssueButton />

@@ -149,7 +149,7 @@ function ChallengeRow({
               {challenge.name}
             </span>
             {completed && (
-              <span className="shrink-0 text-[9px] font-black text-correct bg-correct/15 ring-1 ring-correct/25 px-1 py-[2px] rounded leading-none">
+              <span className="shrink-0 text-[11px] font-black text-correct bg-correct/15 ring-1 ring-correct/25 px-1 py-[2px] rounded leading-none">
                 ✓
               </span>
             )}
@@ -158,7 +158,7 @@ function ChallengeRow({
             {clamped}/{challenge.target}
           </span>
         </div>
-        <p className="text-[10px] text-muted/65 truncate mb-1">{challenge.description}</p>
+        <p className="text-xs text-muted/65 truncate mb-1">{challenge.description}</p>
         <div className="h-1 rounded-full bg-surface overflow-hidden">
           <div
             className={`h-full rounded-full transition-all ${
@@ -184,7 +184,7 @@ function ChallengeRow({
         </div>
       </div>
       <span
-        className={`text-[10px] font-bold shrink-0 rounded px-1.5 py-0.5 tabular-nums transition-all ${
+        className={`text-xs font-bold shrink-0 rounded px-1.5 py-0.5 tabular-nums transition-all ${
           completed
             ? "bg-correct/15 text-correct ring-1 ring-correct/25 [box-shadow:0_0_8px_rgba(34,197,94,0.3)]"
             : "bg-white/[0.04] text-muted"

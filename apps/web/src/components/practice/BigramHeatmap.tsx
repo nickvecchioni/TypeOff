@@ -42,7 +42,7 @@ export function BigramHeatmap({ bigrams }: BigramHeatmapProps) {
           <div className="flex">
             <div className="w-6 h-5" /> {/* empty corner */}
             {LETTERS.map((col) => (
-              <div key={col} className="w-5 h-5 flex items-center justify-center text-[8px] text-muted/60 font-bold">
+              <div key={col} className="w-5 h-5 flex items-center justify-center text-[10px] text-muted/60 font-bold">
                 {col}
               </div>
             ))}
@@ -51,7 +51,7 @@ export function BigramHeatmap({ bigrams }: BigramHeatmapProps) {
           {/* Rows */}
           {LETTERS.map((row) => (
             <div key={row} className="flex">
-              <div className="w-6 h-5 flex items-center justify-center text-[8px] text-muted/60 font-bold">
+              <div className="w-6 h-5 flex items-center justify-center text-[10px] text-muted/60 font-bold">
                 {row}
               </div>
               {LETTERS.map((col) => {

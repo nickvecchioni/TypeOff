@@ -56,18 +56,18 @@ function InsightCard({ insight }: { insight: WpmInsight }) {
       <div className={`mt-0.5 w-2 h-2 rounded-full shrink-0 ${dotColors[severity]}`} />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
-          <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ring-1 ${severityColors[severity]}`}>
+          <span className={`text-xs font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ring-1 ${severityColors[severity]}`}>
             ~{Math.max(1, Math.round(insight.estimatedWpmCost))} wpm cost
           </span>
-          <span className="text-[10px] text-muted/50">
+          <span className="text-xs text-muted/50">
             {insight.type === "bigram" ? "bigram" : "key"}: <span className="text-accent font-bold">{insight.value}</span>
           </span>
         </div>
-        <p className="text-[11px] text-muted/70 leading-relaxed">{insight.insight}</p>
+        <p className="text-xs text-muted/70 leading-relaxed">{insight.insight}</p>
       </div>
       <Link
         href={practiceUrl}
-        className="shrink-0 text-[10px] font-semibold text-accent hover:text-accent/80 transition-colors mt-1"
+        className="shrink-0 text-xs font-semibold text-accent hover:text-accent/80 transition-colors mt-1"
       >
         Practice →
       </Link>

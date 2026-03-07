@@ -87,13 +87,13 @@ function EloProgressBar({ elo, tier }: { elo: number; tier: RankTier }) {
     <div className="flex-1 min-w-0 flex flex-col gap-1.5 justify-center">
       <div className="flex items-center justify-between gap-2">
         <span
-          className="text-[11px] font-bold leading-none"
+          className="text-xs font-bold leading-none"
           style={{ color: RANK_HEX[currentRankInfo.tier] }}
         >
           {currentRankInfo.label}
         </span>
         <div className="flex items-center gap-1 leading-none">
-          <span className="text-[11px] text-muted/50 tabular-nums">{eloNeeded} away</span>
+          <span className="text-xs text-muted/50 tabular-nums">{eloNeeded} away</span>
           <span className="text-[11px] text-muted/30">·</span>
           <span
             className="text-[11px] font-bold"
@@ -181,13 +181,13 @@ function RewardIcon({ reward }: { reward: CosmeticReward }) {
     }
     case "title":
       return (
-        <span className="text-[9px] font-black tracking-wide text-accent/80 bg-accent/[0.12] ring-1 ring-accent/20 px-1.5 py-[3px] rounded leading-none shrink-0 whitespace-nowrap max-w-[52px] truncate">
+        <span className="text-[10px] font-black tracking-wide text-accent/80 bg-accent/[0.12] ring-1 ring-accent/20 px-1.5 py-[3px] rounded leading-none shrink-0 whitespace-nowrap max-w-[52px] truncate">
           {reward.value}
         </span>
       );
     case "nameEffect":
       return (
-        <span className="text-[11px] font-black leading-none shrink-0 text-accent [text-shadow:0_0_8px_rgba(77,158,255,0.8)]">
+        <span className="text-xs font-black leading-none shrink-0 text-accent [text-shadow:0_0_8px_rgba(77,158,255,0.8)]">
           Aa
         </span>
       );
@@ -231,16 +231,16 @@ function LevelWidget({
         {/* Level number + XP bar */}
         <div className="flex items-center gap-4">
           <div className="shrink-0 w-12 text-center">
-            <div className="text-[9px] font-black text-muted/60 uppercase tracking-widest leading-none mb-0.5">Level</div>
+            <div className="text-[11px] font-black text-muted/60 uppercase tracking-widest leading-none mb-0.5">Level</div>
             <div className="text-4xl font-black text-text tabular-nums leading-none">{level}</div>
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-baseline justify-between mb-1.5">
-              <span className="text-[11px] font-bold text-accent tabular-nums">
+              <span className="text-xs font-bold text-accent tabular-nums">
                 {currentXp.toLocaleString()}
                 <span className="text-muted/60 font-normal"> / {nextLevelXp.toLocaleString()} XP</span>
               </span>
-              <span className="text-[10px] text-muted/60 tabular-nums">{xpPct}%</span>
+              <span className="text-xs text-muted/60 tabular-nums">{xpPct}%</span>
             </div>
             <div className="h-2 rounded-full bg-white/[0.04] overflow-hidden">
               <div
@@ -251,7 +251,7 @@ function LevelWidget({
                 }}
               />
             </div>
-            <div className="text-[10px] text-muted/55 mt-1 tabular-nums">
+            <div className="text-xs text-muted/55 mt-1 tabular-nums">
               {xpRemaining.toLocaleString()} XP to level {level + 1}
             </div>
           </div>
@@ -270,15 +270,15 @@ function LevelWidget({
                   <span className={`shrink-0 flex items-center justify-center w-10 ${proLocked ? "opacity-30" : ""}`}>
                     <RewardIcon reward={reward} />
                   </span>
-                  <span className="text-[11px] font-semibold text-text/80 truncate leading-none flex-1">
+                  <span className="text-xs font-semibold text-text/80 truncate leading-none flex-1">
                     {reward.name}
                   </span>
                   {proLocked && (
-                    <span className="text-[8px] font-black tracking-wider text-accent bg-accent/10 ring-1 ring-accent/30 px-1.5 py-0.5 rounded shrink-0 leading-none">
+                    <span className="text-[10px] font-black tracking-wider text-accent bg-accent/10 ring-1 ring-accent/30 px-1.5 py-0.5 rounded shrink-0 leading-none">
                       PRO
                     </span>
                   )}
-                  <span className="text-[10px] text-muted/50 leading-none shrink-0">
+                  <span className="text-xs text-muted/50 leading-none shrink-0">
                     Level {reward.level}
                   </span>
                 </div>
@@ -492,7 +492,7 @@ export function QueueScreen({
               <div className="relative flex items-center gap-4 sm:gap-5 px-5 py-3.5 ring-1 ring-white/[0.05] rounded-xl bg-surface/40">
                 {/* ELO */}
                 <div className="shrink-0">
-                  <div className="text-[9px] text-muted/60 uppercase tracking-widest leading-none mb-0.5">
+                  <div className="text-[11px] text-muted/60 uppercase tracking-widest leading-none mb-0.5">
                     elo
                   </div>
                   <div
@@ -512,7 +512,7 @@ export function QueueScreen({
                   <>
                     <div className="w-px h-8 bg-white/[0.05] shrink-0" />
                     <div className="shrink-0">
-                      <div className="text-[9px] text-muted/60 uppercase tracking-widest leading-none mb-0.5">
+                      <div className="text-[11px] text-muted/60 uppercase tracking-widest leading-none mb-0.5">
                         win streak
                       </div>
                       <div className="text-sm font-bold text-amber-400 tabular-nums leading-none">
@@ -547,20 +547,20 @@ export function QueueScreen({
                   <span className="inline-block w-[2px] h-[1.1em] bg-current animate-blink ml-0.5 translate-y-[2px]" />
                 )}
               </button>
-              <span className="text-[11px] text-muted/60">
+              <span className="text-xs text-muted/60">
                 {amReady ? (
                   "Waiting for party leader to start..."
                 ) : (
                   <>
                     press{" "}
-                    <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/60 text-[10px] font-medium">Tab</kbd>
+                    <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/60 text-[11px] font-medium">Tab</kbd>
                     {" + "}
-                    <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/60 text-[10px] font-medium">Enter ↵</kbd>
+                    <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/60 text-[11px] font-medium">Enter ↵</kbd>
                   </>
                 )}
               </span>
               {privateRace && (
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-accent/70 bg-accent/[0.08] ring-1 ring-accent/20 rounded px-2 py-0.5">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-accent/70 bg-accent/[0.08] ring-1 ring-accent/20 rounded px-2 py-0.5">
                   Private
                 </span>
               )}
@@ -601,9 +601,9 @@ export function QueueScreen({
                         >
                           {icon}
                         </span>
-                        <span className="text-[11px] font-semibold leading-none">{label}</span>
+                        <span className="text-xs font-semibold leading-none">{label}</span>
                         <span
-                          className={`text-[11px] leading-tight hidden sm:block ${active ? "text-accent/70" : "text-muted/60"}`}
+                          className={`text-xs leading-tight hidden sm:block ${active ? "text-accent/70" : "text-muted/60"}`}
                         >
                           {desc}
                         </span>
@@ -611,7 +611,7 @@ export function QueueScreen({
                     );
                   })}
                 </div>
-                  <p className="text-[11px] text-muted/70 mt-2 leading-relaxed text-center">
+                  <p className="text-xs text-muted/70 mt-2 leading-relaxed text-center">
                     Select one or more modes. One is picked at random each race. Your ELO rating is shared across all modes.
                   </p>
                 </div>
@@ -632,15 +632,15 @@ export function QueueScreen({
 
               {/* Hint row + secondary actions */}
               <div className="relative flex items-center justify-between w-full mt-2">
-                <span className="text-[11px] text-muted/60">
+                <span className="text-xs text-muted/60">
                   {inParty && !allMembersReady ? (
                     "waiting for party to ready up..."
                   ) : (
                     <>
                       press{" "}
-                      <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/60 text-[10px] font-medium">Tab</kbd>
+                      <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/60 text-[11px] font-medium">Tab</kbd>
                       {" + "}
-                      <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/60 text-[10px] font-medium">Enter ↵</kbd>
+                      <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/60 text-[11px] font-medium">Enter ↵</kbd>
                     </>
                   )}
                 </span>
@@ -688,14 +688,14 @@ export function QueueScreen({
                         }`}
                       />
                     </button>
-                    <span className="text-[11px] text-muted/65 group-hover:text-muted transition-colors">
+                    <span className="text-xs text-muted/65 group-hover:text-muted transition-colors">
                       Private race
                     </span>
                   </label>
                 )}
 
               {!session.user.placementsCompleted && (
-                <p className="relative text-[11px] text-muted/65 mt-1">
+                <p className="relative text-xs text-muted/65 mt-1">
                   complete a placement test to unlock ranked
                 </p>
               )}
