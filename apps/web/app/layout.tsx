@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next"; // trigger deploy
 import { JetBrains_Mono } from "next/font/google";
 import { SessionProvider } from "@/components/auth/SessionProvider";
+import Link from "next/link";
 import { ReportIssueButton } from "@/components/shared/ReportIssueButton";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { UsernameGuard } from "@/components/auth/UsernameGuard";
@@ -101,6 +102,10 @@ export default function RootLayout({
             </div>
             <footer className="focus-fade relative z-10 flex items-center justify-center gap-3 py-3 text-xs text-muted/65">
               <span>TypeOff</span>
+              <span>·</span>
+              <Link href="/privacy" className="hover:text-muted transition-colors">Privacy</Link>
+              <span>·</span>
+              <Link href="/terms" className="hover:text-muted transition-colors">Terms</Link>
               <span>·</span>
               <ReportIssueButton />
             </footer>
