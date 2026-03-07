@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useRef, useLayoutEffect, useState } from "react";
+import React, { useRef, useLayoutEffect } from "react";
 import type { WordState, ContentType } from "@typeoff/shared";
 import { Word } from "./Word";
-import { Cursor, type SmoothCursorPos } from "./Cursor";
+import { Cursor, type CursorHandle } from "./Cursor";
 import { CodeWordDisplay } from "./CodeWordDisplay";
 
 interface WordDisplayProps {
@@ -23,7 +23,7 @@ export function WordDisplay({
 }: WordDisplayProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const measureRef = useRef<HTMLSpanElement>(null);
-  const [smoothPos, setSmoothPos] = useState<SmoothCursorPos>({ x: 0, y: 0, lineH: 32, charW: 12 });
+  const cursorRef = useRef<CursorHandle>(null);
 
   useLayoutEffect(() => {
     const container = containerRef.current;
@@ -41,14 +41,16 @@ export function WordDisplay({
     const containerRect = container.getBoundingClientRect();
     const wordRect = wordEl.getBoundingClientRect();
 
-    setSmoothPos((prev) => ({
-      x: wordRect.left - containerRect.left + currentCharIndex * charW,
-      y: wordRect.top - containerRect.top,
-      // Guard against empty/zero-height elements (e.g. \n tokens) collapsing the cursor
-      lineH: wordRect.height || prev.lineH,
-      charW,
-    }));
-  }, [currentWordIndex, currentCharIndex]);
+    cursorRef.current?.moveTo(
+      {
+        x: wordRect.left - containerRect.left + currentCharIndex * charW,
+        y: wordRect.top - containerRect.top,
+        lineH: wordRect.height || 32,
+        charW,
+      },
+      isTyping,
+    );
+  }, [currentWordIndex, currentCharIndex, isTyping]);
 
   if (contentType === "code") {
     return (
@@ -66,7 +68,7 @@ export function WordDisplay({
           currentCharIndex={currentCharIndex}
           isTyping={isTyping}
         />
-        <Cursor charIndex={0} isTyping={isTyping} smooth={smoothPos} />
+        <Cursor ref={cursorRef} charIndex={0} isTyping={isTyping} smooth />
       </div>
     );
   }
@@ -92,7 +94,7 @@ export function WordDisplay({
           />
         ))}
       </div>
-      <Cursor charIndex={0} isTyping={isTyping} smooth={smoothPos} />
+      <Cursor ref={cursorRef} charIndex={0} isTyping={isTyping} smooth />
     </div>
   );
 }

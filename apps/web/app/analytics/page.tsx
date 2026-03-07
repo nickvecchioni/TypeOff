@@ -221,7 +221,6 @@ export default function AnalyticsPage() {
         {/* ── Hero Stats ─────────────────────────────────────── */}
         <div
           className="relative rounded-xl overflow-hidden ring-1 ring-white/[0.06] mb-5 animate-fade-in"
-          style={{ animationDelay: "0ms" }}
         >
           {/* Top accent line */}
           <div className="h-[2px] bg-gradient-to-r from-transparent via-accent to-transparent opacity-60" />
@@ -364,7 +363,6 @@ export default function AnalyticsPage() {
         {/* ── Tab Navigation ──────────────────────────────────── */}
         <div
           className="flex items-center gap-1 mb-5 border-b border-white/[0.06] animate-fade-in"
-          style={{ animationDelay: "60ms" }}
         >
           {TABS.map((tab) => (
             <button
@@ -396,14 +394,14 @@ export default function AnalyticsPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* WPM Trend Chart */}
                 {data.wpmTrend.length >= 2 && (
-                  <Card title="WPM Trend" delay={0} flush>
+                  <Card title="WPM Trend" flush>
                     <WpmTrendChart points={data.wpmTrend} />
                   </Card>
                 )}
 
                 {/* ELO Trend */}
                 {(data.eloTrend?.length ?? 0) >= 2 && (
-                  <Card title="ELO Trend" delay={60}>
+                  <Card title="ELO Trend">
                     <div>
                       <EloMiniChart eloTrend={data.eloTrend!} color="#eab308" height={220} />
                     </div>
@@ -412,7 +410,7 @@ export default function AnalyticsPage() {
 
                 {/* By Mode */}
                 {modeFilter === "all" && (data.modeStats?.length ?? 0) > 0 && (
-                  <Card title="By Mode" delay={120}>
+                  <Card title="By Mode">
                     <div className="grid grid-cols-2 gap-2">
                       {(data.modeStats ?? []).map((m) => (
                         <button
@@ -440,7 +438,7 @@ export default function AnalyticsPage() {
 
                 {/* Speed by Placement */}
                 {(data.speedByPlacement?.length ?? 0) > 0 && (
-                  <Card title="Speed by Placement" delay={180}>
+                  <Card title="Speed by Placement">
                     <div className="grid grid-cols-2 gap-2.5 mb-3">
                       {data.speedByPlacement!.map((p) => {
                         const ord = p.placement === 1 ? "1st" : p.placement === 2 ? "2nd" : p.placement === 3 ? "3rd" : `${p.placement}th`;
@@ -466,7 +464,7 @@ export default function AnalyticsPage() {
                 {/* Insights */}
                 {(bigrams.length > 0 || (keyStats && Object.keys(keyStats).length > 0)) && (
                   <div className="sm:col-span-2">
-                    <Card title="Insights" subtitle="WPM impact analysis" delay={300}>
+                    <Card title="Insights" subtitle="WPM impact analysis">
                       <AnalyticsInsights
                         weakKeys={keyStats ? Object.entries(keyStats).map(([key, stat]) => ({
                           key,
@@ -485,14 +483,14 @@ export default function AnalyticsPage() {
               <div className="space-y-4">
                 {/* WPM Trend Chart */}
                 {data.wpmTrend.length >= 2 && (
-                  <Card title="WPM Trend" subtitle="(last 20 races)" delay={0} flush>
+                  <Card title="WPM Trend" subtitle="(last 20 races)" flush>
                     <WpmTrendChart points={data.wpmTrend} />
                   </Card>
                 )}
 
                 {/* By Mode */}
                 {modeFilter === "all" && (data.modeStats?.length ?? 0) > 0 && (
-                  <Card title="By Mode" delay={60}>
+                  <Card title="By Mode">
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {(data.modeStats ?? []).map((m) => (
                         <div
@@ -529,8 +527,7 @@ export default function AnalyticsPage() {
             {keyStats && Object.keys(keyStats).length > 0 ? (
               <Card
                 title="Keyboard Heatmap"
-                delay={0}
-                headerRight={
+                               headerRight={
                   isPro ? (
                     <Link
                       href="/solo?drill=true"
@@ -555,13 +552,13 @@ export default function AnalyticsPage() {
             {bigrams.length > 0 ? (
               <>
                 {isPro ? (
-                  <Card title="Weakest Bigrams" delay={0}>
+                  <Card title="Weakest Bigrams">
                     <BigramAnalysis bigrams={bigrams} onPractice={(weak) => router.push(`/solo?bigrams=${weak.join(",")}`)} />
                   </Card>
                 ) : (
                   <FreeBigramPreview bigrams={bigrams} keyStats={keyStats} avgWpm={avgWpm} />
                 )}
-                <Card title="Bigram Heatmap" subtitle="rows = first char, cols = second char" delay={60}>
+                <Card title="Bigram Heatmap" subtitle="rows = first char, cols = second char">
                   <BigramHeatmap bigrams={bigrams} />
                 </Card>
                 {!isPro && <ProUpsell />}
@@ -575,7 +572,7 @@ export default function AnalyticsPage() {
         {/* ── Progress Tab (Pro) ────────────────────────────── */}
         {activeTab === "progress" && isPro && (
           <div className="space-y-4 animate-fade-in">
-            <Card title="Practice Progress" subtitle="accuracy trends over time" delay={0}>
+            <Card title="Practice Progress" subtitle="accuracy trends over time">
               <PracticeProgress />
             </Card>
           </div>
@@ -602,14 +599,12 @@ function StatCell({ label, value, sub }: { label: string; value: string; sub?: s
 function Card({
   title,
   subtitle,
-  delay = 0,
   headerRight,
   flush,
   children,
 }: {
   title: string;
   subtitle?: string;
-  delay?: number;
   headerRight?: React.ReactNode;
   flush?: boolean;
   children: React.ReactNode;
@@ -617,7 +612,6 @@ function Card({
   return (
     <div
       className="rounded-xl bg-surface/25 ring-1 ring-white/[0.05] overflow-hidden animate-fade-in flex flex-col"
-      style={{ animationDelay: `${delay}ms` }}
     >
       <div className="px-4 sm:px-5 pt-4 pb-2.5 flex items-center justify-between">
         <div className="flex items-baseline gap-2.5">
@@ -710,7 +704,7 @@ function FreeBigramPreview({
 
   return (
     <>
-      <Card title="Weakest Bigrams" subtitle="top 5" delay={120}>
+      <Card title="Weakest Bigrams" subtitle="top 5">
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
           {worst5.map((b) => {
             const textColor = b.accuracy < 70 ? "text-error" : b.accuracy < 90 ? "text-amber-400" : "text-correct";
@@ -732,7 +726,7 @@ function FreeBigramPreview({
         </div>
       </Card>
       {teaserInsight && (
-        <div className="rounded-xl ring-1 ring-accent/10 bg-accent/[0.03] px-4 py-3 animate-fade-in" style={{ animationDelay: "180ms" }}>
+        <div className="rounded-xl ring-1 ring-accent/10 bg-accent/[0.03] px-4 py-3 animate-fade-in">
           <p className="text-sm text-muted/70 leading-relaxed">{teaserInsight.insight}</p>
           <p className="text-xs text-muted/50 mt-1.5">Upgrade to Pro for all insights and adaptive practice</p>
         </div>
@@ -745,7 +739,6 @@ function ProUpsell() {
   return (
     <div
       className="relative rounded-xl overflow-hidden ring-1 ring-accent/15 animate-fade-in"
-      style={{ animationDelay: "240ms" }}
     >
       {/* Gradient top edge */}
       <div className="h-[2px] bg-gradient-to-r from-accent/30 via-accent/60 to-accent/30" />
