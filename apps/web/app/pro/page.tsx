@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -394,6 +394,18 @@ export default function ProPage() {
 
 /* ── Subscriber View ───────────────────────────────────── */
 
+const PRO_PERKS = [
+  { label: "Ad-Free", detail: "Zero distractions" },
+  { label: "1.5× XP", detail: "Every race & solo" },
+  { label: "∞ Replays", detail: "Full access" },
+  { label: "Adaptive", detail: "Smart practice" },
+  { label: "Analytics", detail: "Deep insights" },
+  { label: "Custom Text", detail: "Your own content" },
+  { label: "Full History", detail: "Complete archive" },
+  { label: "Bio & Pin", detail: "Profile features" },
+  { label: "Data Export", detail: "CSV & JSON" },
+];
+
 function SubscriberView({
   session,
   portalLoading,
@@ -406,134 +418,344 @@ function SubscriberView({
   const totalXp = session?.user?.totalXp ?? 0;
   const { level, currentXp, nextLevelXp } = getXpLevel(totalXp);
   const xpPct = (currentXp / nextLevelXp) * 100;
-  const xpToNext = nextLevelXp - currentXp;
+  const username = session?.user?.username ?? session?.user?.name ?? "TypeOff";
+  const trackRef = useRef<HTMLDivElement>(null);
 
+  const unlockedProCount = COSMETIC_REWARDS.filter((r) => r.proOnly && r.level <= level).length;
+  const totalProCount = COSMETIC_REWARDS.filter((r) => r.proOnly).length;
   const nextProReward = COSMETIC_REWARDS.find((r) => r.proOnly && r.level > level);
 
-  let xpToNextPro: number | null = null;
-  if (nextProReward) {
-    const xpNeeded = 100 * nextProReward.level * (nextProReward.level - 1);
-    xpToNextPro = Math.max(0, xpNeeded - totalXp);
-  }
+  // Window of rewards around the current level for the track
+  const currentIdx = COSMETIC_REWARDS.reduce((acc, r, i) => (r.level <= level ? i : acc), 0);
+  const trackStart = Math.max(0, currentIdx - 5);
+  const trackEnd = Math.min(COSMETIC_REWARDS.length, trackStart + 15);
+  const trackRewards = COSMETIC_REWARDS.slice(trackStart, trackEnd);
+
+  // Auto-scroll track to center on the current level
+  useEffect(() => {
+    if (!trackRef.current) return;
+    const el = trackRef.current.querySelector('[data-current="true"]') as HTMLElement | null;
+    if (el) {
+      const container = trackRef.current;
+      container.scrollLeft = el.offsetLeft - container.clientWidth / 2 + el.clientWidth / 2;
+    }
+  }, []);
 
   return (
-    <div className="space-y-3">
-      {/* Header */}
-      <div className="animate-fade-in">
-        <h1 className="text-lg font-bold text-text tracking-tight flex items-center gap-2">
-          TypeOff Pro
-          <span className="text-[11px] font-bold text-accent/70 bg-accent/[0.08] px-2 py-0.5 rounded uppercase tracking-wider">
-            Active
-          </span>
-        </h1>
-        <p className="text-xs text-muted/65 mt-0.5">Manage your subscription</p>
-      </div>
-
-      {/* Status card */}
-      <div className="rounded-xl bg-surface/50 ring-1 ring-white/[0.06] px-5 py-4 animate-slide-up">
-        <div className="flex items-center justify-between gap-4">
-          <div className="space-y-1.5">
-            <div className="text-xs font-bold text-accent uppercase tracking-wider">
-              Pro Subscription Active
-            </div>
-            <ul className="space-y-0.5">
-              {[
-                "Ad-free experience",
-                "1.5x XP on every race",
-                "Full race history & advanced analytics",
-                "Post-race speed analysis & hesitation tracking",
-                "Unlimited replays",
-                "Custom text & adaptive practice",
-                "Profile bio & featured race pin",
-                "Full data export (CSV & JSON)",
-                "Pro badge in every race",
-              ].map((perk) => (
-                <li key={perk} className="flex items-center gap-2 text-xs text-muted/60">
-                  <span className="text-accent/60">✓</span>
-                  {perk}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <button
-            onClick={onManage}
-            disabled={portalLoading}
-            className="shrink-0 text-xs text-muted hover:text-text transition-colors px-3 py-1.5 rounded-lg ring-1 ring-white/[0.08] hover:ring-white/[0.15] disabled:opacity-50"
-          >
-            {portalLoading ? "Loading..." : "Manage"}
-          </button>
-        </div>
-      </div>
-
-      {/* XP progress */}
-      <div
-        className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] px-5 py-4 animate-slide-up"
-        style={{ animationDelay: "40ms" }}
-      >
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-xs font-bold text-accent tabular-nums">Level {level}</span>
-          <span className="text-xs text-muted/60 tabular-nums">
-            {currentXp} / {nextLevelXp} XP
-          </span>
-        </div>
-        <div className="h-1.5 rounded-full bg-surface overflow-hidden mb-3">
+    <div className="space-y-4 pb-8">
+      {/* ── Membership Card ── */}
+      <div className="relative animate-fade-in">
+        {/* Gradient accent border */}
+        <div
+          className="absolute -inset-px rounded-2xl"
+          style={{
+            background:
+              "linear-gradient(135deg, rgba(77,158,255,0.35) 0%, rgba(77,158,255,0.06) 40%, rgba(77,158,255,0.06) 60%, rgba(77,158,255,0.3) 100%)",
+          }}
+        />
+        <div className="relative rounded-2xl bg-[#0e0e16] overflow-hidden">
+          {/* Ambient glow */}
           <div
-            className="h-full rounded-full bg-accent transition-all"
-            style={{ width: `${Math.round(xpPct)}%` }}
+            className="absolute top-0 right-0 w-72 h-72 rounded-full blur-[80px] -translate-y-1/3 translate-x-1/4 pointer-events-none"
+            style={{ background: "radial-gradient(circle, rgba(77,158,255,0.07) 0%, transparent 70%)" }}
           />
-        </div>
-        {nextProReward ? (
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs text-muted/65">Next Pro cosmetic</p>
-              <p className="text-xs font-bold text-accent/80 mt-0.5">
-                {nextProReward.name}
-                <span className="text-xs font-normal text-muted/60 ml-1">
-                  at level {nextProReward.level}
+
+          <div className="relative px-6 py-5">
+            {/* Top row */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2.5">
+                <span
+                  className="text-lg"
+                  style={{ filter: "drop-shadow(0 0 10px rgba(77,158,255,0.6))" }}
+                >
+                  ⭐
                 </span>
-              </p>
+                <span className="text-[11px] font-black text-accent uppercase tracking-[0.2em]">
+                  TypeOff Pro
+                </span>
+              </div>
+              <button
+                onClick={onManage}
+                disabled={portalLoading}
+                className="text-[11px] text-muted/45 hover:text-muted/75 transition-colors px-3 py-1.5 rounded-lg ring-1 ring-white/[0.06] hover:ring-white/[0.12] disabled:opacity-50"
+              >
+                {portalLoading ? "Loading..." : "Manage Subscription →"}
+              </button>
             </div>
-            <div className="text-right">
-              <p className="text-xs text-muted/60 tabular-nums">
-                {xpToNextPro?.toLocaleString()} XP away
-              </p>
-              <p className="text-xs text-muted/65 mt-0.5">
-                {xpToNext} to level {level + 1}
-              </p>
+
+            {/* Level + username */}
+            <div className="flex items-end gap-4 mb-5">
+              <div
+                className="text-[3.5rem] font-black tabular-nums leading-none tracking-tighter"
+                style={{
+                  background: "linear-gradient(180deg, #e8e8ed 30%, #4d9eff 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                }}
+              >
+                {level}
+              </div>
+              <div className="pb-2 space-y-0.5">
+                <div className="text-[10px] text-muted/35 uppercase tracking-widest">Level</div>
+                <div className="text-sm font-bold text-text/80">{username}</div>
+              </div>
+            </div>
+
+            {/* XP bar */}
+            <div className="mb-4">
+              <div className="flex items-baseline justify-between mb-1.5">
+                <span className="text-[11px] font-bold text-accent/70 tabular-nums">
+                  {currentXp.toLocaleString()}{" "}
+                  <span className="text-muted/30 font-normal">
+                    / {nextLevelXp.toLocaleString()} XP
+                  </span>
+                </span>
+                <span className="text-[11px] text-muted/30 tabular-nums">
+                  {(nextLevelXp - currentXp).toLocaleString()} to next
+                </span>
+              </div>
+              <div className="h-2 rounded-full bg-white/[0.04] overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-1000 ease-out"
+                  style={{
+                    width: `${Math.min(100, Math.round(xpPct))}%`,
+                    background: "linear-gradient(90deg, #2563eb, #4d9eff, #60a5fa)",
+                    boxShadow: "0 0 16px rgba(77,158,255,0.4)",
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Active status strip */}
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-correct animate-pulse" />
+                <span className="text-[11px] text-correct/70 font-medium">1.5× XP</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-correct animate-pulse" />
+                <span className="text-[11px] text-correct/70 font-medium">Ad-Free</span>
+              </div>
+              <span className="text-white/[0.08]">|</span>
+              <span className="text-[11px] text-muted/35 tabular-nums">
+                {unlockedProCount}/{totalProCount} Pro cosmetics unlocked
+              </span>
             </div>
           </div>
-        ) : (
-          <p className="text-xs text-muted/60">
-            You&apos;ve unlocked all Pro cosmetics. Impressive.
-          </p>
-        )}
+        </div>
       </div>
 
-      {/* Pro feature links */}
+      {/* ── Reward Track ── */}
+      <div className="animate-slide-up" style={{ animationDelay: "30ms" }}>
+        <div className="flex items-center justify-between mb-2.5">
+          <p className="text-[11px] font-bold text-muted/50 uppercase tracking-widest">
+            Reward Track
+          </p>
+          {nextProReward && (
+            <p className="text-[11px] text-muted/30">
+              Next Pro:{" "}
+              <span className="text-accent/50 font-medium">{nextProReward.name}</span>
+              <span className="text-muted/25"> · Lv.{nextProReward.level}</span>
+            </p>
+          )}
+        </div>
+        <div className="relative rounded-xl ring-1 ring-white/[0.06] bg-surface/30 overflow-hidden">
+          {/* Edge fades */}
+          <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-surface/90 to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-surface/90 to-transparent z-10 pointer-events-none" />
+
+          <div
+            ref={trackRef}
+            className="flex items-center px-10 py-5 overflow-x-auto"
+            style={{ scrollbarWidth: "none" }}
+          >
+            {trackRewards.map((item, i) => {
+              const unlocked = item.level <= level;
+              const isCurrent = item.level === level;
+              return (
+                <div
+                  key={item.id}
+                  className="flex items-center shrink-0"
+                  data-current={isCurrent ? "true" : undefined}
+                >
+                  {/* Connector */}
+                  {i > 0 && (
+                    <div
+                      className={`w-5 sm:w-8 h-[2px] shrink-0 ${
+                        unlocked ? "bg-accent/25" : "bg-white/[0.05]"
+                      }`}
+                    />
+                  )}
+                  {/* Node */}
+                  <div className="relative group">
+                    <div
+                      className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                        isCurrent
+                          ? "bg-accent/[0.12] ring-2 ring-accent/40 scale-110"
+                          : unlocked
+                            ? "bg-accent/[0.06] ring-1 ring-accent/15"
+                            : "bg-white/[0.02] ring-1 ring-white/[0.05]"
+                      }`}
+                      style={
+                        isCurrent
+                          ? { boxShadow: "0 0 20px rgba(77,158,255,0.15)" }
+                          : undefined
+                      }
+                    >
+                      <div
+                        className={`transition-opacity ${unlocked ? "opacity-100" : "opacity-25"}`}
+                      >
+                        <TrackRewardIcon item={item} />
+                      </div>
+                    </div>
+                    {/* Level number */}
+                    <div
+                      className={`text-center mt-1.5 text-[9px] tabular-nums ${
+                        isCurrent
+                          ? "text-accent font-bold"
+                          : unlocked
+                            ? "text-muted/35"
+                            : "text-muted/18"
+                      }`}
+                    >
+                      {item.level}
+                    </div>
+                    {/* PRO tag */}
+                    {item.proOnly && (
+                      <span
+                        className={`absolute -top-1.5 -right-1.5 text-[6px] font-black px-[4px] py-[1px] rounded-sm uppercase ${
+                          unlocked
+                            ? "text-accent bg-accent/[0.12]"
+                            : "text-muted/20 bg-white/[0.03]"
+                        }`}
+                      >
+                        Pro
+                      </span>
+                    )}
+                    {/* Hover tooltip */}
+                    <div className="absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
+                      <div className="bg-[#1c1c28] text-[10px] text-text/80 px-2.5 py-1 rounded-lg shadow-xl ring-1 ring-white/[0.1]">
+                        {item.name}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Pro Perks ── */}
+      <div className="animate-slide-up" style={{ animationDelay: "50ms" }}>
+        <p className="text-[11px] font-bold text-muted/50 uppercase tracking-widest mb-2.5">
+          Your Pro Perks
+        </p>
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+          {PRO_PERKS.map((perk) => (
+            <div
+              key={perk.label}
+              className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-3 py-2.5 hover:ring-accent/15 hover:bg-surface/50 transition-all group flex items-start gap-2"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-accent/40 group-hover:bg-accent/60 mt-[5px] shrink-0 transition-colors" />
+              <div>
+                <div className="text-[11px] font-bold text-text/65 leading-tight group-hover:text-text/85 transition-colors">
+                  {perk.label}
+                </div>
+                <div className="text-[9px] text-muted/30 mt-0.5">{perk.detail}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Quick Links ── */}
       <div
         className="grid grid-cols-2 sm:grid-cols-4 gap-2 animate-slide-up"
-        style={{ animationDelay: "60ms" }}
+        style={{ animationDelay: "70ms" }}
       >
         {[
-          { href: "/history",  title: "Race History", desc: "Full paginated history with filters" },
-          { href: "/analytics", title: "Analytics",    desc: "Advanced performance insights" },
-          { href: `/profile/${session?.user?.username}`, title: "Profile", desc: "View your profile with Pro badge" },
-          { href: "/cosmetics", title: "Items",        desc: "Browse and equip your cosmetics" },
+          { href: "/analytics", title: "Analytics", desc: "Performance insights" },
+          { href: "/history", title: "Race History", desc: "Full archive" },
+          { href: `/profile/${username}`, title: "Profile", desc: "Your Pro profile" },
+          { href: "/cosmetics", title: "Cosmetics", desc: "Browse & equip" },
         ].map((link) => (
           <Link
             key={link.href}
             href={link.href}
-            className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3 hover:ring-accent/20 transition-all group"
+            className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-4 py-3.5 hover:ring-accent/20 hover:bg-surface/50 transition-all group"
           >
-            <div className="text-sm font-bold text-text group-hover:text-accent transition-colors">
+            <div className="text-sm font-bold text-text/75 group-hover:text-accent transition-colors">
               {link.title}
             </div>
-            <p className="text-xs text-muted/65 mt-0.5">{link.desc}</p>
+            <p className="text-[11px] text-muted/40 mt-0.5">{link.desc}</p>
           </Link>
         ))}
       </div>
     </div>
   );
+}
+
+/* ── Track Reward Icon ─────────────────────────────────── */
+
+function TrackRewardIcon({ item }: { item: (typeof COSMETIC_REWARDS)[number] }) {
+  switch (item.type) {
+    case "badge":
+      return <span className="text-sm leading-none">{BADGE_EMOJIS[item.id] ?? "✨"}</span>;
+    case "nameColor": {
+      const hex = NAME_COLORS[item.id] ?? item.value;
+      return (
+        <span
+          className="block w-4 h-4 rounded-full ring-1 ring-white/10"
+          style={{ backgroundColor: hex }}
+        />
+      );
+    }
+    case "typingTheme": {
+      const def = TYPING_THEMES[item.id];
+      if (!def) return <span className="text-[10px]">🎨</span>;
+      return (
+        <span className="flex gap-[2px]">
+          {def.palette.map((c, i) => (
+            <span
+              key={i}
+              className="w-[6px] h-[6px] rounded-full"
+              style={{ backgroundColor: c }}
+            />
+          ))}
+        </span>
+      );
+    }
+    case "cursorStyle": {
+      const def = CURSOR_STYLES[item.id];
+      if (!def) return <span className="text-[10px]">▎</span>;
+      return (
+        <span
+          className="block rounded-sm"
+          style={{
+            width: 2,
+            height: 14,
+            backgroundColor: def.color,
+            boxShadow: def.glowColor ? `0 0 6px ${def.glowColor}` : undefined,
+          }}
+        />
+      );
+    }
+    case "title":
+      return (
+        <span className="text-[9px] font-black text-accent/60 uppercase tracking-wide">T</span>
+      );
+    case "nameEffect":
+      return (
+        <span className="text-[8px] font-black text-purple-400/60 uppercase tracking-wide">
+          FX
+        </span>
+      );
+    case "profileBorder":
+      return <span className="block w-4 h-4 rounded border-2 border-accent/30" />;
+    default:
+      return <span className="text-xs">✦</span>;
+  }
 }
 
 /* ── Showcase ──────────────────────────────────────────── */
