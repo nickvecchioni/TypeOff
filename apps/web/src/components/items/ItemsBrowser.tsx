@@ -99,7 +99,6 @@ export function ItemsBrowser({
   const [active, setActive] = useState<ActiveState>(EMPTY_ACTIVE);
   const [saving, setSaving] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<CategoryKey>("badge");
-  const [hoverPreview, setHoverPreview] = useState<{ field: keyof ActiveState; id: string } | null>(null);
   const [lockedPreview, setLockedPreview] = useState<{
     item: CosmeticReward;
     field: keyof ActiveState;
@@ -172,22 +171,15 @@ export function ItemsBrowser({
   const levelLockedItems = lockedItems.filter((r) => !r.proOnly || isPro);
   const proExclusiveItems = lockedItems.filter((r) => r.proOnly && !isPro);
 
-  // Live preview: hoverPreview > lockedPreview > active
-  const previewActive: ActiveState = hoverPreview
-    ? { ...active, [hoverPreview.field]: hoverPreview.id }
-    : lockedPreview
+  // Live preview: lockedPreview > active
+  const previewActive: ActiveState = lockedPreview
     ? { ...active, [lockedPreview.field]: lockedPreview.item.id }
     : active;
 
-  const activePreviewItem: CosmeticReward | null = (() => {
-    if (hoverPreview) return COSMETIC_REWARDS.find((r) => r.id === hoverPreview.id) ?? null;
-    if (lockedPreview) return lockedPreview.item;
-    return null;
-  })();
+  const activePreviewItem: CosmeticReward | null = lockedPreview ? lockedPreview.item : null;
   const isPreviewingLocked = activePreviewItem != null && !ownedIds.has(activePreviewItem.id);
   const isPreviewingPro = isPreviewingLocked && !!activePreviewItem?.proOnly && !isPro;
   const isPreviewingNewItem = activePreviewItem != null;
-  const isLockedPinned = lockedPreview !== null && hoverPreview === null;
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 animate-fade-in">
@@ -243,11 +235,10 @@ export function ItemsBrowser({
           previewActive={previewActive}
           isPreviewingNewItem={isPreviewingNewItem}
           isPreviewingLocked={isPreviewingLocked}
-          isLockedPinned={isLockedPinned}
           isPreviewingPro={isPreviewingPro}
           onDismiss={() => setLockedPreview(null)}
         />
-        {isLockedPinned && lockedPreview && (
+        {lockedPreview && (
           <LockCallout
             item={lockedPreview.item}
             reason={lockedPreview.reason}
@@ -277,7 +268,7 @@ export function ItemsBrowser({
               previewActive={previewActive}
               active={active}
               selectedCategory={selectedCategory}
-              hoverPreview={hoverPreview}
+              lockedPreview={lockedPreview}
               onSelect={handleCategoryChange}
             />
           ))}
@@ -326,8 +317,6 @@ export function ItemsBrowser({
                       isPro={isPro}
                       isPinnedPreview={false}
                       onToggle={() => toggleCosmetic(selectedCat.field, item.id)}
-                      onHoverIn={() => setHoverPreview({ field: selectedCat.field, id: item.id })}
-                      onHoverOut={() => setHoverPreview(null)}
                       onLockedClick={() => {}}
                     />
                   ))}
@@ -348,8 +337,6 @@ export function ItemsBrowser({
                       isPro={isPro}
                       isPinnedPreview={lockedPreview?.item.id === item.id}
                       onToggle={() => {}}
-                      onHoverIn={() => setHoverPreview({ field: selectedCat.field, id: item.id })}
-                      onHoverOut={() => setHoverPreview(null)}
                       onLockedClick={() => handleLockedClick(item, selectedCat.field, "level")}
                     />
                   ))}
@@ -370,8 +357,6 @@ export function ItemsBrowser({
                       isPro={isPro}
                       isPinnedPreview={lockedPreview?.item.id === item.id}
                       onToggle={() => {}}
-                      onHoverIn={() => setHoverPreview({ field: selectedCat.field, id: item.id })}
-                      onHoverOut={() => setHoverPreview(null)}
                       onLockedClick={() => handleLockedClick(item, selectedCat.field, "pro")}
                     />
                   ))}
@@ -398,7 +383,6 @@ function ProfileHeaderCard({
   previewActive,
   isPreviewingNewItem,
   isPreviewingLocked,
-  isLockedPinned,
   isPreviewingPro,
   onDismiss,
 }: {
@@ -406,7 +390,6 @@ function ProfileHeaderCard({
   previewActive: ActiveState;
   isPreviewingNewItem: boolean;
   isPreviewingLocked: boolean;
-  isLockedPinned: boolean;
   isPreviewingPro: boolean;
   onDismiss: () => void;
 }) {
@@ -423,12 +406,10 @@ function ProfileHeaderCard({
     : null;
 
   const headerLabel =
-    isPreviewingLocked && isLockedPinned
+    isPreviewingLocked
       ? isPreviewingPro
-        ? "Previewing · Pro Exclusive"
-        : "Previewing · Locked"
-      : isPreviewingNewItem
-      ? "Previewing"
+        ? "Preview · Pro Exclusive"
+        : "Preview · Not Owned"
       : "Your Profile";
 
   const hasAnyProfileCosmetic = badge || title || colorHex || effectClass || borderDef;
@@ -441,7 +422,7 @@ function ProfileHeaderCard({
     >
       <div
         className={`px-5 py-4 transition-all duration-200 ${
-          isPreviewingPro && isLockedPinned
+          isPreviewingPro
             ? "bg-accent/[0.03]"
             : isPreviewingNewItem
             ? "bg-surface/60"
@@ -452,20 +433,13 @@ function ProfileHeaderCard({
         <div className="flex items-center justify-between mb-4">
           <span
             className={`text-xs font-bold uppercase tracking-widest ${
-              isPreviewingPro && isLockedPinned
-                ? "text-accent/50"
-                : isPreviewingNewItem
-                ? "text-accent/50"
-                : "text-muted/45"
+              isPreviewingNewItem ? "text-accent/50" : "text-muted/45"
             }`}
           >
             {headerLabel}
           </span>
           <div className="flex items-center gap-2">
-            {isPreviewingNewItem && !isLockedPinned && (
-              <span className="text-xs text-accent/45 animate-pulse">live</span>
-            )}
-            {isLockedPinned && (
+            {isPreviewingNewItem && (
               <>
                 <span className={`text-xs ${isPreviewingPro ? "text-accent/40" : "text-muted/35"}`}>
                   click item to dismiss
@@ -516,14 +490,14 @@ function LoadoutSlot({
   previewActive,
   active,
   selectedCategory,
-  hoverPreview,
+  lockedPreview,
   onSelect,
 }: {
   cat: CategoryDef;
   previewActive: ActiveState;
   active: ActiveState;
   selectedCategory: CategoryKey;
-  hoverPreview: { field: keyof ActiveState; id: string } | null;
+  lockedPreview: { item: CosmeticReward; field: keyof ActiveState; reason: "level" | "pro" } | null;
   onSelect: (key: CategoryKey) => void;
 }) {
   const previewId = previewActive[cat.field];
@@ -532,7 +506,7 @@ function LoadoutSlot({
     ? COSMETIC_REWARDS.find((r) => r.id === previewId)
     : null;
   const isSelected = selectedCategory === cat.key;
-  const isPreviewing = hoverPreview?.field === cat.field && hoverPreview.id !== activeId;
+  const isPreviewing = lockedPreview?.field === cat.field && lockedPreview.item.id !== activeId;
 
   return (
     <button
@@ -926,8 +900,6 @@ function ItemCard({
   isPro,
   isPinnedPreview,
   onToggle,
-  onHoverIn,
-  onHoverOut,
   onLockedClick,
 }: {
   item: CosmeticReward;
@@ -936,8 +908,6 @@ function ItemCard({
   isPro: boolean;
   isPinnedPreview: boolean;
   onToggle: () => void;
-  onHoverIn: () => void;
-  onHoverOut: () => void;
   onLockedClick: () => void;
 }) {
   const isProLocked = locked && item.proOnly && !isPro;
@@ -946,8 +916,6 @@ function ItemCard({
     return (
       <button
         onClick={onLockedClick}
-        onMouseEnter={onHoverIn}
-        onMouseLeave={onHoverOut}
         className={`group relative text-left rounded-xl px-4 py-4 ring-1 transition-all ${
           isPinnedPreview
             ? "ring-accent/35 bg-accent/[0.08]"
@@ -973,8 +941,6 @@ function ItemCard({
   return (
     <button
       onClick={locked ? onLockedClick : onToggle}
-      onMouseEnter={onHoverIn}
-      onMouseLeave={onHoverOut}
       className={`group relative text-left rounded-xl px-4 py-4 ring-1 transition-all ${
         locked
           ? isPinnedPreview
@@ -1016,9 +982,9 @@ function ItemCard({
         {locked ? (
           <span className="text-muted/55 tabular-nums">Lv. {item.level}</span>
         ) : active ? (
-          <span className="text-accent/50">Equipped</span>
+          <span className="text-accent/50">Equipped · <span className="tabular-nums">Lv. {item.level}</span></span>
         ) : (
-          <span className="text-muted/45 group-hover:text-muted/65 transition-colors">Click to equip</span>
+          <span className="text-muted/45 group-hover:text-muted/65 transition-colors tabular-nums">Lv. {item.level}</span>
         )}
       </p>
     </button>
