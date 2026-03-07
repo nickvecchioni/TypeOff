@@ -120,7 +120,7 @@ export function ConfigBar({
         </Chip>
       </div>
 
-      {/* ── Secondary row: timing + accessories ── */}
+      {/* ── Secondary row: timing + strict mode ── */}
       <div className="flex items-center gap-1.5">
         {/* Time / words toggle + duration (faded for fixed modes) */}
         <div
@@ -152,7 +152,7 @@ export function ConfigBar({
           ))}
         </div>
 
-        {/* Strict mode (invisible for zen + code to preserve row height) */}
+        {/* Strict mode (invisible for zen/code/custom to preserve row width) */}
         <div className={`flex items-center gap-1 transition-opacity ${
           ct === "zen" || ct === "code" || ct === "custom" ? "invisible pointer-events-none" :
           ct === "quotes" ? "opacity-20 pointer-events-none" : ""
@@ -168,21 +168,22 @@ export function ConfigBar({
             }
           />
         </div>
+      </div>
 
+      {/* ── Tertiary row: mode-specific options (fixed height to prevent shift) ── */}
+      <div className="flex items-center justify-center min-h-[28px]">
         {/* Practice toggle — only for words/mixed, Pro users with weak data */}
         {isWordsVariant && hasPracticeData && (
-          <>
-            <MicroDivider />
+          <div className="flex items-center gap-1">
             <Sub active={isPracticeOn} onClick={togglePractice}>
               practice
             </Sub>
-          </>
+          </div>
         )}
 
         {/* Code language picker + indent style */}
         {ct === "code" && (
-          <>
-            <MicroDivider />
+          <div className="flex items-center gap-1">
             <CodeLanguagePicker
               value={config.codeLanguage}
               onChange={(lang) => set({ codeLanguage: lang })}
@@ -202,7 +203,7 @@ export function ConfigBar({
                 tabs
               </Sub>
             </div>
-          </>
+          </div>
         )}
       </div>
 
