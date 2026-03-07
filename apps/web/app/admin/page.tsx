@@ -17,6 +17,7 @@ interface UserRow {
   eloRating: number;
   rankTier: string;
   placementsCompleted: boolean;
+  isPro: boolean;
 }
 
 export default function AdminPage() {
@@ -27,6 +28,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [deleteUsername, setDeleteUsername] = useState("");
+  const [togglingPro, setTogglingPro] = useState<string | null>(null);
 
   const isAdmin = session?.user?.username === "nickvec";
 
@@ -101,6 +103,21 @@ export default function AdminPage() {
     }
     setDeleteUsername("");
     await fetchAccounts();
+  };
+
+  const handleTogglePro = async (userId: string, currentlyPro: boolean) => {
+    setTogglingPro(userId);
+    const res = await fetch("/api/admin/users", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, isPro: !currentlyPro }),
+    });
+    if (res.ok) {
+      setRealUsers((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, isPro: !currentlyPro } : u))
+      );
+    }
+    setTogglingPro(null);
   };
 
   if (status === "loading") {
@@ -216,7 +233,7 @@ export default function AdminPage() {
       <h2 className="text-xl font-bold text-accent mt-12 mb-6">
         Registered Users ({realUsers.length})
       </h2>
-      <div className="w-full max-w-lg">
+      <div className="w-full max-w-2xl">
         {realUsers.length === 0 ? (
           <p className="text-muted text-sm text-center">No registered users</p>
         ) : (
@@ -227,6 +244,7 @@ export default function AdminPage() {
                 <th className="pb-2">Email</th>
                 <th className="pb-2">ELO</th>
                 <th className="pb-2">Rank</th>
+                <th className="pb-2 text-center">Pro</th>
               </tr>
             </thead>
             <tbody>
@@ -250,6 +268,19 @@ export default function AdminPage() {
                     <span className={`text-rank-${u.rankTier} capitalize`}>
                       {u.rankTier}
                     </span>
+                  </td>
+                  <td className="py-2.5 text-center">
+                    <button
+                      onClick={() => handleTogglePro(u.id, u.isPro)}
+                      disabled={togglingPro === u.id}
+                      className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors disabled:opacity-50 ${
+                        u.isPro
+                          ? "bg-accent/20 text-accent hover:bg-accent/30"
+                          : "bg-surface text-muted hover:bg-surface/80"
+                      }`}
+                    >
+                      {u.isPro ? "PRO" : "Free"}
+                    </button>
                   </td>
                 </tr>
               ))}
