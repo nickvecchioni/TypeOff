@@ -730,7 +730,7 @@ function FreeBigramPreview({
       {teaserInsight && (
         <div className="rounded-xl ring-1 ring-accent/10 bg-accent/[0.03] px-4 py-3 animate-fade-in">
           <p className="text-sm text-muted/70 leading-relaxed">{teaserInsight.insight}</p>
-          <p className="text-xs text-muted/50 mt-1.5">Upgrade to Pro for all insights and adaptive practice</p>
+          <p className="text-xs text-muted/50 mt-1.5">Upgrade to Pro for all insights, adaptive practice, and no ads</p>
         </div>
       )}
     </>
@@ -758,10 +758,10 @@ function ProUpsell() {
 
         <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 mb-5">
           {[
+            "Ad-free experience across the site",
             "Adaptive practice for weak keys & bigrams",
             "ELO trends & placement distribution",
             "Full bigram analysis & WPM insights",
-            "Activity tracking & consistency scores",
           ].map((label) => (
             <div key={label} className="flex items-start gap-2 text-sm text-text/55">
               <span className="text-accent/60 mt-px shrink-0">+</span>

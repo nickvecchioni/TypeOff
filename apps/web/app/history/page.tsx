@@ -333,7 +333,7 @@ export default function HistoryPage() {
               Want to see your full race history?
             </p>
             <p className="text-xs text-muted/65 mb-3">
-              Upgrade to Pro for unlimited history, filters, and sorting.
+              Upgrade to Pro for unlimited history, filters, sorting, and an ad-free experience.
             </p>
             <Link
               href="/pro"

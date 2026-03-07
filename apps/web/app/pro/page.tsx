@@ -22,18 +22,19 @@ const TOTAL_REWARD_COUNT = COSMETIC_REWARDS.length;
 const FREE_REWARD_COUNT = TOTAL_REWARD_COUNT - PRO_REWARD_COUNT;
 
 const COMPARISON_ROWS: { feature: string; desc?: string; free: boolean | string; pro: boolean | string }[] = [
-  { feature: "Adaptive Practice",   desc: "Targets your weakest keys & bigrams",          free: false,                             pro: true },
-  { feature: "Advanced Analytics",  desc: "Per-key heatmaps, bigram breakdown, WPM trends",          free: false,                             pro: true },
-  { feature: "Speed Analysis",      desc: "Post-race breakdown: peak sustained WPM, hesitations, warmup curve", free: false,                  pro: true },
-  { feature: "Race Replays",        desc: "Rewatch any race keystroke by keystroke",                  free: "Last 3",                          pro: "Unlimited" },
-  { feature: "Custom Text Mode",    desc: "Practice with your own text or code snippets",             free: false,                             pro: true },
-  { feature: "Race History",        desc: "Browse and filter your past race results",                 free: "Last 10",                         pro: "Full Archive" },
-  { feature: "Profile Bio & Pin",   desc: "Custom bio and pin your best race on your profile",        free: false,                             pro: true },
-  { feature: "Data Export",         desc: "Download your full stats, races, and accuracy as CSV/JSON", free: false,                             pro: true },
-  { feature: "XP Multiplier",       desc: "Earn XP faster to unlock cosmetics sooner",                free: "1×",                              pro: "1.5×" },
-  { feature: "Level Rewards",       desc: "Exclusive themes, cursors, effects, and more",             free: `${FREE_REWARD_COUNT} cosmetics`,  pro: `All ${TOTAL_REWARD_COUNT}` },
-  { feature: "Ranked Racing",       desc: "Compete in ELO-rated matches with skill-based matchmaking", free: true,                              pro: true },
-  { feature: "Leaderboard",         desc: "Global rankings by PP, text, and universe",                free: true,                              pro: true },
+  { feature: "Ad-Free Experience",  desc: "No ads, no distractions — just typing",                    free: false,                             pro: true },
+  { feature: "Adaptive Practice",   desc: "Targets your weakest keys & bigrams",                      free: false,                             pro: true },
+  { feature: "Advanced Analytics",  desc: "Per-key heatmaps, bigram breakdown, WPM trends",           free: false,                             pro: true },
+  { feature: "Speed Analysis",      desc: "Post-race breakdown: peak sustained WPM, hesitations, warmup curve", free: false,                   pro: true },
+  { feature: "Race Replays",        desc: "Rewatch any race keystroke by keystroke",                   free: "Last 3",                          pro: "Unlimited" },
+  { feature: "Custom Text Mode",    desc: "Practice with your own text or code snippets",              free: false,                             pro: true },
+  { feature: "Race History",        desc: "Browse and filter your past race results",                  free: "Last 10",                         pro: "Full Archive" },
+  { feature: "Profile Bio & Pin",   desc: "Custom bio and pin your best race on your profile",         free: false,                             pro: true },
+  { feature: "Data Export",         desc: "Download your full stats, races, and accuracy as CSV/JSON",  free: false,                             pro: true },
+  { feature: "XP Multiplier",       desc: "Earn XP faster to unlock cosmetics sooner",                 free: "1×",                              pro: "1.5×" },
+  { feature: "Level Rewards",       desc: "Exclusive themes, cursors, effects, and more",              free: `${FREE_REWARD_COUNT} cosmetics`,  pro: `All ${TOTAL_REWARD_COUNT}` },
+  { feature: "Ranked Racing",       desc: "Compete in ELO-rated matches with skill-based matchmaking",  free: true,                              pro: true },
+  { feature: "Leaderboard",         desc: "Global rankings by PP, text, and universe",                 free: true,                              pro: true },
 ];
 
 const TEASER_IDS = [
@@ -49,12 +50,22 @@ const FEATURES = [
   {
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2" /><line x1="3" y1="3" x2="21" y2="21" />
+      </svg>
+    ),
+    title: "Ad-Free",
+    description: "No banners, no distractions. Just you and the words. A completely clean experience across every page.",
+    amber: true,
+  },
+  {
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" />
       </svg>
     ),
     title: "Adaptive Practice",
     description: "Targets your weakest keys and bigrams. Generates words from your accuracy data so every session attacks what slows you down.",
-    amber: true,
+    amber: false,
   },
   {
     icon: (
@@ -158,6 +169,7 @@ export default function ProPage() {
                 {/* Stat highlights */}
                 <div className="flex justify-center gap-10 mt-8">
                   {[
+                    { value: "0",                        label: "Ads"           },
                     { value: "1.5×",                     label: "XP Multiplier" },
                     { value: "∞",                        label: "Race Replays"  },
                     { value: String(PRO_REWARD_COUNT),   label: "Pro Cosmetics" },
@@ -180,7 +192,7 @@ export default function ProPage() {
             </div>
 
             {/* ── Features ── */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 animate-slide-up">
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 animate-slide-up">
               {FEATURES.map((f) => (
                 <div
                   key={f.title}
@@ -426,6 +438,7 @@ function SubscriberView({
             </div>
             <ul className="space-y-0.5">
               {[
+                "Ad-free experience",
                 "1.5x XP on every race",
                 "Full race history & advanced analytics",
                 "Post-race speed analysis & hesitation tracking",
