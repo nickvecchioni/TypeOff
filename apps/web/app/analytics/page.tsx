@@ -38,7 +38,6 @@ interface AnalyticsData {
   eloTrend?: Array<{ date: string; elo: number }>;
   speedByPlacement?: Array<{ placement: number; avgWpm: number; count: number }>;
   placementDistribution?: { first: number; second: number; third: number; other: number; total: number };
-  racesPerDay?: Record<string, number>;
 }
 
 const MODE_FILTERS = [
@@ -207,20 +206,6 @@ export default function AnalyticsPage() {
     const prev5 = recentWpms.slice(-10, -5).reduce((s, r) => s + r.wpm, 0) / 5;
     return recent5 - prev5;
   })();
-
-  // Activity data
-  const last30Days: { date: string; count: number; dayOfWeek: number }[] = [];
-  if (data.racesPerDay) {
-    const today = new Date();
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date(today);
-      d.setDate(d.getDate() - i);
-      const key = d.toISOString().slice(0, 10);
-      last30Days.push({ date: key, count: data.racesPerDay[key] ?? 0, dayOfWeek: d.getDay() });
-    }
-  }
-  const maxDayCount = Math.max(1, ...last30Days.map((d) => d.count));
-  const totalRacesLast30 = last30Days.reduce((s, d) => s + d.count, 0);
 
   const TABS: { id: Tab; label: string; pro?: boolean }[] = [
     { id: "overview", label: "Overview" },
@@ -407,15 +392,15 @@ export default function AnalyticsPage() {
         {/* ── Overview Tab ─────────────────────────────────────── */}
         {activeTab === "overview" && (
           <div className="space-y-4 animate-fade-in">
-            {/* WPM Trend Chart */}
-            {data.wpmTrend.length >= 2 && (
-              <Card title="WPM Trend" subtitle={isPro ? undefined : "(last 20 races)"} delay={0} flush>
-                <WpmTrendChart points={data.wpmTrend} />
-              </Card>
-            )}
-
             {isPro ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+                {/* WPM Trend Chart */}
+                {data.wpmTrend.length >= 2 && (
+                  <Card title="WPM Trend" delay={0} flush>
+                    <WpmTrendChart points={data.wpmTrend} />
+                  </Card>
+                )}
+
                 {/* ELO Trend */}
                 {(data.eloTrend?.length ?? 0) >= 2 && (
                   <Card title="ELO Trend" delay={60}>
@@ -478,23 +463,6 @@ export default function AnalyticsPage() {
                   </Card>
                 )}
 
-                {/* Activity */}
-                {last30Days.length > 0 && (
-                  <Card
-                    title="Activity"
-                    subtitle="30 days"
-                    delay={240}
-                    headerRight={
-                      <span className="text-sm font-bold text-text tabular-nums">
-                        {totalRacesLast30}
-                        <span className="text-muted/50 font-normal ml-1">races</span>
-                      </span>
-                    }
-                  >
-                    <ActivityChart days={last30Days} maxCount={maxDayCount} />
-                  </Card>
-                )}
-
                 {/* Insights */}
                 {(bigrams.length > 0 || (keyStats && Object.keys(keyStats).length > 0)) && (
                   <div className="sm:col-span-2">
@@ -515,6 +483,13 @@ export default function AnalyticsPage() {
             ) : (
               /* Free user overview */
               <div className="space-y-4">
+                {/* WPM Trend Chart */}
+                {data.wpmTrend.length >= 2 && (
+                  <Card title="WPM Trend" subtitle="(last 20 races)" delay={0} flush>
+                    <WpmTrendChart points={data.wpmTrend} />
+                  </Card>
+                )}
+
                 {/* By Mode */}
                 {modeFilter === "all" && (data.modeStats?.length ?? 0) > 0 && (
                   <Card title="By Mode" delay={60}>
@@ -661,55 +636,6 @@ function EmptyState({ message }: { message: string }) {
     <div className="rounded-xl bg-surface/20 ring-1 ring-white/[0.04] px-6 py-12 text-center animate-fade-in">
       <div className="text-muted/30 text-2xl mb-3">⌨</div>
       <p className="text-sm text-muted/55">{message}</p>
-    </div>
-  );
-}
-
-function ActivityChart({ days, maxCount }: { days: { date: string; count: number; dayOfWeek: number }[]; maxCount: number }) {
-  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
-  const hovered = hoveredIdx !== null ? days[hoveredIdx] : null;
-
-  return (
-    <div>
-      <div className="flex items-end gap-[3px] h-16 relative">
-        {days.map((d, i) => {
-          const pct = (d.count / maxCount) * 100;
-          const intensity = d.count === 0 ? 0 : 0.3 + (pct / 100) * 0.7;
-          const isHovered = hoveredIdx === i;
-          return (
-            <div
-              key={d.date}
-              className="flex-1 rounded-t transition-all relative"
-              style={{
-                height: d.count === 0 ? "3px" : `${Math.max(12, pct)}%`,
-                background: d.count === 0
-                  ? "rgba(255,255,255,0.04)"
-                  : `rgba(77, 158, 255, ${isHovered ? Math.min(1, intensity + 0.3) : intensity})`,
-              }}
-              onMouseEnter={() => setHoveredIdx(i)}
-              onMouseLeave={() => setHoveredIdx(null)}
-            />
-          );
-        })}
-
-        {/* Floating tooltip */}
-        {hovered !== null && hoveredIdx !== null && (
-          <div
-            className="absolute bottom-full mb-2 pointer-events-none z-10 rounded-lg bg-[#0c0c14]/95 ring-1 ring-white/[0.08] px-2.5 py-1.5 text-xs shadow-xl whitespace-nowrap"
-            style={{
-              left: `${((hoveredIdx + 0.5) / days.length) * 100}%`,
-              transform: "translateX(-50%)",
-            }}
-          >
-            <div className="text-accent font-bold tabular-nums">{hovered.count} race{hovered.count !== 1 ? "s" : ""}</div>
-            <div className="text-muted/60 tabular-nums">{new Date(hovered.date + "T12:00:00").toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}</div>
-          </div>
-        )}
-      </div>
-      <div className="flex justify-between mt-1.5 text-xs text-muted/50 tabular-nums">
-        <span>{days[0]?.date.slice(5)}</span>
-        <span>today</span>
-      </div>
     </div>
   );
 }
