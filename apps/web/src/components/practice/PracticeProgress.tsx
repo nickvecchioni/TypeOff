@@ -38,7 +38,11 @@ export function PracticeProgress() {
   }
 
   if (progress.length === 0) {
-    return null;
+    return (
+      <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3 text-center">
+        <p className="text-xs text-muted/60">No progress data yet. Complete solo practice sessions to start tracking accuracy trends.</p>
+      </div>
+    );
   }
 
   // Sort by most recent snapshot, show items with at least 2 data points
