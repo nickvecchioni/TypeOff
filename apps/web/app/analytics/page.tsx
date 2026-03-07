@@ -415,12 +415,12 @@ export default function AnalyticsPage() {
             )}
 
             {isPro ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
                 {/* ELO Trend */}
                 {(data.eloTrend?.length ?? 0) >= 2 && (
                   <Card title="ELO Trend" delay={60}>
-                    <div style={{ minHeight: 180 }}>
-                      <AreaMiniChart data={data.eloTrend!.map((r) => r.elo)} color="#eab308" height={160} />
+                    <div>
+                      <EloMiniChart eloTrend={data.eloTrend!} color="#eab308" height={160} />
                     </div>
                   </Card>
                 )}
@@ -664,28 +664,47 @@ function EmptyState({ message }: { message: string }) {
 }
 
 function ActivityChart({ days, maxCount }: { days: { date: string; count: number; dayOfWeek: number }[]; maxCount: number }) {
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const hovered = hoveredIdx !== null ? days[hoveredIdx] : null;
+
   return (
     <div>
-      <div className="flex items-end gap-[3px] h-24">
-        {days.map((d) => {
+      <div className="flex items-end gap-[3px] h-16 relative">
+        {days.map((d, i) => {
           const pct = (d.count / maxCount) * 100;
           const intensity = d.count === 0 ? 0 : 0.3 + (pct / 100) * 0.7;
+          const isHovered = hoveredIdx === i;
           return (
             <div
               key={d.date}
-              className="flex-1 rounded-t transition-all group relative"
+              className="flex-1 rounded-t transition-all relative"
               style={{
                 height: d.count === 0 ? "3px" : `${Math.max(12, pct)}%`,
                 background: d.count === 0
                   ? "rgba(255,255,255,0.04)"
-                  : `rgba(77, 158, 255, ${intensity})`,
+                  : `rgba(77, 158, 255, ${isHovered ? Math.min(1, intensity + 0.3) : intensity})`,
               }}
-              title={`${d.date}: ${d.count} races`}
+              onMouseEnter={() => setHoveredIdx(i)}
+              onMouseLeave={() => setHoveredIdx(null)}
             />
           );
         })}
+
+        {/* Floating tooltip */}
+        {hovered !== null && hoveredIdx !== null && (
+          <div
+            className="absolute bottom-full mb-2 pointer-events-none z-10 rounded-lg bg-[#0c0c14]/95 ring-1 ring-white/[0.08] px-2.5 py-1.5 text-xs shadow-xl whitespace-nowrap"
+            style={{
+              left: `${((hoveredIdx + 0.5) / days.length) * 100}%`,
+              transform: "translateX(-50%)",
+            }}
+          >
+            <div className="text-accent font-bold tabular-nums">{hovered.count} race{hovered.count !== 1 ? "s" : ""}</div>
+            <div className="text-muted/60 tabular-nums">{new Date(hovered.date + "T12:00:00").toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}</div>
+          </div>
+        )}
       </div>
-      <div className="flex justify-between mt-2 text-xs text-muted/50 tabular-nums">
+      <div className="flex justify-between mt-1.5 text-xs text-muted/50 tabular-nums">
         <span>{days[0]?.date.slice(5)}</span>
         <span>today</span>
       </div>
@@ -840,6 +859,35 @@ function ProUpsell() {
   );
 }
 
+/** Downsample an array using LTTB (Largest-Triangle-Three-Buckets) for visual fidelity */
+function downsampleLTTB<T>(data: T[], threshold: number, getValue: (d: T) => number): T[] {
+  if (data.length <= threshold) return data;
+  const sampled: T[] = [data[0]];
+  const bucketSize = (data.length - 2) / (threshold - 2);
+  let prevIdx = 0;
+  for (let i = 1; i < threshold - 1; i++) {
+    const rangeStart = Math.floor((i - 1) * bucketSize) + 1;
+    const rangeEnd = Math.min(Math.floor(i * bucketSize) + 1, data.length);
+    const nextStart = Math.floor(i * bucketSize) + 1;
+    const nextEnd = Math.min(Math.floor((i + 1) * bucketSize) + 1, data.length);
+    let avgY = 0;
+    for (let j = nextStart; j < nextEnd; j++) avgY += getValue(data[j]);
+    avgY /= (nextEnd - nextStart) || 1;
+    const avgX = (nextStart + nextEnd - 1) / 2;
+    let maxArea = -1;
+    let maxIdx = rangeStart;
+    const ax = prevIdx, ay = getValue(data[prevIdx]);
+    for (let j = rangeStart; j < rangeEnd; j++) {
+      const area = Math.abs((ax - avgX) * (getValue(data[j]) - ay) - (ax - j) * (avgY - ay));
+      if (area > maxArea) { maxArea = area; maxIdx = j; }
+    }
+    sampled.push(data[maxIdx]);
+    prevIdx = maxIdx;
+  }
+  sampled.push(data[data.length - 1]);
+  return sampled;
+}
+
 function WpmTrendChart({ points }: { points: Array<{ date: string; wpm: number; accuracy: number }> }) {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -852,29 +900,37 @@ function WpmTrendChart({ points }: { points: Array<{ date: string; wpm: number; 
   const iW = W - pad.left - pad.right;
   const iH = H - pad.top - pad.bottom;
 
+  // Downsample for rendering when there are too many points
+  const MAX_RENDER = 200;
+  const renderPoints = useMemo(
+    () => downsampleLTTB(points, MAX_RENDER, (p) => p.wpm),
+    [points]
+  );
+
   const rawMax = Math.max(...points.map((p) => p.wpm), 10);
   const niceStep = rawMax <= 50 ? 10 : rawMax <= 120 ? 25 : 50;
   const yMax = Math.ceil((rawMax * 1.1) / niceStep) * niceStep;
   const yTicks = Array.from({ length: Math.floor(yMax / niceStep) + 1 }, (_, i) => i * niceStep);
 
-  const sx = (i: number) => pad.left + (i / (points.length - 1)) * iW;
+  // Render coordinates use renderPoints for the path
+  const rxScale = (i: number) => pad.left + (i / (renderPoints.length - 1)) * iW;
   const sy = (v: number) => pad.top + iH - (v / yMax) * iH;
 
-  const linePath = points.map((p, i) => `${i === 0 ? "M" : "L"} ${sx(i)} ${sy(p.wpm)}`).join(" ");
-  const areaPath = linePath + ` L ${sx(points.length - 1)} ${pad.top + iH} L ${sx(0)} ${pad.top + iH} Z`;
+  // Hover coordinates use full points array for accuracy
+  const sx = (i: number) => pad.left + (i / (points.length - 1)) * iW;
+
+  const linePath = renderPoints.map((p, i) => `${i === 0 ? "M" : "L"} ${rxScale(i)} ${sy(p.wpm)}`).join(" ");
+  const areaPath = linePath + ` L ${rxScale(renderPoints.length - 1)} ${pad.top + iH} L ${rxScale(0)} ${pad.top + iH} Z`;
 
   function handleMouseMove(e: React.MouseEvent<SVGSVGElement>) {
     const svg = svgRef.current;
     if (!svg) return;
     const rect = svg.getBoundingClientRect();
     const mouseX = ((e.clientX - rect.left) / rect.width) * W;
-    let closest = 0;
-    let minDist = Infinity;
-    points.forEach((_, i) => {
-      const d = Math.abs(sx(i) - mouseX);
-      if (d < minDist) { minDist = d; closest = i; }
-    });
-    setHoveredIdx(closest);
+    // Binary search for closest point in full dataset
+    const normalizedX = (mouseX - pad.left) / iW;
+    const idx = Math.round(normalizedX * (points.length - 1));
+    setHoveredIdx(Math.max(0, Math.min(points.length - 1, idx)));
   }
 
   const hovered = hoveredIdx !== null ? points[hoveredIdx] : null;
@@ -912,11 +968,6 @@ function WpmTrendChart({ points }: { points: Array<{ date: string; wpm: number; 
       <path d={areaPath} fill="url(#wpmTrendGrad)" />
       <path d={linePath} fill="none" stroke="var(--color-accent)" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
 
-      {/* Dots */}
-      {points.map((p, i) => (
-        <circle key={i} cx={sx(i)} cy={sy(p.wpm)} r={hoveredIdx === i ? 3.5 : 2} fill="var(--color-accent)" />
-      ))}
-
       {/* X-axis label */}
       <text x={W / 2} y={H - 3} fill="var(--color-muted)" fontSize={10} textAnchor="middle" fillOpacity={0.4}>
         races
@@ -951,8 +1002,17 @@ function WpmTrendChart({ points }: { points: Array<{ date: string; wpm: number; 
   );
 }
 
-function AreaMiniChart({ data, color, height }: { data: number[]; color: string; height: number }) {
-  if (data.length < 2) return null;
+function EloMiniChart({ eloTrend, color, height }: { eloTrend: Array<{ date: string; elo: number }>; color: string; height: number }) {
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  if (eloTrend.length < 2) return null;
+
+  const data = eloTrend.map((r) => r.elo);
+  const renderData = useMemo(
+    () => downsampleLTTB(eloTrend, 200, (d) => d.elo),
+    [eloTrend]
+  );
 
   const min = Math.min(...data);
   const max = Math.max(...data);
@@ -969,18 +1029,31 @@ function AreaMiniChart({ data, color, height }: { data: number[]; color: string;
   const tickCount = Math.min(5, Math.max(2, Math.ceil(yRange / niceStep)));
   const yTicks = Array.from({ length: tickCount + 1 }, (_, i) => yMin + i * niceStep).filter((v) => v <= yMax);
 
+  const renderScaleX = (i: number) => padding.left + (i / (renderData.length - 1)) * innerW;
   const scaleX = (i: number) => padding.left + (i / (data.length - 1)) * innerW;
   const scaleY = (v: number) => padding.top + innerH - ((v - yMin) / yRange) * innerH;
 
-  const linePath = data.map((v, i) => `${i === 0 ? "M" : "L"} ${scaleX(i)} ${scaleY(v)}`).join(" ");
+  const linePath = renderData.map((d, i) => `${i === 0 ? "M" : "L"} ${renderScaleX(i)} ${scaleY(d.elo)}`).join(" ");
   const areaPath = linePath +
-    ` L ${scaleX(data.length - 1)} ${padding.top + innerH}` +
-    ` L ${scaleX(0)} ${padding.top + innerH} Z`;
+    ` L ${renderScaleX(renderData.length - 1)} ${padding.top + innerH}` +
+    ` L ${renderScaleX(0)} ${padding.top + innerH} Z`;
 
   const gradId = `areaGrad-${color.replace("#", "")}`;
 
+  function handleMouseMove(e: React.MouseEvent<SVGSVGElement>) {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const rect = svg.getBoundingClientRect();
+    const mouseX = ((e.clientX - rect.left) / rect.width) * w;
+    const normalizedX = (mouseX - padding.left) / innerW;
+    const idx = Math.round(normalizedX * (data.length - 1));
+    setHoveredIdx(Math.max(0, Math.min(data.length - 1, idx)));
+  }
+
+  const hovered = hoveredIdx !== null ? eloTrend[hoveredIdx] : null;
+
   return (
-    <svg viewBox={`0 0 ${w} ${height}`} className="w-full h-full" style={{ cursor: "crosshair" }}>
+    <svg ref={svgRef} viewBox={`0 0 ${w} ${height}`} className="w-full h-full" style={{ cursor: "crosshair" }} onMouseMove={handleMouseMove} onMouseLeave={() => setHoveredIdx(null)}>
       <defs>
         <linearGradient id={gradId} x1="0" x2="0" y1="0" y2="1">
           <stop offset="0%" stopColor={color} stopOpacity="0.3" />
@@ -1049,6 +1122,32 @@ function AreaMiniChart({ data, color, height }: { data: number[]; color: string;
       >
         races
       </text>
+
+      {/* Hover tooltip */}
+      {hovered !== null && hoveredIdx !== null && (() => {
+        const x = scaleX(hoveredIdx);
+        const y = scaleY(hovered.elo);
+        const dateStr = new Date(hovered.date).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+        const TOOLTIP_W = 90;
+        const TOOLTIP_H = 32;
+        const flipLeft = x + TOOLTIP_W + 10 > w - padding.right;
+        const tx = flipLeft ? x - TOOLTIP_W - 6 : x + 6;
+        const ty = Math.max(padding.top, Math.min(y - TOOLTIP_H / 2, padding.top + innerH - TOOLTIP_H));
+
+        return (
+          <g pointerEvents="none">
+            <line x1={x} x2={x} y1={padding.top} y2={padding.top + innerH} stroke="rgba(255,255,255,0.15)" strokeWidth={1} strokeDasharray="3 3" />
+            <circle cx={x} cy={y} r={3.5} fill={color} />
+            <rect x={tx} y={ty} width={TOOLTIP_W} height={TOOLTIP_H} rx={4} fill="rgba(12,12,20,0.92)" stroke="rgba(255,255,255,0.08)" strokeWidth={1} />
+            <text x={tx + 6} y={ty + 12} fill={color} fontSize={11} fontWeight="700">
+              {Math.round(hovered.elo)} elo
+            </text>
+            <text x={tx + 6} y={ty + 24} fill="var(--color-muted)" fontSize={9} fillOpacity={0.6}>
+              {dateStr}
+            </text>
+          </g>
+        );
+      })()}
     </svg>
   );
 }
