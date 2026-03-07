@@ -31,7 +31,7 @@ export default async function ItemsPage() {
   const isPro = subRow?.status === "active";
 
   return (
-    <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
+    <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8 animate-fade-in">
       <ItemsBrowser
         totalXp={stats?.totalXp ?? 0}
         isPro={isPro}

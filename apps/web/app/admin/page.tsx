@@ -140,7 +140,7 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="flex-1 flex flex-col items-center px-4 py-12 overflow-y-auto">
+    <main className="flex-1 flex flex-col items-center px-4 py-12 overflow-y-auto animate-fade-in">
       <h1 className="text-2xl font-bold text-accent mb-8">
         Test Accounts
       </h1>

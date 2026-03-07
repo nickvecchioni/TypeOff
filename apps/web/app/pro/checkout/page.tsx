@@ -88,7 +88,7 @@ export default function ProCheckoutPage() {
   }
 
   return (
-    <main className="flex-1 flex flex-col items-center overflow-y-auto px-4 sm:px-6 py-8">
+    <main className="flex-1 flex flex-col items-center overflow-y-auto px-4 sm:px-6 py-8 animate-fade-in">
       <div className="w-full max-w-[480px]">
         <div className="mb-6">
           <a
