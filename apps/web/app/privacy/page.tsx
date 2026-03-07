@@ -8,10 +8,12 @@ export default function PrivacyPage() {
   return (
     <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-10">
       <article className="max-w-3xl mx-auto space-y-6 text-sm text-muted leading-relaxed">
-        <h1 className="text-2xl font-black text-text tracking-tight">Privacy Policy</h1>
-        <p className="text-muted/60">Last updated: March 7, 2026</p>
+        <div className="animate-slide-up">
+          <h1 className="text-2xl font-black text-text tracking-tight">Privacy Policy</h1>
+          <p className="text-muted/60 mt-2">Last updated: March 7, 2026</p>
+        </div>
 
-        <section className="space-y-2">
+        <section className="space-y-2 animate-slide-up" style={{ animationDelay: "80ms" }}>
           <h2 className="text-base font-bold text-text">1. Information We Collect</h2>
           <p>
             When you create an account via Google OAuth, we receive your name, email address, and
@@ -21,7 +23,7 @@ export default function PrivacyPage() {
           </p>
         </section>
 
-        <section className="space-y-2">
+        <section className="space-y-2 animate-slide-up" style={{ animationDelay: "140ms" }}>
           <h2 className="text-base font-bold text-text">2. How We Use Your Information</h2>
           <ul className="list-disc pl-5 space-y-1">
             <li>Provide and improve the TypeOff service</li>
@@ -33,7 +35,7 @@ export default function PrivacyPage() {
           </ul>
         </section>
 
-        <section className="space-y-2">
+        <section className="space-y-2 animate-slide-up" style={{ animationDelay: "200ms" }}>
           <h2 className="text-base font-bold text-text">3. Cookies and Advertising</h2>
           <p>
             We use essential cookies for authentication and session management. Third-party
@@ -65,7 +67,7 @@ export default function PrivacyPage() {
           </p>
         </section>
 
-        <section className="space-y-2">
+        <section className="space-y-2 animate-slide-up" style={{ animationDelay: "260ms" }}>
           <h2 className="text-base font-bold text-text">4. Data Sharing</h2>
           <p>
             We do not sell your personal information. We share data only with the following
@@ -78,7 +80,7 @@ export default function PrivacyPage() {
           </ul>
         </section>
 
-        <section className="space-y-2">
+        <section className="space-y-2 animate-slide-up" style={{ animationDelay: "320ms" }}>
           <h2 className="text-base font-bold text-text">5. Data Retention</h2>
           <p>
             We retain your account and gameplay data for as long as your account is active. You may
@@ -86,7 +88,7 @@ export default function PrivacyPage() {
           </p>
         </section>
 
-        <section className="space-y-2">
+        <section className="space-y-2 animate-slide-up" style={{ animationDelay: "380ms" }}>
           <h2 className="text-base font-bold text-text">6. Children&apos;s Privacy</h2>
           <p>
             TypeOff is not directed at children under 13. We do not knowingly collect personal
@@ -95,7 +97,7 @@ export default function PrivacyPage() {
           </p>
         </section>
 
-        <section className="space-y-2">
+        <section className="space-y-2 animate-slide-up" style={{ animationDelay: "440ms" }}>
           <h2 className="text-base font-bold text-text">7. Changes to This Policy</h2>
           <p>
             We may update this Privacy Policy from time to time. We will notify users of material
@@ -103,7 +105,7 @@ export default function PrivacyPage() {
           </p>
         </section>
 
-        <section className="space-y-2">
+        <section className="space-y-2 animate-slide-up" style={{ animationDelay: "500ms" }}>
           <h2 className="text-base font-bold text-text">8. Contact</h2>
           <p>
             If you have questions about this Privacy Policy, you can reach us at{" "}

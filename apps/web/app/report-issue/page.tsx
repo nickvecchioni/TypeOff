@@ -76,7 +76,7 @@ export default function ReportIssuePage() {
   if (submitted) {
     return (
       <main className="flex-1 flex flex-col items-center justify-center px-4">
-        <div className="animate-fade-in flex flex-col items-center w-full max-w-md text-center">
+        <div className="animate-slide-up flex flex-col items-center w-full max-w-md text-center">
           <div className="text-4xl mb-4">✓</div>
           <h1 className="text-2xl font-bold text-accent mb-2">
             Issue Submitted
@@ -97,7 +97,7 @@ export default function ReportIssuePage() {
 
   return (
     <main className="flex-1 flex flex-col items-center justify-center px-4 py-6">
-      <div className="animate-fade-in flex flex-col items-center w-full max-w-md">
+      <div className="animate-slide-up flex flex-col items-center w-full max-w-md">
         <h1 className="text-3xl font-bold text-accent mb-2">Report an Issue</h1>
         <p className="text-muted mb-4 text-center">
           Found something wrong?<br />Let us know and we&apos;ll look into it.

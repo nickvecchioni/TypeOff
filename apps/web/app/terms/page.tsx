@@ -8,10 +8,12 @@ export default function TermsPage() {
   return (
     <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-10">
       <article className="max-w-3xl mx-auto space-y-6 text-sm text-muted leading-relaxed">
-        <h1 className="text-2xl font-black text-text tracking-tight">Terms of Service</h1>
-        <p className="text-muted/60">Last updated: March 7, 2026</p>
+        <div className="animate-slide-up">
+          <h1 className="text-2xl font-black text-text tracking-tight">Terms of Service</h1>
+          <p className="text-muted/60 mt-2">Last updated: March 7, 2026</p>
+        </div>
 
-        <section className="space-y-2">
+        <section className="space-y-2 animate-slide-up" style={{ animationDelay: "80ms" }}>
           <h2 className="text-base font-bold text-text">1. Acceptance of Terms</h2>
           <p>
             By accessing or using TypeOff (&quot;the Service&quot;), you agree to be bound by these
@@ -19,7 +21,7 @@ export default function TermsPage() {
           </p>
         </section>
 
-        <section className="space-y-2">
+        <section className="space-y-2 animate-slide-up" style={{ animationDelay: "140ms" }}>
           <h2 className="text-base font-bold text-text">2. Description of Service</h2>
           <p>
             TypeOff is a competitive typing game that offers ranked multiplayer races, solo practice,
@@ -28,7 +30,7 @@ export default function TermsPage() {
           </p>
         </section>
 
-        <section className="space-y-2">
+        <section className="space-y-2 animate-slide-up" style={{ animationDelay: "200ms" }}>
           <h2 className="text-base font-bold text-text">3. Accounts</h2>
           <ul className="list-disc pl-5 space-y-1">
             <li>You must sign in with a valid Google account to use ranked features.</li>
@@ -40,7 +42,7 @@ export default function TermsPage() {
           </ul>
         </section>
 
-        <section className="space-y-2">
+        <section className="space-y-2 animate-slide-up" style={{ animationDelay: "260ms" }}>
           <h2 className="text-base font-bold text-text">4. Conduct</h2>
           <p>You agree not to:</p>
           <ul className="list-disc pl-5 space-y-1">
@@ -56,7 +58,7 @@ export default function TermsPage() {
           </p>
         </section>
 
-        <section className="space-y-2">
+        <section className="space-y-2 animate-slide-up" style={{ animationDelay: "320ms" }}>
           <h2 className="text-base font-bold text-text">5. Pro Subscriptions</h2>
           <ul className="list-disc pl-5 space-y-1">
             <li>Pro subscriptions are billed monthly or yearly via Stripe.</li>
@@ -68,7 +70,7 @@ export default function TermsPage() {
           </ul>
         </section>
 
-        <section className="space-y-2">
+        <section className="space-y-2 animate-slide-up" style={{ animationDelay: "380ms" }}>
           <h2 className="text-base font-bold text-text">6. Intellectual Property</h2>
           <p>
             All content, design, code, and branding of TypeOff are owned by TypeOff or its
@@ -77,7 +79,7 @@ export default function TermsPage() {
           </p>
         </section>
 
-        <section className="space-y-2">
+        <section className="space-y-2 animate-slide-up" style={{ animationDelay: "440ms" }}>
           <h2 className="text-base font-bold text-text">7. Disclaimer of Warranties</h2>
           <p>
             The Service is provided &quot;as is&quot; without warranties of any kind, express or
@@ -86,7 +88,7 @@ export default function TermsPage() {
           </p>
         </section>
 
-        <section className="space-y-2">
+        <section className="space-y-2 animate-slide-up" style={{ animationDelay: "500ms" }}>
           <h2 className="text-base font-bold text-text">8. Limitation of Liability</h2>
           <p>
             To the fullest extent permitted by law, TypeOff shall not be liable for any indirect,
@@ -95,7 +97,7 @@ export default function TermsPage() {
           </p>
         </section>
 
-        <section className="space-y-2">
+        <section className="space-y-2 animate-slide-up" style={{ animationDelay: "560ms" }}>
           <h2 className="text-base font-bold text-text">9. Changes to Terms</h2>
           <p>
             We may update these Terms from time to time. Continued use of the Service after changes
@@ -103,7 +105,7 @@ export default function TermsPage() {
           </p>
         </section>
 
-        <section className="space-y-2">
+        <section className="space-y-2 animate-slide-up" style={{ animationDelay: "620ms" }}>
           <h2 className="text-base font-bold text-text">10. Contact</h2>
           <p>
             Questions about these Terms can be sent to{" "}

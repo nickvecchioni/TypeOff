@@ -78,7 +78,7 @@ export default function SettingsPage() {
     <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between animate-slide-up">
           <h1 className="text-2xl font-bold text-text">Settings</h1>
           <span
             className={`text-xs font-medium transition-opacity duration-300 ${
@@ -90,6 +90,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Typing */}
+        <div className="animate-slide-up" style={{ animationDelay: "80ms" }}>
         <Section title="Typing">
           <Toggle
             label="Smooth caret"
@@ -110,8 +111,10 @@ export default function SettingsPage() {
             </Link>
           </div>
         </Section>
+        </div>
 
         {/* Appearance */}
+        <div className="animate-slide-up" style={{ animationDelay: "160ms" }}>
         <Section title="Appearance">
           <Toggle
             label="Show live WPM"
@@ -155,8 +158,10 @@ export default function SettingsPage() {
             />
           </OptionRow>
         </Section>
+        </div>
 
         {/* Account */}
+        <div className="animate-slide-up" style={{ animationDelay: "240ms" }}>
         <Section title="Account">
           <div className="space-y-3">
             <div className="flex items-center justify-between py-2">
@@ -215,8 +220,10 @@ export default function SettingsPage() {
             </div>
           </div>
         </Section>
+        </div>
 
         {/* Danger Zone */}
+        <div className="animate-slide-up" style={{ animationDelay: "320ms" }}>
         <Section title="Danger zone" danger>
           <div className="flex items-center justify-between py-2">
             <div>
@@ -235,6 +242,7 @@ export default function SettingsPage() {
             </button>
           </div>
         </Section>
+        </div>
 
         <div className="h-8" />
       </div>
