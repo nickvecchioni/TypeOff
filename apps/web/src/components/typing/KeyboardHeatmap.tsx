@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import type { KeyStatsMap } from "@typeoff/shared";
 
 interface KeyboardHeatmapProps {
@@ -29,6 +29,7 @@ function accuracyToColor(accuracy: number): string {
 }
 
 export function KeyboardHeatmap({ keyStats }: KeyboardHeatmapProps) {
+  const [tooltip, setTooltip] = useState<{ label: string; accuracy: number; total: number; x: number; y: number } | null>(null);
   const maxRowLen = ROWS[0].length;
   const totalWidth = maxRowLen * KEY_UNIT - KEY_GAP + KEY_UNIT;
   const totalHeight = ROWS.length * ROW_HEIGHT - KEY_GAP;
@@ -36,42 +37,69 @@ export function KeyboardHeatmap({ keyStats }: KeyboardHeatmapProps) {
   return (
     <div className="w-full flex flex-col items-center gap-2">
       <div className="text-xs text-muted/60 uppercase tracking-widest">key accuracy</div>
-      <svg
-        viewBox={`0 0 ${totalWidth} ${totalHeight}`}
-        className="w-full max-w-sm"
-        aria-label="Keyboard accuracy heatmap"
-        role="img"
-      >
-        {ROWS.map((row, rowIdx) => {
-          const yBase = rowIdx * ROW_HEIGHT;
-          const xOffset = ROW_OFFSETS[rowIdx] * KEY_UNIT;
-          return row.map(([label, keyChar], colIdx) => {
-            const x = xOffset + colIdx * KEY_UNIT;
-            const y = yBase;
-            const stat = keyChar ? keyStats[keyChar] : undefined;
-            const hasData = stat != null && stat.total > 0;
-            const accuracy = hasData ? stat!.correct / stat!.total : null;
-            const fillColor = accuracy !== null ? accuracyToColor(accuracy) : "var(--color-surface-bright)";
-            const fillOpacity = accuracy !== null ? 0.8 : 0.4;
-            const textColor = accuracy !== null ? "#0c0c12" : "var(--color-muted)";
+      <div className="relative w-full max-w-sm">
+        <svg
+          viewBox={`0 0 ${totalWidth} ${totalHeight}`}
+          className="w-full"
+          aria-label="Keyboard accuracy heatmap"
+          role="img"
+          onMouseLeave={() => setTooltip(null)}
+        >
+          {ROWS.map((row, rowIdx) => {
+            const yBase = rowIdx * ROW_HEIGHT;
+            const xOffset = ROW_OFFSETS[rowIdx] * KEY_UNIT;
+            return row.map(([label, keyChar], colIdx) => {
+              const x = xOffset + colIdx * KEY_UNIT;
+              const y = yBase;
+              const stat = keyChar ? keyStats[keyChar] : undefined;
+              const hasData = stat != null && stat.total > 0;
+              const accuracy = hasData ? stat!.correct / stat!.total : null;
+              const fillColor = accuracy !== null ? accuracyToColor(accuracy) : "var(--color-surface-bright)";
+              const fillOpacity = accuracy !== null ? 0.8 : 0.4;
+              const textColor = accuracy !== null ? "#0c0c12" : "var(--color-muted)";
 
-            return (
-              <g key={`${rowIdx}-${colIdx}`}>
-                <rect x={x} y={y} width={KEY_SIZE} height={KEY_SIZE} rx={CORNER_R}
-                  fill={fillColor} fillOpacity={fillOpacity} />
-                <text x={x + KEY_SIZE / 2} y={y + KEY_SIZE / 2 + 5}
-                  textAnchor="middle" fontSize={13} fontFamily="var(--font-mono)"
-                  fontWeight="600" fill={textColor}>
-                  {label}
-                </text>
-                {hasData && (
-                  <title>{`${label}: ${Math.round(accuracy! * 100)}% (${stat!.total} presses)`}</title>
-                )}
-              </g>
-            );
-          });
-        })}
-      </svg>
+              return (
+                <g key={`${rowIdx}-${colIdx}`}
+                  onMouseEnter={() => hasData && setTooltip({
+                    label,
+                    accuracy: accuracy!,
+                    total: stat!.total,
+                    x: x + KEY_SIZE / 2,
+                    y,
+                  })}
+                  onMouseLeave={() => setTooltip(null)}
+                  style={{ cursor: hasData ? "pointer" : "default" }}
+                >
+                  <rect x={x} y={y} width={KEY_SIZE} height={KEY_SIZE} rx={CORNER_R}
+                    fill={fillColor} fillOpacity={fillOpacity} />
+                  <text x={x + KEY_SIZE / 2} y={y + KEY_SIZE / 2 + 5}
+                    textAnchor="middle" fontSize={13} fontFamily="var(--font-mono)"
+                    fontWeight="600" fill={textColor} style={{ pointerEvents: "none" }}>
+                    {label}
+                  </text>
+                </g>
+              );
+            });
+          })}
+        </svg>
+        {tooltip && (
+          <div
+            className="absolute pointer-events-none px-2 py-1 rounded bg-surface-bright text-xs text-white font-mono whitespace-nowrap border border-white/10 shadow-lg"
+            style={{
+              left: `${(tooltip.x / totalWidth) * 100}%`,
+              top: `${(tooltip.y / totalHeight) * 100}%`,
+              transform: "translate(-50%, -100%) translateY(-6px)",
+            }}
+          >
+            <span className="font-semibold">{tooltip.label.toUpperCase()}</span>
+            {" "}
+            <span style={{ color: accuracyToColor(tooltip.accuracy) }}>
+              {Math.round(tooltip.accuracy * 100)}%
+            </span>
+            <span className="text-muted/60"> ({tooltip.total})</span>
+          </div>
+        )}
+      </div>
       <div className="flex items-center gap-3 text-xs text-muted/60">
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 rounded-sm" style={{ background: accuracyToColor(1) }} />
