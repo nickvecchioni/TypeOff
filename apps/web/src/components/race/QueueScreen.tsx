@@ -206,6 +206,16 @@ function RewardIcon({ reward }: { reward: CosmeticReward }) {
   }
 }
 
+const REWARD_TYPE_META: Record<string, { label: string; color: string; bg: string; ring: string }> = {
+  badge:         { label: "Badge",   color: "#fbbf24", bg: "rgba(251,191,36,0.10)", ring: "rgba(251,191,36,0.25)" },
+  title:         { label: "Title",   color: "#4d9eff", bg: "rgba(77,158,255,0.10)", ring: "rgba(77,158,255,0.25)" },
+  nameColor:     { label: "Color",   color: "#34d399", bg: "rgba(52,211,153,0.10)", ring: "rgba(52,211,153,0.25)" },
+  nameEffect:    { label: "Effect",  color: "#a78bfa", bg: "rgba(167,139,250,0.10)", ring: "rgba(167,139,250,0.25)" },
+  cursorStyle:   { label: "Cursor",  color: "#22d3ee", bg: "rgba(34,211,238,0.10)", ring: "rgba(34,211,238,0.25)" },
+  profileBorder: { label: "Border",  color: "#fb923c", bg: "rgba(251,146,60,0.10)", ring: "rgba(251,146,60,0.25)" },
+  typingTheme:   { label: "Theme",   color: "#f472b6", bg: "rgba(244,114,182,0.10)", ring: "rgba(244,114,182,0.25)" },
+};
+
 function LevelWidget({
   level,
   currentXp,
@@ -218,22 +228,33 @@ function LevelWidget({
   isPro: boolean;
 }) {
   const xpPct = Math.round((currentXp / nextLevelXp) * 100);
-  const upcomingRewards = COSMETIC_REWARDS.filter((r) => r.level > level).slice(0, 8);
+  const upcomingRewards = COSMETIC_REWARDS.filter((r) => r.level > level).slice(0, 6);
   const xpRemaining = nextLevelXp - currentXp;
+  const nextReward = upcomingRewards[0];
 
   return (
     <Link
       href="/cosmetics"
-      className="rounded-xl bg-surface/50 ring-1 ring-white/[0.04] overflow-hidden flex flex-col hover:ring-accent/20 transition-all group"
+      className="rounded-xl bg-surface/50 ring-1 ring-white/[0.04] overflow-hidden flex flex-col hover:ring-accent/20 transition-all group relative"
     >
-      <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
+      {/* Top shimmer line */}
+      <div className="h-px bg-gradient-to-r from-transparent via-accent/30 to-transparent" />
+
       <div className="p-4 flex-1 flex flex-col gap-3">
 
-        {/* Level number + XP bar */}
+        {/* Level badge + XP bar */}
         <div className="flex items-center gap-4">
-          <div className="shrink-0 w-12 text-center">
-            <div className="text-[11px] font-black text-muted/60 uppercase tracking-widest leading-none mb-0.5">Level</div>
-            <div className="text-4xl font-black text-text tabular-nums leading-none">{level}</div>
+          <div className="shrink-0 relative">
+            <div
+              className="w-14 h-14 rounded-xl flex flex-col items-center justify-center"
+              style={{
+                background: "linear-gradient(135deg, rgba(77,158,255,0.12) 0%, rgba(77,158,255,0.04) 100%)",
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04), 0 0 20px rgba(77,158,255,0.06)",
+              }}
+            >
+              <div className="text-[10px] font-black text-accent/50 uppercase tracking-widest leading-none">LVL</div>
+              <div className="text-2xl font-black text-accent tabular-nums leading-none mt-0.5">{level}</div>
+            </div>
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-baseline justify-between mb-1.5">
@@ -241,46 +262,103 @@ function LevelWidget({
                 {currentXp.toLocaleString()}
                 <span className="text-muted/60 font-normal"> / {nextLevelXp.toLocaleString()} XP</span>
               </span>
-              <span className="text-xs text-muted/60 tabular-nums">{xpPct}%</span>
+              <span className="text-[11px] font-bold text-accent/60 tabular-nums">{xpPct}%</span>
             </div>
-            <div className="h-2 rounded-full bg-white/[0.04] overflow-hidden">
+            <div className="h-2.5 rounded-full bg-white/[0.04] overflow-hidden relative">
               <div
-                className="h-full rounded-full bg-accent transition-all"
+                className="h-full rounded-full transition-all relative overflow-hidden"
                 style={{
                   width: `${xpPct}%`,
-                  boxShadow: xpPct >= 80 ? "0 0 10px rgba(77,158,255,0.4)" : undefined,
+                  background: "linear-gradient(90deg, #4d9eff, #6db3ff)",
+                  boxShadow: "0 0 12px rgba(77,158,255,0.35)",
                 }}
-              />
+              >
+                <div
+                  className="absolute inset-0 opacity-40"
+                  style={{
+                    background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)",
+                    animation: "shimmer 2s ease-in-out infinite",
+                  }}
+                />
+              </div>
             </div>
-            <div className="text-xs text-muted/55 mt-1 tabular-nums">
+            <div className="text-[11px] text-muted/50 mt-1 tabular-nums">
               {xpRemaining.toLocaleString()} XP to level {level + 1}
             </div>
           </div>
         </div>
 
+        {/* Next unlock highlight */}
+        {nextReward && (() => {
+          const meta = REWARD_TYPE_META[nextReward.type];
+          const proLocked = nextReward.proOnly && !isPro;
+          return (
+            <div
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg relative overflow-hidden"
+              style={{
+                background: `linear-gradient(135deg, ${meta.bg} 0%, transparent 60%)`,
+                boxShadow: `inset 0 0 0 1px ${meta.ring}`,
+              }}
+            >
+              <div
+                className="absolute top-0 left-0 h-full w-[3px] rounded-full"
+                style={{ backgroundColor: meta.color, boxShadow: `0 0 8px ${meta.color}60` }}
+              />
+              <span className={`shrink-0 flex items-center justify-center w-8 ${proLocked ? "opacity-40" : ""}`}>
+                <RewardIcon reward={nextReward} />
+              </span>
+              <div className="flex-1 min-w-0">
+                <div className="text-[10px] font-bold uppercase tracking-wider leading-none mb-1" style={{ color: meta.color }}>
+                  Next unlock — Lvl {nextReward.level}
+                </div>
+                <div className="text-xs font-semibold text-text/90 truncate leading-none">{nextReward.name}</div>
+              </div>
+              <span
+                className="text-[9px] font-black tracking-wider px-1.5 py-[3px] rounded leading-none shrink-0"
+                style={{ color: meta.color, backgroundColor: meta.bg, border: `1px solid ${meta.ring}` }}
+              >
+                {meta.label.toUpperCase()}
+              </span>
+              {proLocked && (
+                <span className="text-[9px] font-black tracking-wider text-accent bg-accent/10 ring-1 ring-accent/30 px-1.5 py-[3px] rounded shrink-0 leading-none">
+                  PRO
+                </span>
+              )}
+            </div>
+          );
+        })()}
+
         {/* Upcoming unlocks */}
-        {upcomingRewards.length > 0 && (
-          <div className="space-y-1">
-            {upcomingRewards.map((reward) => {
+        {upcomingRewards.length > 1 && (
+          <div className="space-y-0.5">
+            <div className="text-[10px] font-bold text-muted/40 uppercase tracking-wider mb-1">Coming up</div>
+            {upcomingRewards.slice(1).map((reward) => {
+              const meta = REWARD_TYPE_META[reward.type];
               const proLocked = reward.proOnly && !isPro;
               return (
                 <div
                   key={reward.id}
-                  className="flex items-center gap-3 px-2.5 py-1.5 rounded-lg bg-white/[0.02] ring-1 ring-white/[0.04] group-hover:ring-accent/10 transition-colors"
+                  className="flex items-center gap-2.5 px-2.5 py-[7px] rounded-lg bg-white/[0.015] ring-1 ring-white/[0.04] group-hover:ring-white/[0.06] transition-colors"
                 >
-                  <span className={`shrink-0 flex items-center justify-center w-10 ${proLocked ? "opacity-30" : ""}`}>
+                  <span className={`shrink-0 flex items-center justify-center w-7 ${proLocked ? "opacity-30" : ""}`}>
                     <RewardIcon reward={reward} />
                   </span>
-                  <span className="text-xs font-semibold text-text/80 truncate leading-none flex-1">
+                  <span className="text-[11px] font-semibold text-text/70 truncate leading-none flex-1">
                     {reward.name}
                   </span>
+                  <span
+                    className="text-[9px] font-bold tracking-wide px-1.5 py-[2px] rounded leading-none shrink-0"
+                    style={{ color: meta.color, backgroundColor: meta.bg }}
+                  >
+                    {meta.label.toUpperCase()}
+                  </span>
                   {proLocked && (
-                    <span className="text-[10px] font-black tracking-wider text-accent bg-accent/10 ring-1 ring-accent/30 px-1.5 py-0.5 rounded shrink-0 leading-none">
+                    <span className="text-[9px] font-black tracking-wider text-accent bg-accent/10 ring-1 ring-accent/30 px-1.5 py-[2px] rounded shrink-0 leading-none">
                       PRO
                     </span>
                   )}
-                  <span className="text-xs text-muted/50 leading-none shrink-0">
-                    Level {reward.level}
+                  <span className="text-[10px] text-muted/40 leading-none shrink-0 tabular-nums">
+                    {reward.level}
                   </span>
                 </div>
               );
@@ -288,6 +366,13 @@ function LevelWidget({
           </div>
         )}
 
+      </div>
+
+      {/* Browse all link hint */}
+      <div className="px-4 pb-3 pt-0">
+        <div className="text-[10px] text-muted/30 group-hover:text-accent/50 transition-colors text-center">
+          Browse all cosmetics →
+        </div>
       </div>
     </Link>
   );
