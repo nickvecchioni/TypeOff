@@ -95,7 +95,7 @@ export default function SettingsPage() {
 
   return (
     <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
-      <div className="max-w-2xl mx-auto space-y-8">
+      <div className="max-w-4xl mx-auto space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-text">Settings</h1>

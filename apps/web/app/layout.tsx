@@ -5,6 +5,7 @@ import { ReportIssueButton } from "@/components/shared/ReportIssueButton";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { UsernameGuard } from "@/components/auth/UsernameGuard";
 import { FriendsButton } from "@/components/social/FriendsButton";
+import { SettingsButton } from "@/components/SettingsButton";
 import { NavNotifications } from "@/components/social/NavNotifications";
 import { MobileNav } from "@/components/MobileNav";
 import { NavLinks } from "@/components/NavLinks";
@@ -80,6 +81,7 @@ export default function RootLayout({
               <div className="flex items-center gap-2 sm:gap-3">
                 <NavNotifications />
                 <FriendsButton />
+                <SettingsButton />
                 <UserMenu />
               </div>
             </nav>

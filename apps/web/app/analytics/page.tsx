@@ -393,7 +393,7 @@ export default function AnalyticsPage() {
         {activeTab === "overview" && (
           <div className="space-y-4 animate-fade-in">
             {isPro ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* WPM Trend Chart */}
                 {data.wpmTrend.length >= 2 && (
                   <Card title="WPM Trend" delay={0} flush>
@@ -405,7 +405,7 @@ export default function AnalyticsPage() {
                 {(data.eloTrend?.length ?? 0) >= 2 && (
                   <Card title="ELO Trend" delay={60}>
                     <div>
-                      <EloMiniChart eloTrend={data.eloTrend!} color="#eab308" height={160} />
+                      <EloMiniChart eloTrend={data.eloTrend!} color="#eab308" height={220} />
                     </div>
                   </Card>
                 )}
@@ -616,7 +616,7 @@ function Card({
 }) {
   return (
     <div
-      className="rounded-xl bg-surface/25 ring-1 ring-white/[0.05] overflow-hidden animate-fade-in"
+      className="rounded-xl bg-surface/25 ring-1 ring-white/[0.05] overflow-hidden animate-fade-in flex flex-col"
       style={{ animationDelay: `${delay}ms` }}
     >
       <div className="px-4 sm:px-5 pt-4 pb-2.5 flex items-center justify-between">
@@ -626,7 +626,7 @@ function Card({
         </div>
         {headerRight}
       </div>
-      <div className={flush ? "pb-2" : "px-4 sm:px-5 pb-4"}>{children}</div>
+      <div className={`flex-1 ${flush ? "pb-2" : "px-4 sm:px-5 pb-4"}`}>{children}</div>
     </div>
   );
 }
