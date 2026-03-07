@@ -26,6 +26,7 @@ interface UnifiedResult {
   accuracy: number;
   date: Date;
   source: "race" | "solo";
+  wordCount?: number;
   // Race-only fields
   placement?: number | null;
   eloBefore?: number | null;
@@ -182,6 +183,7 @@ export async function GET(request: Request) {
         eloAfter: raceParticipants.eloAfter,
         finishedAt: raceParticipants.finishedAt,
         playerCount: races.playerCount,
+        wordCount: races.wordCount,
       })
       .from(raceParticipants)
       .innerJoin(races, eq(raceParticipants.raceId, races.id))
@@ -195,6 +197,7 @@ export async function GET(request: Request) {
           accuracy: r.accuracy ?? 0,
           date: r.finishedAt,
           source: "race",
+          wordCount: r.wordCount,
           placement: r.placement,
           eloBefore: r.eloBefore,
           eloAfter: r.eloAfter,
@@ -214,6 +217,8 @@ export async function GET(request: Request) {
       accuracy: soloResults.accuracy,
       createdAt: soloResults.createdAt,
       wordPool: soloResults.wordPool,
+      mode: soloResults.mode,
+      duration: soloResults.duration,
     })
     .from(soloResults)
     .where(and(...soloConditionsPro))
@@ -227,6 +232,7 @@ export async function GET(request: Request) {
       accuracy: r.accuracy,
       date: r.createdAt,
       source: "solo",
+      wordCount: r.mode === "wordcount" ? r.duration : undefined,
     });
   }
 
@@ -316,6 +322,26 @@ export async function GET(request: Request) {
     racesPerDay[day] = (racesPerDay[day] ?? 0) + 1;
   }
 
+  // Word count breakdown (best/avg WPM per word count bucket)
+  const wcBuckets: Record<number, { totalWpm: number; bestWpm: number; count: number }> = {};
+  for (const r of allResults) {
+    if (r.wordCount == null) continue;
+    // Bucket into standard sizes: 10, 25, 50, 100, 150+
+    const bucket = r.wordCount <= 15 ? 10 : r.wordCount <= 35 ? 25 : r.wordCount <= 75 ? 50 : r.wordCount <= 125 ? 100 : 150;
+    if (!wcBuckets[bucket]) wcBuckets[bucket] = { totalWpm: 0, bestWpm: 0, count: 0 };
+    wcBuckets[bucket].totalWpm += r.wpm;
+    wcBuckets[bucket].count += 1;
+    if (r.wpm > wcBuckets[bucket].bestWpm) wcBuckets[bucket].bestWpm = r.wpm;
+  }
+  const wordCountStats = Object.entries(wcBuckets)
+    .map(([wc, data]) => ({
+      wordCount: Number(wc),
+      bestWpm: Math.round(data.bestWpm * 100) / 100,
+      avgWpm: Math.round((data.totalWpm / data.count) * 100) / 100,
+      count: data.count,
+    }))
+    .sort((a, b) => a.wordCount - b.wordCount);
+
   // Personal records (across both ranked and solo)
   let bestWpm: { wpm: number; date: string } | null = null;
   let bestAccuracy: { accuracy: number; date: string } | null = null;
@@ -339,6 +365,7 @@ export async function GET(request: Request) {
     placementDistribution,
     racesPerDay,
     modeStats,
+    wordCountStats,
     personalRecords: {
       bestWpm,
       bestAccuracy,
