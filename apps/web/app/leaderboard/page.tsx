@@ -383,8 +383,8 @@ async function SoloLeaderboard({
       eloRating: users.eloRating,
       rankTier: users.rankTier,
       bestWpm: sql<number>`max(${soloResults.wpm})`.as("best_wpm"),
-      bestRawWpm: sql<number>`max(${soloResults.rawWpm})`.as("best_raw_wpm"),
-      bestAccuracy: sql<number>`max(${soloResults.accuracy})`.as("best_accuracy"),
+      bestRawWpm: sql<number>`(array_agg(${soloResults.rawWpm} ORDER BY ${soloResults.wpm} DESC))[1]`.as("best_raw_wpm"),
+      bestAccuracy: sql<number>`(array_agg(${soloResults.accuracy} ORDER BY ${soloResults.wpm} DESC))[1]`.as("best_accuracy"),
       testCount: sql<number>`count(*)`.as("test_count"),
       totalXp: userStats.totalXp,
     })
@@ -414,8 +414,8 @@ async function SoloLeaderboard({
         eloRating: users.eloRating,
         rankTier: users.rankTier,
         bestWpm: sql<number>`max(${soloResults.wpm})`.as("best_wpm"),
-        bestRawWpm: sql<number>`max(${soloResults.rawWpm})`.as("best_raw_wpm"),
-        bestAccuracy: sql<number>`max(${soloResults.accuracy})`.as("best_accuracy"),
+        bestRawWpm: sql<number>`(array_agg(${soloResults.rawWpm} ORDER BY ${soloResults.wpm} DESC))[1]`.as("best_raw_wpm"),
+        bestAccuracy: sql<number>`(array_agg(${soloResults.accuracy} ORDER BY ${soloResults.wpm} DESC))[1]`.as("best_accuracy"),
         testCount: sql<number>`count(*)`.as("test_count"),
         totalXp: userStats.totalXp,
       })

@@ -129,6 +129,14 @@ export async function POST(request: Request) {
   const isPbEligible = contentType !== "custom" && contentType !== "practice";
   const isPb = isPbEligible ? (!bestResult || wpm > bestResult.wpm) : false;
 
+  // Clear old PB flags before inserting the new one
+  if (isPb) {
+    await db
+      .update(soloResults)
+      .set({ isPb: false })
+      .where(and(...conditions, eq(soloResults.isPb, true)));
+  }
+
   await db.insert(soloResults).values({
     userId,
     mode,
@@ -210,7 +218,7 @@ export async function POST(request: Request) {
     }
   }
 
-  // Record accuracy snapshots for practice/drill sessions (progress tracking)
+  // Record accuracy snapshots for practice sessions (progress tracking)
   if (contentType === "practice") {
     const snapshots: Array<{ userId: string; snapshotType: string; target: string; accuracy: number; totalCount: number }> = [];
 
