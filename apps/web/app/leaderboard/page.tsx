@@ -241,26 +241,26 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
                     <span className="text-xs font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-0.5 rounded shrink-0">{lvl}</span>
                     <span className={`text-xs shrink-0 ${tierColor}`}>{info.label}</span>
                     {cosmetic?.activeTitle && (
-                      <span className="text-xs text-muted/50 shrink-0 hidden sm:inline">{TITLE_TEXTS[cosmetic.activeTitle] ?? cosmetic.activeTitle}</span>
+                      <span className="text-xs text-text/70 shrink-0 hidden sm:inline">{TITLE_TEXTS[cosmetic.activeTitle] ?? cosmetic.activeTitle}</span>
                     )}
                     <CosmeticBadge badge={cosmetic?.activeBadge} />
                   </div>
                   <span className={`text-base tabular-nums text-right font-semibold ${tierColor}`}>
                     {row.eloRating}
                   </span>
-                  <span className="text-base text-muted tabular-nums text-right hidden sm:block">
+                  <span className="text-base text-text tabular-nums text-right hidden sm:block">
                     {fmtWpm(row.maxWpm)}
                   </span>
-                  <span className="text-base text-muted/70 tabular-nums text-right hidden sm:block">
+                  <span className="text-base text-text tabular-nums text-right hidden sm:block">
                     {fmtWpm(row.avgWpm)}
                   </span>
-                  <span className="text-base text-muted/65 tabular-nums text-right hidden sm:block">
-                    {row.avgAccuracy != null ? (<>{Math.floor(row.avgAccuracy)}<span className="text-[0.8em] opacity-50">.{((row.avgAccuracy % 1) * 10).toFixed(0)}%</span></>) : "-"}
+                  <span className="text-base text-text tabular-nums text-right hidden sm:block">
+                    {row.avgAccuracy != null ? (<>{Math.floor(row.avgAccuracy)}<span className="text-[0.8em] opacity-70">.{((row.avgAccuracy % 1) * 10).toFixed(0)}%</span></>) : "-"}
                   </span>
-                  <span className="text-base text-muted/65 tabular-nums text-right hidden sm:block">
+                  <span className="text-base text-text tabular-nums text-right hidden sm:block">
                     {racesPlayed}
                   </span>
-                  <span className="text-base text-muted/65 tabular-nums text-right">
+                  <span className="text-base text-text tabular-nums text-right">
                     {racesWon}
                   </span>
                 </Link>
@@ -300,26 +300,26 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
                     <span className="text-xs font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-0.5 rounded shrink-0">{myLvl}</span>
                     <span className={`text-xs shrink-0 ${tierColor}`}>{info.label}</span>
                     {myCosmetic?.activeTitle && (
-                      <span className="text-xs text-muted/50 shrink-0 hidden sm:inline">{TITLE_TEXTS[myCosmetic.activeTitle] ?? myCosmetic.activeTitle}</span>
+                      <span className="text-xs text-text/70 shrink-0 hidden sm:inline">{TITLE_TEXTS[myCosmetic.activeTitle] ?? myCosmetic.activeTitle}</span>
                     )}
                     <CosmeticBadge badge={myCosmetic?.activeBadge} />
                   </div>
                   <span className={`text-base tabular-nums text-right font-semibold ${tierColor}`}>
                     {row.eloRating}
                   </span>
-                  <span className="text-base text-muted tabular-nums text-right hidden sm:block">
+                  <span className="text-base text-text tabular-nums text-right hidden sm:block">
                     {fmtWpm(row.maxWpm)}
                   </span>
-                  <span className="text-base text-muted/70 tabular-nums text-right hidden sm:block">
+                  <span className="text-base text-text tabular-nums text-right hidden sm:block">
                     {fmtWpm(row.avgWpm)}
                   </span>
-                  <span className="text-base text-muted/65 tabular-nums text-right hidden sm:block">
-                    {row.avgAccuracy != null ? (<>{Math.floor(row.avgAccuracy)}<span className="text-[0.8em] opacity-50">.{((row.avgAccuracy % 1) * 10).toFixed(0)}%</span></>) : "-"}
+                  <span className="text-base text-text tabular-nums text-right hidden sm:block">
+                    {row.avgAccuracy != null ? (<>{Math.floor(row.avgAccuracy)}<span className="text-[0.8em] opacity-70">.{((row.avgAccuracy % 1) * 10).toFixed(0)}%</span></>) : "-"}
                   </span>
-                  <span className="text-base text-muted/65 tabular-nums text-right hidden sm:block">
+                  <span className="text-base text-text tabular-nums text-right hidden sm:block">
                     {racesPlayed}
                   </span>
-                  <span className="text-base text-muted/65 tabular-nums text-right">
+                  <span className="text-base text-text tabular-nums text-right">
                     {racesWon}
                   </span>
                 </Link>
@@ -546,20 +546,20 @@ async function SoloLeaderboard({
                     <span className="text-xs font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-0.5 rounded shrink-0">{getXpLevel(row.totalXp ?? 0).level}</span>
                     <span className={`text-xs shrink-0 ${tierColor}`}>{info.label}</span>
                     {soloCosmetic?.activeTitle && (
-                      <span className="text-xs text-muted/50 shrink-0 hidden sm:inline">{TITLE_TEXTS[soloCosmetic.activeTitle] ?? soloCosmetic.activeTitle}</span>
+                      <span className="text-xs text-text/70 shrink-0 hidden sm:inline">{TITLE_TEXTS[soloCosmetic.activeTitle] ?? soloCosmetic.activeTitle}</span>
                     )}
                     <CosmeticBadge badge={soloCosmetic?.activeBadge} />
                   </div>
                   <span className="text-base tabular-nums text-right font-semibold text-text">
                     {fmtWpm(row.bestWpm)}
                   </span>
-                  <span className="text-base text-muted/55 tabular-nums text-right hidden sm:block">
+                  <span className="text-base text-text tabular-nums text-right hidden sm:block">
                     {fmtWpm(row.bestRawWpm)}
                   </span>
-                  <span className="text-base text-muted/65 tabular-nums text-right hidden sm:block">
-                    {row.bestAccuracy != null ? (<>{Math.floor(row.bestAccuracy)}<span className="text-[0.8em] opacity-50">.{((row.bestAccuracy % 1) * 10).toFixed(0)}%</span></>) : "-"}
+                  <span className="text-base text-text tabular-nums text-right hidden sm:block">
+                    {row.bestAccuracy != null ? (<>{Math.floor(row.bestAccuracy)}<span className="text-[0.8em] opacity-70">.{((row.bestAccuracy % 1) * 10).toFixed(0)}%</span></>) : "-"}
                   </span>
-                  <span className="text-base text-muted/65 tabular-nums text-right hidden sm:block">
+                  <span className="text-base text-text tabular-nums text-right hidden sm:block">
                     {row.testCount}
                   </span>
                 </Link>
@@ -597,20 +597,20 @@ async function SoloLeaderboard({
                     <span className="text-xs font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-0.5 rounded shrink-0">{getXpLevel(row.totalXp ?? 0).level}</span>
                     <span className={`text-xs shrink-0 ${myTierColor}`}>{myInfo.label}</span>
                     {mySoloCosmetic?.activeTitle && (
-                      <span className="text-xs text-muted/50 shrink-0 hidden sm:inline">{TITLE_TEXTS[mySoloCosmetic.activeTitle] ?? mySoloCosmetic.activeTitle}</span>
+                      <span className="text-xs text-text/70 shrink-0 hidden sm:inline">{TITLE_TEXTS[mySoloCosmetic.activeTitle] ?? mySoloCosmetic.activeTitle}</span>
                     )}
                     <CosmeticBadge badge={mySoloCosmetic?.activeBadge} />
                   </div>
                   <span className="text-base tabular-nums text-right font-semibold text-text">
                     {fmtWpm(row.bestWpm)}
                   </span>
-                  <span className="text-base text-muted/55 tabular-nums text-right hidden sm:block">
+                  <span className="text-base text-text tabular-nums text-right hidden sm:block">
                     {fmtWpm(row.bestRawWpm)}
                   </span>
-                  <span className="text-base text-muted/65 tabular-nums text-right hidden sm:block">
-                    {row.bestAccuracy != null ? (<>{Math.floor(row.bestAccuracy)}<span className="text-[0.8em] opacity-50">.{((row.bestAccuracy % 1) * 10).toFixed(0)}%</span></>) : "-"}
+                  <span className="text-base text-text tabular-nums text-right hidden sm:block">
+                    {row.bestAccuracy != null ? (<>{Math.floor(row.bestAccuracy)}<span className="text-[0.8em] opacity-70">.{((row.bestAccuracy % 1) * 10).toFixed(0)}%</span></>) : "-"}
                   </span>
-                  <span className="text-base text-muted/65 tabular-nums text-right hidden sm:block">
+                  <span className="text-base text-text tabular-nums text-right hidden sm:block">
                     {row.testCount}
                   </span>
                 </Link>
@@ -766,23 +766,23 @@ async function UniverseLeaderboard({
                     <span className="text-xs font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-0.5 rounded shrink-0">{getXpLevel(row.totalXp ?? 0).level}</span>
                     <span className={`text-xs shrink-0 ${tierColor}`}>{info.label}</span>
                     {cosmetic?.activeTitle && (
-                      <span className="text-xs text-muted/50 shrink-0 hidden sm:inline">{TITLE_TEXTS[cosmetic.activeTitle] ?? cosmetic.activeTitle}</span>
+                      <span className="text-xs text-text/70 shrink-0 hidden sm:inline">{TITLE_TEXTS[cosmetic.activeTitle] ?? cosmetic.activeTitle}</span>
                     )}
                     <CosmeticBadge badge={cosmetic?.activeBadge} />
                   </div>
                   <span className="text-base tabular-nums text-right font-semibold text-text">
                     {fmtWpm(row.avgWpm)}
                   </span>
-                  <span className="text-base text-muted tabular-nums text-right hidden sm:block">
+                  <span className="text-base text-text tabular-nums text-right hidden sm:block">
                     {fmtWpm(row.bestWpm)}
                   </span>
-                  <span className="text-base text-muted/65 tabular-nums text-right hidden sm:block">
-                    {row.bestAccuracy != null ? (<>{Math.floor(row.bestAccuracy)}<span className="text-[0.8em] opacity-50">.{((row.bestAccuracy % 1) * 10).toFixed(0)}%</span></>) : "-"}
+                  <span className="text-base text-text tabular-nums text-right hidden sm:block">
+                    {row.bestAccuracy != null ? (<>{Math.floor(row.bestAccuracy)}<span className="text-[0.8em] opacity-70">.{((row.bestAccuracy % 1) * 10).toFixed(0)}%</span></>) : "-"}
                   </span>
-                  <span className="text-base text-muted/65 tabular-nums text-right hidden sm:block">
+                  <span className="text-base text-text tabular-nums text-right hidden sm:block">
                     {row.raceCount}
                   </span>
-                  <span className="text-base text-muted/65 tabular-nums text-right hidden sm:block">
+                  <span className="text-base text-text tabular-nums text-right hidden sm:block">
                     {row.racesWon}
                   </span>
                 </Link>

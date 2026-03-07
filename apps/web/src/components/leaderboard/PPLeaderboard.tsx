@@ -110,20 +110,20 @@ export function PPLeaderboard({ userId }: PPLeaderboardProps) {
                 </span>
                 <span className="text-xs font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-0.5 rounded shrink-0">{getXpLevel(entry.totalXp ?? 0).level}</span>
                 {entry.activeTitle && (
-                  <span className="text-xs text-muted/50 shrink-0 hidden sm:inline">{TITLE_TEXTS[entry.activeTitle] ?? entry.activeTitle}</span>
+                  <span className="text-xs text-text/70 shrink-0 hidden sm:inline">{TITLE_TEXTS[entry.activeTitle] ?? entry.activeTitle}</span>
                 )}
                 <CosmeticBadge badge={entry.activeBadge} />
               </div>
               <span className="text-base tabular-nums text-right font-semibold text-purple-400">
                 {Math.floor(entry.totalPp)}
               </span>
-              <span className="text-base text-muted/70 tabular-nums text-right hidden sm:block">
+              <span className="text-base text-text tabular-nums text-right hidden sm:block">
                 {entry.avgWpm != null ? entry.avgWpm.toFixed(2) : "-"}
               </span>
-              <span className="text-base text-muted tabular-nums text-right hidden sm:block">
+              <span className="text-base text-text tabular-nums text-right hidden sm:block">
                 {entry.maxWpm != null ? entry.maxWpm.toFixed(2) : "-"}
               </span>
-              <span className="text-base text-muted/65 tabular-nums text-right hidden sm:block">
+              <span className="text-base text-text tabular-nums text-right hidden sm:block">
                 {entry.racesPlayed ?? 0}
               </span>
             </Link>
