@@ -357,10 +357,12 @@ async function SoloLeaderboard({
   userId?: string;
   db: ReturnType<typeof getDb>;
 }) {
-  const mode = params.mode === "wordcount" ? "wordcount" : "timed";
-  const duration = Number(params.duration) || (mode === "timed" ? 15 : 25);
   const category = ["words", "mixed", "quotes", "code"].includes(params.category as string) ? (params.category as string) : "words";
-  const difficulty = ["easy", "medium", "hard"].includes(params.difficulty as string) ? (params.difficulty as string) : "easy";
+  const isFixedText = category === "quotes" || category === "code";
+  // Quotes/code are always stored as mode=wordcount, duration=0, difficulty=easy
+  const mode = isFixedText ? "wordcount" : (params.mode === "wordcount" ? "wordcount" : "timed");
+  const duration = isFixedText ? 0 : (Number(params.duration) || (mode === "timed" ? 15 : 25));
+  const difficulty = isFixedText ? "easy" : (["easy", "medium", "hard"].includes(params.difficulty as string) ? (params.difficulty as string) : "easy");
 
   // word_pool format is "contentType:difficulty:punctuation" (e.g. "words:easy:false")
   // "mixed" is words + punctuation=true; "words" is words + punctuation=false
@@ -679,6 +681,7 @@ async function UniverseLeaderboard({
       eloRating: users.eloRating,
       rankTier: users.rankTier,
       bestWpm: sql<number>`max(${raceParticipants.wpm})`.as("best_wpm"),
+      avgWpm: sql<number>`avg(${raceParticipants.wpm})`.as("avg_wpm"),
       bestAccuracy: sql<number>`max(${raceParticipants.accuracy})`.as("best_accuracy"),
       raceCount: sql<number>`count(*)`.as("race_count"),
       racesWon: sql<number>`count(case when ${raceParticipants.placement} = 1 then 1 end)`.as("races_won"),
@@ -697,7 +700,7 @@ async function UniverseLeaderboard({
       ),
     )
     .groupBy(raceParticipants.userId, users.username, users.lastSeen, users.eloRating, users.rankTier, userStats.totalXp)
-    .orderBy(sql`best_wpm desc`)
+    .orderBy(sql`avg_wpm desc`)
     .limit(100);
 
   // Cosmetics
@@ -716,7 +719,7 @@ async function UniverseLeaderboard({
     : [];
   const cosmeticMap = new Map(cosmeticRows.map((r) => [r.userId, r]));
 
-  const gridCols = "grid-cols-[2rem_1fr_4.5rem] sm:grid-cols-[2rem_1fr_5rem_4rem_3.5rem_3.5rem]";
+  const gridCols = "grid-cols-[2rem_1fr_4.5rem] sm:grid-cols-[2rem_1fr_5rem_5rem_4rem_3.5rem_3.5rem]";
 
   return (
     <>
@@ -753,7 +756,8 @@ async function UniverseLeaderboard({
           >
             <span></span>
             <span>Player</span>
-            <span className="text-right">Best WPM</span>
+            <span className="text-right">Avg WPM</span>
+            <span className="text-right hidden sm:block">Best WPM</span>
             <span className="text-right hidden sm:block">Acc</span>
             <span className="text-right hidden sm:block">Races</span>
             <span className="text-right hidden sm:block">Wins</span>
@@ -813,6 +817,9 @@ async function UniverseLeaderboard({
                     </div>
                   </div>
                   <span className="text-sm tabular-nums text-right font-semibold text-text">
+                    {fmtWpm(row.avgWpm)}
+                  </span>
+                  <span className="text-sm text-muted tabular-nums text-right hidden sm:block">
                     {fmtWpm(row.bestWpm)}
                   </span>
                   <span className="text-sm text-muted/65 tabular-nums text-right hidden sm:block">

@@ -26,7 +26,15 @@ export function SoloModeSelector() {
       params.set("duration", String(updates.mode === "timed" ? 15 : 25));
     }
     if (updates.duration !== undefined) params.set("duration", String(updates.duration));
-    if (updates.category !== undefined) params.set("category", updates.category);
+    if (updates.category !== undefined) {
+      params.set("category", updates.category);
+      // Quotes/code are stored with fixed mode/duration/difficulty — reset URL to avoid stale params
+      if (updates.category === "quotes" || updates.category === "code") {
+        params.delete("mode");
+        params.delete("duration");
+        params.delete("difficulty");
+      }
+    }
     if (updates.difficulty !== undefined) params.set("difficulty", updates.difficulty);
     router.replace(`?${params.toString()}`);
   }
