@@ -125,7 +125,7 @@ export function ConfigBar({
         {isPro && (practiceWeakKeys?.length || practiceWeakBigrams?.length) ? (
           <Chip
             active={ct === "practice"}
-            onClick={() => set({ contentType: "practice", weakBigrams: practiceWeakBigrams })}
+            onClick={() => set({ contentType: "practice", punctuation: false, weakBigrams: practiceWeakBigrams })}
           >
             practice
           </Chip>
@@ -134,6 +134,27 @@ export function ConfigBar({
 
       {/* ── Secondary row: timing + accessories ── */}
       <div className="flex items-center gap-1.5">
+        {/* Practice: words / mixed toggle */}
+        {ct === "practice" && (
+          <>
+            <div className="flex items-center gap-0.5">
+              <Sub
+                active={!(config.punctuation ?? false)}
+                onClick={() => set({ punctuation: false })}
+              >
+                words
+              </Sub>
+              <Sub
+                active={config.punctuation ?? false}
+                onClick={() => set({ punctuation: true })}
+              >
+                mixed
+              </Sub>
+            </div>
+            <MicroDivider />
+          </>
+        )}
+
         {/* Time / words toggle + duration (faded for fixed modes) */}
         <div
           className={`flex items-center gap-0.5 transition-opacity ${
