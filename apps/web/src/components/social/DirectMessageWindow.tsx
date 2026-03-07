@@ -45,7 +45,7 @@ export function DirectMessageWindow() {
   if (!openConversation) return null;
 
   return (
-    <div className="fixed bottom-14 right-4 z-50 flex flex-col w-72 rounded-lg overflow-hidden shadow-2xl animate-fade-in"
+    <div className="fixed bottom-14 right-4 z-50 flex flex-col w-72 max-h-[min(420px,calc(100vh-5rem))] rounded-lg overflow-hidden shadow-2xl animate-fade-in"
       style={{
         background: "#0d0d16",
         border: "1px solid rgba(255,255,255,0.08)",
@@ -71,8 +71,7 @@ export function DirectMessageWindow() {
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto px-3 py-2 space-y-1.5"
-        style={{ height: 280 }}
+        className="flex-1 overflow-y-auto px-3 py-2 space-y-1.5 min-h-0"
       >
         {openConversation.loading && openConversation.messages.length === 0 && (
           <p className="text-xs text-muted/65 text-center py-6">Loading...</p>
