@@ -467,6 +467,7 @@ export const userPreferences = pgTable("user_preferences", {
     .references(() => users.id, { onDelete: "cascade" }),
   typingThemeOverride: text("typing_theme_override"),
   customThemeJson: text("custom_theme_json"),
+  settingsJson: text("settings_json"),
   updatedAt: timestamp("updated_at", { mode: "date" })
     .notNull()
     .$defaultFn(() => new Date()),

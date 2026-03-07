@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
-// GET — user's theme preferences
+// GET — user's preferences (theme + settings)
 export async function GET() {
   const session = await auth();
   if (!session?.user?.id) {
@@ -22,10 +22,11 @@ export async function GET() {
   return NextResponse.json({
     typingThemeOverride: row?.typingThemeOverride ?? null,
     customThemeJson: row?.customThemeJson ?? null,
+    settings: row?.settingsJson ? JSON.parse(row.settingsJson) : null,
   });
 }
 
-// PUT — update theme preferences
+// PUT — update preferences
 export async function PUT(req: Request) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -33,7 +34,7 @@ export async function PUT(req: Request) {
   }
 
   const body = await req.json();
-  const { typingThemeOverride, customThemeJson } = body;
+  const { typingThemeOverride, customThemeJson, settings } = body;
 
   const db = getDb();
   const [existing] = await db
@@ -41,20 +42,24 @@ export async function PUT(req: Request) {
     .from(userPreferences)
     .where(eq(userPreferences.userId, session.user.id));
 
+  const settingsJson = settings !== undefined ? JSON.stringify(settings) : undefined;
+
   if (existing) {
+    const updates: Record<string, unknown> = { updatedAt: new Date() };
+    if (typingThemeOverride !== undefined) updates.typingThemeOverride = typingThemeOverride ?? null;
+    if (customThemeJson !== undefined) updates.customThemeJson = customThemeJson ?? null;
+    if (settingsJson !== undefined) updates.settingsJson = settingsJson;
+
     await db
       .update(userPreferences)
-      .set({
-        typingThemeOverride: typingThemeOverride ?? null,
-        customThemeJson: customThemeJson ?? null,
-        updatedAt: new Date(),
-      })
+      .set(updates)
       .where(eq(userPreferences.userId, session.user.id));
   } else {
     await db.insert(userPreferences).values({
       userId: session.user.id,
       typingThemeOverride: typingThemeOverride ?? null,
       customThemeJson: customThemeJson ?? null,
+      settingsJson: settingsJson ?? null,
     });
   }
 
