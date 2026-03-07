@@ -89,6 +89,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed && typeof parsed === "object") {
+          if (parsed.contentType === "zen") parsed.contentType = "custom";
           engine.setConfig({ ...engine.config, ...parsed });
         }
       }
@@ -277,14 +278,15 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
   const showStopwatch = ct === "quotes" || ct === "custom" || ct === "practice" || ct === "code" || ct === "zen" ||
     (ct === "words" && engine.config.mode === "wordcount");
 
-  // Route zen mode to freeform arena (no predefined words)
-  if (ct === "zen") {
+  // Route custom mode with no text (freeform) or legacy zen to freeform arena
+  const isFreeform = ct === "zen" || (ct === "custom" && !engine.config.customText);
+  if (isFreeform) {
     return (
       <div className="flex flex-col items-center gap-6 w-full max-w-5xl mx-auto">
         {/* Config bar — always accessible for mode switching */}
         <div className="focus-fade flex flex-col items-center gap-2">
           <ConfigBar
-            config={engine.config}
+            config={{ ...engine.config, contentType: "custom" }}
             status={engine.status}
             onConfigChange={(c) => {
               if (c.contentType === "practice") {
@@ -402,19 +404,13 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
             className={suppressTransitionRef.current ? "" : "transition-transform duration-150 ease-out"}
             style={{ transform: `translateY(-${scrollOffset}px)` }}
           >
-            {ct === "custom" && !engine.config.customText ? (
-              <div className="text-muted/45 text-xl sm:text-2xl leading-[2rem] sm:leading-[2.5rem]">
-                paste or type text above to begin
-              </div>
-            ) : (
-              <WordDisplay
-                words={engine.words}
-                currentWordIndex={engine.currentWordIndex}
-                currentCharIndex={engine.currentCharIndex}
-                isTyping={isTyping}
-                contentType={engine.config.contentType}
-              />
-            )}
+            <WordDisplay
+              words={engine.words}
+              currentWordIndex={engine.currentWordIndex}
+              currentCharIndex={engine.currentCharIndex}
+              isTyping={isTyping}
+              contentType={engine.config.contentType}
+            />
           </div>
         </div>
       )}

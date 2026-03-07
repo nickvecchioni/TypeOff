@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { useRouter } from "next/navigation";
 import type { TestConfig, ContentType, StrictMode } from "@typeoff/shared";
 import type { EngineStatus } from "@typeoff/shared";
 import { StrictModeSelector } from "./StrictModeSelector";
@@ -38,7 +37,6 @@ export function ConfigBar({
   weakBigramAccuracy,
   isPro = false,
 }: ConfigBarProps) {
-  const router = useRouter();
   const [customInput, setCustomInput] = React.useState("");
   const isTyping = status === "typing";
   const ct = config.contentType ?? "words";
@@ -109,17 +107,7 @@ export function ConfigBar({
         <Chip active={ct === "code"} onClick={() => setContentType("code")}>
           code
         </Chip>
-        <Chip active={ct === "zen"} onClick={() => setContentType("zen")}>
-          zen
-        </Chip>
-        <Chip
-          active={ct === "custom"}
-          onClick={() => {
-            if (!isPro) { router.push("/pro"); return; }
-            setContentType("custom");
-          }}
-          proLocked={!isPro}
-        >
+        <Chip active={ct === "custom" || ct === "zen"} onClick={() => setContentType("custom")}>
           custom
         </Chip>
         {isPro && (practiceWeakKeys?.length || practiceWeakBigrams?.length) ? (
@@ -187,7 +175,7 @@ export function ConfigBar({
 
         {/* Strict mode (invisible for zen + code to preserve row height) */}
         <div className={`flex items-center gap-1 transition-opacity ${
-          ct === "zen" || ct === "code" ? "invisible pointer-events-none" :
+          ct === "zen" || ct === "code" || ct === "custom" ? "invisible pointer-events-none" :
           ct === "quotes" ? "opacity-20 pointer-events-none" : ""
         }`}>
           <MicroDivider />
@@ -224,7 +212,7 @@ export function ConfigBar({
               const words = e.target.value.trim().split(/\s+/).filter(Boolean);
               if (words.length > 0) onCustomTextChange?.(words);
             }}
-            placeholder="Paste or type your custom text here..."
+            placeholder="Paste custom text here, or just start typing below..."
             className="w-full h-20 rounded-lg bg-surface/60 ring-1 ring-white/[0.08] px-3 py-2 text-sm text-text placeholder:text-muted/65 resize-none focus:outline-none focus:ring-accent/30"
           />
         </div>

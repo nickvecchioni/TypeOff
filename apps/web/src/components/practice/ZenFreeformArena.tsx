@@ -158,7 +158,7 @@ export function ZenFreeformArena() {
           className="text-muted/65 text-xs opacity-0 animate-fade-in"
           style={{ animationDelay: "100ms", animationFillMode: "both" }}
         >
-          start typing anything —{" "}
+          start typing anything, or paste text above —{" "}
           <kbd className="px-1 py-0.5 rounded bg-white/[0.05] text-muted/65 text-xs">
             Esc
           </kbd>{" "}
