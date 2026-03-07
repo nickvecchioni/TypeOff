@@ -208,7 +208,7 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
       extraChars: extra,
       misstypedChars: mistyped,
       totalChars: total,
-      time: Math.round(elapsed),
+      time: Math.round(elapsed * 100) / 100,
       wpmHistory: wpmHistoryRef.current,
       keyStats,
       consistency,

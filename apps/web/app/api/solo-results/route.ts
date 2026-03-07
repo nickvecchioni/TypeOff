@@ -88,7 +88,7 @@ export async function POST(request: Request) {
     typeof incorrectChars !== "number" ||
     typeof extraChars !== "number" ||
     typeof totalChars !== "number" ||
-    typeof time !== "number" || time < 1
+    typeof time !== "number" || time < 0.5
   ) {
     return NextResponse.json({ error: "Invalid data" }, { status: 400 });
   }

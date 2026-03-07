@@ -155,7 +155,7 @@ export const soloResults = pgTable(
     incorrectChars: integer("incorrect_chars").notNull(),
     extraChars: integer("extra_chars").notNull(),
     totalChars: integer("total_chars").notNull(),
-    time: integer("time").notNull(), // actual elapsed seconds
+    time: real("time").notNull(), // actual elapsed seconds
     isPb: boolean("is_pb").notNull().default(false),
     consistency: real("consistency"),
     keyStatsJson: text("key_stats_json"),

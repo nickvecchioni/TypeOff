@@ -248,7 +248,7 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed }: Practi
               <div className="text-2xl sm:text-3xl font-black text-text tabular-nums leading-none">
                 {stats.time >= 60
                   ? <>{Math.floor(stats.time / 60)}<span className="text-sm opacity-50">:{String(Math.round(stats.time % 60)).padStart(2, "0")}</span></>
-                  : <>{stats.time}<span className="text-sm opacity-50">s</span></>}
+                  : <>{Math.round(stats.time)}<span className="text-sm opacity-50">s</span></>}
               </div>
             </div>
           </div>
