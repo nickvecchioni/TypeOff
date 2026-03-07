@@ -888,6 +888,19 @@ function downsampleLTTB<T>(data: T[], threshold: number, getValue: (d: T) => num
   return sampled;
 }
 
+/** Compute a running average with the given window size */
+function runningAverage(values: number[], window: number): number[] {
+  const result: number[] = [];
+  let sum = 0;
+  for (let i = 0; i < values.length; i++) {
+    sum += values[i];
+    if (i >= window) sum -= values[i - window];
+    const count = Math.min(i + 1, window);
+    result.push(sum / count);
+  }
+  return result;
+}
+
 function WpmTrendChart({ points }: { points: Array<{ date: string; wpm: number; accuracy: number }> }) {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -895,39 +908,70 @@ function WpmTrendChart({ points }: { points: Array<{ date: string; wpm: number; 
   if (points.length < 2) return null;
 
   const W = 600;
-  const H = 200;
-  const pad = { top: 12, right: 14, bottom: 20, left: 40 };
+  const H = 220;
+  const pad = { top: 16, right: 14, bottom: 24, left: 40 };
   const iW = W - pad.left - pad.right;
   const iH = H - pad.top - pad.bottom;
 
-  // Downsample for rendering when there are too many points
-  const MAX_RENDER = 200;
+  // Running average (window scales with data size)
+  const avgWindow = Math.max(5, Math.min(50, Math.round(points.length * 0.04)));
+  const avgValues = useMemo(() => runningAverage(points.map((p) => p.wpm), avgWindow), [points, avgWindow]);
+
+  // Tight Y-axis domain fitted to data (not starting at 0)
+  const allWpms = points.map((p) => p.wpm);
+  const rawMin = Math.min(...allWpms);
+  const rawMax = Math.max(...allWpms);
+  const range = rawMax - rawMin || 10;
+  const niceStep = range <= 30 ? 5 : range <= 60 ? 10 : range <= 150 ? 25 : 50;
+  const yMin = Math.max(0, Math.floor((rawMin - range * 0.1) / niceStep) * niceStep);
+  const yMax = Math.ceil((rawMax + range * 0.05) / niceStep) * niceStep;
+  const yRange = yMax - yMin || 1;
+  const yTicks = Array.from(
+    { length: Math.floor((yMax - yMin) / niceStep) + 1 },
+    (_, i) => yMin + i * niceStep
+  );
+
+  // Downsample raw dots for rendering
+  const MAX_RENDER = 300;
   const renderPoints = useMemo(
     () => downsampleLTTB(points, MAX_RENDER, (p) => p.wpm),
     [points]
   );
+  // Map renderPoints back to their original indices for correct X positioning
+  const renderIndices = useMemo(() => {
+    if (points.length <= MAX_RENDER) return points.map((_, i) => i);
+    const indices: number[] = [];
+    let searchFrom = 0;
+    for (const rp of renderPoints) {
+      const idx = points.indexOf(rp, searchFrom);
+      indices.push(idx >= 0 ? idx : searchFrom);
+      if (idx >= 0) searchFrom = idx + 1;
+    }
+    return indices;
+  }, [points, renderPoints]);
 
-  const rawMax = Math.max(...points.map((p) => p.wpm), 10);
-  const niceStep = rawMax <= 50 ? 10 : rawMax <= 120 ? 25 : 50;
-  const yMax = Math.ceil((rawMax * 1.1) / niceStep) * niceStep;
-  const yTicks = Array.from({ length: Math.floor(yMax / niceStep) + 1 }, (_, i) => i * niceStep);
+  // Downsample running average line
+  const avgWithIndex = useMemo(() => avgValues.map((v, i) => ({ v, i })), [avgValues]);
+  const renderAvg = useMemo(
+    () => downsampleLTTB(avgWithIndex, MAX_RENDER, (d) => d.v),
+    [avgWithIndex]
+  );
 
-  // Render coordinates use renderPoints for the path
-  const rxScale = (i: number) => pad.left + (i / (renderPoints.length - 1)) * iW;
-  const sy = (v: number) => pad.top + iH - (v / yMax) * iH;
-
-  // Hover coordinates use full points array for accuracy
   const sx = (i: number) => pad.left + (i / (points.length - 1)) * iW;
+  const sy = (v: number) => pad.top + iH - ((v - yMin) / yRange) * iH;
 
-  const linePath = renderPoints.map((p, i) => `${i === 0 ? "M" : "L"} ${rxScale(i)} ${sy(p.wpm)}`).join(" ");
-  const areaPath = linePath + ` L ${rxScale(renderPoints.length - 1)} ${pad.top + iH} L ${rxScale(0)} ${pad.top + iH} Z`;
+  // Average line path
+  const avgLinePath = renderAvg.map((d, j) => `${j === 0 ? "M" : "L"} ${sx(d.i)} ${sy(d.v)}`).join(" ");
+  // Average area fill
+  const avgAreaPath = avgLinePath +
+    ` L ${sx(renderAvg[renderAvg.length - 1].i)} ${pad.top + iH}` +
+    ` L ${sx(renderAvg[0].i)} ${pad.top + iH} Z`;
 
   function handleMouseMove(e: React.MouseEvent<SVGSVGElement>) {
     const svg = svgRef.current;
     if (!svg) return;
     const rect = svg.getBoundingClientRect();
     const mouseX = ((e.clientX - rect.left) / rect.width) * W;
-    // Binary search for closest point in full dataset
     const normalizedX = (mouseX - pad.left) / iW;
     const idx = Math.round(normalizedX * (points.length - 1));
     setHoveredIdx(Math.max(0, Math.min(points.length - 1, idx)));
@@ -940,18 +984,18 @@ function WpmTrendChart({ points }: { points: Array<{ date: string; wpm: number; 
       ref={svgRef}
       viewBox={`0 0 ${W} ${H}`}
       className="w-full"
-      style={{ height: 200, cursor: "crosshair" }}
+      style={{ height: 220, cursor: "crosshair" }}
       onMouseMove={handleMouseMove}
       onMouseLeave={() => setHoveredIdx(null)}
     >
       <defs>
-        <linearGradient id="wpmTrendGrad" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.25" />
-          <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0.02" />
+        <linearGradient id="wpmAvgGrad" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.15" />
+          <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0.01" />
         </linearGradient>
       </defs>
 
-      {/* Grid */}
+      {/* Grid lines */}
       {yTicks.map((t) => (
         <g key={t}>
           <line x1={pad.left} x2={W - pad.right} y1={sy(t)} y2={sy(t)} stroke="rgba(255,255,255,0.06)" strokeWidth={1} />
@@ -964,36 +1008,82 @@ function WpmTrendChart({ points }: { points: Array<{ date: string; wpm: number; 
       {/* Bottom axis */}
       <line x1={pad.left} x2={W - pad.right} y1={pad.top + iH} y2={pad.top + iH} stroke="rgba(255,255,255,0.08)" strokeWidth={1} />
 
-      {/* Area + line */}
-      <path d={areaPath} fill="url(#wpmTrendGrad)" />
-      <path d={linePath} fill="none" stroke="var(--color-accent)" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+      {/* Average area fill */}
+      <path d={avgAreaPath} fill="url(#wpmAvgGrad)" />
+
+      {/* Raw data scatter dots (subtle) */}
+      {renderPoints.map((p, j) => (
+        <circle
+          key={j}
+          cx={sx(renderIndices[j])}
+          cy={sy(p.wpm)}
+          r={points.length > 200 ? 1.2 : 1.8}
+          fill="var(--color-accent)"
+          fillOpacity={0.25}
+        />
+      ))}
+
+      {/* Running average line (prominent) */}
+      <path d={avgLinePath} fill="none" stroke="var(--color-accent)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+
+      {/* Best WPM marker */}
+      {(() => {
+        let bestIdx = 0;
+        for (let i = 1; i < points.length; i++) {
+          if (points[i].wpm > points[bestIdx].wpm) bestIdx = i;
+        }
+        const bx = sx(bestIdx);
+        const by = sy(points[bestIdx].wpm);
+        return (
+          <g pointerEvents="none">
+            <circle cx={bx} cy={by} r={3} fill="none" stroke="#eab308" strokeWidth={1.5} strokeOpacity={0.7} />
+          </g>
+        );
+      })()}
 
       {/* X-axis label */}
-      <text x={W / 2} y={H - 3} fill="var(--color-muted)" fontSize={10} textAnchor="middle" fillOpacity={0.4}>
+      <text x={W / 2} y={H - 4} fill="var(--color-muted)" fontSize={10} textAnchor="middle" fillOpacity={0.4}>
         races
       </text>
+
+      {/* Legend */}
+      <g transform={`translate(${W - pad.right - 120}, ${pad.top - 2})`}>
+        <line x1={0} y1={4} x2={12} y2={4} stroke="var(--color-accent)" strokeWidth={2} strokeLinecap="round" />
+        <text x={16} y={7} fill="var(--color-muted)" fontSize={8.5} fillOpacity={0.5}>avg ({avgWindow})</text>
+        <circle cx={70} cy={4} r={2} fill="var(--color-accent)" fillOpacity={0.4} />
+        <text x={76} y={7} fill="var(--color-muted)" fontSize={8.5} fillOpacity={0.5}>raw</text>
+      </g>
 
       {/* Hover tooltip */}
       {hovered !== null && hoveredIdx !== null && (() => {
         const x = sx(hoveredIdx);
         const y = sy(hovered.wpm);
+        const avgY = sy(avgValues[hoveredIdx]);
         const dateStr = new Date(hovered.date).toLocaleDateString(undefined, { month: "short", day: "numeric" });
-        const TOOLTIP_W = 90;
-        const TOOLTIP_H = 32;
+        const TOOLTIP_W = 108;
+        const TOOLTIP_H = 48;
         const flipLeft = x + TOOLTIP_W + 10 > W - pad.right;
-        const tx = flipLeft ? x - TOOLTIP_W - 6 : x + 6;
+        const tx = flipLeft ? x - TOOLTIP_W - 8 : x + 8;
         const ty = Math.max(pad.top, Math.min(y - TOOLTIP_H / 2, pad.top + iH - TOOLTIP_H));
 
         return (
           <g pointerEvents="none">
-            <line x1={x} x2={x} y1={pad.top} y2={pad.top + iH} stroke="rgba(255,255,255,0.15)" strokeWidth={1} strokeDasharray="3 3" />
-            <circle cx={x} cy={y} r={3.5} fill="var(--color-accent)" />
-            <rect x={tx} y={ty} width={TOOLTIP_W} height={TOOLTIP_H} rx={4} fill="rgba(12,12,20,0.92)" stroke="rgba(255,255,255,0.08)" strokeWidth={1} />
-            <text x={tx + 6} y={ty + 12} fill="var(--color-accent)" fontSize={11} fontWeight="700">
+            {/* Vertical crosshair */}
+            <line x1={x} x2={x} y1={pad.top} y2={pad.top + iH} stroke="rgba(255,255,255,0.12)" strokeWidth={1} strokeDasharray="3 3" />
+            {/* Raw dot */}
+            <circle cx={x} cy={y} r={3.5} fill="var(--color-accent)" fillOpacity={0.6} stroke="var(--color-accent)" strokeWidth={1} />
+            {/* Avg dot */}
+            <circle cx={x} cy={avgY} r={3} fill="var(--color-accent)" />
+            {/* Tooltip card */}
+            <rect x={tx} y={ty} width={TOOLTIP_W} height={TOOLTIP_H} rx={5} fill="rgba(12,12,20,0.95)" stroke="rgba(255,255,255,0.08)" strokeWidth={1} />
+            <text x={tx + 7} y={ty + 13} fill="var(--color-accent)" fontSize={11} fontWeight="700">
               {Math.round(hovered.wpm)} wpm
             </text>
-            <text x={tx + 6} y={ty + 24} fill="var(--color-muted)" fontSize={9} fillOpacity={0.6}>
-              {dateStr} · {hovered.accuracy.toFixed(1)}%
+            <text x={tx + 7} y={ty + 26} fill="var(--color-muted)" fontSize={9} fillOpacity={0.7}>
+              avg {Math.round(avgValues[hoveredIdx])} · {hovered.accuracy.toFixed(1)}%
+            </text>
+            <text x={tx + 7} y={ty + 39} fill="var(--color-muted)" fontSize={9} fillOpacity={0.45}>
+              {dateStr} · race #{hoveredIdx + 1}
             </text>
           </g>
         );
