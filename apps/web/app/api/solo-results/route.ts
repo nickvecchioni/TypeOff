@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
-import { soloResults, userKeyAccuracy, userBigramAccuracy, userAccuracySnapshots } from "@typeoff/db";
+import { soloResults, userKeyAccuracy, userBigramAccuracy, userAccuracySnapshots, textLeaderboards, userStats } from "@typeoff/db";
 import { eq, and, desc, sql } from "drizzle-orm";
 import type { KeyStatsMap } from "@typeoff/shared";
+import { scoreTextDifficulty, calculatePP, calculateTotalPP, getQuoteWords, getCodeSnippet, tokenizeCode } from "@typeoff/shared";
 import { createRateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -101,17 +102,24 @@ export async function POST(request: Request) {
   const db = getDb();
   const userId = session.user.id;
 
+  // Quotes and code ignore difficulty/punctuation/mode/duration — normalize to canonical values
+  const isFixedText = contentType === "quotes" || contentType === "code";
+  const normMode = isFixedText ? "wordcount" : mode;
+  const normDuration = isFixedText ? 0 : duration;
+  const normDifficulty = isFixedText ? "easy" : (difficulty ?? "easy");
+  const normPunctuation = isFixedText ? false : (punctuation ?? false);
+
   // Build wordPool key from content config
-  const wordPool = `${contentType ?? "words"}:${difficulty ?? "easy"}:${punctuation ?? false}`;
+  const wordPool = `${contentType ?? "words"}:${normDifficulty}:${normPunctuation}`;
 
   // For quotes and code, track PBs per individual text (by seed)
-  const isPerText = (contentType === "quotes" || contentType === "code") && typeof seed === "number";
+  const isPerText = isFixedText && typeof seed === "number";
 
   // PB detection: best WPM for this config tuple (per-text for quotes/code)
   const conditions = [
     eq(soloResults.userId, userId),
-    eq(soloResults.mode, mode),
-    eq(soloResults.duration, duration),
+    eq(soloResults.mode, normMode),
+    eq(soloResults.duration, normDuration),
     eq(soloResults.wordPool, wordPool),
   ];
   if (isPerText) {
@@ -139,8 +147,8 @@ export async function POST(request: Request) {
 
   await db.insert(soloResults).values({
     userId,
-    mode,
-    duration,
+    mode: normMode,
+    duration: normDuration,
     wordPool,
     wpm,
     rawWpm,
@@ -156,6 +164,53 @@ export async function POST(request: Request) {
     replayData: replayData ? JSON.stringify(replayData) : null,
     seed: typeof seed === "number" ? seed : null,
   });
+
+  // Upsert text leaderboard for quotes and code (per-text PBs with PP)
+  if (isPerText && isPbEligible && wpm > 0) {
+    const textHash = `${seed}:solo`;
+    // Reconstruct the words to score difficulty
+    const textWords = contentType === "quotes"
+      ? getQuoteWords(seed)
+      : tokenizeCode(getCodeSnippet(seed).code);
+    const difficulty = scoreTextDifficulty(textWords);
+    const pp = calculatePP(wpm, accuracy, difficulty.score);
+
+    await db
+      .insert(textLeaderboards)
+      .values({
+        textHash,
+        seed,
+        mode: "solo",
+        userId,
+        bestWpm: wpm,
+        bestAccuracy: accuracy,
+        pp,
+        textDifficulty: difficulty.score,
+      })
+      .onConflictDoUpdate({
+        target: [textLeaderboards.textHash, textLeaderboards.userId],
+        set: {
+          bestWpm: sql`CASE WHEN excluded.best_wpm > ${textLeaderboards.bestWpm} THEN excluded.best_wpm ELSE ${textLeaderboards.bestWpm} END`,
+          bestAccuracy: sql`CASE WHEN excluded.best_wpm > ${textLeaderboards.bestWpm} THEN excluded.best_accuracy ELSE ${textLeaderboards.bestAccuracy} END`,
+          pp: sql`CASE WHEN excluded.best_wpm > ${textLeaderboards.bestWpm} THEN excluded.pp ELSE ${textLeaderboards.pp} END`,
+          updatedAt: new Date(),
+        },
+      });
+
+    // Recalculate user's total PP (weighted sum of top 50)
+    const topScores = await db
+      .select({ pp: textLeaderboards.pp })
+      .from(textLeaderboards)
+      .where(eq(textLeaderboards.userId, userId))
+      .orderBy(desc(textLeaderboards.pp))
+      .limit(50);
+
+    const totalPp = calculateTotalPP(topScores.map((s) => s.pp));
+    await db
+      .update(userStats)
+      .set({ totalPp })
+      .where(eq(userStats.userId, userId));
+  }
 
   // Upsert per-key accuracy (skip custom — arbitrary text)
   if (keyStats && contentType !== "custom" && typeof keyStats === "object") {

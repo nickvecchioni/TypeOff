@@ -31,16 +31,28 @@ export interface TestConfig {
   weakBigrams?: string[];
 }
 
+/** Content types where difficulty/punctuation/mode/duration are irrelevant (text is fixed by seed) */
+const FIXED_POOL_TYPES: ContentType[] = ["quotes", "code"];
+
 /** Build a key for the word-pool column: "words:easy:false" */
 export function getWordPoolKey(config: TestConfig): string {
-  return `${config.contentType ?? "words"}:${config.difficulty ?? "easy"}:${config.punctuation ?? false}`;
+  const ct = config.contentType ?? "words";
+  // Quotes and code ignore difficulty/punctuation — normalize to prevent mismatched PB keys
+  if (FIXED_POOL_TYPES.includes(ct)) {
+    return `${ct}:easy:false`;
+  }
+  return `${ct}:${config.difficulty ?? "easy"}:${config.punctuation ?? false}`;
 }
 
-/** Build a key for PB lookup: "timed:15:words:easy:false" or "timed:60:quotes:easy:false:42" for per-text PBs */
+/** Build a key for PB lookup: "timed:15:words:easy:false" or "wordcount:0:quotes:easy:false:42" for per-text PBs */
 export function getPbKey(config: TestConfig, seed?: number | null): string {
-  const base = `${config.mode}:${config.duration}:${getWordPoolKey(config)}`;
+  const ct = config.contentType ?? "words";
+  // Quotes and code always behave as wordcount with duration 0 — normalize to prevent mismatched PB keys
+  const mode = FIXED_POOL_TYPES.includes(ct) ? "wordcount" : config.mode;
+  const duration = FIXED_POOL_TYPES.includes(ct) ? 0 : config.duration;
+  const base = `${mode}:${duration}:${getWordPoolKey(config)}`;
   // For quotes and code, include the seed to track PBs per-text
-  if (seed != null && (config.contentType === "quotes" || config.contentType === "code")) {
+  if (seed != null && FIXED_POOL_TYPES.includes(ct)) {
     return `${base}:${seed}`;
   }
   return base;
