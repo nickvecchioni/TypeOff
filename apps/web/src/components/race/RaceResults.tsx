@@ -399,7 +399,7 @@ function AnimatedXpPanel({
         {/* New rewards */}
         {showRewards && xp.newRewards.length > 0 && (
           <div style={{ animation: "slide-up 0.4s ease-out" }}>
-            <p className="text-[11px] font-bold text-accent/55 uppercase tracking-widest mb-1.5">
+            <p className="text-xs font-bold text-accent/55 uppercase tracking-widest mb-1.5">
               {xp.newRewards.length === 1 ? "Cosmetic Unlocked" : `${xp.newRewards.length} Cosmetics Unlocked`}
             </p>
             <div className={`grid gap-1.5 ${xp.newRewards.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
@@ -409,7 +409,7 @@ function AnimatedXpPanel({
             </div>
             <Link
               href="/cosmetics"
-              className="text-[11px] text-accent/60 hover:text-accent/70 transition-colors mt-2 block text-right"
+              className="text-xs text-accent/60 hover:text-accent/70 transition-colors mt-2 block text-right"
             >
               Equip in Items →
             </Link>
@@ -446,7 +446,7 @@ function AnimatedXpPanel({
             {proLocked && (
               <Link
                 href="/pro"
-                className="text-[10px] font-black tracking-wider text-accent bg-accent/10 ring-1 ring-accent/30 px-1.5 py-0.5 rounded shrink-0 leading-none hover:bg-accent/20 transition-colors"
+                className="text-xs font-black tracking-wider text-accent bg-accent/10 ring-1 ring-accent/30 px-1.5 py-0.5 rounded shrink-0 leading-none hover:bg-accent/20 transition-colors"
               >
                 PRO
               </Link>
@@ -474,14 +474,14 @@ function RewardUnlockCard({ reward, delay }: { reward: RawReward; delay: number 
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-xs font-bold text-text leading-tight truncate">{reward.name}</span>
+          <span className="text-sm font-bold text-text leading-tight truncate">{reward.name}</span>
           {fullReward?.proOnly && (
-            <span className="text-[10px] font-black text-accent bg-accent/[0.08] ring-1 ring-accent/20 px-1 py-px rounded uppercase tracking-wider leading-none shrink-0">
+            <span className="text-xs font-black text-accent bg-accent/[0.08] ring-1 ring-accent/20 px-1 py-px rounded uppercase tracking-wider leading-none shrink-0">
               PRO
             </span>
           )}
         </div>
-        <span className="text-[11px] text-correct/70 font-bold uppercase tracking-wider">✦ Unlocked</span>
+        <span className="text-xs text-correct/70 font-bold uppercase tracking-wider">✦ Unlocked</span>
       </div>
     </div>
   );
@@ -650,7 +650,7 @@ function ProPanel({ level, xpEarned }: { level: number; xpEarned: number }) {
         className="flex items-center justify-between rounded-lg bg-accent/[0.03] ring-1 ring-accent/15 px-3 py-2 hover:bg-accent/[0.06] transition-colors"
       >
         <div className="flex items-center gap-2">
-          <span className="text-[11px] font-black tracking-[0.15em] text-accent bg-accent/10 ring-1 ring-accent/25 rounded px-1.5 py-0.5 leading-none">
+          <span className="text-xs font-black tracking-[0.15em] text-accent bg-accent/10 ring-1 ring-accent/25 rounded px-1.5 py-0.5 leading-none">
             PRO
           </span>
           <span className="text-xs text-text/50">
@@ -669,7 +669,7 @@ function ProPanel({ level, xpEarned }: { level: number; xpEarned: number }) {
         {/* Header with dismiss */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-black tracking-[0.15em] text-accent bg-accent/10 ring-1 ring-accent/25 rounded px-1.5 py-0.5 leading-none">
+            <span className="text-xs font-black tracking-[0.15em] text-accent bg-accent/10 ring-1 ring-accent/25 rounded px-1.5 py-0.5 leading-none">
               PRO
             </span>
             {missedXp > 0 && (
@@ -1584,10 +1584,10 @@ export function RaceResults({
                 <span className="inline-block w-[2px] h-[1em] bg-current animate-blink translate-y-px" />
               </span>
               {!inParty && (
-                <span className="text-[11px] font-normal text-accent/60 flex items-center gap-1 group-hover:text-bg/40">
-                  <kbd className="inline-flex items-center px-1 py-px rounded bg-white/[0.04] ring-1 ring-white/[0.07] text-[11px] font-medium">Tab</kbd>
+                <span className="text-xs font-normal text-accent/60 flex items-center gap-1 group-hover:text-bg/40">
+                  <kbd className="inline-flex items-center px-1 py-px rounded bg-white/[0.04] ring-1 ring-white/[0.07] text-xs font-medium">Tab</kbd>
                   {" + "}
-                  <kbd className="inline-flex items-center px-1 py-px rounded bg-white/[0.04] ring-1 ring-white/[0.07] text-[11px] font-medium">Enter ↵</kbd>
+                  <kbd className="inline-flex items-center px-1 py-px rounded bg-white/[0.04] ring-1 ring-white/[0.07] text-xs font-medium">Enter ↵</kbd>
                 </span>
               )}
             </button>

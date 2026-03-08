@@ -95,9 +95,9 @@ function EloProgressBar({ elo, tier }: { elo: number; tier: RankTier }) {
         </span>
         <div className="flex items-center gap-1 leading-none">
           <span className="text-xs text-muted/65 tabular-nums">{eloNeeded} away</span>
-          <span className="text-[11px] text-muted/65">·</span>
+          <span className="text-xs text-muted/65">·</span>
           <span
-            className="text-[11px] font-bold"
+            className="text-xs font-bold"
             style={{ color: RANK_HEX[nextRankInfo.tier] }}
           >
             {nextRankInfo.label}
@@ -182,7 +182,7 @@ function RewardIcon({ reward }: { reward: CosmeticReward }) {
     }
     case "title":
       return (
-        <span className="text-[10px] font-black tracking-wide text-accent/80 bg-accent/[0.12] ring-1 ring-accent/20 px-1.5 py-[3px] rounded leading-none shrink-0">
+        <span className="text-xs font-black tracking-wide text-accent/80 bg-accent/[0.12] ring-1 ring-accent/20 px-1.5 py-[3px] rounded leading-none shrink-0">
           Tt
         </span>
       );
@@ -262,7 +262,7 @@ function LevelWidget({
                 {currentXp.toLocaleString()}
                 <span className="text-muted/60 font-normal"> / {nextLevelXp.toLocaleString()} XP</span>
               </span>
-              <span className="text-[11px] font-bold text-accent/60 tabular-nums">{xpPct}%</span>
+              <span className="text-xs font-bold text-accent/60 tabular-nums">{xpPct}%</span>
             </div>
             <div className="h-2.5 rounded-full bg-white/[0.04] overflow-hidden relative">
               <div
@@ -282,7 +282,7 @@ function LevelWidget({
                 />
               </div>
             </div>
-            <div className="text-[11px] text-muted/65 mt-1 tabular-nums">
+            <div className="text-xs text-muted/65 mt-1 tabular-nums">
               {xpRemaining.toLocaleString()} XP to level {level + 1}
             </div>
           </div>
@@ -308,19 +308,19 @@ function LevelWidget({
                 <RewardIcon reward={nextReward} />
               </span>
               <div className="flex-1 min-w-0">
-                <div className="text-[10px] font-bold uppercase tracking-wider leading-none mb-1" style={{ color: meta.color }}>
+                <div className="text-[11px] font-bold uppercase tracking-wider leading-none mb-1" style={{ color: meta.color }}>
                   Next unlock — Lvl {nextReward.level}
                 </div>
-                <div className="text-xs font-semibold text-text/90 truncate leading-none">{nextReward.name}</div>
+                <div className="text-sm font-semibold text-text/90 truncate leading-none">{nextReward.name}</div>
               </div>
               <span
-                className="text-[9px] font-black tracking-wider px-1.5 py-[3px] rounded leading-none shrink-0"
+                className="text-[11px] font-black tracking-wider px-1.5 py-[3px] rounded leading-none shrink-0"
                 style={{ color: meta.color, backgroundColor: meta.bg, border: `1px solid ${meta.ring}` }}
               >
                 {meta.label.toUpperCase()}
               </span>
               {proLocked && (
-                <span className="text-[9px] font-black tracking-wider text-accent bg-accent/10 ring-1 ring-accent/30 px-1.5 py-[3px] rounded shrink-0 leading-none">
+                <span className="text-[11px] font-black tracking-wider text-accent bg-accent/10 ring-1 ring-accent/30 px-1.5 py-[3px] rounded shrink-0 leading-none">
                   PRO
                 </span>
               )}
@@ -331,7 +331,7 @@ function LevelWidget({
         {/* Upcoming unlocks */}
         {upcomingRewards.length > 1 && (
           <div className="space-y-0.5">
-            <div className="text-[10px] font-bold text-muted/60 uppercase tracking-wider mb-1">Coming up</div>
+            <div className="text-xs font-bold text-muted/60 uppercase tracking-wider mb-1">Coming up</div>
             {upcomingRewards.slice(1).map((reward) => {
               const meta = REWARD_TYPE_META[reward.type];
               const proLocked = reward.proOnly && !isPro;
@@ -343,21 +343,21 @@ function LevelWidget({
                   <span className={`shrink-0 flex items-center justify-center w-7 ${proLocked ? "opacity-30" : ""}`}>
                     <RewardIcon reward={reward} />
                   </span>
-                  <span className="text-[11px] font-semibold text-text/70 truncate leading-none flex-1">
+                  <span className="text-xs font-semibold text-text/70 truncate leading-none flex-1">
                     {reward.name}
                   </span>
                   <span
-                    className="text-[9px] font-bold tracking-wide px-1.5 py-[2px] rounded leading-none shrink-0"
+                    className="text-[11px] font-bold tracking-wide px-1.5 py-[2px] rounded leading-none shrink-0"
                     style={{ color: meta.color, backgroundColor: meta.bg }}
                   >
                     {meta.label.toUpperCase()}
                   </span>
                   {proLocked && (
-                    <span className="text-[9px] font-black tracking-wider text-accent bg-accent/10 ring-1 ring-accent/30 px-1.5 py-[2px] rounded shrink-0 leading-none">
+                    <span className="text-[11px] font-black tracking-wider text-accent bg-accent/10 ring-1 ring-accent/30 px-1.5 py-[2px] rounded shrink-0 leading-none">
                       PRO
                     </span>
                   )}
-                  <span className="text-[10px] text-muted/60 leading-none shrink-0 tabular-nums">
+                  <span className="text-xs text-muted/60 leading-none shrink-0 tabular-nums">
                     {reward.level}
                   </span>
                 </div>
@@ -370,7 +370,7 @@ function LevelWidget({
 
       {/* Browse all link hint */}
       <div className="px-4 pb-3 pt-0">
-        <div className="text-[10px] text-muted/65 group-hover:text-accent/50 transition-colors text-center">
+        <div className="text-xs text-muted/65 group-hover:text-accent/50 transition-colors text-center">
           Browse all cosmetics →
         </div>
       </div>
@@ -578,7 +578,7 @@ export function QueueScreen({
               <div className="relative flex items-center gap-4 sm:gap-5 px-5 py-3.5 ring-1 ring-white/[0.05] rounded-xl bg-surface/40">
                 {/* ELO */}
                 <div className="shrink-0">
-                  <div className="text-[11px] text-muted/60 uppercase tracking-widest leading-none mb-0.5">
+                  <div className="text-xs text-muted/60 uppercase tracking-widest leading-none mb-0.5">
                     elo
                   </div>
                   <div
@@ -598,7 +598,7 @@ export function QueueScreen({
                   <>
                     <div className="w-px h-8 bg-white/[0.05] shrink-0" />
                     <div className="shrink-0">
-                      <div className="text-[11px] text-muted/60 uppercase tracking-widest leading-none mb-0.5">
+                      <div className="text-xs text-muted/60 uppercase tracking-widest leading-none mb-0.5">
                         win streak
                       </div>
                       <div className="text-sm font-bold text-amber-400 tabular-nums leading-none">
@@ -639,14 +639,14 @@ export function QueueScreen({
                 ) : (
                   <>
                     press{" "}
-                    <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/80 text-[11px] font-medium">Tab</kbd>
+                    <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/80 text-xs font-medium">Tab</kbd>
                     {" + "}
-                    <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/80 text-[11px] font-medium">Enter ↵</kbd>
+                    <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/80 text-xs font-medium">Enter ↵</kbd>
                   </>
                 )}
               </span>
               {privateRace && (
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-accent/70 bg-accent/[0.08] ring-1 ring-accent/20 rounded px-2 py-0.5">
+                <span className="text-xs font-semibold uppercase tracking-wider text-accent/70 bg-accent/[0.08] ring-1 ring-accent/20 rounded px-2 py-0.5">
                   Private
                 </span>
               )}
@@ -697,7 +697,7 @@ export function QueueScreen({
                     );
                   })}
                 </div>
-                  <p className="text-xs text-muted/70 mt-2 leading-relaxed text-center">
+                  <p className="text-sm text-muted/70 mt-2 leading-relaxed text-center">
                     Select one or more modes. One is picked at random each race. Your ELO rating is shared across all modes.
                   </p>
                 </div>
@@ -724,9 +724,9 @@ export function QueueScreen({
                   ) : (
                     <>
                       press{" "}
-                      <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/80 text-[11px] font-medium">Tab</kbd>
+                      <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/80 text-xs font-medium">Tab</kbd>
                       {" + "}
-                      <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/80 text-[11px] font-medium">Enter ↵</kbd>
+                      <kbd className="inline-flex items-center px-1.5 py-0.5 rounded bg-white/[0.05] ring-1 ring-white/[0.08] text-muted/80 text-xs font-medium">Enter ↵</kbd>
                     </>
                   )}
                 </span>

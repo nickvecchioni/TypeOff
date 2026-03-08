@@ -175,7 +175,7 @@ export function PartyPanel({
               return (
                 <div
                   key={i}
-                  className="text-[12px] leading-snug"
+                  className="text-sm leading-snug"
                   style={{ animation: "fade-in 0.15s ease-out both" }}
                 >
                   <span
@@ -203,7 +203,7 @@ export function PartyPanel({
             value={draft}
             onChange={(e) => setDraft(e.target.value.slice(0, 150))}
             placeholder="Message..."
-            className="flex-1 bg-transparent text-[12px] text-text placeholder:text-muted/45 px-3 py-2 outline-none"
+            className="flex-1 bg-transparent text-sm text-text placeholder:text-muted/45 px-3 py-2 outline-none"
           />
           <button
             type="submit"

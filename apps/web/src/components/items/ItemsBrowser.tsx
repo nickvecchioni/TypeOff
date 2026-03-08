@@ -190,7 +190,7 @@ export function ItemsBrowser({
       <div className="flex items-end justify-between gap-4">
         <div>
           <h1 className="text-lg font-bold text-text tracking-tight">Cosmetics</h1>
-          <p className="text-xs text-muted/60 mt-0.5">Earn cosmetics by levelling up through gameplay</p>
+          <p className="text-sm text-muted/60 mt-0.5">Earn cosmetics by levelling up through gameplay</p>
         </div>
         <div className="flex items-center gap-2">
           {saving && (
@@ -209,11 +209,11 @@ export function ItemsBrowser({
         <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center gap-3">
             <span className="text-sm font-black text-accent tabular-nums">Level {xpInfo.level}</span>
-            <span className="text-xs text-muted/55 tabular-nums">
+            <span className="text-sm text-muted/55 tabular-nums">
               {xpInfo.currentXp.toLocaleString()} / {xpInfo.nextLevelXp.toLocaleString()} XP
             </span>
           </div>
-          <span className="text-xs text-muted/65 tabular-nums">
+          <span className="text-sm text-muted/65 tabular-nums">
             {(xpInfo.nextLevelXp - xpInfo.currentXp).toLocaleString()} to next level
           </span>
         </div>
@@ -224,7 +224,7 @@ export function ItemsBrowser({
           />
         </div>
         {!isPro && (
-          <p className="text-xs text-muted/60 mt-2">
+          <p className="text-sm text-muted/60 mt-2">
             Pro subscribers earn 1.5× XP and unlock exclusive items
           </p>
         )}
@@ -257,7 +257,7 @@ export function ItemsBrowser({
 
       {/* ── Equipped Loadout Strip ────────────────────────── */}
       <div>
-        <h2 className="text-xs font-bold text-muted/60 uppercase tracking-widest mb-3 flex items-center gap-2.5">
+        <h2 className="text-sm font-bold text-muted/60 uppercase tracking-widest mb-3 flex items-center gap-2.5">
           <span className="text-accent/55 text-[10px]">◆</span>
           Equipped Loadout
           <span className="flex-1 h-px bg-white/[0.03]" />
@@ -428,7 +428,7 @@ function ProfileHeaderCard({
           <div className="flex items-center gap-2">
             {isPreviewingNewItem && (
               <>
-                <span className={`text-xs ${isPreviewingPro ? "text-accent/60" : "text-muted/60"}`}>
+                <span className={`text-sm ${isPreviewingPro ? "text-accent/60" : "text-muted/60"}`}>
                   click item to dismiss
                 </span>
                 <button
@@ -456,11 +456,11 @@ function ProfileHeaderCard({
               {username}
             </p>
             {title && (
-              <p className="text-xs text-accent/65 leading-tight mt-1">{title}</p>
+              <p className="text-sm text-accent/65 leading-tight mt-1">{title}</p>
             )}
           </div>
           {!hasAnyProfileCosmetic && (
-            <span className="text-xs text-muted/55 italic shrink-0">
+            <span className="text-sm text-muted/55 italic shrink-0">
               Equip cosmetics to customize your look
             </span>
           )}
@@ -506,7 +506,7 @@ function LoadoutSlot({
             : "ring-white/[0.05] bg-surface/40 hover:ring-white/[0.1] hover:bg-surface/60"
       }`}
     >
-      <div className="text-[10px] uppercase tracking-widest text-muted/65 leading-none">
+      <div className="text-[11px] uppercase tracking-widest text-muted/65 leading-none">
         {cat.slotLabel}
       </div>
       <div className="h-7 flex items-center justify-center">
@@ -730,12 +730,12 @@ function LockCallout({
         <span className="text-accent/60 mt-0.5 shrink-0 text-base leading-none">✦</span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs font-bold text-accent/80">{item.name}</span>
-            <span className="text-[11px] font-black text-accent bg-accent/10 ring-1 ring-accent/25 px-1.5 py-0.5 rounded uppercase tracking-wider leading-none">
+            <span className="text-sm font-bold text-accent/80">{item.name}</span>
+            <span className="text-xs font-black text-accent bg-accent/10 ring-1 ring-accent/25 px-1.5 py-0.5 rounded uppercase tracking-wider leading-none">
               PRO
             </span>
           </div>
-          <p className="text-xs text-muted/60 mt-0.5 leading-snug">
+          <p className="text-sm text-muted/60 mt-0.5 leading-snug">
             Pro exclusive · requires{" "}
             <span className="text-text/70 font-semibold">Level {item.level}</span>
             {levelsNeeded > 0 && (
@@ -760,8 +760,8 @@ function LockCallout({
         <path d="M7 11V7a5 5 0 0 1 10 0v4" />
       </svg>
       <div className="flex-1 min-w-0">
-        <span className="text-xs font-semibold text-text/70">{item.name}</span>
-        <span className="text-xs text-muted/55 ml-2">
+        <span className="text-sm font-semibold text-text/70">{item.name}</span>
+        <span className="text-sm text-muted/55 ml-2">
           unlocks at <span className="text-text/60 font-semibold">Level {item.level}</span>
           {levelsNeeded > 0 && (
             <span className="text-muted/60"> · {levelsNeeded} level{levelsNeeded !== 1 ? "s" : ""} to go</span>
@@ -783,7 +783,7 @@ function SectionHeader({
 }) {
   if (variant === "owned") {
     return (
-      <h3 className="text-xs font-bold text-correct/50 uppercase tracking-widest mb-2.5 flex items-center gap-2">
+      <h3 className="text-sm font-bold text-correct/50 uppercase tracking-widest mb-2.5 flex items-center gap-2">
         Unlocked
         <span className="text-correct/25 font-normal normal-case tracking-normal">
           {count} {count === 1 ? "item" : "items"}
@@ -793,7 +793,7 @@ function SectionHeader({
   }
   if (variant === "level") {
     return (
-      <h3 className="text-xs font-bold text-muted/50 uppercase tracking-widest mb-2.5 flex items-center gap-2">
+      <h3 className="text-sm font-bold text-muted/50 uppercase tracking-widest mb-2.5 flex items-center gap-2">
         <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-60">
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
           <path d="M7 11V7a5 5 0 0 1 10 0v4" />
@@ -806,7 +806,7 @@ function SectionHeader({
     );
   }
   return (
-    <h3 className="text-xs font-bold text-accent/60 uppercase tracking-widest mb-2.5 flex items-center gap-2">
+    <h3 className="text-sm font-bold text-accent/60 uppercase tracking-widest mb-2.5 flex items-center gap-2">
       <span className="text-accent/60">✦</span>
       Pro Exclusive
       <span className="text-accent/55 font-normal normal-case tracking-normal">
@@ -909,16 +909,16 @@ function ItemCard({
             : "ring-accent/15 bg-accent/[0.03] hover:ring-accent/25 hover:bg-accent/[0.05]"
         }`}
       >
-        <span className="absolute top-2.5 right-2.5 text-[11px] font-black text-accent/60 bg-accent/[0.08] px-1.5 py-0.5 rounded uppercase tracking-wider leading-none">
+        <span className="absolute top-2.5 right-2.5 text-xs font-black text-accent/60 bg-accent/[0.08] px-1.5 py-0.5 rounded uppercase tracking-wider leading-none">
           PRO
         </span>
         <div className="mb-3 h-8 flex items-center opacity-50 group-hover:opacity-70 transition-opacity">
           <ItemVisual item={item} />
         </div>
-        <p className="text-xs font-semibold truncate leading-tight text-muted/65 group-hover:text-muted/80 transition-colors">
+        <p className="text-sm font-semibold truncate leading-tight text-muted/65 group-hover:text-muted/80 transition-colors">
           {item.name}
         </p>
-        <p className="text-xs mt-0.5 leading-tight text-accent/60 group-hover:text-accent/60 transition-colors tabular-nums">
+        <p className="text-sm mt-0.5 leading-tight text-accent/60 group-hover:text-accent/60 transition-colors tabular-nums">
           Level {item.level} · Pro
         </p>
       </button>
@@ -960,12 +960,12 @@ function ItemCard({
       <div className="mb-3 h-8 flex items-center">
         <ItemVisual item={item} />
       </div>
-      <p className={`text-xs font-semibold truncate leading-tight ${
+      <p className={`text-sm font-semibold truncate leading-tight ${
         active ? "text-accent" : locked ? "text-muted/60" : "text-text/80"
       }`}>
         {item.name}
       </p>
-      <p className="text-xs mt-0.5 leading-tight">
+      <p className="text-sm mt-0.5 leading-tight">
         {locked ? (
           <span className="text-muted/55 tabular-nums">Level {item.level}</span>
         ) : active ? (

@@ -77,10 +77,10 @@ export function ChallengesWidget() {
         {/* Daily Challenges */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-muted/60 uppercase tracking-wider">
+            <span className="text-sm font-bold text-muted/60 uppercase tracking-wider">
               Daily Challenges
             </span>
-            <span className="text-xs text-muted tabular-nums">{dailyCountdown}</span>
+            <span className="text-sm text-muted tabular-nums">{dailyCountdown}</span>
           </div>
           {dailies.map((c) => (
             <ChallengeRow
@@ -96,10 +96,10 @@ export function ChallengesWidget() {
         {/* Weekly Challenge */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-amber-400/70 uppercase tracking-wider">
+            <span className="text-sm font-bold text-amber-400/70 uppercase tracking-wider">
               Weekly Challenge
             </span>
-            <span className="text-xs text-muted tabular-nums">{weeklyCountdown}</span>
+            <span className="text-sm text-muted tabular-nums">{weeklyCountdown}</span>
           </div>
           {weeklies.map((c) => (
             <ChallengeRow
@@ -145,20 +145,20 @@ function ChallengeRow({
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-0.5">
           <span className="flex items-center gap-1.5 min-w-0">
-            <span className={`text-xs font-medium truncate ${completed ? "text-text/70" : "text-text"}`}>
+            <span className={`text-sm font-medium truncate ${completed ? "text-text/70" : "text-text"}`}>
               {challenge.name}
             </span>
             {completed && (
-              <span className="shrink-0 text-[11px] font-black text-correct bg-correct/15 ring-1 ring-correct/25 px-1 py-[2px] rounded leading-none">
+              <span className="shrink-0 text-xs font-black text-correct bg-correct/15 ring-1 ring-correct/25 px-1 py-[2px] rounded leading-none">
                 ✓
               </span>
             )}
           </span>
-          <span className={`text-xs tabular-nums shrink-0 ml-2 ${loading ? "text-transparent" : "text-muted"}`}>
+          <span className={`text-sm tabular-nums shrink-0 ml-2 ${loading ? "text-transparent" : "text-muted"}`}>
             {clamped}/{challenge.target}
           </span>
         </div>
-        <p className="text-xs text-muted/65 truncate mb-1">{challenge.description}</p>
+        <p className="text-sm text-muted/65 truncate mb-1">{challenge.description}</p>
         <div className="h-1 rounded-full bg-surface overflow-hidden">
           <div
             className={`h-full rounded-full transition-all ${
@@ -184,7 +184,7 @@ function ChallengeRow({
         </div>
       </div>
       <span
-        className={`text-xs font-bold shrink-0 rounded px-1.5 py-0.5 tabular-nums transition-all ${
+        className={`text-sm font-bold shrink-0 rounded px-1.5 py-0.5 tabular-nums transition-all ${
           completed
             ? "bg-correct/15 text-correct ring-1 ring-correct/25 [box-shadow:0_0_8px_rgba(34,197,94,0.3)]"
             : "bg-white/[0.04] text-muted"
