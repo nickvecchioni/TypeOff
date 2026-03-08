@@ -14,7 +14,7 @@ export interface UserSettings {
 export const DEFAULT_SETTINGS: UserSettings = {
   smoothCaret: true,
   showLiveWpm: true,
-  showLiveAccuracy: true,
+  showLiveAccuracy: false,
   focusMode: true,
   fontSize: "medium",
 };
