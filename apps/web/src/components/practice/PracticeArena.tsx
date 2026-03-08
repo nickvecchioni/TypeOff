@@ -332,15 +332,15 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
           style={{ animationDelay: "0ms", animationFillMode: "both" }}
         >
           {session?.user?.id && (
-            <div className="focus-fade text-sm text-muted/65 tabular-nums">
+            <div className="focus-fade text-base text-muted/65 tabular-nums mb-1">
               pb{" "}
               {currentPb !== null ? (
-                <span className="text-muted font-medium">
+                <span className="text-muted font-semibold text-lg">
                   {Math.floor(currentPb)}
                   <span className="opacity-50">
                     .{(currentPb % 1).toFixed(2).slice(2)}
                   </span>{" "}
-                  wpm
+                  <span className="text-base font-medium">wpm</span>
                 </span>
               ) : (
                 <span className="text-muted/60 font-medium">n/a</span>

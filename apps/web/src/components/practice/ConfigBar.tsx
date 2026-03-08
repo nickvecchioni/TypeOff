@@ -5,6 +5,7 @@ import type { TestConfig, ContentType, StrictMode } from "@typeoff/shared";
 import type { EngineStatus } from "@typeoff/shared";
 import { StrictModeSelector } from "./StrictModeSelector";
 import { CodeLanguagePicker } from "./CodeLanguagePicker";
+import { Tooltip } from "@/components/shared/Tooltip";
 
 interface ConfigBarProps {
   config: TestConfig;
@@ -97,12 +98,12 @@ export function ConfigBar({
 
   return (
     <div
-      className={`focus-fade flex flex-col items-center gap-2 transition-opacity ${
+      className={`focus-fade flex flex-col items-center gap-3 transition-opacity ${
         isTyping ? "pointer-events-none opacity-40" : ""
       }`}
     >
       {/* ── Primary row: mode / content type ── */}
-      <div className="flex items-center gap-0.5">
+      <div className="flex items-center gap-1">
         <Chip active={isWordsVariant && !(config.punctuation ?? false)} onClick={() => setWordMode(false)}>
           words
         </Chip>
@@ -121,38 +122,40 @@ export function ConfigBar({
       </div>
 
       {/* ── Secondary row: timing + strict mode ── */}
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-2">
         {/* Time / words toggle + duration (faded for fixed modes) */}
         <div
-          className={`flex items-center gap-0.5 transition-opacity ${
+          className={`flex items-center gap-1 transition-opacity ${
             isFixed ? "opacity-20 pointer-events-none" : ""
           }`}
         >
-          <Sub
-            active={mode === "time"}
-            onClick={() => set({ mode: "timed", duration: TIME_OPTIONS[0] })}
-            title="Time"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="13" r="8" />
-              <path d="M12 9v4l2 2" />
-              <path d="M5 3L2 6" />
-              <path d="M22 6l-3-3" />
-              <line x1="12" y1="1" x2="12" y2="3" />
-            </svg>
-          </Sub>
-          <Sub
-            active={mode === "words"}
-            onClick={() => set({ mode: "wordcount", duration: WORD_OPTIONS[0] })}
-            title="Words"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="4" y1="9" x2="20" y2="9" />
-              <line x1="4" y1="15" x2="20" y2="15" />
-              <line x1="10" y1="3" x2="8" y2="21" />
-              <line x1="16" y1="3" x2="14" y2="21" />
-            </svg>
-          </Sub>
+          <Tooltip label="Time mode">
+            <Sub
+              active={mode === "time"}
+              onClick={() => set({ mode: "timed", duration: TIME_OPTIONS[0] })}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="13" r="8" />
+                <path d="M12 9v4l2 2" />
+                <path d="M5 3L2 6" />
+                <path d="M22 6l-3-3" />
+                <line x1="12" y1="1" x2="12" y2="3" />
+              </svg>
+            </Sub>
+          </Tooltip>
+          <Tooltip label="Word count mode">
+            <Sub
+              active={mode === "words"}
+              onClick={() => set({ mode: "wordcount", duration: WORD_OPTIONS[0] })}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="4" y1="9" x2="20" y2="9" />
+                <line x1="4" y1="15" x2="20" y2="15" />
+                <line x1="10" y1="3" x2="8" y2="21" />
+                <line x1="16" y1="3" x2="14" y2="21" />
+              </svg>
+            </Sub>
+          </Tooltip>
           <MicroDivider />
           {durations.map((d) => (
             <Sub
@@ -184,23 +187,40 @@ export function ConfigBar({
       </div>
 
       {/* ── Tertiary row: mode-specific options (fixed height to prevent shift) ── */}
-      <div className="flex items-center justify-center min-h-[28px]">
-        {/* Practice toggle — only for words/mixed, Pro users with weak data */}
+      <div className="flex items-center justify-center min-h-[32px]">
+        {/* Target mode toggle — only for words/mixed, Pro users with weak data */}
         {isWordsVariant && hasPracticeData && (
-          <div className="flex items-center gap-1.5">
-            <Sub active={isPracticeOn} onClick={togglePractice}>
-              practice
-            </Sub>
-            {isPracticeOn && (
-              <span className="text-[10px] text-muted/45 leading-tight">
-                targeting your weakest keys &amp; bigrams
-              </span>
-            )}
-            {!isPracticeOn && (
-              <span className="text-[10px] text-muted/60 leading-tight">
-                drill your weak spots
-              </span>
-            )}
+          <div className="flex items-center gap-2">
+            <Tooltip label={isPracticeOn ? "Targeting your weakest keys & bigrams — click to disable" : "Generate text targeting your weak spots"}>
+              <button
+                onClick={togglePractice}
+                className={`p-2 rounded-md transition-all inline-flex items-center ${
+                  isPracticeOn
+                    ? "text-amber-400 bg-amber-500/15"
+                    : "text-muted/55 hover:text-muted/70 hover:bg-white/[0.03]"
+                }`}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <circle cx="12" cy="12" r="6" />
+                  <circle cx="12" cy="12" r="2" />
+                </svg>
+              </button>
+            </Tooltip>
+            {isPracticeOn && (practiceWeakKeys?.length || practiceWeakBigrams?.length) ? (
+              <div className="flex items-center gap-1.5">
+                {practiceWeakKeys && practiceWeakKeys.length > 0 && (
+                  <span className="text-[11px] text-muted/50 leading-tight">
+                    keys: <span className="text-amber-400/70 font-mono">{practiceWeakKeys.slice(0, 6).join(" ")}{practiceWeakKeys.length > 6 ? " ..." : ""}</span>
+                  </span>
+                )}
+                {practiceWeakBigrams && practiceWeakBigrams.length > 0 && (
+                  <span className="text-[11px] text-muted/50 leading-tight">
+                    {practiceWeakKeys?.length ? "· " : ""}bigrams: <span className="text-amber-400/70 font-mono">{practiceWeakBigrams.slice(0, 5).join(" ")}{practiceWeakBigrams.length > 5 ? " ..." : ""}</span>
+                  </span>
+                )}
+              </div>
+            ) : null}
           </div>
         )}
 
@@ -253,7 +273,7 @@ export function ConfigBar({
 /* ── Sub-components ────────────────────────────────────── */
 
 function MicroDivider() {
-  return <div className="w-px h-3 bg-white/[0.06] mx-0.5" />;
+  return <div className="w-px h-4 bg-white/[0.08] mx-0.5" />;
 }
 
 /** Primary chip — used for the main mode/content selector */
@@ -271,7 +291,7 @@ function Chip({
   return (
     <button
       onClick={onClick}
-      className={`px-2.5 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1 ${
+      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-1 ${
         proLocked
           ? "text-accent/60 hover:text-accent/60 hover:bg-accent/[0.04]"
           : active
@@ -290,18 +310,15 @@ function Sub({
   active,
   onClick,
   children,
-  title,
 }: {
   active: boolean;
   onClick: () => void;
   children: React.ReactNode;
-  title?: string;
 }) {
   return (
     <button
       onClick={onClick}
-      title={title}
-      className={`px-2 py-1 rounded text-xs font-medium transition-all inline-flex items-center ${
+      className={`px-2.5 py-1.5 rounded-md text-sm font-medium transition-all inline-flex items-center ${
         active
           ? "text-accent/80 bg-accent/10"
           : "text-muted/55 hover:text-muted/70 hover:bg-white/[0.03]"
