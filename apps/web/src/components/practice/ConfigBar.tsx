@@ -129,7 +129,7 @@ export function ConfigBar({
             isFixed ? "opacity-20 pointer-events-none" : ""
           }`}
         >
-          <Tooltip label="Time mode">
+          <Tooltip label="Time mode" position="bottom">
             <Sub
               active={mode === "time"}
               onClick={() => set({ mode: "timed", duration: TIME_OPTIONS[0] })}
@@ -143,7 +143,7 @@ export function ConfigBar({
               </svg>
             </Sub>
           </Tooltip>
-          <Tooltip label="Word count mode">
+          <Tooltip label="Word count mode" position="bottom">
             <Sub
               active={mode === "words"}
               onClick={() => set({ mode: "wordcount", duration: WORD_OPTIONS[0] })}
@@ -189,7 +189,7 @@ export function ConfigBar({
         {isWordsVariant && hasPracticeData && (
           <>
             <MicroDivider />
-            <Tooltip label={isPracticeOn ? "Targeting your weakest keys & bigrams — click to disable" : "Generate text targeting your weak spots"}>
+            <Tooltip label={isPracticeOn ? "Targeting your weakest keys & bigrams — click to disable" : "Generate text targeting your weak spots"} position="bottom">
               <button
                 onClick={togglePractice}
                 className={`p-1.5 rounded-md transition-all inline-flex items-center ${

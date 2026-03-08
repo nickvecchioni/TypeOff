@@ -19,7 +19,7 @@ export function StrictModeSelector({ value, onChange }: StrictModeSelectorProps)
   return (
     <div className="flex items-center gap-1">
       {MODES.map((mode) => (
-        <Tooltip key={mode.value} label={mode.tooltip}>
+        <Tooltip key={mode.value} label={mode.tooltip} position="bottom">
           <button
             onClick={() => onChange(mode.value)}
             className={`px-2.5 py-1.5 rounded-md text-sm font-medium transition-all ${
