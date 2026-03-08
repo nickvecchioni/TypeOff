@@ -162,11 +162,11 @@ function AnimatedElo({
   return (
     <div className="flex flex-col items-center text-center">
       <div className="flex items-baseline gap-2 justify-center">
-        <span className="text-2xl sm:text-3xl font-black text-text tabular-nums leading-none">
+        <span className="text-3xl sm:text-4xl font-black text-text tabular-nums leading-none">
           {displayElo}
         </span>
         <span
-          className={`text-base font-black tabular-nums transition-opacity duration-300 leading-none ${
+          className={`text-lg font-black tabular-nums transition-opacity duration-300 leading-none ${
             showChange ? "opacity-100" : "opacity-0"
           } ${change > 0 ? "text-correct" : change < 0 ? "text-error" : "text-muted"}`}
         >
@@ -327,9 +327,9 @@ function AnimatedXpPanel({
 
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h3 className="text-xs font-bold text-accent/80 uppercase tracking-wider">Level</h3>
+          <h3 className="text-sm font-bold text-accent/80 uppercase tracking-wider">Level</h3>
           <span
-            className={`text-sm font-black tabular-nums transition-all duration-500 ${
+            className={`text-base font-black tabular-nums transition-all duration-500 ${
               animStarted ? "opacity-100 text-accent" : "opacity-0"
             }`}
           >
@@ -345,16 +345,16 @@ function AnimatedXpPanel({
         >
           {/* Big level number */}
           <div className="shrink-0 w-10 text-center">
-            <div className="text-[11px] font-black text-muted/60 uppercase tracking-widest leading-none mb-0.5">LEVEL</div>
+            <div className="text-xs font-black text-muted/60 uppercase tracking-widest leading-none mb-0.5">LEVEL</div>
             <div
-              className={`text-2xl font-black tabular-nums leading-none transition-colors duration-300 ${
+              className={`text-3xl font-black tabular-nums leading-none transition-colors duration-300 ${
                 levelUpGlow ? "text-accent" : "text-text"
               }`}
             >
               {displayLevel}
             </div>
             {levelUpVisible && (
-              <div className="text-correct text-[11px] font-black mt-0.5" style={{ animation: "fade-in 0.3s ease-out" }}>
+              <div className="text-correct text-xs font-black mt-0.5" style={{ animation: "fade-in 0.3s ease-out" }}>
                 ▲ UP!
               </div>
             )}
@@ -363,7 +363,7 @@ function AnimatedXpPanel({
           {/* XP bar + text */}
           <div className="flex-1 min-w-0">
             <div className="flex items-baseline justify-between mb-1.5">
-              <span className="text-xs font-bold text-accent tabular-nums">
+              <span className="text-sm font-bold text-accent tabular-nums">
                 {curInfo.currentXp.toLocaleString()}
                 <span className="text-muted/60 font-normal"> / {curInfo.nextLevelXp.toLocaleString()} XP</span>
               </span>
@@ -390,7 +390,7 @@ function AnimatedXpPanel({
                 </div>
               )}
             </div>
-            <div className="text-xs text-muted/55 mt-1 tabular-nums">
+            <div className="text-sm text-muted/55 mt-1 tabular-nums">
               {(curInfo.nextLevelXp - curInfo.currentXp).toLocaleString()} XP to level {xp.level + 1}
             </div>
           </div>
@@ -425,19 +425,19 @@ function AnimatedXpPanel({
             <div className="min-w-0 flex-1">
               {nextReward ? (
                 <>
-                  <div className="text-xs font-semibold text-text/80 truncate leading-none mb-0.5">
+                  <div className="text-sm font-semibold text-text/80 truncate leading-none mb-0.5">
                     {nextReward.name}
                   </div>
-                  <div className="text-xs text-muted/60 leading-none">
+                  <div className="text-sm text-muted/60 leading-none">
                     unlocks at level {nextReward.level}
                   </div>
                 </>
               ) : nextProReward ? (
                 <>
-                  <div className="text-xs font-semibold text-accent/70 truncate leading-none mb-0.5">
+                  <div className="text-sm font-semibold text-accent/70 truncate leading-none mb-0.5">
                     {nextProReward.name}
                   </div>
-                  <div className="text-xs text-muted/60 leading-none">
+                  <div className="text-sm text-muted/60 leading-none">
                     Pro-locked · level {nextProReward.level}
                   </div>
                 </>
@@ -606,10 +606,10 @@ function PresetChatFeed({ emotes }: { emotes: EmoteEvent[] }) {
         className="h-[5.5rem] overflow-y-auto px-3 sm:px-4 py-1.5 space-y-0.5 scrollbar-thin"
       >
         {messages.length === 0 ? (
-          <p className="text-xs text-muted/60 italic py-1">No messages yet</p>
+          <p className="text-sm text-muted/60 italic py-1">No messages yet</p>
         ) : (
           messages.map((msg) => (
-            <div key={msg.id} className="text-xs flex items-baseline gap-1.5 leading-relaxed">
+            <div key={msg.id} className="text-sm flex items-baseline gap-1.5 leading-relaxed">
               <span className="font-semibold text-text/70 shrink-0">{msg.playerName}</span>
               <span className="text-muted/50">:</span>
               <span className="text-text/90">{msg.emote}</span>
@@ -625,9 +625,9 @@ function PresetChatFeed({ emotes }: { emotes: EmoteEvent[] }) {
             key={emote}
             onClick={() => sendEmote(emote)}
             disabled={cooldown}
-            className="text-xs px-2 py-1 rounded bg-surface/60 ring-1 ring-white/[0.06] text-muted hover:text-text hover:ring-accent/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
+            className="text-sm px-2.5 py-1.5 rounded bg-surface/60 ring-1 ring-white/[0.06] text-muted hover:text-text hover:ring-accent/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
           >
-            <span className="text-[10px] text-muted/60 tabular-nums">{idx + 1}</span>
+            <span className="text-xs text-muted/60 tabular-nums">{idx + 1}</span>
             {emote}
           </button>
         ))}
@@ -701,7 +701,7 @@ function ProPanel({ level, xpEarned }: { level: number; xpEarned: number }) {
             { icon: "🔄", label: "Unlimited replays" },
             { icon: "🎨", label: `${proCosmetics} cosmetics` },
           ].map(({ icon, label }) => (
-            <div key={label} className="flex items-center gap-1.5 text-xs text-text/50">
+            <div key={label} className="flex items-center gap-1.5 text-sm text-text/50">
               <span className="shrink-0">{icon}</span>
               <span>{label}</span>
             </div>
@@ -779,74 +779,74 @@ function SpeedAnalysis({
   }
 
   return (
-    <div className="w-full rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-3 pt-2 pb-3 flex flex-col gap-2.5">
+    <div className="w-full rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-4 pt-3 pb-4 flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <div className="text-xs font-bold text-muted/50 uppercase tracking-widest">
+        <div className="text-sm font-bold text-muted/50 uppercase tracking-widest">
           Speed Analysis
         </div>
-        <span className="text-[10px] font-black text-accent/50 bg-accent/[0.06] ring-1 ring-accent/15 rounded px-1.5 py-0.5 uppercase tracking-wider leading-none">
+        <span className="text-xs font-black text-accent/50 bg-accent/[0.06] ring-1 ring-accent/15 rounded px-2 py-1 uppercase tracking-wider leading-none">
           PRO
         </span>
       </div>
 
       {/* Stats grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
         {/* Peak sustained */}
-        <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2">
-          <div className="text-[11px] text-muted/50 uppercase tracking-widest mb-1">
+        <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3">
+          <div className="text-xs text-muted/50 uppercase tracking-widest mb-1.5">
             Peak Sustained
           </div>
-          <div className="text-lg font-black text-accent tabular-nums leading-none">
+          <div className="text-2xl font-black text-accent tabular-nums leading-none">
             {Math.floor(peakSustained)}
             <span className="text-[0.6em] opacity-40">
               .{(peakSustained % 1).toFixed(2).slice(2)}
             </span>
           </div>
-          <div className="text-[11px] text-muted/60 mt-0.5">3-sec rolling avg</div>
+          <div className="text-sm text-muted/60 mt-1">3-sec rolling avg</div>
         </div>
 
         {/* Fastest second */}
-        <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2">
-          <div className="text-[11px] text-muted/50 uppercase tracking-widest mb-1">
+        <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3">
+          <div className="text-xs text-muted/50 uppercase tracking-widest mb-1.5">
             Fastest
           </div>
-          <div className="text-lg font-black text-correct tabular-nums leading-none">
+          <div className="text-2xl font-black text-correct tabular-nums leading-none">
             {Math.floor(fastest.wpm)}
           </div>
-          <div className="text-[11px] text-muted/60 mt-0.5">
+          <div className="text-sm text-muted/60 mt-1">
             at {fastest.elapsed}s
           </div>
         </div>
 
         {/* Slowest second */}
-        <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2">
-          <div className="text-[11px] text-muted/50 uppercase tracking-widest mb-1">
+        <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3">
+          <div className="text-xs text-muted/50 uppercase tracking-widest mb-1.5">
             Slowest
           </div>
-          <div className="text-lg font-black text-error/80 tabular-nums leading-none">
+          <div className="text-2xl font-black text-error/80 tabular-nums leading-none">
             {Math.floor(slowest.wpm)}
           </div>
-          <div className="text-[11px] text-muted/60 mt-0.5">
+          <div className="text-sm text-muted/60 mt-1">
             at {slowest.elapsed}s
           </div>
         </div>
 
         {/* Stability */}
-        <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2">
-          <div className="text-[11px] text-muted/50 uppercase tracking-widest mb-1">
+        <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3">
+          <div className="text-xs text-muted/50 uppercase tracking-widest mb-1.5">
             Stability
           </div>
-          <div className={`text-sm font-black leading-none ${stabilityColor}`}>
+          <div className={`text-lg font-black leading-none ${stabilityColor}`}>
             {stabilityLabel}
           </div>
-          <div className="text-[11px] text-muted/60 mt-0.5">
+          <div className="text-sm text-muted/60 mt-1">
             {Math.round((1 - cv) * 100)}% stable
           </div>
         </div>
       </div>
 
       {/* Warmup analysis + hesitations */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted/60">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted/60">
         {/* Warmup trend */}
         <div className="flex items-center gap-1.5">
           <span className="text-muted/60">Warmup:</span>
@@ -1046,7 +1046,7 @@ export function RaceResults({
   };
 
   return (
-    <div className="flex flex-col gap-1 w-full flex-1 min-h-0">
+    <div className="flex flex-col gap-2 w-full flex-1 min-h-0">
 
       {/* ── Hero stats ─────────────────────────────────────── */}
       {myResult ? (
@@ -1069,11 +1069,11 @@ export function RaceResults({
             {/* Main hero row — placement + stats side by side */}
             <div className="flex items-stretch">
               {/* Placement — large, dramatic */}
-              <div className="shrink-0 flex flex-col items-center justify-center px-5 sm:px-7 py-2 bg-white/[0.02] border-r border-white/[0.04]">
-                <div className={`text-3xl sm:text-4xl font-black tabular-nums leading-none ${pStyle!.text}`}>
+              <div className="shrink-0 flex flex-col items-center justify-center px-6 sm:px-8 py-3 bg-white/[0.02] border-r border-white/[0.04]">
+                <div className={`text-4xl sm:text-5xl font-black tabular-nums leading-none ${pStyle!.text}`}>
                   {ordinal(myResult.placement)}
                 </div>
-                <div className="text-xs text-muted/50 mt-0.5 uppercase tracking-widest">
+                <div className="text-sm text-muted/50 mt-1 uppercase tracking-widest">
                   of {results.length}
                 </div>
               </div>
@@ -1083,23 +1083,23 @@ export function RaceResults({
                 <div className={`grid gap-px ${isPlacement ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-2 sm:grid-cols-3"}`}>
 
                   {/* WPM */}
-                  <div className="bg-surface/30 px-3 py-1.5 sm:px-4">
-                    <div className="text-xs text-muted/50 uppercase tracking-widest mb-0.5">WPM</div>
-                    <div className="flex items-baseline gap-1.5">
-                      <div className="text-xl sm:text-2xl font-black text-text tabular-nums leading-none">
+                  <div className="bg-surface/30 px-4 py-2.5 sm:px-5">
+                    <div className="text-sm text-muted/50 uppercase tracking-widest mb-1">WPM</div>
+                    <div className="flex items-baseline gap-2">
+                      <div className="text-2xl sm:text-3xl font-black text-text tabular-nums leading-none">
                         {Math.floor(myResult.wpm)}
-                        <span className="text-sm opacity-40">
+                        <span className="text-base opacity-40">
                           .{(myResult.wpm % 1).toFixed(2).slice(2)}
                         </span>
                       </div>
                       {isPersonalBest && (
-                        <span className="text-[11px] font-black text-correct bg-correct/10 ring-1 ring-correct/30 rounded px-1 py-0.5 uppercase tracking-wider leading-none animate-fade-in">
+                        <span className="text-xs font-black text-correct bg-correct/10 ring-1 ring-correct/30 rounded px-1.5 py-0.5 uppercase tracking-wider leading-none animate-fade-in">
                           PB!
                         </span>
                       )}
                     </div>
                     {myResult.rawWpm > 0 && Math.floor(myResult.rawWpm) !== Math.floor(myResult.wpm) && (
-                      <div className="text-xs text-muted/60 tabular-nums mt-0.5">
+                      <div className="text-sm text-muted/60 tabular-nums mt-0.5">
                         {Math.floor(myResult.rawWpm)} raw
                       </div>
                     )}
@@ -1107,16 +1107,16 @@ export function RaceResults({
 
                   {/* Accuracy */}
                   {!isPlacement && (
-                    <div className="bg-surface/30 px-3 py-1.5 sm:px-4">
-                      <div className="text-xs text-muted/50 uppercase tracking-widest mb-0.5">Accuracy</div>
-                      <div className="text-xl sm:text-2xl font-black text-text tabular-nums leading-none">
+                    <div className="bg-surface/30 px-4 py-2.5 sm:px-5">
+                      <div className="text-sm text-muted/50 uppercase tracking-widest mb-1">Accuracy</div>
+                      <div className="text-2xl sm:text-3xl font-black text-text tabular-nums leading-none">
                         {Math.floor(myResult.accuracy)}
-                        <span className="text-sm opacity-40">
+                        <span className="text-base opacity-40">
                           .{((myResult.accuracy % 1) * 10).toFixed(0)}%
                         </span>
                       </div>
                       {myResult.misstypedChars != null && myResult.misstypedChars > 0 && (
-                        <div className="text-xs text-error/50 tabular-nums mt-0.5">
+                        <div className="text-sm text-error/50 tabular-nums mt-0.5">
                           {myResult.misstypedChars} mistake{myResult.misstypedChars !== 1 ? "s" : ""}
                         </div>
                       )}
@@ -1140,7 +1140,7 @@ export function RaceResults({
                       </div>
                     </div>
                   ) : (
-                    <div className="bg-surface/30 px-3 py-1.5 sm:px-4 flex flex-col items-center justify-center">
+                    <div className="bg-surface/30 px-4 py-2.5 sm:px-5 flex flex-col items-center justify-center">
                       {hasElo ? (
                         <AnimatedElo
                           oldElo={myResult.elo! - myResult.eloChange!}
@@ -1168,22 +1168,22 @@ export function RaceResults({
                 {!isPlacement && (raceTime != null || consistency != null) && (
                   <div className="flex items-center divide-x divide-white/[0.04] border-t border-white/[0.04]">
                     {raceTime != null && (
-                      <div className="flex-1 px-3 py-1.5 sm:px-4">
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="text-sm font-bold text-text tabular-nums">
+                      <div className="flex-1 px-4 py-2 sm:px-5">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-base font-bold text-text tabular-nums">
                             {raceTime >= 60
                               ? `${Math.floor(raceTime / 60)}:${String(Math.round(raceTime % 60)).padStart(2, "0")}`
                               : `${raceTime.toFixed(1)}s`}
                           </span>
-                          <span className="text-xs text-muted/50 uppercase tracking-wide">time</span>
+                          <span className="text-sm text-muted/50 uppercase tracking-wide">time</span>
                         </div>
                       </div>
                     )}
                     {consistency != null && (
-                      <div className="flex-1 px-3 py-1.5 sm:px-4">
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="text-sm font-bold text-text tabular-nums">{consistency}%</span>
-                          <span className="text-xs text-muted/50 uppercase tracking-wide">consistency</span>
+                      <div className="flex-1 px-4 py-2 sm:px-5">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-base font-bold text-text tabular-nums">{consistency}%</span>
+                          <span className="text-sm text-muted/50 uppercase tracking-wide">consistency</span>
                         </div>
                       </div>
                     )}
@@ -1220,14 +1220,14 @@ export function RaceResults({
 
       {/* ── TOP ROW: Standings + XP ─────────────────────── */}
       <div
-        className="grid grid-cols-1 sm:grid-cols-[1fr_minmax(0,20rem)] gap-1.5 w-full"
+        className="grid grid-cols-1 sm:grid-cols-[1fr_minmax(0,20rem)] gap-2 w-full"
       >
         {/* ── LEFT: Standings table + Chat ── */}
         <div className="flex flex-col gap-1.5 min-h-0">
           <div className="rounded-xl overflow-hidden bg-surface/20 ring-1 ring-white/[0.05]">
             {/* Header */}
             <div
-              className={`grid text-muted/50 text-xs uppercase tracking-widest px-3 sm:px-4 py-1.5 bg-white/[0.02] border-b border-white/[0.04] ${tableCols}`}
+              className={`grid text-muted/50 text-sm uppercase tracking-widest px-3 sm:px-4 py-2 bg-white/[0.02] border-b border-white/[0.04] ${tableCols}`}
             >
               <span className="font-medium">#</span>
               <span className="font-medium">Name</span>
@@ -1252,7 +1252,7 @@ export function RaceResults({
               return (
                 <div
                   key={result.playerId}
-                  className={`relative grid items-center px-3 sm:px-4 py-1 border-b border-white/[0.03] last:border-0 transition-colors border-l-2 text-sm ${tableCols} ${
+                  className={`relative grid items-center px-3 sm:px-4 py-2 border-b border-white/[0.03] last:border-0 transition-colors border-l-2 text-base ${tableCols} ${
                     rowPlacementStyle ? rowPlacementStyle.leftBorder : "border-l-transparent"
                   } ${
                     isMe && isWinner
@@ -1282,17 +1282,17 @@ export function RaceResults({
                       <span className="truncate" title={displayName}>{displayName}</span>
                     )}
                     {result.level != null && !isBot && (
-                      <span className="text-xs font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded shrink-0">
+                      <span className="text-sm font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-px rounded shrink-0">
                         {result.level}
                       </span>
                     )}
                     {!isBot && result.isPro && (
-                      <span className="text-[11px] font-bold text-accent/60 bg-accent/[0.08] rounded px-1.5 py-0.5 shrink-0 uppercase tracking-wider">
+                      <span className="text-xs font-bold text-accent/60 bg-accent/[0.08] rounded px-1.5 py-0.5 shrink-0 uppercase tracking-wider">
                         Pro
                       </span>
                     )}
                     {isBot && (
-                      <span className="text-xs text-muted/70 bg-white/[0.06] rounded px-1.5 py-0.5 shrink-0 uppercase tracking-wider font-semibold">
+                      <span className="text-sm text-muted/70 bg-white/[0.06] rounded px-1.5 py-0.5 shrink-0 uppercase tracking-wider font-semibold">
                         Bot
                       </span>
                     )}
@@ -1381,7 +1381,7 @@ export function RaceResults({
           {/* Achievements */}
           {hasAchievements && (
             <div className="flex flex-col gap-1 w-full">
-              <h3 className="text-xs font-bold text-muted/65 uppercase tracking-widest px-0.5">
+              <h3 className="text-sm font-bold text-muted/65 uppercase tracking-widest px-0.5">
                 Achievements Unlocked
               </h3>
               <div className="grid grid-cols-1 gap-1.5">
@@ -1396,14 +1396,14 @@ export function RaceResults({
                       <span className="text-xl shrink-0">{def.icon}</span>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <div className="text-sm font-bold text-text">{def.name}</div>
+                          <div className="text-base font-bold text-text">{def.name}</div>
                           {def.rarity !== "common" && (
-                            <span className={`text-[11px] font-black uppercase tracking-wider ${RARITY_LABEL[def.rarity]}`}>
+                            <span className={`text-xs font-black uppercase tracking-wider ${RARITY_LABEL[def.rarity]}`}>
                               {def.rarity}
                             </span>
                           )}
                         </div>
-                        <div className="text-xs text-muted/60 truncate mt-0.5">{def.description}</div>
+                        <div className="text-sm text-muted/60 truncate mt-0.5">{def.description}</div>
                       </div>
                     </div>
                   );
@@ -1417,10 +1417,10 @@ export function RaceResults({
       {/* ── WPM CHART (full width, compact) ─────────────── */}
       {myWpmHistory && myWpmHistory.length >= 2 && (
         <div
-          className="w-full rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-3 pt-1.5 pb-1 flex flex-col"
+          className="w-full rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-4 pt-3 pb-2 flex flex-col"
         >
-          <div className="text-xs font-bold text-muted/60 uppercase tracking-widest mb-0.5">WPM over time</div>
-          <div className="w-full" style={{ aspectRatio: "12 / 1" }}>
+          <div className="text-sm font-bold text-muted/60 uppercase tracking-widest mb-1">WPM over time</div>
+          <div className="w-full" style={{ aspectRatio: "7 / 1" }}>
             <WpmChart samples={myWpmHistory} compact />
           </div>
         </div>
@@ -1429,17 +1429,17 @@ export function RaceResults({
       {/* ── TYPING ANALYSIS (Pro-gated) ───────────────────── */}
       {isPro && myKeyStats && Object.keys(myKeyStats).length > 0 && (
         <div
-          className="w-full rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-3 pt-2 pb-3 flex flex-col gap-2"
+          className="w-full rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-4 pt-3 pb-4 flex flex-col gap-2.5"
         >
           <div className="flex items-center justify-between">
-            <div className="text-xs font-bold text-muted/50 uppercase tracking-widest">Typing Analysis</div>
-            <span className="text-[10px] font-black text-accent/50 bg-accent/[0.06] ring-1 ring-accent/15 rounded px-1.5 py-0.5 uppercase tracking-wider leading-none">
+            <div className="text-sm font-bold text-muted/50 uppercase tracking-widest">Typing Analysis</div>
+            <span className="text-xs font-black text-accent/50 bg-accent/[0.06] ring-1 ring-accent/15 rounded px-2 py-1 uppercase tracking-wider leading-none">
               PRO
             </span>
           </div>
           <KeyboardHeatmap keyStats={myKeyStats} />
           {myResult && (
-            <div className="flex items-center gap-4 text-xs text-muted/70 tabular-nums mt-1">
+            <div className="flex items-center gap-4 text-sm text-muted/70 tabular-nums mt-1">
               {(() => {
                 const totalCorrect = Object.values(myKeyStats).reduce((s, k) => s + k.correct, 0);
                 const totalAll = Object.values(myKeyStats).reduce((s, k) => s + k.total, 0);
@@ -1471,16 +1471,16 @@ export function RaceResults({
       {/* ── BOTTOM ROW: Challenges + Pro ─────────────────── */}
       {!isPlacement && (
         <div
-          className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 w-full"
+          className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full"
         >
           {/* Challenges */}
-          <div className="rounded-xl bg-surface/20 ring-1 ring-white/[0.05] overflow-hidden px-3 py-1 sm:px-4 sm:py-1.5">
-            <div className="flex items-center justify-between mb-0.5">
-              <h3 className="text-xs font-bold text-muted/65 uppercase tracking-widest">
+          <div className="rounded-xl bg-surface/20 ring-1 ring-white/[0.05] overflow-hidden px-4 py-2.5 sm:px-5 sm:py-3">
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="text-sm font-bold text-muted/65 uppercase tracking-widest">
                 Challenges
               </h3>
               {myResult?.xpEarned != null && myResult.xpEarned > 0 && (
-                <span className="text-xs font-bold text-accent tabular-nums">
+                <span className="text-sm font-bold text-accent tabular-nums">
                   +{myResult.xpEarned} XP
                 </span>
               )}
@@ -1493,25 +1493,25 @@ export function RaceResults({
                   const progress = Math.min(cp.progress, cp.target);
                   const pct = cp.target > 0 ? (progress / cp.target) * 100 : 0;
                   return (
-                    <div key={cp.challengeId} className="flex items-center gap-2 py-0.5">
-                      <span className="text-sm shrink-0">{def.icon}</span>
+                    <div key={cp.challengeId} className="flex items-center gap-2.5 py-1">
+                      <span className="text-base shrink-0">{def.icon}</span>
                       <div className="min-w-0 flex-1">
-                        <span className="text-xs font-medium text-text truncate block leading-tight">
+                        <span className="text-sm font-medium text-text truncate block leading-tight">
                           {def.name}
                           {cp.completed && <span className="text-correct ml-1.5">✓</span>}
                         </span>
                       </div>
-                      <span className="text-xs text-muted tabular-nums shrink-0">
+                      <span className="text-sm text-muted tabular-nums shrink-0">
                         {progress}/{cp.target}
                       </span>
-                      <div className="w-14 h-1 rounded-full bg-surface overflow-hidden shrink-0">
+                      <div className="w-16 h-1.5 rounded-full bg-surface overflow-hidden shrink-0">
                         <div
                           className={`h-full rounded-full transition-all ${cp.completed ? "bg-correct" : "bg-accent"}`}
                           style={{ width: `${Math.round(pct)}%` }}
                         />
                       </div>
                       {cp.justCompleted && (
-                        <span className="text-[11px] font-bold text-correct bg-correct/10 rounded px-1 py-0.5 tabular-nums shrink-0">
+                        <span className="text-xs font-bold text-correct bg-correct/10 rounded px-1.5 py-0.5 tabular-nums shrink-0">
                           +{cp.xpAwarded} XP
                         </span>
                       )}
@@ -1577,7 +1577,7 @@ export function RaceResults({
             <button
               onClick={() => onRaceAgain()}
               disabled={inParty && !allMembersReady}
-              className="group w-full rounded-lg bg-accent/10 ring-1 ring-accent/30 text-accent py-2 text-sm font-bold hover:bg-accent hover:text-bg hover:ring-accent transition-all shadow-[0_0_20px_rgba(77,158,255,0.08)] hover:shadow-[0_0_30px_rgba(77,158,255,0.2)] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent/10 disabled:hover:text-accent disabled:hover:ring-accent/30 disabled:shadow-none flex flex-col items-center gap-0.5"
+              className="group w-full rounded-lg bg-accent/10 ring-1 ring-accent/30 text-accent py-3 text-base font-bold hover:bg-accent hover:text-bg hover:ring-accent transition-all shadow-[0_0_20px_rgba(77,158,255,0.08)] hover:shadow-[0_0_30px_rgba(77,158,255,0.2)] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent/10 disabled:hover:text-accent disabled:hover:ring-accent/30 disabled:shadow-none flex flex-col items-center gap-0.5"
             >
               <span className="flex items-center gap-1">
                 {isPlacement ? "Next Placement" : "Race Again"}
@@ -1604,14 +1604,14 @@ export function RaceResults({
           {/* Go Home */}
           <button
             onClick={onGoHome}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 text-muted/60 hover:text-muted/70 transition-colors rounded hover:bg-white/[0.02]"
+            className="flex items-center gap-1.5 px-3 py-2 text-muted/60 hover:text-muted/70 transition-colors rounded hover:bg-white/[0.02]"
             aria-label="Go Home"
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
-            <span className="text-xs font-medium">Home</span>
+            <span className="text-sm font-medium">Home</span>
           </button>
 
           <span className="text-white/[0.06]">·</span>
@@ -1621,13 +1621,13 @@ export function RaceResults({
             <>
               <Link
                 href={`/races/${raceId}`}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 text-muted/60 hover:text-muted/70 transition-colors rounded hover:bg-white/[0.02]"
+                className="flex items-center gap-1.5 px-3 py-2 text-muted/60 hover:text-muted/70 transition-colors rounded hover:bg-white/[0.02]"
                 aria-label="Watch Replay"
               >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polygon points="5 3 19 12 5 21 5 3" />
                 </svg>
-                <span className="text-xs font-medium">Replay</span>
+                <span className="text-sm font-medium">Replay</span>
               </Link>
               <span className="text-white/[0.06]">·</span>
             </>
@@ -1638,15 +1638,15 @@ export function RaceResults({
             <>
               <Link
                 href="/analytics"
-                className="flex items-center gap-1.5 px-2.5 py-1.5 text-muted/60 hover:text-muted/70 transition-colors rounded hover:bg-white/[0.02]"
+                className="flex items-center gap-1.5 px-3 py-2 text-muted/60 hover:text-muted/70 transition-colors rounded hover:bg-white/[0.02]"
                 aria-label="Analytics"
               >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="20" x2="18" y2="10" />
                   <line x1="12" y1="20" x2="12" y2="4" />
                   <line x1="6" y1="20" x2="6" y2="14" />
                 </svg>
-                <span className="text-xs font-medium">Analytics</span>
+                <span className="text-sm font-medium">Analytics</span>
               </Link>
               <span className="text-white/[0.06]">·</span>
             </>
