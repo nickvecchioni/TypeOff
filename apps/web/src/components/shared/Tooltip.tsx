@@ -28,7 +28,7 @@ export function Tooltip({ label, children, delay = 300, position = "top" }: Tool
     <span className="relative inline-flex" onMouseEnter={show} onMouseLeave={hide}>
       {children}
       {visible && (
-        <span className={`absolute left-1/2 -translate-x-1/2 ${position === "bottom" ? "top-full mt-3" : "bottom-full mb-1.5"} px-2 py-1 rounded bg-surface ring-1 ring-white/10 text-xs text-muted whitespace-nowrap pointer-events-none z-50 animate-fade-in`} style={{ animationDuration: "100ms" }}>
+        <span className={`absolute left-1/2 -translate-x-1/2 ${position === "bottom" ? "top-full mt-1.5" : "bottom-full mb-1.5"} px-2 py-1 rounded bg-surface ring-1 ring-white/10 text-xs text-muted whitespace-nowrap pointer-events-none z-50 animate-fade-in`} style={{ animationDuration: "100ms" }}>
           {label}
         </span>
       )}

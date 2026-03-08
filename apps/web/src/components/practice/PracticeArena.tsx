@@ -367,6 +367,8 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
             practiceWeakBigrams={weakBigrams}
             isPro={isPro}
           />
+          {/* Breathing room for tooltips below config icons */}
+          <div className="h-3" />
         </div>
       )}
 
