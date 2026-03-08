@@ -184,45 +184,50 @@ export function ConfigBar({
             }
           />
         </div>
-      </div>
 
-      {/* ── Tertiary row: mode-specific options (fixed height to prevent shift) ── */}
-      <div className="flex items-center justify-center min-h-[32px]">
-        {/* Target mode toggle — only for words/mixed, Pro users with weak data */}
+        {/* Weak spots target toggle — inline with secondary row */}
         {isWordsVariant && hasPracticeData && (
-          <div className="flex items-center gap-2">
+          <>
+            <MicroDivider />
             <Tooltip label={isPracticeOn ? "Targeting your weakest keys & bigrams — click to disable" : "Generate text targeting your weak spots"}>
               <button
                 onClick={togglePractice}
-                className={`p-2 rounded-md transition-all inline-flex items-center ${
+                className={`p-1.5 rounded-md transition-all inline-flex items-center ${
                   isPracticeOn
                     ? "text-amber-400 bg-amber-500/15"
                     : "text-muted/55 hover:text-muted/70 hover:bg-white/[0.03]"
                 }`}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10" />
-                  <circle cx="12" cy="12" r="6" />
-                  <circle cx="12" cy="12" r="2" />
+                  <circle cx="12" cy="12" r="8" />
+                  <line x1="12" y1="2" x2="12" y2="6" />
+                  <line x1="12" y1="18" x2="12" y2="22" />
+                  <line x1="2" y1="12" x2="6" y2="12" />
+                  <line x1="18" y1="12" x2="22" y2="12" />
                 </svg>
               </button>
             </Tooltip>
-            {isPracticeOn && (practiceWeakKeys?.length || practiceWeakBigrams?.length) ? (
-              <div className="flex items-center gap-1.5">
-                {practiceWeakKeys && practiceWeakKeys.length > 0 && (
-                  <span className="text-[11px] text-muted/50 leading-tight">
-                    keys: <span className="text-amber-400/70 font-mono">{practiceWeakKeys.slice(0, 6).join(" ")}{practiceWeakKeys.length > 6 ? " ..." : ""}</span>
-                  </span>
-                )}
-                {practiceWeakBigrams && practiceWeakBigrams.length > 0 && (
-                  <span className="text-[11px] text-muted/50 leading-tight">
-                    {practiceWeakKeys?.length ? "· " : ""}bigrams: <span className="text-amber-400/70 font-mono">{practiceWeakBigrams.slice(0, 5).join(" ")}{practiceWeakBigrams.length > 5 ? " ..." : ""}</span>
-                  </span>
-                )}
-              </div>
-            ) : null}
-          </div>
+          </>
         )}
+      </div>
+
+      {/* ── Tertiary row: mode-specific options (fixed height to prevent shift) ── */}
+      <div className="flex items-center justify-center min-h-[32px]">
+        {/* Practice weak spot details — shown when practice is active */}
+        {isWordsVariant && hasPracticeData && isPracticeOn && (practiceWeakKeys?.length || practiceWeakBigrams?.length) ? (
+          <div className="flex items-center gap-1.5">
+            {practiceWeakKeys && practiceWeakKeys.length > 0 && (
+              <span className="text-xs text-muted/50 leading-tight">
+                keys: <span className="text-amber-400/70 font-mono">{practiceWeakKeys.slice(0, 6).join(" ")}{practiceWeakKeys.length > 6 ? " ..." : ""}</span>
+              </span>
+            )}
+            {practiceWeakBigrams && practiceWeakBigrams.length > 0 && (
+              <span className="text-xs text-muted/50 leading-tight">
+                {practiceWeakKeys?.length ? "· " : ""}bigrams: <span className="text-amber-400/70 font-mono">{practiceWeakBigrams.slice(0, 5).join(" ")}{practiceWeakBigrams.length > 5 ? " ..." : ""}</span>
+              </span>
+            )}
+          </div>
+        ) : null}
 
         {/* Code language picker + indent style */}
         {ct === "code" && (
