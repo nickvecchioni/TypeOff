@@ -449,51 +449,59 @@ export default function AnalyticsPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {modeFilter === "all" && (data.modeStats?.length ?? 0) > 0 && (
                     <Card title="By Mode">
-                      <div className="grid grid-cols-2 gap-2">
-                        {(data.modeStats ?? []).map((m) => (
-                          <button
-                            key={m.modeCategory}
-                            onClick={() => setModeFilter(m.modeCategory)}
-                            className="group rounded-lg bg-white/[0.02] ring-1 ring-white/[0.05] hover:ring-accent/20 px-3 py-2.5 text-left transition-all hover:bg-white/[0.04]"
-                          >
-                            <div className="text-xs text-muted/55 uppercase tracking-wider mb-1 group-hover:text-accent/60 transition-colors font-medium">
-                              {MODE_LABELS[m.modeCategory] ?? m.modeCategory}
-                            </div>
-                            <div className="text-base font-bold text-text tabular-nums leading-tight">
-                              {Math.floor(m.bestWpm)}
-                              <span className="text-[0.6em] text-muted/50 ml-1 font-semibold">best</span>
-                            </div>
-                            <div className="flex items-center gap-1.5 mt-1">
-                              <span className="text-xs text-muted/55 tabular-nums">{Math.floor(m.avgWpm)} avg</span>
-                              <span className="text-xs text-muted/60">&middot;</span>
-                              <span className="text-xs text-muted/55 tabular-nums">{m.racesPlayed} races</span>
-                            </div>
-                          </button>
-                        ))}
+                      <div className="space-y-0 divide-y divide-white/[0.04]">
+                        {(data.modeStats ?? []).map((m) => {
+                          const maxBest = Math.max(...(data.modeStats ?? []).map((s) => s.bestWpm), 1);
+                          const barPct = (m.bestWpm / maxBest) * 100;
+                          return (
+                            <button
+                              key={m.modeCategory}
+                              onClick={() => setModeFilter(m.modeCategory)}
+                              className="group w-full flex items-center gap-3 py-2.5 text-left transition-colors hover:bg-white/[0.02] -mx-1 px-1 rounded first:pt-0 last:pb-0"
+                            >
+                              <span className="text-xs text-muted/55 uppercase tracking-wider w-14 shrink-0 group-hover:text-accent/70 transition-colors font-medium">
+                                {MODE_LABELS[m.modeCategory] ?? m.modeCategory}
+                              </span>
+                              <div className="flex-1 flex items-center gap-3 min-w-0">
+                                <div className="flex-1 h-1 rounded-full bg-white/[0.04] overflow-hidden">
+                                  <div className="h-full rounded-full bg-accent/30 group-hover:bg-accent/45 transition-colors" style={{ width: `${barPct}%` }} />
+                                </div>
+                                <span className="text-sm font-bold text-text tabular-nums w-8 text-right">{Math.floor(m.bestWpm)}</span>
+                                <span className="text-xs text-muted/40 tabular-nums w-16 text-right">{Math.floor(m.avgWpm)} avg</span>
+                                <span className="text-xs text-muted/30 tabular-nums w-10 text-right">{m.racesPlayed}</span>
+                              </div>
+                            </button>
+                          );
+                        })}
                       </div>
                     </Card>
                   )}
 
                   {(data.speedByPlacement?.length ?? 0) > 0 && (
                     <Card title="Speed by Placement">
-                      <div className="grid grid-cols-2 gap-2.5 mb-3">
+                      <div className="space-y-0 divide-y divide-white/[0.04]">
                         {data.speedByPlacement!.map((p) => {
                           const ord = p.placement === 1 ? "1st" : p.placement === 2 ? "2nd" : p.placement === 3 ? "3rd" : `${p.placement}th`;
-                          const color = p.placement === 1 ? "text-rank-gold" : p.placement === 2 ? "text-rank-silver" : p.placement === 3 ? "text-rank-bronze" : "text-muted/60";
+                          const color = p.placement === 1 ? "text-rank-gold" : p.placement === 2 ? "text-rank-silver" : p.placement === 3 ? "text-rank-bronze" : "text-muted/50";
+                          const barColor = p.placement === 1 ? "bg-rank-gold/40" : p.placement === 2 ? "bg-rank-silver/30" : p.placement === 3 ? "bg-rank-bronze/30" : "bg-muted/15";
+                          const maxWpm = Math.max(...data.speedByPlacement!.map((s) => s.avgWpm), 1);
+                          const barPct = (p.avgWpm / maxWpm) * 100;
                           return (
-                            <div key={p.placement} className="rounded-lg bg-white/[0.02] ring-1 ring-white/[0.05] px-3.5 py-2.5">
-                              <div className={`text-xs font-bold ${color} mb-1 uppercase tracking-wider`}>{ord}</div>
-                              <div className="text-lg font-bold text-text tabular-nums">
-                                {Math.floor(p.avgWpm)}
-                                <span className="text-[0.6em] text-muted/50 ml-0.5">wpm</span>
+                            <div key={p.placement} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+                              <span className={`text-xs font-bold ${color} w-7 shrink-0 uppercase tracking-wider`}>{ord}</span>
+                              <div className="flex-1 h-1 rounded-full bg-white/[0.04] overflow-hidden">
+                                <div className={`h-full rounded-full ${barColor}`} style={{ width: `${barPct}%` }} />
                               </div>
-                              <div className="text-xs text-muted/50 tabular-nums">{p.count} races</div>
+                              <span className="text-sm font-bold text-text tabular-nums w-8 text-right">{Math.floor(p.avgWpm)}</span>
+                              <span className="text-xs text-muted/35 tabular-nums w-10 text-right">{p.count}</span>
                             </div>
                           );
                         })}
                       </div>
                       {data.placementDistribution && data.placementDistribution.total >= 5 && (
-                        <PlacementBar dist={data.placementDistribution} />
+                        <div className="mt-3 pt-3 border-t border-white/[0.04]">
+                          <PlacementBar dist={data.placementDistribution} />
+                        </div>
                       )}
                     </Card>
                   )}
@@ -501,24 +509,21 @@ export default function AnalyticsPage() {
 
                 {/* Row 3: Word Count Breakdown */}
                 {(data.wordCountStats?.length ?? 0) > 0 && (
-                  <Card title="By Word Count" subtitle="best & avg WPM per test length">
-                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                  <Card title="By Word Count">
+                    <div className="space-y-0 divide-y divide-white/[0.04]">
                       {data.wordCountStats!.map((wc) => {
                         const label = wc.wordCount >= 150 ? "150+" : String(wc.wordCount);
+                        const maxBest = Math.max(...data.wordCountStats!.map((s) => s.bestWpm), 1);
+                        const barPct = (wc.bestWpm / maxBest) * 100;
                         return (
-                          <div key={wc.wordCount} className="rounded-lg bg-white/[0.02] ring-1 ring-white/[0.05] px-3.5 py-2.5">
-                            <div className="text-xs text-muted/55 uppercase tracking-wider mb-1 font-medium">
-                              {label} words
+                          <div key={wc.wordCount} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+                            <span className="text-xs text-muted/55 tabular-nums w-12 shrink-0 font-medium text-right">{label}</span>
+                            <div className="flex-1 h-1 rounded-full bg-white/[0.04] overflow-hidden">
+                              <div className="h-full rounded-full bg-accent/30" style={{ width: `${barPct}%` }} />
                             </div>
-                            <div className="text-lg font-bold text-text tabular-nums leading-tight">
-                              {Math.floor(wc.bestWpm)}
-                              <span className="text-[0.6em] text-muted/50 ml-0.5">best</span>
-                            </div>
-                            <div className="flex items-center gap-1.5 mt-1">
-                              <span className="text-xs text-muted/55 tabular-nums">{Math.floor(wc.avgWpm)} avg</span>
-                              <span className="text-xs text-muted/60">&middot;</span>
-                              <span className="text-xs text-muted/55 tabular-nums">{wc.count} tests</span>
-                            </div>
+                            <span className="text-sm font-bold text-text tabular-nums w-8 text-right">{Math.floor(wc.bestWpm)}</span>
+                            <span className="text-xs text-muted/40 tabular-nums w-16 text-right">{Math.floor(wc.avgWpm)} avg</span>
+                            <span className="text-xs text-muted/30 tabular-nums w-10 text-right">{wc.count}</span>
                           </div>
                         );
                       })}
@@ -535,7 +540,7 @@ export default function AnalyticsPage() {
 
                 {/* Row 4: Insights (full width) */}
                 {(bigrams.length > 0 || (keyStats && Object.keys(keyStats).length > 0)) && (
-                  <Card title="Insights" subtitle="WPM impact analysis">
+                  <Card title="Insights" subtitle="estimated WPM cost from weak spots">
                     <AnalyticsInsights
                       weakKeys={keyStats ? Object.entries(keyStats).map(([key, stat]) => ({
                         key,
@@ -561,22 +566,26 @@ export default function AnalyticsPage() {
                 {/* By Mode */}
                 {modeFilter === "all" && (data.modeStats?.length ?? 0) > 0 && (
                   <Card title="By Mode">
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {(data.modeStats ?? []).map((m) => (
-                        <div
-                          key={m.modeCategory}
-                          className="rounded-lg bg-white/[0.02] ring-1 ring-white/[0.05] px-3 py-2.5"
-                        >
-                          <div className="text-xs text-muted/55 uppercase tracking-wider mb-1 font-medium">
-                            {MODE_LABELS[m.modeCategory] ?? m.modeCategory}
+                    <div className="space-y-0 divide-y divide-white/[0.04]">
+                      {(data.modeStats ?? []).map((m) => {
+                        const maxBest = Math.max(...(data.modeStats ?? []).map((s) => s.bestWpm), 1);
+                        const barPct = (m.bestWpm / maxBest) * 100;
+                        return (
+                          <div
+                            key={m.modeCategory}
+                            className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0"
+                          >
+                            <span className="text-xs text-muted/55 uppercase tracking-wider w-14 shrink-0 font-medium">
+                              {MODE_LABELS[m.modeCategory] ?? m.modeCategory}
+                            </span>
+                            <div className="flex-1 h-1 rounded-full bg-white/[0.04] overflow-hidden">
+                              <div className="h-full rounded-full bg-accent/30" style={{ width: `${barPct}%` }} />
+                            </div>
+                            <span className="text-sm font-bold text-text tabular-nums w-8 text-right">{Math.floor(m.bestWpm)}</span>
+                            <span className="text-xs text-muted/30 tabular-nums w-10 text-right">{m.racesPlayed}</span>
                           </div>
-                          <div className="text-base font-bold text-text tabular-nums leading-tight">
-                            {Math.floor(m.bestWpm)}
-                            <span className="text-[0.6em] text-muted/50 ml-1 font-semibold">best</span>
-                          </div>
-                          <div className="text-xs text-muted/55 tabular-nums mt-0.5">{m.racesPlayed} races</div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </Card>
                 )}
@@ -780,22 +789,20 @@ function FreeBigramPreview({
 
   return (
     <>
-      <Card title="Weakest Bigrams" subtitle="top 5">
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+      <Card title="Weakest Bigrams">
+        <div className="space-y-0 divide-y divide-white/[0.04]">
           {worst5.map((b) => {
-            const textColor = b.accuracy < 70 ? "text-error" : b.accuracy < 90 ? "text-amber-400" : "text-correct";
-            const barColor = b.accuracy < 70 ? "bg-error/40" : b.accuracy < 90 ? "bg-amber-400/40" : "bg-correct/40";
+            const accColor = b.accuracy < 70 ? "text-error/60" : b.accuracy < 90 ? "text-amber-400/60" : "text-correct/50";
+            const barColor = b.accuracy < 70 ? "bg-error/30" : b.accuracy < 90 ? "bg-amber-400/25" : "bg-correct/25";
             return (
-              <div key={b.bigram} className="rounded-lg bg-white/[0.02] ring-1 ring-white/[0.05] px-3.5 py-3">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-accent font-bold text-base">{b.bigram}</span>
-                  <span className={`text-sm font-bold tabular-nums ${textColor}`}>
-                    {Math.round(b.accuracy)}%
-                  </span>
-                </div>
-                <div className="h-1 rounded-full bg-white/[0.04] overflow-hidden">
+              <div key={b.bigram} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+                <span className="text-accent font-bold text-sm w-8 shrink-0 text-center">{b.bigram}</span>
+                <div className="flex-1 h-1 rounded-full bg-white/[0.04] overflow-hidden max-w-32">
                   <div className={`h-full rounded-full ${barColor}`} style={{ width: `${b.accuracy}%` }} />
                 </div>
+                <span className={`text-xs font-bold tabular-nums ${accColor}`}>
+                  {Math.round(b.accuracy)}%
+                </span>
               </div>
             );
           })}

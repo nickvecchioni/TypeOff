@@ -11,7 +11,7 @@ interface ActivityCalendarProps {
   activity: ActivityDay[];
 }
 
-const LAUNCH_YEAR = 2026;
+const WEEKS_TO_SHOW = 13; // ~3 months
 const DAY_LABELS = ["", "Mon", "", "Wed", "", "Fri", ""];
 
 function getColor(count: number, max: number): string {
@@ -34,9 +34,9 @@ export function ActivityCalendar({ activity }: ActivityCalendarProps) {
 
   const today = new Date();
 
-  // Start from Jan 1 of launch year, padded back to Sunday
-  const startDay = new Date(LAUNCH_YEAR, 0, 1);
-  startDay.setDate(startDay.getDate() - startDay.getDay());
+  // Start WEEKS_TO_SHOW weeks ago, aligned to Sunday
+  const startDay = new Date(today);
+  startDay.setDate(startDay.getDate() - startDay.getDay() - (WEEKS_TO_SHOW - 1) * 7);
 
   const activityMap = new Map(activity.map((a) => [a.date, a.count]));
   const maxCount = Math.max(1, ...activity.map((a) => a.count));
@@ -67,21 +67,29 @@ export function ActivityCalendar({ activity }: ActivityCalendarProps) {
     }
   }
 
-  // Month labels: show when the week column crosses into a new month
-  const monthLabels: Array<string | null> = weeks.map((week, wi) => {
-    if (!week[0]) return null;
+  // Month labels: positioned absolutely to avoid overlap
+  const monthLabels: Array<{ label: string; weekIndex: number }> = [];
+  for (let wi = 0; wi < weeks.length; wi++) {
+    const week = weeks[wi];
+    if (!week[0]) continue;
     const thisMonth = new Date(week[0].date + "T12:00:00").getMonth();
     if (wi === 0) {
-      return new Date(week[0].date + "T12:00:00").toLocaleDateString("en-US", { month: "short" });
+      monthLabels.push({
+        label: new Date(week[0].date + "T12:00:00").toLocaleDateString("en-US", { month: "short" }),
+        weekIndex: wi,
+      });
+    } else {
+      const prevWeek = weeks[wi - 1];
+      if (!prevWeek?.[0]) continue;
+      const prevMonth = new Date(prevWeek[0].date + "T12:00:00").getMonth();
+      if (thisMonth !== prevMonth) {
+        monthLabels.push({
+          label: new Date(week[0].date + "T12:00:00").toLocaleDateString("en-US", { month: "short" }),
+          weekIndex: wi,
+        });
+      }
     }
-    const prevWeek = weeks[wi - 1];
-    if (!prevWeek?.[0]) return null;
-    const prevMonth = new Date(prevWeek[0].date + "T12:00:00").getMonth();
-    if (thisMonth !== prevMonth) {
-      return new Date(week[0].date + "T12:00:00").toLocaleDateString("en-US", { month: "short" });
-    }
-    return null;
-  });
+  }
 
   return (
     <div className="relative" ref={containerRef}>
@@ -100,13 +108,14 @@ export function ActivityCalendar({ activity }: ActivityCalendarProps) {
 
         <div className="flex flex-col min-w-0">
           {/* Month labels */}
-          <div className="flex gap-[3px] mb-1 h-[14px]">
-            {weeks.map((_, wi) => (
+          <div className="relative mb-1 h-[14px]">
+            {monthLabels.map((ml) => (
               <div
-                key={wi}
-                className="w-[11px] shrink-0 text-[11px] text-muted/60 leading-[14px] overflow-visible whitespace-nowrap"
+                key={ml.weekIndex}
+                className="absolute text-[11px] text-muted/60 leading-[14px] whitespace-nowrap"
+                style={{ left: ml.weekIndex * 14 }}
               >
-                {monthLabels[wi] ?? ""}
+                {ml.label}
               </div>
             ))}
           </div>

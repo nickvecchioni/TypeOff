@@ -14,62 +14,56 @@ export function AnalyticsInsights({ weakKeys, weakBigrams, avgWpm }: AnalyticsIn
   const ranked = rankWeaknesses(weakKeys, weakBigrams);
   const insights = estimateWpmImpact(avgWpm, ranked);
 
-  // Show top 5 highest-impact insights
   const topInsights = insights.slice(0, 5);
 
   if (topInsights.length === 0) {
     return (
-      <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] px-4 py-4 text-center">
-        <p className="text-xs text-muted/60">Not enough data yet. Keep practicing to unlock insights.</p>
+      <div className="py-6 text-center">
+        <p className="text-xs text-muted/50">Not enough data yet. Keep practicing to unlock insights.</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-0 divide-y divide-white/[0.04]">
       {topInsights.map((insight) => (
-        <InsightCard key={`${insight.type}-${insight.value}`} insight={insight} />
+        <InsightRow key={`${insight.type}-${insight.value}`} insight={insight} />
       ))}
     </div>
   );
 }
 
-function InsightCard({ insight }: { insight: WpmInsight }) {
-  const severity = insight.accuracy < 0.7 ? "high" : insight.accuracy < 0.85 ? "medium" : "low";
-  const severityColors = {
-    high: "text-error/80 bg-error/10 ring-error/15",
-    medium: "text-amber-400/80 bg-amber-400/10 ring-amber-400/15",
-    low: "text-correct/80 bg-correct/10 ring-correct/15",
-  };
-  const dotColors = {
-    high: "bg-error/70",
-    medium: "bg-amber-400/70",
-    low: "bg-correct/70",
-  };
+function InsightRow({ insight }: { insight: WpmInsight }) {
+  const accPct = Math.round(insight.accuracy * 100);
+  const costColor =
+    insight.accuracy < 0.7 ? "text-error/80" : insight.accuracy < 0.85 ? "text-amber-400/80" : "text-correct/70";
+  const accColor =
+    insight.accuracy < 0.7 ? "text-error/60" : insight.accuracy < 0.85 ? "text-amber-400/60" : "text-correct/50";
+  const barColor =
+    insight.accuracy < 0.7 ? "bg-error/30" : insight.accuracy < 0.85 ? "bg-amber-400/25" : "bg-correct/25";
 
   const practiceUrl = insight.type === "bigram"
     ? `/solo?bigrams=${insight.value}`
     : `/solo?drill=true`;
 
   return (
-    <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3 flex items-start gap-3">
-      <div className={`mt-0.5 w-2 h-2 rounded-full shrink-0 ${dotColors[severity]}`} />
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
-          <span className={`text-xs font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ring-1 ${severityColors[severity]}`}>
-            ~{Math.max(1, Math.round(insight.estimatedWpmCost))} wpm cost
-          </span>
-          <span className="text-xs text-muted/50">
-            {insight.type === "bigram" ? "bigram" : "key"}: <span className="text-accent font-bold">{insight.value}</span>
-          </span>
+    <div className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0 group">
+      <span className="text-accent font-bold text-sm w-8 shrink-0 text-center">{insight.value}</span>
+      <span className="text-[11px] text-muted/40 uppercase w-10 shrink-0">{insight.type === "bigram" ? "bigram" : "key"}</span>
+      <div className="flex-1 flex items-center gap-2 min-w-0">
+        <div className="flex-1 h-1 rounded-full bg-white/[0.04] overflow-hidden max-w-32">
+          <div className={`h-full rounded-full ${barColor}`} style={{ width: `${accPct}%` }} />
         </div>
-        <p className="text-xs text-muted/70 leading-relaxed">{insight.insight}</p>
+        <span className={`text-xs tabular-nums w-9 text-right ${accColor}`}>{accPct}%</span>
       </div>
+      <span className={`text-xs font-bold tabular-nums w-16 text-right ${costColor}`}>
+        -{Math.max(1, Math.round(insight.estimatedWpmCost))} wpm
+      </span>
       <Link
         href={practiceUrl}
-        className="shrink-0 text-xs font-semibold text-accent hover:text-accent/80 transition-colors mt-1"
+        className="shrink-0 text-xs text-muted/40 hover:text-accent transition-colors opacity-0 group-hover:opacity-100"
       >
-        Practice →
+        practice
       </Link>
     </div>
   );

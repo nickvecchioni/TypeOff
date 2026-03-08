@@ -2,12 +2,12 @@
 
 import { useCallback } from "react";
 
-const BG = "#0c0c12";
-const SURFACE = "#16162a";
+const BG = "#0a0a10";
+const SURFACE = "#12121c";
 const ACCENT = "#4d9eff";
 const TEXT = "#e8e8f0";
-const MUTED = "#4b5563";
-const MUTED_LIGHT = "#6b7280";
+const MUTED = "#3a3a4a";
+const MUTED_LIGHT = "#5a5a6e";
 const CORRECT = "#4ade80";
 const ERROR = "#f87171";
 
@@ -80,53 +80,63 @@ function ordinal(n: number): string {
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
 
-function drawDotGrid(ctx: CanvasRenderingContext2D, W: number, H: number) {
-  ctx.fillStyle = "rgba(255,255,255,0.022)";
-  for (let x = 40; x < W; x += 40) {
-    for (let y = 40; y < H; y += 40) {
-      ctx.beginPath();
-      ctx.arc(x, y, 1, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-}
+/* ── Shared drawing helpers ─────────────────────────────── */
 
-function drawCard(ctx: CanvasRenderingContext2D, W: number, H: number) {
-  ctx.fillStyle = SURFACE;
-  roundRect(ctx, 24, 24, W - 48, H - 48, 10);
-  ctx.fill();
-}
-
-function drawHeader(
+function drawBackground(
   ctx: CanvasRenderingContext2D,
   W: number,
-  badgeText: string,
+  H: number,
   accentColor: string
 ) {
-  // Logo
-  ctx.font = "bold 12px monospace";
+  // Solid dark background
+  ctx.fillStyle = BG;
+  ctx.fillRect(0, 0, W, H);
+
+  // Subtle radial glow from top-left
+  const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, W * 0.7);
+  glow.addColorStop(0, accentColor + "0a");
+  glow.addColorStop(1, "transparent");
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, W, H);
+
+  // Inner card
+  ctx.fillStyle = SURFACE;
+  roundRect(ctx, 1, 1, W - 2, H - 2, 12);
+  ctx.fill();
+
+  // Very subtle border
+  ctx.strokeStyle = "rgba(255,255,255,0.06)";
+  ctx.lineWidth = 1;
+  roundRect(ctx, 1, 1, W - 2, H - 2, 12);
+  ctx.stroke();
+
+  // Thin accent line at top
+  ctx.fillStyle = accentColor + "60";
+  roundRect(ctx, 1, 1, W - 2, 2, 12);
+  ctx.fill();
+}
+
+function drawStat(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  label: string,
+  value: string,
+  valueColor: string,
+  fontSize: number
+) {
+  // Label above value
+  ctx.font = `500 11px monospace`;
   ctx.fillStyle = MUTED_LIGHT;
   ctx.textAlign = "left";
-  ctx.fillText("typeoff.gg", 44, 54);
+  ctx.letterSpacing = "1px";
+  ctx.fillText(label.toUpperCase(), x, y);
+  ctx.letterSpacing = "0px";
 
-  // Badge
-  const badgeW = badgeText.length * 8.4 + 20;
-  const badgeX = W - 44 - badgeW;
-  ctx.fillStyle = accentColor + "22";
-  roundRect(ctx, badgeX, 40, badgeW, 20, 4);
-  ctx.fill();
-  ctx.strokeStyle = accentColor + "44";
-  ctx.lineWidth = 1;
-  roundRect(ctx, badgeX, 40, badgeW, 20, 4);
-  ctx.stroke();
-  ctx.font = "bold 10px monospace";
-  ctx.fillStyle = accentColor;
-  ctx.textAlign = "center";
-  ctx.fillText(badgeText, badgeX + badgeW / 2, 53.5);
-
-  // Divider
-  ctx.fillStyle = "rgba(255,255,255,0.05)";
-  ctx.fillRect(44, 66, W - 88, 1);
+  // Value
+  ctx.font = `bold ${fontSize}px monospace`;
+  ctx.fillStyle = valueColor;
+  ctx.fillText(value, x, y + fontSize + 6);
 }
 
 function drawFooter(
@@ -134,21 +144,34 @@ function drawFooter(
   W: number,
   H: number,
   username: string,
-  date: string
+  date: string,
+  accentColor: string
 ) {
+  const footerY = H - 40;
+
+  // Thin separator
   ctx.fillStyle = "rgba(255,255,255,0.04)";
-  ctx.fillRect(44, H - 68, W - 88, 1);
+  ctx.fillRect(32, footerY, W - 64, 1);
 
-  ctx.font = "bold 12px monospace";
-  ctx.fillStyle = TEXT + "99";
+  // Username
+  ctx.font = "600 12px monospace";
+  ctx.fillStyle = accentColor + "aa";
   ctx.textAlign = "left";
-  ctx.fillText(`@${username}`, 44, H - 48);
+  ctx.fillText(username, 32, footerY + 22);
 
+  // Date
   ctx.font = "12px monospace";
   ctx.fillStyle = MUTED;
   ctx.textAlign = "right";
-  ctx.fillText(date, W - 44, H - 48);
+  ctx.fillText(date, W - 32, footerY + 22);
+
+  // Site
+  ctx.textAlign = "center";
+  ctx.fillStyle = MUTED;
+  ctx.fillText("typeoff.gg", W / 2, footerY + 22);
 }
+
+/* ── Solo card ──────────────────────────────────────────── */
 
 function drawSoloCard(
   ctx: CanvasRenderingContext2D,
@@ -156,70 +179,62 @@ function drawSoloCard(
   H: number,
   data: SoloCardData
 ) {
-  // Background
-  ctx.fillStyle = BG;
-  ctx.fillRect(0, 0, W, H);
+  drawBackground(ctx, W, H, ACCENT);
 
-  drawDotGrid(ctx, W, H);
-
-  // Accent left stripe
-  const stripeGrad = ctx.createLinearGradient(0, 0, 0, H);
-  stripeGrad.addColorStop(0, ACCENT);
-  stripeGrad.addColorStop(1, ACCENT + "30");
-  ctx.fillStyle = stripeGrad;
-  ctx.fillRect(0, 0, 3, H);
-
-  drawCard(ctx, W, H);
-
-  // Top accent line on card
-  ctx.fillStyle = ACCENT + "50";
-  ctx.fillRect(24, 24, W - 48, 1);
-
-  drawHeader(ctx, W, "SOLO", ACCENT);
-
-  // WPM — large, accent colored
-  const wpmInt = Math.floor(data.wpm);
-  const wpmDec = "." + (data.wpm % 1).toFixed(2).slice(2);
-  ctx.font = "bold 72px monospace";
-  ctx.fillStyle = ACCENT;
+  // Mode badge - top left
+  ctx.font = "600 10px monospace";
+  ctx.fillStyle = ACCENT + "40";
   ctx.textAlign = "left";
-  ctx.fillText(wpmInt.toString(), 44, 158);
-  const intW = ctx.measureText(wpmInt.toString()).width;
-  ctx.font = "bold 30px monospace";
-  ctx.fillStyle = ACCENT + "70";
-  ctx.fillText(wpmDec, 44 + intW + 2, 151);
-  ctx.font = "11px monospace";
-  ctx.fillStyle = MUTED_LIGHT;
-  ctx.fillText("wpm", 44, 173);
+  ctx.letterSpacing = "2px";
+  ctx.fillText("SOLO", 32, 36);
+  ctx.letterSpacing = "0px";
 
-  // Accuracy
-  const accStr = Math.floor(data.accuracy) + "%";
-  ctx.font = "bold 46px monospace";
+  // Mode label - right of badge
+  ctx.font = "12px monospace";
+  ctx.fillStyle = MUTED_LIGHT;
+  ctx.fillText(data.modeLabel, 80, 36);
+
+  // ── Main WPM ──
+  const wpmInt = Math.floor(data.wpm);
+  const wpmDec = (data.wpm % 1).toFixed(2).slice(1); // ".XX"
+
+  ctx.font = "bold 96px monospace";
   ctx.fillStyle = TEXT;
   ctx.textAlign = "left";
-  ctx.fillText(accStr, 272, 154);
-  ctx.font = "11px monospace";
-  ctx.fillStyle = MUTED_LIGHT;
-  ctx.fillText("accuracy", 272, 173);
+  ctx.fillText(wpmInt.toString(), 32, 140);
+  const intW = ctx.measureText(wpmInt.toString()).width;
+
+  ctx.font = "bold 40px monospace";
+  ctx.fillStyle = TEXT + "50";
+  ctx.fillText(wpmDec, 32 + intW, 133);
+
+  ctx.font = "500 13px monospace";
+  ctx.fillStyle = ACCENT;
+  ctx.letterSpacing = "2px";
+  ctx.fillText("WPM", 32, 160);
+  ctx.letterSpacing = "0px";
+
+  // ── Right column stats ──
+  const statsX = W - 180;
+
+  // Accuracy
+  drawStat(ctx, statsX, 60, "accuracy", Math.floor(data.accuracy) + "%", TEXT, 36);
 
   // Consistency
-  const conStr = Math.floor(data.consistency) + "%";
-  ctx.font = "bold 46px monospace";
-  ctx.fillStyle = TEXT + "bb";
-  ctx.textAlign = "left";
-  ctx.fillText(conStr, 458, 154);
-  ctx.font = "11px monospace";
-  ctx.fillStyle = MUTED_LIGHT;
-  ctx.fillText("consistency", 458, 173);
+  drawStat(
+    ctx,
+    statsX,
+    130,
+    "consistency",
+    Math.floor(data.consistency) + "%",
+    TEXT + "aa",
+    36
+  );
 
-  // Mode label
-  ctx.font = "12px monospace";
-  ctx.fillStyle = MUTED;
-  ctx.textAlign = "left";
-  ctx.fillText(data.modeLabel, 44, 208);
-
-  drawFooter(ctx, W, H, data.username, data.date);
+  drawFooter(ctx, W, H, data.username, data.date, ACCENT);
 }
+
+/* ── Ranked card ────────────────────────────────────────── */
 
 function drawRankedCard(
   ctx: CanvasRenderingContext2D,
@@ -230,88 +245,84 @@ function drawRankedCard(
   const rankColor = RANK_COLORS[data.rankTier.toLowerCase()] ?? ACCENT;
   const placementColor = PLACEMENT_COLORS[data.placement] ?? TEXT;
 
-  // Background
-  ctx.fillStyle = BG;
-  ctx.fillRect(0, 0, W, H);
+  drawBackground(ctx, W, H, rankColor);
 
-  drawDotGrid(ctx, W, H);
-
-  // Rank-colored left stripe
-  const stripeGrad = ctx.createLinearGradient(0, 0, 0, H);
-  stripeGrad.addColorStop(0, rankColor);
-  stripeGrad.addColorStop(1, rankColor + "30");
-  ctx.fillStyle = stripeGrad;
-  ctx.fillRect(0, 0, 3, H);
-
-  drawCard(ctx, W, H);
-
-  // Top rank line on card
-  ctx.fillStyle = rankColor + "50";
-  ctx.fillRect(24, 24, W - 48, 1);
-
-  drawHeader(ctx, W, "RANKED", rankColor);
-
-  // Placement — large, placement-colored
-  ctx.font = "bold 62px monospace";
-  ctx.fillStyle = placementColor;
+  // Rank badge - top left
+  ctx.font = "600 10px monospace";
+  ctx.fillStyle = rankColor + "60";
   ctx.textAlign = "left";
-  ctx.fillText(ordinal(data.placement), 44, 155);
-  ctx.font = "11px monospace";
-  ctx.fillStyle = MUTED_LIGHT;
-  ctx.fillText(`of ${data.totalPlayers}`, 44, 171);
-
-  // WPM
-  const wpmInt = Math.floor(data.wpm);
-  const wpmDec = "." + (data.wpm % 1).toFixed(2).slice(2);
-  ctx.font = "bold 48px monospace";
-  ctx.fillStyle = TEXT;
-  ctx.textAlign = "left";
-  ctx.fillText(wpmInt.toString(), 242, 152);
-  const wIntW = ctx.measureText(wpmInt.toString()).width;
-  ctx.font = "bold 21px monospace";
-  ctx.fillStyle = TEXT + "70";
-  ctx.fillText(wpmDec, 242 + wIntW + 2, 145);
-  ctx.font = "11px monospace";
-  ctx.fillStyle = MUTED_LIGHT;
-  ctx.fillText("wpm", 242, 171);
-
-  // Accuracy
-  const accStr = Math.floor(data.accuracy) + "%";
-  ctx.font = "bold 48px monospace";
-  ctx.fillStyle = TEXT + "cc";
-  ctx.textAlign = "left";
-  ctx.fillText(accStr, 428, 152);
-  ctx.font = "11px monospace";
-  ctx.fillStyle = MUTED_LIGHT;
-  ctx.fillText("accuracy", 428, 171);
+  ctx.letterSpacing = "2px";
+  ctx.fillText("RANKED", 32, 36);
+  ctx.letterSpacing = "0px";
 
   // Rank label + ELO
-  ctx.font = "bold 13px monospace";
+  ctx.font = "bold 12px monospace";
   ctx.fillStyle = rankColor;
-  ctx.textAlign = "left";
-  ctx.fillText(data.rankLabel, 44, 208);
-  const rankLabelW = ctx.measureText(data.rankLabel).width;
+  ctx.fillText(data.rankLabel, 100, 36);
 
+  const rankLabelW = ctx.measureText(data.rankLabel).width;
   ctx.font = "12px monospace";
   ctx.fillStyle = MUTED_LIGHT;
-  ctx.fillText(`${data.elo} ELO`, 44 + rankLabelW + 10, 208);
+  ctx.fillText(`${data.elo}`, 108 + rankLabelW, 36);
 
-  // ELO change (right-aligned)
+  // ELO change - top right
   const eloStr = (data.eloChange > 0 ? "+" : "") + data.eloChange;
   const eloColor =
     data.eloChange > 0 ? CORRECT : data.eloChange < 0 ? ERROR : MUTED_LIGHT;
   ctx.font = "bold 13px monospace";
   ctx.fillStyle = eloColor;
   ctx.textAlign = "right";
-  ctx.fillText(eloStr, W - 44, 208);
+  ctx.fillText(eloStr, W - 32, 36);
 
-  drawFooter(ctx, W, H, data.username, data.date);
+  // ── Placement - large ──
+  ctx.font = "bold 86px monospace";
+  ctx.fillStyle = placementColor;
+  ctx.textAlign = "left";
+  ctx.fillText(ordinal(data.placement), 32, 138);
+
+  ctx.font = "500 13px monospace";
+  ctx.fillStyle = MUTED_LIGHT;
+  ctx.fillText(`of ${data.totalPlayers} players`, 32, 158);
+
+  // ── Right column stats ──
+  const statsX = W - 180;
+
+  // WPM
+  const wpmInt = Math.floor(data.wpm);
+  const wpmDec = (data.wpm % 1).toFixed(2).slice(1);
+  ctx.font = "500 11px monospace";
+  ctx.fillStyle = MUTED_LIGHT;
+  ctx.textAlign = "left";
+  ctx.letterSpacing = "1px";
+  ctx.fillText("WPM", statsX, 60);
+  ctx.letterSpacing = "0px";
+
+  ctx.font = "bold 36px monospace";
+  ctx.fillStyle = TEXT;
+  ctx.fillText(wpmInt.toString(), statsX, 96);
+  const wIntW = ctx.measureText(wpmInt.toString()).width;
+  ctx.font = "bold 18px monospace";
+  ctx.fillStyle = TEXT + "50";
+  ctx.fillText(wpmDec, statsX + wIntW, 93);
+
+  // Accuracy
+  drawStat(
+    ctx,
+    statsX,
+    120,
+    "accuracy",
+    Math.floor(data.accuracy) + "%",
+    TEXT + "cc",
+    36
+  );
+
+  drawFooter(ctx, W, H, data.username, data.date, rankColor);
 }
 
 export function useResultCard(data: ResultCardData) {
   const generate = useCallback((): HTMLCanvasElement => {
     const W = 640,
-      H = 320;
+      H = 280;
     const canvas = document.createElement("canvas");
     canvas.width = W;
     canvas.height = H;
