@@ -316,7 +316,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
 
   return (
     <div
-      className={`flex flex-col items-center gap-6 w-full max-w-5xl mx-auto ${
+      className={`flex flex-col items-center gap-3 w-full max-w-5xl mx-auto ${
         isTyping && settings.focusMode ? "focus-active" : ""
       }`}
       onClick={(e) => {

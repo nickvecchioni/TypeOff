@@ -211,8 +211,8 @@ export function ConfigBar({
         )}
       </div>
 
-      {/* ── Tertiary row: mode-specific options (fixed height to prevent shift) ── */}
-      <div className="flex items-center justify-center min-h-[32px]">
+      {/* ── Tertiary row: mode-specific options ── */}
+      <div className="flex items-center justify-center empty:hidden">
         {/* Practice weak spot details — shown when practice is active */}
         {isWordsVariant && hasPracticeData && isPracticeOn && (practiceWeakKeys?.length || practiceWeakBigrams?.length) ? (
           <div className="flex items-center gap-1.5">
