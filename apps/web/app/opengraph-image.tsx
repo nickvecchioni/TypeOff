@@ -57,9 +57,9 @@ export default function Image() {
         <div
           style={{
             display: "flex",
-            fontSize: 144,
+            fontSize: 148,
             fontWeight: 800,
-            color: "#e8e8f0",
+            color: "#4d9eff",
             lineHeight: 1,
             letterSpacing: "-0.03em",
           }}
@@ -71,12 +71,12 @@ export default function Image() {
         <div
           style={{
             display: "flex",
-            fontSize: 24,
-            color: "#4d9eff",
+            fontSize: 26,
+            color: "rgba(255,255,255,0.55)",
             letterSpacing: "0.25em",
             textTransform: "uppercase",
             fontWeight: 600,
-            marginTop: 28,
+            marginTop: 32,
           }}
         >
           Ranked Competitive Typing
@@ -86,12 +86,12 @@ export default function Image() {
         <div
           style={{
             display: "flex",
-            width: 4,
-            height: 4,
+            width: 5,
+            height: 5,
             borderRadius: "50%",
-            background: "rgba(255,255,255,0.15)",
-            marginTop: 36,
-            marginBottom: 36,
+            background: "rgba(77,158,255,0.3)",
+            marginTop: 40,
+            marginBottom: 40,
           }}
         />
 
@@ -99,8 +99,8 @@ export default function Image() {
         <div
           style={{
             display: "flex",
-            fontSize: 20,
-            color: "rgba(255,255,255,0.3)",
+            fontSize: 24,
+            color: "rgba(255,255,255,0.35)",
             letterSpacing: "0.04em",
           }}
         >
@@ -112,9 +112,9 @@ export default function Image() {
           style={{
             display: "flex",
             position: "absolute",
-            bottom: 40,
-            fontSize: 14,
-            color: "rgba(255,255,255,0.12)",
+            bottom: 44,
+            fontSize: 18,
+            color: "rgba(77,158,255,0.2)",
             letterSpacing: "0.15em",
           }}
         >
