@@ -30,7 +30,15 @@ export function NotificationToast() {
 
   useEffect(() => {
     for (const notif of toastQueue) {
-      if (processedIds.current.has(notif.id)) continue;
+      if (processedIds.current.has(notif.id)) {
+        // Updated notification (e.g. deduped DM) — refresh toast content in-place
+        setToasts((prev) =>
+          prev.map((t) =>
+            t.id === notif.id ? { ...t, title: notif.title, body: notif.body, visible: true } : t
+          )
+        );
+        continue;
+      }
       processedIds.current.add(notif.id);
 
       const item: ToastItem = {

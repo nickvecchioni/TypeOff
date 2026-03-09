@@ -21,6 +21,7 @@ import { checkChallenges, type ChallengeCheckResult } from "./challenge-checker.
 import { checkXpRewards, type XpContext, type XpProgress } from "./xp-checker.js";
 export interface RaceOwner {
   cleanupRace(raceId: string, socketIds: string[]): void;
+  clearUserRace(userId: string): void;
 }
 
 type TypedServer = Server<ClientToServerEvents, ServerToClientEvents>;
@@ -927,6 +928,13 @@ export class RaceManager {
     this.status = "finished";
 
     if (this.progressTimer) clearInterval(this.progressTimer);
+
+    // Clear LIVE status immediately so friends no longer see a stale "LIVE" badge.
+    for (const entry of this.players.values()) {
+      if (!entry.isBot) {
+        this.owner.clearUserRace(entry.player.id);
+      }
+    }
 
     // Mark unfinished players as finished with their current stats.
     // Players with high progress (>= 0.9) almost certainly completed typing but

@@ -366,6 +366,10 @@ export class Matchmaker implements RaceOwner {
     return { raceId, race };
   }
 
+  clearUserRace(userId: string) {
+    this.socialManager?.setUserRace(userId, null);
+  }
+
   cleanupRace(raceId: string, socketIds: string[]) {
     this.races.delete(raceId);
     for (const id of socketIds) {

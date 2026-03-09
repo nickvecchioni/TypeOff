@@ -331,13 +331,12 @@ io.on("connection", (socket) => {
         io.to(socketId).emit("dmMessage", payload);
       }
 
-      // Notify recipient (persisted + real-time toast)
-      notificationManager.notify(toUserId, {
-        type: "dm",
-        title: `Message from ${player.name}`,
-        body: content.length > 80 ? content.slice(0, 80) + "…" : content,
-        metadata: JSON.stringify({ userId: player.id, name: player.name }),
-      }).catch(() => {});
+      // Notify recipient (deduped — updates existing unread notification from same sender)
+      notificationManager.notifyDm(
+        toUserId,
+        { userId: player.id, name: player.name },
+        content.length > 80 ? content.slice(0, 80) + "…" : content,
+      ).catch(() => {});
     } catch {
       // silently drop auth failures
     }

@@ -68,9 +68,19 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   // Listen for WS notifications (deduplicated by ID to prevent multi-tab duplicates)
   useEffect(() => {
     const unsub = on("notification", (data) => {
-      if (seenNotifIds.current.has(data.id)) return;
-      seenNotifIds.current.add(data.id);
       const notif: Notification = { ...data, read: false };
+
+      if (seenNotifIds.current.has(data.id)) {
+        // Same ID seen again — this is an updated notification (e.g. deduped DM).
+        // Update in-place without bumping unread count, but refresh the toast.
+        setNotifications((prev) =>
+          [notif, ...prev.filter((n) => n.id !== data.id)]
+        );
+        setToastQueue((prev) => [...prev.filter((n) => n.id !== data.id), notif].slice(-5));
+        return;
+      }
+
+      seenNotifIds.current.add(data.id);
       setUnreadCount((c) => c + 1);
       setNotifications((prev) => [notif, ...prev]);
       setToastQueue((prev) => [...prev, notif].slice(-5));
