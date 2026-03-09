@@ -336,6 +336,7 @@ io.on("connection", (socket) => {
         type: "dm",
         title: `Message from ${player.name}`,
         body: content.length > 80 ? content.slice(0, 80) + "…" : content,
+        metadata: JSON.stringify({ userId: player.id, name: player.name }),
       }).catch(() => {});
     } catch {
       // silently drop auth failures

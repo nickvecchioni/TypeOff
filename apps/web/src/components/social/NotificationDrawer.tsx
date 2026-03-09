@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useDm } from "@/hooks/useDm";
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -18,6 +19,12 @@ function timeAgo(dateStr: string): string {
 function NotifIcon({ type }: { type: string }) {
   const cls = "shrink-0 mt-0.5";
   switch (type) {
+    case "dm":
+      return (
+        <svg className={cls} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+      );
     case "friend_request":
       return (
         <svg className={cls} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -66,6 +73,7 @@ function NotifIcon({ type }: { type: string }) {
 
 function notifIconColor(type: string): string {
   switch (type) {
+    case "dm": return "text-accent";
     case "friend_request": return "text-accent";
     case "achievement": return "text-yellow-400";
     case "challenge_complete": return "text-[#3fb950]";
@@ -82,6 +90,7 @@ interface NotificationDrawerProps {
 
 export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
   const { notifications, fetchNotifications, markAsRead, clearAll, unreadCount } = useNotifications();
+  const { openDm } = useDm();
   const router = useRouter();
 
   useEffect(() => {
@@ -163,7 +172,15 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
                 }`}
                 onClick={() => {
                   if (!notif.read) markAsRead([notif.id]);
-                  if (notif.actionUrl) {
+                  if (notif.type === "dm" && notif.metadata) {
+                    try {
+                      const meta = JSON.parse(notif.metadata);
+                      if (meta.userId) {
+                        openDm(meta.userId, meta.name ?? "Unknown");
+                        onClose();
+                      }
+                    } catch {}
+                  } else if (notif.actionUrl) {
                     router.push(notif.actionUrl);
                     onClose();
                   }

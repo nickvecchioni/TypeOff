@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useDm } from "@/hooks/useDm";
 
 const TYPE_ICONS: Record<string, string> = {
   dm: "💬",
@@ -17,11 +18,13 @@ interface ToastItem {
   type: string;
   title: string;
   body: string;
+  metadata?: string;
   visible: boolean;
 }
 
 export function NotificationToast() {
   const { toastQueue, clearToast } = useNotifications();
+  const { openDm } = useDm();
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const processedIds = useRef(new Set<string>());
 
@@ -35,6 +38,7 @@ export function NotificationToast() {
         type: notif.type,
         title: notif.title,
         body: notif.body,
+        metadata: notif.metadata,
         visible: true,
       };
 
@@ -79,7 +83,20 @@ export function NotificationToast() {
           }`}
           style={{ animation: toast.visible ? "slide-in-right 0.3s ease-out" : undefined }}
         >
-          <div className="flex items-start gap-2">
+          <div
+            className={`flex items-start gap-2${toast.type === "dm" ? " cursor-pointer" : ""}`}
+            onClick={() => {
+              if (toast.type === "dm" && toast.metadata) {
+                try {
+                  const meta = JSON.parse(toast.metadata);
+                  if (meta.userId) {
+                    openDm(meta.userId, meta.name ?? "Unknown");
+                    dismiss(toast.id);
+                  }
+                } catch {}
+              }
+            }}
+          >
             <span className="text-sm shrink-0">{TYPE_ICONS[toast.type] ?? "📌"}</span>
             <div className="min-w-0 flex-1">
               <div className="text-xs font-medium text-text truncate">{toast.title}</div>
