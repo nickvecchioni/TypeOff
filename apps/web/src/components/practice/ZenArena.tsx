@@ -4,7 +4,7 @@ import React, { useRef, useEffect, useCallback, useState } from "react";
 import { WordDisplay } from "@/components/typing/WordDisplay";
 import type { TypingEngine } from "@/hooks/useTypingEngine";
 import { PracticeResults } from "./PracticeResults";
-import { useSettings } from "@/contexts/SettingsContext";
+import { useSettings, useFocusActive } from "@/contexts/SettingsContext";
 
 interface ZenArenaProps {
   engine: TypingEngine;
@@ -74,6 +74,12 @@ export function ZenArena({ engine }: ZenArenaProps) {
   const isTyping = engine.status === "typing";
   const isFinished = engine.status === "finished";
   const containerHeight = lineHeight * visibleLines;
+
+  const [, setFocusActive] = useFocusActive();
+  useEffect(() => {
+    setFocusActive(isTyping && focusMode);
+    return () => setFocusActive(false);
+  }, [isTyping, focusMode, setFocusActive]);
 
   return (
     <div

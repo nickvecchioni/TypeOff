@@ -6,7 +6,7 @@ import { useTypingEngine } from "@/hooks/useTypingEngine";
 import { WordDisplay } from "@/components/typing/WordDisplay";
 import { PlacementReveal } from "./PlacementReveal";
 import { calibrateElo } from "@typeoff/shared";
-import { useSettings } from "@/contexts/SettingsContext";
+import { useSettings, useFocusActive } from "@/contexts/SettingsContext";
 
 type Phase = "landing" | "idle" | "racing" | "reveal";
 
@@ -391,8 +391,14 @@ export function GuestPlacement({
   }, [phase, restart]);
 
   const { focusMode } = useSettings();
+  const [, setFocusActive] = useFocusActive();
   const { elo } = calibrateElo(finishedWpm);
   const isTyping = engine.status === "typing";
+
+  useEffect(() => {
+    setFocusActive(isTyping && focusMode);
+    return () => setFocusActive(false);
+  }, [isTyping, focusMode, setFocusActive]);
 
   /* ── Landing phase ───────────────────────────────────── */
   if (phase === "landing") {

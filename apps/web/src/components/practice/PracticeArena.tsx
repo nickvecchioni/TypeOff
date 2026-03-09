@@ -6,6 +6,7 @@ import { getPbKey, getQuoteAuthor, getCodeSnippet } from "@typeoff/shared";
 import { useTypingEngine } from "@/hooks/useTypingEngine";
 import { useCapsLock } from "@/hooks/useCapsLock";
 import { WordDisplay } from "@/components/typing/WordDisplay";
+import { useFocusActive } from "@/contexts/SettingsContext";
 import Link from "next/link";
 import { ConfigBar } from "./ConfigBar";
 import { PracticeResults } from "./PracticeResults";
@@ -270,6 +271,12 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
   const isTyping = engine.status === "typing";
   const isFinished = engine.status === "finished";
   const capsLock = useCapsLock();
+
+  const [, setFocusActive] = useFocusActive();
+  useEffect(() => {
+    setFocusActive(isTyping && settings.focusMode);
+    return () => setFocusActive(false);
+  }, [isTyping, settings.focusMode, setFocusActive]);
 
   // Current PB for the active config combo (per-text for quotes/code)
   const pbKey = getPbKey(engine.config, engine.lastSeed);

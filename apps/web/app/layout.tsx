@@ -22,6 +22,7 @@ import { DmProvider } from "@/hooks/useDm";
 import { DirectMessageWindow } from "@/components/social/DirectMessageWindow";
 import { CosmeticProvider } from "@/contexts/CosmeticContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
+import { FocusWrapper } from "@/components/FocusWrapper";
 import "./globals.css";
 
 const jetbrainsMono = JetBrains_Mono({
@@ -85,7 +86,8 @@ export default function RootLayout({
           <DmProvider>
           <NotificationProvider>
           <UsernameGuard>
-            <nav className="relative z-30 flex items-center justify-between px-4 sm:px-6 py-3">
+            <FocusWrapper>
+            <nav className="focus-fade relative z-30 flex items-center justify-between px-4 sm:px-6 py-3">
               <div className="flex items-center gap-4 sm:gap-8">
                 <MobileNav />
                 <NavLogo />
@@ -109,6 +111,7 @@ export default function RootLayout({
               <span>·</span>
               <ReportIssueButton />
             </footer>
+            </FocusWrapper>
             <NotificationToast />
             <PartyInviteToast />
             <DirectMessageWindow />

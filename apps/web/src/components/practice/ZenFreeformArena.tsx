@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { useSettings } from "@/contexts/SettingsContext";
+import { useSettings, useFocusActive } from "@/contexts/SettingsContext";
 
 export function ZenFreeformArena() {
   const { focusMode } = useSettings();
+  const [, setFocusActive] = useFocusActive();
   const [typedText, setTypedText] = useState("");
   const [status, setStatus] = useState<"idle" | "typing" | "finished">("idle");
   const [elapsed, setElapsed] = useState(0);
@@ -97,6 +98,11 @@ export function ZenFreeformArena() {
 
   const isTyping = status === "typing";
   const isFinished = status === "finished";
+
+  useEffect(() => {
+    setFocusActive(isTyping && focusMode);
+    return () => setFocusActive(false);
+  }, [isTyping, focusMode, setFocusActive]);
 
   const finalWordCount = typedText.trim().split(/\s+/).filter(Boolean).length;
   const finalWpm =

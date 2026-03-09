@@ -5,7 +5,7 @@ import { useTypingEngine } from "@/hooks/useTypingEngine";
 import { useCapsLock } from "@/hooks/useCapsLock";
 import { WordDisplay } from "@/components/typing/WordDisplay";
 import { useActiveCosmetics } from "@/contexts/CosmeticContext";
-import { useSettings } from "@/contexts/SettingsContext";
+import { useSettings, useFocusActive } from "@/contexts/SettingsContext";
 import { TYPING_THEMES, generateWordsForMode, getCodeSnippet } from "@typeoff/shared";
 import type { RaceMode } from "@typeoff/shared";
 
@@ -43,6 +43,7 @@ export function RaceTypingArea({
 }: RaceTypingAreaProps) {
   const { activeTypingTheme } = useActiveCosmetics();
   const settings = useSettings();
+  const [, setFocusActive] = useFocusActive();
   const capsLock = useCapsLock();
   const themeClass = activeTypingTheme ? TYPING_THEMES[activeTypingTheme]?.className ?? "" : "";
 
@@ -108,6 +109,13 @@ export function RaceTypingArea({
       setScrollOffset((wordLine - 1) * lineHeight);
     }
   }, [engine.currentWordIndex, engine.status, lineHeight, scrollOffset]);
+
+  // Sync focus mode state to layout
+  const raceIsTyping = engine.status === "typing";
+  useEffect(() => {
+    setFocusActive(raceIsTyping && settings.focusMode);
+    return () => setFocusActive(false);
+  }, [raceIsTyping, settings.focusMode, setFocusActive]);
 
   // Auto-focus and start race timer when the race begins
   useEffect(() => {

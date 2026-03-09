@@ -22,16 +22,21 @@ export const DEFAULT_SETTINGS: UserSettings = {
 interface SettingsContextValue {
   settings: UserSettings;
   updateSettings: (next: UserSettings) => void;
+  focusActive: boolean;
+  setFocusActive: (active: boolean) => void;
 }
 
 const SettingsContext = createContext<SettingsContextValue>({
   settings: DEFAULT_SETTINGS,
   updateSettings: () => {},
+  focusActive: false,
+  setFocusActive: () => {},
 });
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const { status } = useSession();
   const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
+  const [focusActive, setFocusActive] = useState(false);
 
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -49,8 +54,12 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     setSettings(next);
   }, []);
 
+  const setFocusActiveCb = useCallback((active: boolean) => {
+    setFocusActive(active);
+  }, []);
+
   return (
-    <SettingsContext.Provider value={{ settings, updateSettings }}>
+    <SettingsContext.Provider value={{ settings, updateSettings, focusActive, setFocusActive: setFocusActiveCb }}>
       {children}
     </SettingsContext.Provider>
   );
@@ -62,4 +71,9 @@ export function useSettings(): UserSettings {
 
 export function useUpdateSettings(): (next: UserSettings) => void {
   return useContext(SettingsContext).updateSettings;
+}
+
+export function useFocusActive(): [boolean, (active: boolean) => void] {
+  const ctx = useContext(SettingsContext);
+  return [ctx.focusActive, ctx.setFocusActive];
 }
