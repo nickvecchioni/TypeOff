@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useSession, signIn } from "next-auth/react";
 import Link from "next/link";
 import type { TestStats, TestConfig, WpmSample } from "@typeoff/shared";
-import { getQuoteByIndex, getCodeSnippet } from "@typeoff/shared";
+import { getQuoteByIndex, getCodeSnippet, getXpLevel, SOLO_DAILY_XP_CAP } from "@typeoff/shared";
 import { WpmChart } from "@/components/typing/WpmChart";
 import { KeyboardHeatmap } from "@/components/typing/KeyboardHeatmap";
 import { ShareResultCard } from "@/components/shared/ShareResultCard";
@@ -122,15 +122,160 @@ function SpeedAnalysis({ wpmHistory, wpm }: { wpmHistory: WpmSample[]; wpm: numb
   );
 }
 
+/* ── Solo XP Panel ───────────────────────────────────────── */
+
+interface SoloXpProgress {
+  xpEarned: number;
+  totalXp: number;
+  level: number;
+  levelUp: boolean;
+  newRewards: Array<{ level: number; type: string; id: string; name: string; value: string }>;
+  isPro: boolean;
+  dailyXpUsed: number;
+  dailyXpCap: number;
+}
+
+function SoloXpPanel({ xp }: { xp: SoloXpProgress }) {
+  const [displayXp, setDisplayXp] = useState(0);
+  const [barPct, setBarPct] = useState(0);
+  const [levelUpVisible, setLevelUpVisible] = useState(false);
+  const [animStarted, setAnimStarted] = useState(false);
+  const rafRef = useRef<number>(0);
+
+  const prevTotalXp = xp.totalXp - xp.xpEarned;
+  const prevInfo = getXpLevel(prevTotalXp);
+  const curInfo = getXpLevel(xp.totalXp);
+  const prevPct = (prevInfo.currentXp / prevInfo.nextLevelXp) * 100;
+  const finalPct = (curInfo.currentXp / curInfo.nextLevelXp) * 100;
+
+  useEffect(() => {
+    setBarPct(prevPct);
+    const delay = setTimeout(() => {
+      setAnimStarted(true);
+      const startTime = performance.now();
+      const duration = xp.levelUp ? 1800 : 1200;
+
+      const animate = (now: number) => {
+        const elapsed = now - startTime;
+        const t = Math.min(elapsed / duration, 1);
+        const ease = 1 - Math.pow(1 - t, 3);
+
+        setDisplayXp(Math.round(xp.xpEarned * ease));
+
+        if (xp.levelUp) {
+          if (t < 0.45) {
+            const p = t / 0.45;
+            setBarPct(prevPct + (100 - prevPct) * (1 - Math.pow(1 - p, 3)));
+          } else if (t < 0.55) {
+            setBarPct(100);
+            setLevelUpVisible(true);
+          } else {
+            const p = (t - 0.55) / 0.45;
+            setBarPct(finalPct * (1 - Math.pow(1 - p, 3)));
+          }
+        } else {
+          setBarPct(prevPct + (finalPct - prevPct) * ease);
+        }
+
+        if (t < 1) rafRef.current = requestAnimationFrame(animate);
+      };
+
+      rafRef.current = requestAnimationFrame(animate);
+    }, 400);
+
+    return () => { clearTimeout(delay); cancelAnimationFrame(rafRef.current); };
+  }, [prevPct, finalPct, xp.levelUp, xp.xpEarned]);
+
+  const displayLevel = xp.levelUp && !levelUpVisible ? xp.level - 1 : xp.level;
+  const dailyPct = Math.min(100, (xp.dailyXpUsed / xp.dailyXpCap) * 100);
+  const cappedOut = xp.dailyXpUsed >= xp.dailyXpCap;
+
+  return (
+    <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden">
+      <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
+      <div className="px-3 py-2 sm:px-4 sm:py-2.5 flex flex-col gap-2">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-bold text-accent/80 uppercase tracking-wider">Level</h3>
+          <span
+            className={`text-base font-black tabular-nums transition-all duration-500 ${
+              animStarted ? "opacity-100 text-accent" : "opacity-0"
+            }`}
+          >
+            +{displayXp} XP
+          </span>
+        </div>
+
+        {/* Level + XP bar */}
+        <div className="rounded-lg px-3 py-2 ring-1 ring-accent/10 bg-surface/40 flex items-center gap-4">
+          <div className="shrink-0 w-10 text-center">
+            <div className="text-xs font-black text-muted/60 uppercase tracking-widest leading-none mb-0.5">LEVEL</div>
+            <div className="text-3xl font-black tabular-nums leading-none text-text">
+              {displayLevel}
+            </div>
+            {levelUpVisible && (
+              <div className="text-correct text-xs font-black mt-0.5" style={{ animation: "fade-in 0.3s ease-out" }}>
+                ▲ UP!
+              </div>
+            )}
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <div className="flex items-baseline justify-between mb-1.5">
+              <span className="text-sm font-bold text-accent tabular-nums">
+                {curInfo.currentXp.toLocaleString()}
+                <span className="text-muted/60 font-normal"> / {curInfo.nextLevelXp.toLocaleString()} XP</span>
+              </span>
+            </div>
+            <div className="h-1.5 rounded-full bg-surface overflow-hidden">
+              <div className="h-full flex">
+                <div className="h-full bg-accent/35 shrink-0" style={{ width: `${prevPct}%` }} />
+                <div className="h-full bg-accent shrink-0" style={{ width: `${Math.max(0, barPct - prevPct)}%` }} />
+              </div>
+            </div>
+            <div className="text-sm text-muted/55 mt-1 tabular-nums">
+              {(curInfo.nextLevelXp - curInfo.currentXp).toLocaleString()} XP to level {xp.level + 1}
+            </div>
+          </div>
+        </div>
+
+        {/* Daily cap indicator */}
+        <div className="flex items-center gap-2 text-xs text-muted/50">
+          <span className="shrink-0">Daily solo XP:</span>
+          <div className="flex-1 h-1 rounded-full bg-surface overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all ${cappedOut ? "bg-muted/40" : "bg-accent/40"}`}
+              style={{ width: `${dailyPct}%` }}
+            />
+          </div>
+          <span className={`tabular-nums shrink-0 ${cappedOut ? "text-muted/70 font-bold" : ""}`}>
+            {xp.dailyXpUsed.toLocaleString()} / {xp.dailyXpCap.toLocaleString()}
+            {cappedOut && " (capped)"}
+          </span>
+        </div>
+
+        {/* Pro multiplier hint */}
+        {!xp.isPro && xp.xpEarned > 0 && (
+          <div className="text-xs text-muted/40">
+            <Link href="/pro" className="text-accent/50 hover:text-accent transition-colors">Pro</Link>
+            {" "}members earn 1.5x XP
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 interface PracticeResultsProps {
   stats: TestStats;
   config: TestConfig;
   isPb: boolean | null;
   onRestart: () => void;
   seed?: number | null;
+  xpProgress?: SoloXpProgress | null;
 }
 
-export function PracticeResults({ stats, config, isPb, onRestart, seed }: PracticeResultsProps) {
+export function PracticeResults({ stats, config, isPb, onRestart, seed, xpProgress }: PracticeResultsProps) {
   const { data: session } = useSession();
   const isPro = session?.user?.isPro ?? false;
   const tabPressedRef = useRef(false);
@@ -372,6 +517,11 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed }: Practi
           )}
         </div>
       </div>
+
+      {/* ── XP Progress ──────────────────────────────────────── */}
+      {xpProgress && xpProgress.xpEarned > 0 && (
+        <SoloXpPanel xp={xpProgress} />
+      )}
 
       {/* ── Speed Analysis (Pro) ────────────────────────────── */}
       {isPro && stats.wpmHistory.length >= 4 && (

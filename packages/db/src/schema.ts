@@ -161,6 +161,7 @@ export const soloResults = pgTable(
     keyStatsJson: text("key_stats_json"),
     replayData: text("replay_data"), // JSON: ReplaySnapshot[]
     seed: integer("seed"),
+    xpAwarded: integer("xp_awarded").notNull().default(0),
     createdAt: timestamp("created_at", { mode: "date" })
       .notNull()
       .$defaultFn(() => new Date()),

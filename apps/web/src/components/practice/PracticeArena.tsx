@@ -40,6 +40,11 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
   const [weakKeys, setWeakKeys] = useState<string[]>([]);
   // Weak bigrams for practice mode (Pro only)
   const [weakBigrams, setWeakBigrams] = useState<string[]>([]);
+  const [xpProgress, setXpProgress] = useState<{
+    xpEarned: number; totalXp: number; level: number; levelUp: boolean;
+    newRewards: Array<{ level: number; type: string; id: string; name: string; value: string }>;
+    isPro: boolean; dailyXpUsed: number; dailyXpCap: number;
+  } | null>(null);
 
   // Fetch PBs on mount (logged-in only)
   useEffect(() => {
@@ -241,6 +246,9 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
           const key = getPbKey(config, currentSeed);
           setPbs((prev) => ({ ...prev, [key]: stats.wpm }));
         }
+        if (data.xpProgress) {
+          setXpProgress(data.xpProgress);
+        }
         // Always refresh PBs from server to stay in sync
         fetch("/api/solo-results")
           .then((r) => r.json())
@@ -258,6 +266,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
     if (engine.status === "idle") {
       hasSavedRef.current = false;
       setIsPb(null);
+      setXpProgress(null);
       // Only bump cascade key on config-driven restarts (idle → idle handled
       // by setConfig). Tab+Enter (typing → idle) and results restart
       // (finished → idle) skip the bump to prevent a double-mount flash.
@@ -499,6 +508,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
           isPb={isPb}
           onRestart={handleRestart}
           seed={engine.lastSeed}
+          xpProgress={xpProgress}
         />
       )}
     </div>
