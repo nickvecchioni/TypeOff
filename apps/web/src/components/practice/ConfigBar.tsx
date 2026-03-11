@@ -186,8 +186,10 @@ export function ConfigBar({
         </div>
 
         {/* Weak spots target toggle — inline with secondary row */}
-        {isWordsVariant && hasPracticeData && (
-          <>
+        {hasPracticeData && (
+          <div className={`flex items-center transition-opacity duration-200 ${
+            isWordsVariant ? "" : "opacity-20 pointer-events-none"
+          }`}>
             <MicroDivider />
             <Tooltip label={isPracticeOn ? "Targeting your weakest keys & bigrams — click to disable" : "Generate text targeting your weak spots"} position="bottom">
               <button
@@ -207,69 +209,80 @@ export function ConfigBar({
                 </svg>
               </button>
             </Tooltip>
-          </>
+          </div>
         )}
       </div>
 
       {/* ── Tertiary row: mode-specific options ── */}
-      <div className="flex items-center justify-center empty:hidden">
-        {/* Practice weak spot details — shown when practice is active */}
-        {isWordsVariant && hasPracticeData && isPracticeOn && (practiceWeakKeys?.length || practiceWeakBigrams?.length) ? (
-          <div className="flex items-center gap-1.5">
-            {practiceWeakKeys && practiceWeakKeys.length > 0 && (
-              <span className="text-xs text-muted/50 leading-tight">
-                keys: <span className="text-amber-400/70 font-mono">{practiceWeakKeys.slice(0, 6).join(" ")}{practiceWeakKeys.length > 6 ? " ..." : ""}</span>
-              </span>
-            )}
-            {practiceWeakBigrams && practiceWeakBigrams.length > 0 && (
-              <span className="text-xs text-muted/50 leading-tight">
-                {practiceWeakKeys?.length ? "· " : ""}bigrams: <span className="text-amber-400/70 font-mono">{practiceWeakBigrams.slice(0, 5).join(" ")}{practiceWeakBigrams.length > 5 ? " ..." : ""}</span>
-              </span>
-            )}
-          </div>
-        ) : null}
+      <div className={`grid transition-[grid-template-rows] duration-200 ${
+        (ct === "code" || (isWordsVariant && hasPracticeData && isPracticeOn && (practiceWeakKeys?.length || practiceWeakBigrams?.length)))
+          ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+      }`}>
+        <div className="overflow-hidden">
+          <div className="flex items-center justify-center">
+            {/* Practice weak spot details — shown when practice is active */}
+            {isWordsVariant && hasPracticeData && isPracticeOn && (practiceWeakKeys?.length || practiceWeakBigrams?.length) ? (
+              <div className="flex items-center gap-1.5">
+                {practiceWeakKeys && practiceWeakKeys.length > 0 && (
+                  <span className="text-xs text-muted/50 leading-tight">
+                    keys: <span className="text-amber-400/70 font-mono">{practiceWeakKeys.slice(0, 6).join(" ")}{practiceWeakKeys.length > 6 ? " ..." : ""}</span>
+                  </span>
+                )}
+                {practiceWeakBigrams && practiceWeakBigrams.length > 0 && (
+                  <span className="text-xs text-muted/50 leading-tight">
+                    {practiceWeakKeys?.length ? "· " : ""}bigrams: <span className="text-amber-400/70 font-mono">{practiceWeakBigrams.slice(0, 5).join(" ")}{practiceWeakBigrams.length > 5 ? " ..." : ""}</span>
+                  </span>
+                )}
+              </div>
+            ) : null}
 
-        {/* Code language picker + indent style */}
-        {ct === "code" && (
-          <div className="flex items-center gap-1">
-            <CodeLanguagePicker
-              value={config.codeLanguage}
-              onChange={(lang) => set({ codeLanguage: lang })}
-            />
-            <MicroDivider />
-            <div className="flex items-center gap-0.5">
-              <Sub
-                active={(config.codeIndent ?? "spaces") === "spaces"}
-                onClick={() => set({ codeIndent: "spaces" })}
-              >
-                spaces
-              </Sub>
-              <Sub
-                active={config.codeIndent === "tabs"}
-                onClick={() => set({ codeIndent: "tabs" })}
-              >
-                tabs
-              </Sub>
-            </div>
+            {/* Code language picker + indent style */}
+            {ct === "code" && (
+              <div className="flex items-center gap-1">
+                <CodeLanguagePicker
+                  value={config.codeLanguage}
+                  onChange={(lang) => set({ codeLanguage: lang })}
+                />
+                <MicroDivider />
+                <div className="flex items-center gap-0.5">
+                  <Sub
+                    active={(config.codeIndent ?? "spaces") === "spaces"}
+                    onClick={() => set({ codeIndent: "spaces" })}
+                  >
+                    spaces
+                  </Sub>
+                  <Sub
+                    active={config.codeIndent === "tabs"}
+                    onClick={() => set({ codeIndent: "tabs" })}
+                  >
+                    tabs
+                  </Sub>
+                </div>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* ── Contextual: custom text input ── */}
-      {ct === "custom" && !isTyping && (
-        <div className="w-full max-w-lg mt-1">
-          <textarea
-            value={customInput}
-            onChange={(e) => {
-              setCustomInput(e.target.value);
-              const words = e.target.value.trim().split(/\s+/).filter(Boolean);
-              if (words.length > 0) onCustomTextChange?.(words);
-            }}
-            placeholder="Paste custom text here, or just start typing below..."
-            className="w-full h-20 rounded-lg bg-surface/60 ring-1 ring-white/[0.08] px-3 py-2 text-sm text-text placeholder:text-muted/65 resize-none focus:outline-none focus:ring-accent/30"
-          />
+      <div className={`grid transition-[grid-template-rows] duration-200 w-full ${
+        ct === "custom" && !isTyping ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+      }`}>
+        <div className="overflow-hidden">
+          <div className="w-full max-w-lg mt-1 mx-auto">
+            <textarea
+              value={customInput}
+              onChange={(e) => {
+                setCustomInput(e.target.value);
+                const words = e.target.value.trim().split(/\s+/).filter(Boolean);
+                if (words.length > 0) onCustomTextChange?.(words);
+              }}
+              placeholder="Paste custom text here, or just start typing below..."
+              className="w-full h-20 rounded-lg bg-surface/60 ring-1 ring-white/[0.08] px-3 py-2 text-sm text-text placeholder:text-muted/65 resize-none focus:outline-none focus:ring-accent/30"
+            />
+          </div>
         </div>
-      )}
+      </div>
 
     </div>
   );
