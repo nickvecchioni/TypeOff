@@ -16,6 +16,8 @@ import {
   generateSoloWords,
   generateWords,
   wordPoolByDifficulty,
+  normalizeQuoteSeed,
+  normalizeCodeSeed,
 } from "@typeoff/shared";
 
 const DEFAULT_CONFIG: TestConfig = {
@@ -123,6 +125,12 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
         seedRef.current = seed;
         const wordStrings = generateSoloWords(config, seed);
         newWords = createWordStates(wordStrings);
+        // Normalize seed for quotes/code so PB keys are stable per-text
+        if (config.contentType === "quotes") {
+          seedRef.current = normalizeQuoteSeed(seed);
+        } else if (config.contentType === "code") {
+          seedRef.current = normalizeCodeSeed(seed, config.codeLanguage);
+        }
       }
       wordsRef.current = newWords;
       setWords(newWords);
@@ -276,6 +284,12 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
       seedRef.current = seed;
       const wordStrings = generateSoloWords(config, seed);
       newWords = createWordStates(wordStrings);
+      // Normalize seed for quotes/code so PB keys are stable per-text
+      if (config.contentType === "quotes") {
+        seedRef.current = normalizeQuoteSeed(seed);
+      } else if (config.contentType === "code") {
+        seedRef.current = normalizeCodeSeed(seed, config.codeLanguage);
+      }
     }
     setWords(newWords);
     wordsRef.current = newWords;

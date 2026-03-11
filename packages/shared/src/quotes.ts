@@ -108,6 +108,11 @@ export const quotes: Quote[] = [
   { text: "The most difficult thing is the decision to act. The rest is merely tenacity.", author: "Amelia Earhart" },
 ];
 
+/** Normalize a seed to a stable quote index (0..N-1) */
+export function normalizeQuoteSeed(seed: number): number {
+  return seed % quotes.length;
+}
+
 /** Get a quote by index (wraps around if index exceeds array length) */
 export function getQuoteByIndex(index: number): Quote {
   return quotes[index % quotes.length];

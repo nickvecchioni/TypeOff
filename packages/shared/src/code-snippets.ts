@@ -121,6 +121,16 @@ export function getCodeSnippet(seed: number, language?: string): CodeSnippet {
   return pool[idx];
 }
 
+/** Normalize a seed to a stable code snippet index for PB tracking */
+export function normalizeCodeSeed(seed: number, language?: string): number {
+  const pool = language
+    ? CODE_SNIPPETS.filter((s) => s.language === language)
+    : CODE_SNIPPETS;
+  if (pool.length === 0) return 0;
+  const rng = mulberry32(seed);
+  return Math.floor(rng() * pool.length);
+}
+
 /** Get all available languages */
 export function getCodeLanguages(): string[] {
   return [...LANGUAGES];

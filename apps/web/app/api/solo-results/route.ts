@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
-import { soloResults, userKeyAccuracy, userBigramAccuracy, userAccuracySnapshots, textLeaderboards, userStats } from "@typeoff/db";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { soloResults, userKeyAccuracy, userBigramAccuracy, userAccuracySnapshots, textLeaderboards, userStats, userSubscription, userCosmetics } from "@typeoff/db";
+import { eq, and, desc, sql, gte } from "drizzle-orm";
 import type { KeyStatsMap } from "@typeoff/shared";
-import { scoreTextDifficulty, calculatePP, calculateTotalPP, getQuoteWords, getCodeSnippet, tokenizeCode } from "@typeoff/shared";
+import { scoreTextDifficulty, calculatePP, calculateTotalPP, getQuoteWords, getCodeSnippet, tokenizeCode, calculateSoloXp, SOLO_DAILY_XP_CAP, getXpLevel, getNewCosmeticRewards } from "@typeoff/shared";
 import { createRateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -146,6 +146,42 @@ export async function POST(request: Request) {
       .where(and(...conditions, eq(soloResults.isPb, true)));
   }
 
+  // ── XP Calculation ───────────────────────────────────────────
+  const PRO_XP_MULTIPLIER = 1.5;
+
+  // Check Pro status, current XP, and today's solo XP in parallel
+  const todayStart = new Date();
+  todayStart.setUTCHours(0, 0, 0, 0);
+
+  const [[sub], [stats], dailyXpRows] = await Promise.all([
+    db
+      .select({ status: userSubscription.status })
+      .from(userSubscription)
+      .where(eq(userSubscription.userId, userId))
+      .limit(1),
+    db
+      .select({ totalXp: userStats.totalXp })
+      .from(userStats)
+      .where(eq(userStats.userId, userId))
+      .limit(1),
+    db
+      .select({ xpSum: sql<number>`coalesce(sum(${soloResults.xpAwarded}), 0)` })
+      .from(soloResults)
+      .where(and(
+        eq(soloResults.userId, userId),
+        gte(soloResults.createdAt, todayStart),
+      )),
+  ]);
+
+  const isPro = sub?.status === "active" || sub?.status === "lifetime" || sub?.status === "past_due";
+  const dailyXpUsed = Number(dailyXpRows[0]?.xpSum ?? 0);
+  const dailyXpRemaining = Math.max(0, SOLO_DAILY_XP_CAP - dailyXpUsed);
+
+  const baseXp = calculateSoloXp({ wpm, accuracy });
+  let xpEarned = isPro ? Math.round(baseXp * PRO_XP_MULTIPLIER) : baseXp;
+  // Clamp to daily cap
+  xpEarned = Math.min(xpEarned, dailyXpRemaining);
+
   await db.insert(soloResults).values({
     userId,
     mode: normMode,
@@ -163,8 +199,46 @@ export async function POST(request: Request) {
     consistency: typeof consistency === "number" ? consistency : null,
     keyStatsJson: keyStats ? JSON.stringify(keyStats) : null,
     replayData: replayData ? JSON.stringify(replayData) : null,
-    seed: typeof seed === "number" ? seed : null,
+    seed: isFixedText && typeof seed === "number" ? seed : null,
+    xpAwarded: xpEarned,
   });
+
+  // Award XP to user stats
+  const prevXp = stats?.totalXp ?? 0;
+  const newXp = prevXp + xpEarned;
+  let xpProgress: { xpEarned: number; totalXp: number; level: number; levelUp: boolean; newRewards: Array<{ level: number; type: string; id: string; name: string; value: string }>; isPro: boolean; dailyXpUsed: number; dailyXpCap: number } | undefined;
+
+  if (xpEarned > 0) {
+    await db
+      .update(userStats)
+      .set({ totalXp: sql`${userStats.totalXp} + ${xpEarned}` })
+      .where(eq(userStats.userId, userId));
+
+    const prevLevel = getXpLevel(prevXp).level;
+    const newLevel = getXpLevel(newXp).level;
+    const levelUp = newLevel > prevLevel;
+
+    const newRewards = getNewCosmeticRewards(prevXp, newXp, isPro);
+    if (newRewards.length > 0) {
+      for (const reward of newRewards) {
+        await db
+          .insert(userCosmetics)
+          .values({ userId, cosmeticId: reward.id, seasonId: "xp" })
+          .onConflictDoNothing();
+      }
+    }
+
+    xpProgress = {
+      xpEarned,
+      totalXp: newXp,
+      level: newLevel,
+      levelUp,
+      newRewards,
+      isPro,
+      dailyXpUsed: dailyXpUsed + xpEarned,
+      dailyXpCap: SOLO_DAILY_XP_CAP,
+    };
+  }
 
   // Upsert text leaderboard for quotes and code (per-text PBs with PP)
   if (isPerText && isPbEligible && wpm > 0) {
@@ -328,7 +402,7 @@ export async function POST(request: Request) {
     }
   }
 
-    return NextResponse.json({ isPb });
+    return NextResponse.json({ isPb, xpProgress: xpProgress ?? null });
   } catch (err) {
     console.error("[solo-results] POST error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
