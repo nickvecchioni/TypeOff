@@ -211,6 +211,16 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
     const config = engine.config;
     const currentSeed = engine.lastSeed;
 
+    // Optimistic PB detection — show immediately without waiting for API
+    const key = getPbKey(config, currentSeed);
+    const cachedPb = pbs[key];
+    if (cachedPb == null || stats.wpm > cachedPb) {
+      setIsPb(true);
+      setPbs((prev) => ({ ...prev, [key]: stats.wpm }));
+    } else {
+      setIsPb(false);
+    }
+
     fetch("/api/solo-results", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -240,11 +250,9 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
           console.warn("[solo-results] save failed:", res.status, data);
           return;
         }
-        if (data.isPb) {
-          setIsPb(true);
-          // Update local PB cache (per-text for quotes/code)
-          const key = getPbKey(config, currentSeed);
-          setPbs((prev) => ({ ...prev, [key]: stats.wpm }));
+        // Server disagrees with our optimistic PB — correct it
+        if (!data.isPb && isPb) {
+          setIsPb(false);
         }
         if (data.xpProgress) {
           setXpProgress(data.xpProgress);
