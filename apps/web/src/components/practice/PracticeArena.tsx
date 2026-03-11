@@ -339,8 +339,8 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
           style={{ animationDelay: "0ms", animationFillMode: "both" }}
         >
           {session?.user?.id && (
-            <div className="focus-fade text-base text-muted/65 tabular-nums mb-1 h-7 flex items-center justify-center">
-              pb{" "}
+            <div className="focus-fade text-base text-muted/65 tabular-nums mb-1 h-7 flex items-center justify-center gap-1">
+              <span>pb</span>
               {currentPb !== null ? (
                 <span className="text-muted font-semibold text-lg">
                   {Math.floor(currentPb)}
