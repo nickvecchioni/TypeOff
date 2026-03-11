@@ -334,7 +334,7 @@ export function RaceTypingArea({
         )}
       </div>
       {capsLock && (
-        <div className="flex justify-center mt-2">
+        <div className="absolute left-1/2 -translate-x-1/2 bottom-2 z-10">
           <span className="px-2 py-0.5 rounded text-xs font-medium bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/20">
             Caps Lock
           </span>

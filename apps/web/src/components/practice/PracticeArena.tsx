@@ -323,7 +323,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
 
   return (
     <div
-      className={`flex flex-col items-center gap-3 w-full max-w-5xl mx-auto ${
+      className={`relative flex flex-col items-center gap-3 w-full max-w-5xl mx-auto ${
         isTyping && settings.focusMode ? "focus-active" : ""
       }`}
       onClick={(e) => {
@@ -424,8 +424,8 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
         </div>
       )}
 
-      {/* Quote attribution */}
-      {ct === "quotes" && engine.lastSeed != null && (
+      {/* Quote attribution — only shown after finishing */}
+      {ct === "quotes" && engine.lastSeed != null && isFinished && (
         <div className="text-center mt-1 -mb-2 text-xs text-muted/50 italic">
           — {getQuoteAuthor(engine.lastSeed)}
         </div>
@@ -487,9 +487,9 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
         </div>
       )}
 
-      {/* Caps Lock warning — below typing area, never overlapping text */}
+      {/* Caps Lock warning — absolute so it never shifts layout */}
       {!isFinished && capsLock && (
-        <div className="flex justify-center -mt-2 mb-2">
+        <div className="absolute left-1/2 -translate-x-1/2 bottom-4 z-10">
           <span className="px-2 py-0.5 rounded text-xs font-medium bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/20">
             Caps Lock
           </span>
