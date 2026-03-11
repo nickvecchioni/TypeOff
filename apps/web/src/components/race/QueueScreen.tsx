@@ -519,11 +519,7 @@ export function QueueScreen({
         </div>
 
         {party && (
-          <div className="flex flex-col items-center gap-3 w-full max-w-xs">
-            <div className="text-xs text-muted">
-              Queuing with {party.members.length} party{" "}
-              {party.members.length === 1 ? "member" : "members"}
-            </div>
+          <div className="w-full max-w-md">
             <PartyPanel
               party={party}
               error={partyError}
@@ -650,6 +646,18 @@ export function QueueScreen({
                   Private
                 </span>
               )}
+              {party && (
+                <div className="w-full mt-1">
+                  <PartyPanel
+                    party={party}
+                    error={partyError}
+                    onCreateParty={onCreateParty}
+                    onInvite={onInviteToParty}
+                    onKick={onKickFromParty}
+                    onLeave={onLeaveParty}
+                  />
+                </div>
+              )}
             </div>
           ) : (
             <div
@@ -753,32 +761,41 @@ export function QueueScreen({
                 )}
               </div>
 
-              {/* Private race toggle */}
-              {party &&
-                isPartyLeader &&
-                party.members.length >= 2 &&
-                session.user.placementsCompleted && (
-                  <label className="relative flex items-center gap-2 mt-3 cursor-pointer select-none group">
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={!!privateRace}
-                      onClick={() => onSetPrivateRace?.(!privateRace)}
-                      className={`relative w-8 h-[18px] rounded-full transition-colors ${
-                        privateRace ? "bg-accent" : "bg-white/[0.08]"
-                      }`}
-                    >
-                      <span
-                        className={`absolute top-0.5 left-0.5 w-3.5 h-3.5 rounded-full bg-white transition-transform ${
-                          privateRace ? "translate-x-3.5" : ""
+              {/* Party bar + private race toggle */}
+              {session.user.placementsCompleted && party && (
+                <div className="relative w-full mt-1 flex flex-col items-center gap-2 animate-fade-in">
+                  <PartyPanel
+                    party={party}
+                    error={partyError}
+                    onCreateParty={onCreateParty}
+                    onInvite={onInviteToParty}
+                    onKick={onKickFromParty}
+                    onLeave={onLeaveParty}
+                  />
+                  {isPartyLeader && party.members.length >= 2 && (
+                    <label className="flex items-center gap-2 cursor-pointer select-none group">
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={!!privateRace}
+                        onClick={() => onSetPrivateRace?.(!privateRace)}
+                        className={`relative w-8 h-[18px] rounded-full transition-colors ${
+                          privateRace ? "bg-accent" : "bg-white/[0.08]"
                         }`}
-                      />
-                    </button>
-                    <span className="text-xs text-muted/65 group-hover:text-muted transition-colors">
-                      Private race
-                    </span>
-                  </label>
-                )}
+                      >
+                        <span
+                          className={`absolute top-0.5 left-0.5 w-3.5 h-3.5 rounded-full bg-white transition-transform ${
+                            privateRace ? "translate-x-3.5" : ""
+                          }`}
+                        />
+                      </button>
+                      <span className="text-xs text-muted/65 group-hover:text-muted transition-colors">
+                        Private race
+                      </span>
+                    </label>
+                  )}
+                </div>
+              )}
 
               {!session.user.placementsCompleted && (
                 <p className="relative text-xs text-muted/65 mt-1">
@@ -787,24 +804,6 @@ export function QueueScreen({
               )}
             </div>
           )}
-
-          {/* ── Party panel ───────────────────────────────────────────── */}
-          {session.user.placementsCompleted && party && (
-            <div
-              className="w-full max-w-lg mt-1 animate-fade-in"
-              style={{ animationDelay: "100ms", animationFillMode: "both" }}
-            >
-              <PartyPanel
-                party={party}
-                error={partyError}
-                onCreateParty={onCreateParty}
-                onInvite={onInviteToParty}
-                onKick={onKickFromParty}
-                onLeave={onLeaveParty}
-              />
-            </div>
-          )}
-
 
           {/* ── Dashboard ─────────────────────────────────────────────── */}
           {session.user.placementsCompleted && xpInfo && (
