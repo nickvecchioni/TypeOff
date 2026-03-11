@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect, useCallback, useState } from "react";
 import { useSession } from "next-auth/react";
-import { getPbKey, getQuoteAuthor, getCodeSnippet } from "@typeoff/shared";
+import { getPbKey, getCodeSnippet } from "@typeoff/shared";
 import { useTypingEngine } from "@/hooks/useTypingEngine";
 import { useCapsLock } from "@/hooks/useCapsLock";
 import { WordDisplay } from "@/components/typing/WordDisplay";
@@ -339,7 +339,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
           style={{ animationDelay: "0ms", animationFillMode: "both" }}
         >
           {session?.user?.id && (
-            <div className="focus-fade text-base text-muted/65 tabular-nums mb-1">
+            <div className="focus-fade text-base text-muted/65 tabular-nums mb-1 h-7 flex items-center justify-center">
               pb{" "}
               {currentPb !== null ? (
                 <span className="text-muted font-semibold text-lg">
@@ -424,12 +424,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
         </div>
       )}
 
-      {/* Quote attribution — only shown after finishing */}
-      {ct === "quotes" && engine.lastSeed != null && isFinished && (
-        <div className="text-center mt-1 -mb-2 text-xs text-muted/50 italic">
-          — {getQuoteAuthor(engine.lastSeed)}
-        </div>
-      )}
+
 
       {/* Code snippet info */}
       {ct === "code" && engine.lastSeed != null && (() => {
