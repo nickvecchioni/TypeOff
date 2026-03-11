@@ -454,3 +454,23 @@ export function calculateRaceXp(data: {
   }
   return base + speedBonus + accBonus + placementBonus;
 }
+
+/** Daily XP cap for solo mode to prevent farming */
+export const SOLO_DAILY_XP_CAP = 1500;
+
+/** Calculate XP earned from a solo practice session (~50% of race XP, no placement bonus).
+ *  Scaled by elapsed time normalized to 60s to prevent short-test farming. */
+export function calculateSoloXp(data: {
+  wpm: number;
+  accuracy: number;
+  elapsedSeconds: number;
+}): number {
+  const base = 15;
+  // Speed bonus: up to +30 (half of race)
+  const speedBonus = Math.min(30, Math.max(0, Math.round(((data.wpm - 30) / 120) * 30)));
+  // Accuracy bonus: +5 at 95%+, +10 at 98%+
+  const accBonus = data.accuracy >= 98 ? 10 : data.accuracy >= 95 ? 5 : 0;
+  // Time factor: normalized to 60s, floored at 0.25 (short tests), capped at 1.5 (long tests)
+  const timeFactor = Math.min(1.5, Math.max(0.25, data.elapsedSeconds / 60));
+  return Math.round((base + speedBonus + accBonus) * timeFactor);
+}
