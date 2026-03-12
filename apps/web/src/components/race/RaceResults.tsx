@@ -1200,7 +1200,7 @@ export function RaceResults({
       {raceMode === "quotes" && raceSeed != null && (() => {
         const quote = getQuoteByIndex(raceSeed);
         return (
-          <div className="shrink-0 rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-4 py-3">
+          <div className="shrink-0 rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-4 py-3 text-center">
             <div className="text-sm text-text/70 italic leading-relaxed">&ldquo;{quote.text}&rdquo;</div>
             <div className="text-xs text-muted/50 mt-1.5">&mdash; {quote.author}</div>
           </div>
