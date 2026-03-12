@@ -317,7 +317,7 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed, xpProgre
   const showRawWpm = stats.rawWpm > 0 && Math.floor(stats.rawWpm) !== Math.floor(stats.wpm);
 
   return (
-    <div className="flex flex-col gap-1.5 w-full flex-1 min-h-0 overflow-y-auto animate-slide-up pb-1" style={{ scrollbarGutter: "stable" }}>
+    <div className="flex flex-col gap-1.5 w-full animate-slide-up pb-1">
       {/* ── Hero stats ─────────────────────────────────────── */}
       <div
         className="relative rounded-xl overflow-hidden ring-1 ring-white/[0.06]"
@@ -519,9 +519,29 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed, xpProgre
       </div>
 
       {/* ── XP Progress ──────────────────────────────────────── */}
-      {xpProgress && xpProgress.xpEarned > 0 && (
-        <SoloXpPanel xp={xpProgress} />
-      )}
+      {session?.user ? (
+        xpProgress && xpProgress.xpEarned > 0 ? (
+          <SoloXpPanel xp={xpProgress} />
+        ) : !xpProgress ? (
+          <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden">
+            <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
+            <div className="px-3 py-2 sm:px-4 sm:py-2.5 flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <div className="h-3 w-12 rounded bg-white/[0.04] animate-pulse" />
+                <div className="h-3 w-16 rounded bg-white/[0.04] animate-pulse" />
+              </div>
+              <div className="rounded-lg px-3 py-2 ring-1 ring-white/[0.04] bg-surface/40 flex items-center gap-4">
+                <div className="w-10 h-10 rounded bg-white/[0.04] animate-pulse shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 w-24 rounded bg-white/[0.04] animate-pulse" />
+                  <div className="h-1.5 w-full rounded-full bg-surface" />
+                  <div className="h-2.5 w-20 rounded bg-white/[0.04] animate-pulse" />
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null
+      ) : null}
 
       {/* ── Speed Analysis (Pro) ────────────────────────────── */}
       {isPro && stats.wpmHistory.length >= 4 && (

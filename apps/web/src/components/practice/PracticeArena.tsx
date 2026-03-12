@@ -366,7 +366,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
   return (
     <div
       className={`relative flex flex-col items-center gap-3 w-full max-w-5xl mx-auto ${
-        isFinished ? "flex-1 min-h-0" : "flex-1 justify-center -mt-16"
+        isFinished ? "" : "flex-1 justify-center -mt-16"
       } ${
         isTyping && settings.focusMode ? "focus-active" : ""
       }`}
