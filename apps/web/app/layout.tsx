@@ -76,7 +76,7 @@ export default function RootLayout({
           />
         )}
       </head>
-      <body className={`${jetbrainsMono.variable} font-mono antialiased h-screen flex flex-col overflow-hidden`}>
+      <body className={`${jetbrainsMono.variable} font-mono antialiased h-screen flex flex-col overflow-y-auto`}>
         <SessionProvider>
           <SettingsProvider>
           <CosmeticProvider>
