@@ -17,8 +17,8 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^0.10.4",
-    "drizzle-orm": "^0.38.4"
+    "drizzle-orm": "^0.38.4",
+    "postgres": "^3.4.5"
   },
   "devDependencies": {
     "drizzle-kit": "^0.30",

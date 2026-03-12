@@ -15,12 +15,10 @@
     "dotenv": "^16",
     "jose": "^6",
     "leo-profanity": "^1.9.0",
-    "socket.io": "^4",
-    "ws": "^8"
+    "socket.io": "^4"
   },
   "devDependencies": {
     "@types/node": "^22.19.11",
-    "@types/ws": "^8.18.1",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }

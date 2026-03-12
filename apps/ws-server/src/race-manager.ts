@@ -14,7 +14,7 @@ import type { RankTier, RaceMode, ModeCategory, ReplaySnapshot } from "@typeoff/
 import type { NotificationManager } from "./notification-manager.js";
 import { races, raceParticipants, userStats, userModeStats, users, userActiveCosmetics, textLeaderboards } from "@typeoff/db";
 import type { Database } from "@typeoff/db";
-import { getDb, getPoolDb } from "./db.js";
+import { getDb } from "./db.js";
 import { eq, inArray, and, sql, desc } from "drizzle-orm";
 import { checkAchievements } from "./achievement-checker.js";
 import { checkChallenges, type ChallengeCheckResult } from "./challenge-checker.js";
@@ -1101,11 +1101,10 @@ export class RaceManager {
     const previousTextBestWpmMap = new Map<string, number>();
 
     const db = getDb();
-    const poolDb = getPoolDb();
 
     // Steps 1-3: race insert, participants, stats, ELO (wrapped in transaction)
     try {
-      await poolDb.transaction(async (tx) => {
+      await db.transaction(async (tx) => {
       // 1. Insert race record
       await tx.insert(races).values({
         id: this.raceId,
