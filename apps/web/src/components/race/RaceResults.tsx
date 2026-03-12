@@ -1045,7 +1045,7 @@ export function RaceResults({
   };
 
   return (
-    <div className="flex flex-col gap-1.5 w-full flex-1 min-h-0 overflow-y-auto">
+    <div className="flex flex-col gap-1.5 w-full flex-1 min-h-0 overflow-y-auto" style={{ scrollbarGutter: "stable" }}>
 
       {/* ── Hero stats ─────────────────────────────────────── */}
       {myResult ? (
@@ -1217,14 +1217,13 @@ export function RaceResults({
         );
       })()}
 
-      {/* ── TOP ROW: Standings + XP/Challenges ────────────── */}
-      <div
-        className="grid grid-cols-1 sm:grid-cols-[1fr_minmax(0,20rem)] gap-1.5 w-full"
-      >
-        {/* ── LEFT: Standings table + Chat ── */}
-        <div className="flex flex-col gap-1.5 min-h-0">
+      {/* ── MAIN CONTENT: 2-column grid ─────────────────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-[1fr_minmax(0,20rem)] gap-1.5 w-full flex-1 min-h-0">
+
+        {/* ── LEFT COLUMN ── */}
+        <div className="flex flex-col gap-1.5 min-h-0 min-w-0">
+          {/* Standings table */}
           <div className="rounded-xl overflow-hidden bg-surface/20 ring-1 ring-white/[0.05]">
-            {/* Header */}
             <div
               className={`grid text-muted/50 text-xs uppercase tracking-widest px-3 sm:px-4 py-1.5 bg-white/[0.02] border-b border-white/[0.04] ${tableCols}`}
             >
@@ -1236,7 +1235,6 @@ export function RaceResults({
               {showEloCol && <span className="font-medium text-right">ELO</span>}
             </div>
 
-            {/* Rows */}
             {results.map((result) => {
               const isMe = result.playerId === myPlayerId;
               const isBot = result.playerId.startsWith("bot_");
@@ -1347,19 +1345,27 @@ export function RaceResults({
               );
             })}
 
-            {/* Preset chat feed — hidden in bot-only races (#8) */}
             {!isPlacement && !allOpponentsAreBots && <PresetChatFeed emotes={emotes} />}
           </div>
+
+          {/* WPM Chart — fills remaining left-column space */}
+          {myWpmHistory && myWpmHistory.length >= 2 && (
+            <div className="rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-3 pt-2.5 pb-1.5 flex flex-col flex-1 min-h-[80px] min-w-0">
+              <div className="text-xs font-bold text-muted/60 uppercase tracking-widest mb-0.5">WPM over time</div>
+              <div className="flex-1 min-h-0">
+                <WpmChart samples={myWpmHistory} compact />
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* ── RIGHT: XP + Challenges + Achievements ── */}
+        {/* ── RIGHT COLUMN ── */}
         <div className="flex flex-col gap-1.5 min-h-0">
-          {/* XP Progress — always reserve space to prevent jitter */}
+          {/* XP Progress */}
           {!isPlacement && (
             hasXpProgress ? (
               <AnimatedXpPanel xp={myResult!.xpProgress!} isPro={isPro} />
             ) : (
-              /* Skeleton placeholder for XP panel */
               <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden">
                 <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
                 <div className="px-3 py-2.5 sm:px-4 sm:py-3 flex flex-col gap-2.5">
@@ -1377,17 +1383,13 @@ export function RaceResults({
             )
           )}
 
-          {/* Challenges — compact in the right column */}
+          {/* Challenges */}
           {!isPlacement && (
             <div className="rounded-xl bg-surface/20 ring-1 ring-white/[0.05] overflow-hidden px-3 py-2">
               <div className="flex items-center justify-between mb-0.5">
-                <h3 className="text-xs font-bold text-muted/65 uppercase tracking-widest">
-                  Challenges
-                </h3>
+                <h3 className="text-xs font-bold text-muted/65 uppercase tracking-widest">Challenges</h3>
                 {myResult?.xpEarned != null && myResult.xpEarned > 0 && (
-                  <span className="text-xs font-bold text-accent tabular-nums">
-                    +{myResult.xpEarned} XP
-                  </span>
+                  <span className="text-xs font-bold text-accent tabular-nums">+{myResult.xpEarned} XP</span>
                 )}
               </div>
               {hasChallenges ? (
@@ -1404,9 +1406,7 @@ export function RaceResults({
                           {def.name}
                           {cp.completed && <span className="text-correct ml-1">✓</span>}
                         </span>
-                        <span className="text-xs text-muted tabular-nums shrink-0 ml-auto">
-                          {progress}/{cp.target}
-                        </span>
+                        <span className="text-xs text-muted tabular-nums shrink-0 ml-auto">{progress}/{cp.target}</span>
                         <div className="w-10 h-1 rounded-full bg-surface overflow-hidden shrink-0">
                           <div
                             className={`h-full rounded-full transition-all ${cp.completed ? "bg-correct" : "bg-accent"}`}
@@ -1414,9 +1414,7 @@ export function RaceResults({
                           />
                         </div>
                         {cp.justCompleted && (
-                          <span className="text-xs font-bold text-correct bg-correct/10 rounded px-1 py-0.5 tabular-nums shrink-0">
-                            +{cp.xpAwarded} XP
-                          </span>
+                          <span className="text-xs font-bold text-correct bg-correct/10 rounded px-1 py-0.5 tabular-nums shrink-0">+{cp.xpAwarded} XP</span>
                         )}
                       </div>
                     );
@@ -1431,7 +1429,12 @@ export function RaceResults({
             </div>
           )}
 
-          {/* Pro upsell card (non-Pro only) */}
+          {/* Speed Analysis (Pro) */}
+          {isPro && myWpmHistory && myWpmHistory.length >= 4 && myResult && (
+            <SpeedAnalysis wpmHistory={myWpmHistory} wpm={myResult.wpm} accuracy={myResult.accuracy} />
+          )}
+
+          {/* Pro upsell (non-Pro only) */}
           {showProPanel && (
             <ProPanel level={currentLevel} xpEarned={myResult?.xpProgress?.xpEarned ?? 0} />
           )}
@@ -1439,9 +1442,7 @@ export function RaceResults({
           {/* Achievements */}
           {hasAchievements && (
             <div className="flex flex-col gap-1 w-full">
-              <h3 className="text-xs font-bold text-muted/65 uppercase tracking-widest px-0.5">
-                Achievements Unlocked
-              </h3>
+              <h3 className="text-xs font-bold text-muted/65 uppercase tracking-widest px-0.5">Achievements Unlocked</h3>
               <div className="grid grid-cols-1 gap-1">
                 {myResult!.newAchievements!.map((id) => {
                   const def = ACHIEVEMENT_MAP.get(id);
@@ -1456,9 +1457,7 @@ export function RaceResults({
                         <div className="flex items-center gap-1.5">
                           <div className="text-sm font-bold text-text">{def.name}</div>
                           {def.rarity !== "common" && (
-                            <span className={`text-xs font-black uppercase tracking-wider ${RARITY_LABEL[def.rarity]}`}>
-                              {def.rarity}
-                            </span>
+                            <span className={`text-xs font-black uppercase tracking-wider ${RARITY_LABEL[def.rarity]}`}>{def.rarity}</span>
                           )}
                         </div>
                         <div className="text-xs text-muted/60 truncate">{def.description}</div>
@@ -1472,35 +1471,12 @@ export function RaceResults({
         </div>
       </div>
 
-      {/* ── WPM CHART + SPEED ANALYSIS (side by side) ──── */}
-      {myWpmHistory && myWpmHistory.length >= 2 && (
-        <div className={`grid gap-1.5 w-full ${isPro && myWpmHistory.length >= 4 && myResult ? "grid-cols-1 sm:grid-cols-[1fr_minmax(0,22rem)]" : "grid-cols-1"}`}>
-          <div
-            className="rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-3 pt-2.5 pb-1.5 flex flex-col min-w-0"
-          >
-            <div className="text-xs font-bold text-muted/60 uppercase tracking-widest mb-0.5">WPM over time</div>
-            <div className="w-full" style={{ aspectRatio: "5 / 1" }}>
-              <WpmChart samples={myWpmHistory} compact />
-            </div>
-          </div>
-
-          {/* Speed Analysis — beside chart on desktop */}
-          {isPro && myWpmHistory.length >= 4 && myResult && (
-            <SpeedAnalysis wpmHistory={myWpmHistory} wpm={myResult.wpm} accuracy={myResult.accuracy} />
-          )}
-        </div>
-      )}
-
       {/* ── TYPING ANALYSIS (Pro, full width — only if key stats exist) */}
       {isPro && myKeyStats && Object.keys(myKeyStats).length > 0 && (
-        <div
-          className="w-full rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-3 pt-2.5 pb-3 flex flex-col gap-2"
-        >
+        <div className="shrink-0 w-full rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-3 pt-2.5 pb-3 flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <div className="text-xs font-bold text-muted/50 uppercase tracking-widest">Typing Analysis</div>
-            <span className="text-xs font-black text-accent/50 bg-accent/[0.06] ring-1 ring-accent/15 rounded px-1.5 py-0.5 uppercase tracking-wider leading-none">
-              PRO
-            </span>
+            <span className="text-xs font-black text-accent/50 bg-accent/[0.06] ring-1 ring-accent/15 rounded px-1.5 py-0.5 uppercase tracking-wider leading-none">PRO</span>
           </div>
           <KeyboardHeatmap keyStats={myKeyStats} />
           {myResult && (
@@ -1511,15 +1487,9 @@ export function RaceResults({
                 const totalIncorrect = totalAll - totalCorrect;
                 return (
                   <>
-                    <span>
-                      <span className="text-correct font-semibold">{totalCorrect}</span> correct
-                    </span>
-                    <span>
-                      <span className="text-error font-semibold">{totalIncorrect}</span> incorrect
-                    </span>
-                    <span>
-                      <span className="text-text font-semibold">{totalAll}</span> total
-                    </span>
+                    <span><span className="text-correct font-semibold">{totalCorrect}</span> correct</span>
+                    <span><span className="text-error font-semibold">{totalIncorrect}</span> incorrect</span>
+                    <span><span className="text-text font-semibold">{totalAll}</span> total</span>
                   </>
                 );
               })()}
@@ -1529,11 +1499,11 @@ export function RaceResults({
       )}
 
       {/* ── Ad ──────────────────────────────────────────────── */}
-      <AdBanner slot="race_results" format="horizontal" className="w-full" />
+      <AdBanner slot="race_results" format="horizontal" className="shrink-0 w-full" />
 
       {/* ── RACE AGAIN + ACTIONS ──────────────────────────── */}
       <div
-        className="flex flex-col items-center gap-1.5 w-full max-w-lg mx-auto"
+        className="shrink-0 flex flex-col items-center gap-1.5 w-full max-w-lg mx-auto"
       >
         {/* Party ready state */}
         {inParty && !isPlacement && (
