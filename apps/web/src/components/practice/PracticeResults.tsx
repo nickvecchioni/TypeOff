@@ -317,7 +317,7 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed, xpProgre
   const showRawWpm = stats.rawWpm > 0 && Math.floor(stats.rawWpm) !== Math.floor(stats.wpm);
 
   return (
-    <div className="flex flex-col gap-1.5 w-full animate-slide-up">
+    <div className="flex flex-col gap-1.5 w-full flex-1 min-h-0 overflow-y-auto animate-slide-up pb-1" style={{ scrollbarGutter: "stable" }}>
       {/* ── Hero stats ─────────────────────────────────────── */}
       <div
         className="relative rounded-xl overflow-hidden ring-1 ring-white/[0.06]"
