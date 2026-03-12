@@ -451,7 +451,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
         <div
           ref={containerRef}
           tabIndex={0}
-          onKeyDown={engine.handleKeyDown}
+          onKeyDown={isCustomEmpty ? undefined : engine.handleKeyDown}
           onPaste={handlePaste}
           className="relative w-full outline-none cursor-default select-none overflow-hidden opacity-0 animate-fade-in"
           style={{ height: containerHeight, animationDelay: "40ms", animationFillMode: "both" }}
