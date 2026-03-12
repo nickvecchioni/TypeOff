@@ -526,17 +526,17 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
             <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/65 text-xs">Enter</kbd>
             {" "}to restart
           </p>
+
+          {/* Caps Lock warning — absolute so it never shifts layout */}
+          {capsLock && (
+            <span className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded text-xs font-medium bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/20 z-10">
+              Caps Lock
+            </span>
+          )}
         </div>
       )}
 
-      {/* Caps Lock warning — absolute so it never shifts layout */}
-      {!isFinished && capsLock && (
-        <div className="absolute left-1/2 -translate-x-1/2 bottom-4 z-10">
-          <span className="px-2 py-0.5 rounded text-xs font-medium bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/20">
-            Caps Lock
-          </span>
-        </div>
-      )}
+      {/* Caps Lock warning removed — now rendered inside the WPM row */}
 
       {/* Results */}
       {isFinished && engine.stats && (
