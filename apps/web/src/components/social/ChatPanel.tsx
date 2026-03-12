@@ -49,7 +49,7 @@ export function ChatPanel({ friendId, friendName, online, currentUserId }: ChatP
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full animate-chat-open">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-white/[0.06]">
         <button

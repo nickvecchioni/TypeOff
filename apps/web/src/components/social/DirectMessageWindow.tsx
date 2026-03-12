@@ -10,11 +10,29 @@ export function DirectMessageWindow() {
   const [draft, setDraft] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const prevCountRef = useRef(0);
+  const initialLoadRef = useRef(true);
   const myId = session?.user?.id;
 
-  // Scroll to bottom when conversation opens or new message arrives
+  // Track conversation identity — reset initial load flag when conversation changes
+  const convUserId = openConversation?.userId;
   useEffect(() => {
-    if (openConversation && !openConversation.loading) {
+    initialLoadRef.current = true;
+    prevCountRef.current = 0;
+  }, [convUserId]);
+
+  // Scroll to bottom: instant on initial load, smooth on new messages
+  useEffect(() => {
+    if (!openConversation || openConversation.loading) return;
+    const count = openConversation.messages.length;
+    const isNew = count > prevCountRef.current && !initialLoadRef.current;
+    prevCountRef.current = count;
+
+    if (initialLoadRef.current) {
+      initialLoadRef.current = false;
+      // Instant scroll — no visible "scroll down" effect
+      bottomRef.current?.scrollIntoView();
+    } else if (isNew) {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [openConversation?.messages.length, openConversation?.loading]);
@@ -45,11 +63,12 @@ export function DirectMessageWindow() {
   if (!openConversation) return null;
 
   return (
-    <div className="fixed bottom-14 right-4 z-50 flex flex-col w-72 max-h-[min(420px,calc(100vh-5rem))] rounded-lg overflow-hidden shadow-2xl animate-fade-in"
+    <div className="fixed bottom-14 right-4 z-50 flex flex-col w-72 max-h-[min(420px,calc(100vh-5rem))] rounded-lg overflow-hidden shadow-2xl animate-dm-open"
       style={{
         background: "#0d0d16",
         border: "1px solid rgba(255,255,255,0.08)",
         boxShadow: "0 20px 60px rgba(0,0,0,0.8)",
+        transformOrigin: "bottom right",
       }}
     >
       {/* Header */}
