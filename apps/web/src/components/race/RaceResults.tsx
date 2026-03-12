@@ -1045,7 +1045,7 @@ export function RaceResults({
   };
 
   return (
-    <div className="flex flex-col gap-1.5 w-full flex-1 min-h-0 overflow-y-auto" style={{ scrollbarGutter: "stable" }}>
+    <div className="flex flex-col gap-1.5 w-full flex-1 min-h-0 overflow-y-auto pb-2" style={{ scrollbarGutter: "stable" }}>
 
       {/* ── Hero stats ─────────────────────────────────────── */}
       {myResult ? (
@@ -1429,11 +1429,6 @@ export function RaceResults({
             </div>
           )}
 
-          {/* Speed Analysis (Pro) */}
-          {isPro && myWpmHistory && myWpmHistory.length >= 4 && myResult && (
-            <SpeedAnalysis wpmHistory={myWpmHistory} wpm={myResult.wpm} accuracy={myResult.accuracy} />
-          )}
-
           {/* Pro upsell (non-Pro only) */}
           {showProPanel && (
             <ProPanel level={currentLevel} xpEarned={myResult?.xpProgress?.xpEarned ?? 0} />
@@ -1470,6 +1465,11 @@ export function RaceResults({
           )}
         </div>
       </div>
+
+      {/* ── Speed Analysis (Pro, full width) */}
+      {isPro && myWpmHistory && myWpmHistory.length >= 4 && myResult && (
+        <SpeedAnalysis wpmHistory={myWpmHistory} wpm={myResult.wpm} accuracy={myResult.accuracy} />
+      )}
 
       {/* ── TYPING ANALYSIS (Pro, full width — only if key stats exist) */}
       {isPro && myKeyStats && Object.keys(myKeyStats).length > 0 && (
