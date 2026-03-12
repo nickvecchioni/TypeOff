@@ -412,8 +412,6 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
             practiceWeakBigrams={weakBigrams}
             isPro={isPro}
           />
-          {/* Breathing room for tooltips below config icons */}
-          <div className="h-3" />
         </div>
       )}
 
@@ -437,7 +435,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
 
       {/* Code snippet title — fixed height slot, fades in/out */}
       {!isFinished && (
-        <div className={`h-5 flex items-center justify-center transition-opacity duration-200 ${
+        <div className={`h-5 -mb-1 flex items-center justify-center transition-opacity duration-200 ${
           codeSnippet ? "opacity-100" : "opacity-0"
         }`}>
           {codeSnippet && (
@@ -461,20 +459,9 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
           aria-label="Solo typing area"
         >
           {isCustomEmpty ? (
-            /* Custom mode placeholder — waiting for paste */
-            <div className="flex items-center justify-center h-full">
-              <div className="flex flex-col items-center gap-2 text-muted/40">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
-                </svg>
-                <span className="text-sm">
-                  <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/50 text-xs font-medium">
-                    {typeof navigator !== "undefined" && /Mac/.test(navigator.userAgent) ? "⌘" : "Ctrl"}+V
-                  </kbd>
-                  {" "}to paste text
-                </span>
-              </div>
+            /* Custom mode placeholder — muted hint text in typing position */
+            <div className="text-2xl leading-[40px] text-muted/20 no-ligatures select-none">
+              paste text to start typing...
             </div>
           ) : (
             <div
