@@ -779,74 +779,73 @@ function SpeedAnalysis({
   }
 
   return (
-    <div className="w-full rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-4 pt-3 pb-4 flex flex-col gap-3">
+    <div className="w-full rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-3 pt-2.5 pb-3 flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <div className="text-sm font-bold text-muted/50 uppercase tracking-widest">
+        <div className="text-xs font-bold text-muted/50 uppercase tracking-widest">
           Speed Analysis
         </div>
-        <span className="text-xs font-black text-accent/50 bg-accent/[0.06] ring-1 ring-accent/15 rounded px-2 py-1 uppercase tracking-wider leading-none">
+        <span className="text-xs font-black text-accent/50 bg-accent/[0.06] ring-1 ring-accent/15 rounded px-1.5 py-0.5 uppercase tracking-wider leading-none">
           PRO
         </span>
       </div>
 
       {/* Stats grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+      <div className="grid grid-cols-2 gap-1.5">
         {/* Peak sustained */}
-        <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3">
-          <div className="text-xs text-muted/50 uppercase tracking-widest mb-1.5">
+        <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2">
+          <div className="text-xs text-muted/50 uppercase tracking-widest mb-1">
             Peak Sustained
           </div>
-          <div className="text-2xl font-black text-accent tabular-nums leading-none">
+          <div className="text-lg font-black text-accent tabular-nums leading-none">
             {Math.floor(peakSustained)}
             <span className="text-[0.6em] opacity-40">
               .{(peakSustained % 1).toFixed(2).slice(2)}
             </span>
           </div>
-          <div className="text-sm text-muted/60 mt-1">3-sec rolling avg</div>
         </div>
 
         {/* Fastest second */}
-        <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3">
-          <div className="text-xs text-muted/50 uppercase tracking-widest mb-1.5">
+        <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2">
+          <div className="text-xs text-muted/50 uppercase tracking-widest mb-1">
             Fastest
           </div>
-          <div className="text-2xl font-black text-correct tabular-nums leading-none">
+          <div className="text-lg font-black text-correct tabular-nums leading-none">
             {Math.floor(fastest.wpm)}
           </div>
-          <div className="text-sm text-muted/60 mt-1">
+          <div className="text-xs text-muted/60 mt-0.5">
             at {fastest.elapsed}s
           </div>
         </div>
 
         {/* Slowest second */}
-        <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3">
-          <div className="text-xs text-muted/50 uppercase tracking-widest mb-1.5">
+        <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2">
+          <div className="text-xs text-muted/50 uppercase tracking-widest mb-1">
             Slowest
           </div>
-          <div className="text-2xl font-black text-error/80 tabular-nums leading-none">
+          <div className="text-lg font-black text-error/80 tabular-nums leading-none">
             {Math.floor(slowest.wpm)}
           </div>
-          <div className="text-sm text-muted/60 mt-1">
+          <div className="text-xs text-muted/60 mt-0.5">
             at {slowest.elapsed}s
           </div>
         </div>
 
         {/* Stability */}
-        <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3">
-          <div className="text-xs text-muted/50 uppercase tracking-widest mb-1.5">
+        <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2">
+          <div className="text-xs text-muted/50 uppercase tracking-widest mb-1">
             Stability
           </div>
-          <div className={`text-lg font-black leading-none ${stabilityColor}`}>
+          <div className={`text-base font-black leading-none ${stabilityColor}`}>
             {stabilityLabel}
           </div>
-          <div className="text-sm text-muted/60 mt-1">
+          <div className="text-xs text-muted/60 mt-0.5">
             {Math.round((1 - cv) * 100)}% stable
           </div>
         </div>
       </div>
 
       {/* Warmup analysis + hesitations */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted/60">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted/60">
         {/* Warmup trend */}
         <div className="flex items-center gap-1.5">
           <span className="text-muted/60">Warmup:</span>
@@ -1046,7 +1045,7 @@ export function RaceResults({
   };
 
   return (
-    <div className="flex flex-col gap-2 w-full flex-1 min-h-0">
+    <div className="flex flex-col gap-1.5 w-full flex-1 min-h-0 overflow-y-auto">
 
       {/* ── Hero stats ─────────────────────────────────────── */}
       {myResult ? (
@@ -1069,11 +1068,11 @@ export function RaceResults({
             {/* Main hero row — placement + stats side by side */}
             <div className="flex items-stretch">
               {/* Placement — large, dramatic */}
-              <div className="shrink-0 flex flex-col items-center justify-center px-6 sm:px-8 py-3 bg-white/[0.02] border-r border-white/[0.04]">
-                <div className={`text-4xl sm:text-5xl font-black tabular-nums leading-none ${pStyle!.text}`}>
+              <div className="shrink-0 flex flex-col items-center justify-center px-5 sm:px-7 py-2 bg-white/[0.02] border-r border-white/[0.04]">
+                <div className={`text-3xl sm:text-4xl font-black tabular-nums leading-none ${pStyle!.text}`}>
                   {ordinal(myResult.placement)}
                 </div>
-                <div className="text-sm text-muted/50 mt-1 uppercase tracking-widest">
+                <div className="text-xs text-muted/50 mt-0.5 uppercase tracking-widest">
                   of {results.length}
                 </div>
               </div>
@@ -1083,8 +1082,8 @@ export function RaceResults({
                 <div className={`grid gap-px ${isPlacement ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-2 sm:grid-cols-3"}`}>
 
                   {/* WPM */}
-                  <div className="bg-surface/30 px-4 py-2.5 sm:px-5">
-                    <div className="text-sm text-muted/50 uppercase tracking-widest mb-1">WPM</div>
+                  <div className="bg-surface/30 px-3 py-2 sm:px-4">
+                    <div className="text-xs text-muted/50 uppercase tracking-widest mb-0.5">WPM</div>
                     <div className="flex items-baseline gap-2">
                       <div className="text-2xl sm:text-3xl font-black text-text tabular-nums leading-none">
                         {Math.floor(myResult.wpm)}
@@ -1107,8 +1106,8 @@ export function RaceResults({
 
                   {/* Accuracy */}
                   {!isPlacement && (
-                    <div className="bg-surface/30 px-4 py-2.5 sm:px-5">
-                      <div className="text-sm text-muted/50 uppercase tracking-widest mb-1">Accuracy</div>
+                    <div className="bg-surface/30 px-3 py-2 sm:px-4">
+                      <div className="text-xs text-muted/50 uppercase tracking-widest mb-0.5">Accuracy</div>
                       <div className="text-2xl sm:text-3xl font-black text-text tabular-nums leading-none">
                         {Math.floor(myResult.accuracy)}
                         <span className="text-base opacity-40">
@@ -1140,7 +1139,7 @@ export function RaceResults({
                       </div>
                     </div>
                   ) : (
-                    <div className="bg-surface/30 px-4 py-2.5 sm:px-5 flex flex-col items-center justify-center">
+                    <div className="bg-surface/30 px-3 py-2 sm:px-4 flex flex-col items-center justify-center">
                       {hasElo ? (
                         <AnimatedElo
                           oldElo={myResult.elo! - myResult.eloChange!}
@@ -1168,22 +1167,22 @@ export function RaceResults({
                 {!isPlacement && (raceTime != null || consistency != null) && (
                   <div className="flex items-center divide-x divide-white/[0.04] border-t border-white/[0.04]">
                     {raceTime != null && (
-                      <div className="flex-1 px-4 py-2 sm:px-5">
+                      <div className="flex-1 px-3 py-1.5 sm:px-4">
                         <div className="flex items-baseline gap-2">
-                          <span className="text-base font-bold text-text tabular-nums">
+                          <span className="text-sm font-bold text-text tabular-nums">
                             {raceTime >= 60
                               ? `${Math.floor(raceTime / 60)}:${String(Math.round(raceTime % 60)).padStart(2, "0")}`
                               : `${raceTime.toFixed(1)}s`}
                           </span>
-                          <span className="text-sm text-muted/50 uppercase tracking-wide">time</span>
+                          <span className="text-xs text-muted/50 uppercase tracking-wide">time</span>
                         </div>
                       </div>
                     )}
                     {consistency != null && (
-                      <div className="flex-1 px-4 py-2 sm:px-5">
+                      <div className="flex-1 px-3 py-1.5 sm:px-4">
                         <div className="flex items-baseline gap-2">
-                          <span className="text-base font-bold text-text tabular-nums">{consistency}%</span>
-                          <span className="text-sm text-muted/50 uppercase tracking-wide">consistency</span>
+                          <span className="text-sm font-bold text-text tabular-nums">{consistency}%</span>
+                          <span className="text-xs text-muted/50 uppercase tracking-wide">consistency</span>
                         </div>
                       </div>
                     )}
@@ -1220,14 +1219,14 @@ export function RaceResults({
 
       {/* ── TOP ROW: Standings + XP ─────────────────────── */}
       <div
-        className="grid grid-cols-1 sm:grid-cols-[1fr_minmax(0,20rem)] gap-2 w-full"
+        className="grid grid-cols-1 sm:grid-cols-[1fr_minmax(0,20rem)] gap-1.5 w-full"
       >
         {/* ── LEFT: Standings table + Chat ── */}
         <div className="flex flex-col gap-1.5 min-h-0">
           <div className="rounded-xl overflow-hidden bg-surface/20 ring-1 ring-white/[0.05]">
             {/* Header */}
             <div
-              className={`grid text-muted/50 text-sm uppercase tracking-widest px-3 sm:px-4 py-2 bg-white/[0.02] border-b border-white/[0.04] ${tableCols}`}
+              className={`grid text-muted/50 text-xs uppercase tracking-widest px-3 sm:px-4 py-1.5 bg-white/[0.02] border-b border-white/[0.04] ${tableCols}`}
             >
               <span className="font-medium">#</span>
               <span className="font-medium">Name</span>
@@ -1252,7 +1251,7 @@ export function RaceResults({
               return (
                 <div
                   key={result.playerId}
-                  className={`relative grid items-center px-3 sm:px-4 py-2 border-b border-white/[0.03] last:border-0 transition-colors border-l-2 text-base ${tableCols} ${
+                  className={`relative grid items-center px-3 sm:px-4 py-1.5 border-b border-white/[0.03] last:border-0 transition-colors border-l-2 text-sm ${tableCols} ${
                     rowPlacementStyle ? rowPlacementStyle.leftBorder : "border-l-transparent"
                   } ${
                     isMe && isWinner
@@ -1414,122 +1413,174 @@ export function RaceResults({
         </div>
       </div>
 
-      {/* ── WPM CHART (full width, compact) ─────────────── */}
+      {/* ── WPM CHART + SPEED ANALYSIS (side by side) ──── */}
       {myWpmHistory && myWpmHistory.length >= 2 && (
-        <div
-          className="w-full rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-4 pt-3 pb-2 flex flex-col"
-        >
-          <div className="text-sm font-bold text-muted/60 uppercase tracking-widest mb-1">WPM over time</div>
-          <div className="w-full" style={{ aspectRatio: "7 / 1" }}>
-            <WpmChart samples={myWpmHistory} compact />
-          </div>
-        </div>
-      )}
-
-      {/* ── TYPING ANALYSIS (Pro-gated) ───────────────────── */}
-      {isPro && myKeyStats && Object.keys(myKeyStats).length > 0 && (
-        <div
-          className="w-full rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-4 pt-3 pb-4 flex flex-col gap-2.5"
-        >
-          <div className="flex items-center justify-between">
-            <div className="text-sm font-bold text-muted/50 uppercase tracking-widest">Typing Analysis</div>
-            <span className="text-xs font-black text-accent/50 bg-accent/[0.06] ring-1 ring-accent/15 rounded px-2 py-1 uppercase tracking-wider leading-none">
-              PRO
-            </span>
-          </div>
-          <KeyboardHeatmap keyStats={myKeyStats} />
-          {myResult && (
-            <div className="flex items-center gap-4 text-sm text-muted/70 tabular-nums mt-1">
-              {(() => {
-                const totalCorrect = Object.values(myKeyStats).reduce((s, k) => s + k.correct, 0);
-                const totalAll = Object.values(myKeyStats).reduce((s, k) => s + k.total, 0);
-                const totalIncorrect = totalAll - totalCorrect;
-                return (
-                  <>
-                    <span>
-                      <span className="text-correct font-semibold">{totalCorrect}</span> correct
-                    </span>
-                    <span>
-                      <span className="text-error font-semibold">{totalIncorrect}</span> incorrect
-                    </span>
-                    <span>
-                      <span className="text-text font-semibold">{totalAll}</span> total
-                    </span>
-                  </>
-                );
-              })()}
+        <div className={`grid gap-1.5 w-full ${isPro && myWpmHistory.length >= 4 && myResult ? "grid-cols-1 sm:grid-cols-[1fr_minmax(0,22rem)]" : "grid-cols-1"}`}>
+          <div
+            className="rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-3 pt-2.5 pb-1.5 flex flex-col min-w-0"
+          >
+            <div className="text-xs font-bold text-muted/60 uppercase tracking-widest mb-0.5">WPM over time</div>
+            <div className="w-full h-[100px]">
+              <WpmChart samples={myWpmHistory} compact />
             </div>
+          </div>
+
+          {/* Speed Analysis — beside chart on desktop */}
+          {isPro && myWpmHistory.length >= 4 && myResult && (
+            <SpeedAnalysis wpmHistory={myWpmHistory} wpm={myResult.wpm} accuracy={myResult.accuracy} />
           )}
         </div>
       )}
 
-      {/* ── SPEED ANALYSIS (Pro-gated) ─────────────────────── */}
-      {isPro && myWpmHistory && myWpmHistory.length >= 4 && myResult && (
-        <SpeedAnalysis wpmHistory={myWpmHistory} wpm={myResult.wpm} accuracy={myResult.accuracy} />
-      )}
-
-      {/* ── BOTTOM ROW: Challenges + Pro ─────────────────── */}
+      {/* ── TYPING ANALYSIS + CHALLENGES (side by side) ──── */}
       {!isPlacement && (
-        <div
-          className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full"
-        >
-          {/* Challenges */}
-          <div className="rounded-xl bg-surface/20 ring-1 ring-white/[0.05] overflow-hidden px-4 py-2.5 sm:px-5 sm:py-3">
-            <div className="flex items-center justify-between mb-1">
-              <h3 className="text-sm font-bold text-muted/65 uppercase tracking-widest">
-                Challenges
-              </h3>
-              {myResult?.xpEarned != null && myResult.xpEarned > 0 && (
-                <span className="text-sm font-bold text-accent tabular-nums">
-                  +{myResult.xpEarned} XP
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 w-full">
+          {/* Typing Analysis (Pro) — or Challenges if not Pro */}
+          {isPro && myKeyStats && Object.keys(myKeyStats).length > 0 ? (
+            <div
+              className="rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-3 pt-2.5 pb-3 flex flex-col gap-2"
+            >
+              <div className="flex items-center justify-between">
+                <div className="text-xs font-bold text-muted/50 uppercase tracking-widest">Typing Analysis</div>
+                <span className="text-xs font-black text-accent/50 bg-accent/[0.06] ring-1 ring-accent/15 rounded px-1.5 py-0.5 uppercase tracking-wider leading-none">
+                  PRO
                 </span>
+              </div>
+              <KeyboardHeatmap keyStats={myKeyStats} />
+              {myResult && (
+                <div className="flex items-center gap-3 text-xs text-muted/70 tabular-nums">
+                  {(() => {
+                    const totalCorrect = Object.values(myKeyStats).reduce((s, k) => s + k.correct, 0);
+                    const totalAll = Object.values(myKeyStats).reduce((s, k) => s + k.total, 0);
+                    const totalIncorrect = totalAll - totalCorrect;
+                    return (
+                      <>
+                        <span>
+                          <span className="text-correct font-semibold">{totalCorrect}</span> correct
+                        </span>
+                        <span>
+                          <span className="text-error font-semibold">{totalIncorrect}</span> incorrect
+                        </span>
+                        <span>
+                          <span className="text-text font-semibold">{totalAll}</span> total
+                        </span>
+                      </>
+                    );
+                  })()}
+                </div>
               )}
             </div>
-            {hasChallenges ? (
-              <div>
-                {myResult!.challengeProgress!.filter((c) => c.progress > 0).map((cp) => {
-                  const def = CHALLENGE_MAP.get(cp.challengeId);
-                  if (!def) return null;
-                  const progress = Math.min(cp.progress, cp.target);
-                  const pct = cp.target > 0 ? (progress / cp.target) * 100 : 0;
-                  return (
-                    <div key={cp.challengeId} className="flex items-center gap-2.5 py-1">
-                      <span className="text-base shrink-0">{def.icon}</span>
-                      <div className="min-w-0 flex-1">
-                        <span className="text-sm font-medium text-text truncate block leading-tight">
-                          {def.name}
-                          {cp.completed && <span className="text-correct ml-1.5">✓</span>}
-                        </span>
-                      </div>
-                      <span className="text-sm text-muted tabular-nums shrink-0">
-                        {progress}/{cp.target}
-                      </span>
-                      <div className="w-16 h-1.5 rounded-full bg-surface overflow-hidden shrink-0">
-                        <div
-                          className={`h-full rounded-full transition-all ${cp.completed ? "bg-correct" : "bg-accent"}`}
-                          style={{ width: `${Math.round(pct)}%` }}
-                        />
-                      </div>
-                      {cp.justCompleted && (
-                        <span className="text-xs font-bold text-correct bg-correct/10 rounded px-1.5 py-0.5 tabular-nums shrink-0">
-                          +{cp.xpAwarded} XP
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
+          ) : (
+            /* Challenges on the left if no typing analysis */
+            <div className="rounded-xl bg-surface/20 ring-1 ring-white/[0.05] overflow-hidden px-3 py-2 sm:px-4 sm:py-2.5">
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-xs font-bold text-muted/65 uppercase tracking-widest">
+                  Challenges
+                </h3>
+                {myResult?.xpEarned != null && myResult.xpEarned > 0 && (
+                  <span className="text-xs font-bold text-accent tabular-nums">
+                    +{myResult.xpEarned} XP
+                  </span>
+                )}
               </div>
-            ) : (
-              /* Skeleton placeholder — reserves space while data loads */
-              <div className="space-y-1 py-0.5">
-                <div className="h-3 w-3/4 rounded bg-white/[0.03] animate-pulse" />
-                <div className="h-3 w-1/2 rounded bg-white/[0.03] animate-pulse" />
-              </div>
-            )}
-          </div>
+              {hasChallenges ? (
+                <div>
+                  {myResult!.challengeProgress!.filter((c) => c.progress > 0).map((cp) => {
+                    const def = CHALLENGE_MAP.get(cp.challengeId);
+                    if (!def) return null;
+                    const progress = Math.min(cp.progress, cp.target);
+                    const pct = cp.target > 0 ? (progress / cp.target) * 100 : 0;
+                    return (
+                      <div key={cp.challengeId} className="flex items-center gap-2 py-0.5">
+                        <span className="text-sm shrink-0">{def.icon}</span>
+                        <div className="min-w-0 flex-1">
+                          <span className="text-xs font-medium text-text truncate block leading-tight">
+                            {def.name}
+                            {cp.completed && <span className="text-correct ml-1">✓</span>}
+                          </span>
+                        </div>
+                        <span className="text-xs text-muted tabular-nums shrink-0">
+                          {progress}/{cp.target}
+                        </span>
+                        <div className="w-12 h-1 rounded-full bg-surface overflow-hidden shrink-0">
+                          <div
+                            className={`h-full rounded-full transition-all ${cp.completed ? "bg-correct" : "bg-accent"}`}
+                            style={{ width: `${Math.round(pct)}%` }}
+                          />
+                        </div>
+                        {cp.justCompleted && (
+                          <span className="text-xs font-bold text-correct bg-correct/10 rounded px-1 py-0.5 tabular-nums shrink-0">
+                            +{cp.xpAwarded} XP
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="space-y-1 py-0.5">
+                  <div className="h-3 w-3/4 rounded bg-white/[0.03] animate-pulse" />
+                  <div className="h-3 w-1/2 rounded bg-white/[0.03] animate-pulse" />
+                </div>
+              )}
+            </div>
+          )}
 
-          {/* Pro upsell card (non-Pro only) */}
-          {showProPanel ? (
+          {/* Challenges on the right (when typing analysis is on the left) / Pro upsell */}
+          {isPro && myKeyStats && Object.keys(myKeyStats).length > 0 ? (
+            <div className="rounded-xl bg-surface/20 ring-1 ring-white/[0.05] overflow-hidden px-3 py-2 sm:px-4 sm:py-2.5">
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-xs font-bold text-muted/65 uppercase tracking-widest">
+                  Challenges
+                </h3>
+                {myResult?.xpEarned != null && myResult.xpEarned > 0 && (
+                  <span className="text-xs font-bold text-accent tabular-nums">
+                    +{myResult.xpEarned} XP
+                  </span>
+                )}
+              </div>
+              {hasChallenges ? (
+                <div>
+                  {myResult!.challengeProgress!.filter((c) => c.progress > 0).map((cp) => {
+                    const def = CHALLENGE_MAP.get(cp.challengeId);
+                    if (!def) return null;
+                    const progress = Math.min(cp.progress, cp.target);
+                    const pct = cp.target > 0 ? (progress / cp.target) * 100 : 0;
+                    return (
+                      <div key={cp.challengeId} className="flex items-center gap-2 py-0.5">
+                        <span className="text-sm shrink-0">{def.icon}</span>
+                        <div className="min-w-0 flex-1">
+                          <span className="text-xs font-medium text-text truncate block leading-tight">
+                            {def.name}
+                            {cp.completed && <span className="text-correct ml-1">✓</span>}
+                          </span>
+                        </div>
+                        <span className="text-xs text-muted tabular-nums shrink-0">
+                          {progress}/{cp.target}
+                        </span>
+                        <div className="w-12 h-1 rounded-full bg-surface overflow-hidden shrink-0">
+                          <div
+                            className={`h-full rounded-full transition-all ${cp.completed ? "bg-correct" : "bg-accent"}`}
+                            style={{ width: `${Math.round(pct)}%` }}
+                          />
+                        </div>
+                        {cp.justCompleted && (
+                          <span className="text-xs font-bold text-correct bg-correct/10 rounded px-1 py-0.5 tabular-nums shrink-0">
+                            +{cp.xpAwarded} XP
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="space-y-1 py-0.5">
+                  <div className="h-3 w-3/4 rounded bg-white/[0.03] animate-pulse" />
+                  <div className="h-3 w-1/2 rounded bg-white/[0.03] animate-pulse" />
+                </div>
+              )}
+            </div>
+          ) : showProPanel ? (
             <ProPanel level={currentLevel} xpEarned={myResult?.xpProgress?.xpEarned ?? 0} />
           ) : (
             <div />
@@ -1577,7 +1628,7 @@ export function RaceResults({
             <button
               onClick={() => onRaceAgain()}
               disabled={inParty && !allMembersReady}
-              className="group w-full rounded-lg bg-accent/10 ring-1 ring-accent/30 text-accent py-3 text-base font-bold hover:bg-accent hover:text-bg hover:ring-accent transition-all shadow-[0_0_20px_rgba(77,158,255,0.08)] hover:shadow-[0_0_30px_rgba(77,158,255,0.2)] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent/10 disabled:hover:text-accent disabled:hover:ring-accent/30 disabled:shadow-none flex flex-col items-center gap-0.5"
+              className="group w-full rounded-lg bg-accent/10 ring-1 ring-accent/30 text-accent py-2.5 text-sm font-bold hover:bg-accent hover:text-bg hover:ring-accent transition-all shadow-[0_0_20px_rgba(77,158,255,0.08)] hover:shadow-[0_0_30px_rgba(77,158,255,0.2)] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent/10 disabled:hover:text-accent disabled:hover:ring-accent/30 disabled:shadow-none flex flex-col items-center gap-0.5"
             >
               <span className="flex items-center gap-1">
                 {isPlacement ? "Next Placement" : "Race Again"}
