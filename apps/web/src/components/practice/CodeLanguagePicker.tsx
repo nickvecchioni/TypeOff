@@ -18,7 +18,7 @@ const LANGUAGE_LABELS: Record<string, string> = {
 
 export function CodeLanguagePicker({ value, onChange }: CodeLanguagePickerProps) {
   return (
-    <div className="flex items-center gap-1 flex-wrap">
+    <div className="flex items-center gap-1">
       <button
         onClick={() => onChange(undefined)}
         className={`px-2.5 py-1.5 rounded-md text-sm font-medium transition-all ${

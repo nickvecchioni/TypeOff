@@ -232,31 +232,14 @@ export function ConfigBar({
           </div>
         </div>
 
-        {/* Code: language picker + indent style */}
+        {/* Code: language picker */}
         <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 ${
           ct === "code" ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}>
-          <div className="flex items-center gap-1">
-            <CodeLanguagePicker
-              value={config.codeLanguage}
-              onChange={(lang) => set({ codeLanguage: lang })}
-            />
-            <MicroDivider />
-            <div className="flex items-center gap-0.5">
-              <Sub
-                active={(config.codeIndent ?? "spaces") === "spaces"}
-                onClick={() => set({ codeIndent: "spaces" })}
-              >
-                spaces
-              </Sub>
-              <Sub
-                active={config.codeIndent === "tabs"}
-                onClick={() => set({ codeIndent: "tabs" })}
-              >
-                tabs
-              </Sub>
-            </div>
-          </div>
+          <CodeLanguagePicker
+            value={config.codeLanguage}
+            onChange={(lang) => set({ codeLanguage: lang })}
+          />
         </div>
 
         {/* Empty placeholder for quotes/custom — keeps the reserved height */}
