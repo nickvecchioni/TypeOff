@@ -1420,7 +1420,7 @@ export function RaceResults({
             className="rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-3 pt-2.5 pb-1.5 flex flex-col min-w-0"
           >
             <div className="text-xs font-bold text-muted/60 uppercase tracking-widest mb-0.5">WPM over time</div>
-            <div className="w-full h-[100px]">
+            <div className="w-full" style={{ aspectRatio: "600 / 120" }}>
               <WpmChart samples={myWpmHistory} compact />
             </div>
           </div>
@@ -1432,158 +1432,103 @@ export function RaceResults({
         </div>
       )}
 
-      {/* ── TYPING ANALYSIS + CHALLENGES (side by side) ──── */}
-      {!isPlacement && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 w-full">
-          {/* Typing Analysis (Pro) — or Challenges if not Pro */}
-          {isPro && myKeyStats && Object.keys(myKeyStats).length > 0 ? (
-            <div
-              className="rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-3 pt-2.5 pb-3 flex flex-col gap-2"
-            >
-              <div className="flex items-center justify-between">
-                <div className="text-xs font-bold text-muted/50 uppercase tracking-widest">Typing Analysis</div>
-                <span className="text-xs font-black text-accent/50 bg-accent/[0.06] ring-1 ring-accent/15 rounded px-1.5 py-0.5 uppercase tracking-wider leading-none">
-                  PRO
-                </span>
-              </div>
-              <KeyboardHeatmap keyStats={myKeyStats} />
-              {myResult && (
-                <div className="flex items-center gap-3 text-xs text-muted/70 tabular-nums">
-                  {(() => {
-                    const totalCorrect = Object.values(myKeyStats).reduce((s, k) => s + k.correct, 0);
-                    const totalAll = Object.values(myKeyStats).reduce((s, k) => s + k.total, 0);
-                    const totalIncorrect = totalAll - totalCorrect;
-                    return (
-                      <>
-                        <span>
-                          <span className="text-correct font-semibold">{totalCorrect}</span> correct
-                        </span>
-                        <span>
-                          <span className="text-error font-semibold">{totalIncorrect}</span> incorrect
-                        </span>
-                        <span>
-                          <span className="text-text font-semibold">{totalAll}</span> total
-                        </span>
-                      </>
-                    );
-                  })()}
-                </div>
-              )}
-            </div>
-          ) : (
-            /* Challenges on the left if no typing analysis */
-            <div className="rounded-xl bg-surface/20 ring-1 ring-white/[0.05] overflow-hidden px-3 py-2 sm:px-4 sm:py-2.5">
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="text-xs font-bold text-muted/65 uppercase tracking-widest">
-                  Challenges
-                </h3>
-                {myResult?.xpEarned != null && myResult.xpEarned > 0 && (
-                  <span className="text-xs font-bold text-accent tabular-nums">
-                    +{myResult.xpEarned} XP
-                  </span>
-                )}
-              </div>
-              {hasChallenges ? (
-                <div>
-                  {myResult!.challengeProgress!.filter((c) => c.progress > 0).map((cp) => {
-                    const def = CHALLENGE_MAP.get(cp.challengeId);
-                    if (!def) return null;
-                    const progress = Math.min(cp.progress, cp.target);
-                    const pct = cp.target > 0 ? (progress / cp.target) * 100 : 0;
-                    return (
-                      <div key={cp.challengeId} className="flex items-center gap-2 py-0.5">
-                        <span className="text-sm shrink-0">{def.icon}</span>
-                        <div className="min-w-0 flex-1">
-                          <span className="text-xs font-medium text-text truncate block leading-tight">
-                            {def.name}
-                            {cp.completed && <span className="text-correct ml-1">✓</span>}
-                          </span>
-                        </div>
-                        <span className="text-xs text-muted tabular-nums shrink-0">
-                          {progress}/{cp.target}
-                        </span>
-                        <div className="w-12 h-1 rounded-full bg-surface overflow-hidden shrink-0">
-                          <div
-                            className={`h-full rounded-full transition-all ${cp.completed ? "bg-correct" : "bg-accent"}`}
-                            style={{ width: `${Math.round(pct)}%` }}
-                          />
-                        </div>
-                        {cp.justCompleted && (
-                          <span className="text-xs font-bold text-correct bg-correct/10 rounded px-1 py-0.5 tabular-nums shrink-0">
-                            +{cp.xpAwarded} XP
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="space-y-1 py-0.5">
-                  <div className="h-3 w-3/4 rounded bg-white/[0.03] animate-pulse" />
-                  <div className="h-3 w-1/2 rounded bg-white/[0.03] animate-pulse" />
-                </div>
-              )}
+      {/* ── TYPING ANALYSIS (Pro, full width — only if key stats exist) */}
+      {isPro && myKeyStats && Object.keys(myKeyStats).length > 0 && (
+        <div
+          className="w-full rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-3 pt-2.5 pb-3 flex flex-col gap-2"
+        >
+          <div className="flex items-center justify-between">
+            <div className="text-xs font-bold text-muted/50 uppercase tracking-widest">Typing Analysis</div>
+            <span className="text-xs font-black text-accent/50 bg-accent/[0.06] ring-1 ring-accent/15 rounded px-1.5 py-0.5 uppercase tracking-wider leading-none">
+              PRO
+            </span>
+          </div>
+          <KeyboardHeatmap keyStats={myKeyStats} />
+          {myResult && (
+            <div className="flex items-center gap-3 text-xs text-muted/70 tabular-nums">
+              {(() => {
+                const totalCorrect = Object.values(myKeyStats).reduce((s, k) => s + k.correct, 0);
+                const totalAll = Object.values(myKeyStats).reduce((s, k) => s + k.total, 0);
+                const totalIncorrect = totalAll - totalCorrect;
+                return (
+                  <>
+                    <span>
+                      <span className="text-correct font-semibold">{totalCorrect}</span> correct
+                    </span>
+                    <span>
+                      <span className="text-error font-semibold">{totalIncorrect}</span> incorrect
+                    </span>
+                    <span>
+                      <span className="text-text font-semibold">{totalAll}</span> total
+                    </span>
+                  </>
+                );
+              })()}
             </div>
           )}
+        </div>
+      )}
 
-          {/* Challenges on the right (when typing analysis is on the left) / Pro upsell */}
-          {isPro && myKeyStats && Object.keys(myKeyStats).length > 0 ? (
-            <div className="rounded-xl bg-surface/20 ring-1 ring-white/[0.05] overflow-hidden px-3 py-2 sm:px-4 sm:py-2.5">
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="text-xs font-bold text-muted/65 uppercase tracking-widest">
-                  Challenges
-                </h3>
-                {myResult?.xpEarned != null && myResult.xpEarned > 0 && (
-                  <span className="text-xs font-bold text-accent tabular-nums">
-                    +{myResult.xpEarned} XP
-                  </span>
-                )}
-              </div>
-              {hasChallenges ? (
-                <div>
-                  {myResult!.challengeProgress!.filter((c) => c.progress > 0).map((cp) => {
-                    const def = CHALLENGE_MAP.get(cp.challengeId);
-                    if (!def) return null;
-                    const progress = Math.min(cp.progress, cp.target);
-                    const pct = cp.target > 0 ? (progress / cp.target) * 100 : 0;
-                    return (
-                      <div key={cp.challengeId} className="flex items-center gap-2 py-0.5">
-                        <span className="text-sm shrink-0">{def.icon}</span>
-                        <div className="min-w-0 flex-1">
-                          <span className="text-xs font-medium text-text truncate block leading-tight">
-                            {def.name}
-                            {cp.completed && <span className="text-correct ml-1">✓</span>}
-                          </span>
-                        </div>
-                        <span className="text-xs text-muted tabular-nums shrink-0">
-                          {progress}/{cp.target}
-                        </span>
-                        <div className="w-12 h-1 rounded-full bg-surface overflow-hidden shrink-0">
-                          <div
-                            className={`h-full rounded-full transition-all ${cp.completed ? "bg-correct" : "bg-accent"}`}
-                            style={{ width: `${Math.round(pct)}%` }}
-                          />
-                        </div>
-                        {cp.justCompleted && (
-                          <span className="text-xs font-bold text-correct bg-correct/10 rounded px-1 py-0.5 tabular-nums shrink-0">
-                            +{cp.xpAwarded} XP
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="space-y-1 py-0.5">
-                  <div className="h-3 w-3/4 rounded bg-white/[0.03] animate-pulse" />
-                  <div className="h-3 w-1/2 rounded bg-white/[0.03] animate-pulse" />
-                </div>
+      {/* ── BOTTOM ROW: Challenges + Pro upsell ────────────── */}
+      {!isPlacement && (
+        <div className={`grid gap-1.5 w-full ${showProPanel ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"}`}>
+          {/* Challenges */}
+          <div className="rounded-xl bg-surface/20 ring-1 ring-white/[0.05] overflow-hidden px-3 py-2 sm:px-4 sm:py-2.5">
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="text-xs font-bold text-muted/65 uppercase tracking-widest">
+                Challenges
+              </h3>
+              {myResult?.xpEarned != null && myResult.xpEarned > 0 && (
+                <span className="text-xs font-bold text-accent tabular-nums">
+                  +{myResult.xpEarned} XP
+                </span>
               )}
             </div>
-          ) : showProPanel ? (
+            {hasChallenges ? (
+              <div>
+                {myResult!.challengeProgress!.filter((c) => c.progress > 0).map((cp) => {
+                  const def = CHALLENGE_MAP.get(cp.challengeId);
+                  if (!def) return null;
+                  const progress = Math.min(cp.progress, cp.target);
+                  const pct = cp.target > 0 ? (progress / cp.target) * 100 : 0;
+                  return (
+                    <div key={cp.challengeId} className="flex items-center gap-2 py-0.5">
+                      <span className="text-sm shrink-0">{def.icon}</span>
+                      <div className="min-w-0 flex-1">
+                        <span className="text-xs font-medium text-text truncate block leading-tight">
+                          {def.name}
+                          {cp.completed && <span className="text-correct ml-1">✓</span>}
+                        </span>
+                      </div>
+                      <span className="text-xs text-muted tabular-nums shrink-0">
+                        {progress}/{cp.target}
+                      </span>
+                      <div className="w-12 h-1 rounded-full bg-surface overflow-hidden shrink-0">
+                        <div
+                          className={`h-full rounded-full transition-all ${cp.completed ? "bg-correct" : "bg-accent"}`}
+                          style={{ width: `${Math.round(pct)}%` }}
+                        />
+                      </div>
+                      {cp.justCompleted && (
+                        <span className="text-xs font-bold text-correct bg-correct/10 rounded px-1 py-0.5 tabular-nums shrink-0">
+                          +{cp.xpAwarded} XP
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="space-y-1 py-0.5">
+                <div className="h-3 w-3/4 rounded bg-white/[0.03] animate-pulse" />
+                <div className="h-3 w-1/2 rounded bg-white/[0.03] animate-pulse" />
+              </div>
+            )}
+          </div>
+
+          {/* Pro upsell card (non-Pro only) */}
+          {showProPanel && (
             <ProPanel level={currentLevel} xpEarned={myResult?.xpProgress?.xpEarned ?? 0} />
-          ) : (
-            <div />
           )}
         </div>
       )}
