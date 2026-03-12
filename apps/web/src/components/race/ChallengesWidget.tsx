@@ -73,14 +73,14 @@ export function ChallengesWidget() {
   return (
     <div className="w-full h-full rounded-xl bg-surface/50 ring-1 ring-white/[0.04] overflow-hidden flex flex-col">
       <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent shrink-0" />
-      <div className="p-5 flex flex-col flex-1 justify-between gap-4">
+      <div className="px-3 py-2.5 flex flex-col flex-1 justify-between gap-2.5">
         {/* Daily Challenges */}
-        <div className="space-y-2">
+        <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-bold text-muted/60 uppercase tracking-wider">
+            <span className="text-xs font-bold text-muted/60 uppercase tracking-wider">
               Daily Challenges
             </span>
-            <span className="text-sm text-muted tabular-nums">{dailyCountdown}</span>
+            <span className="text-xs text-muted tabular-nums">{dailyCountdown}</span>
           </div>
           {dailies.map((c) => (
             <ChallengeRow
@@ -94,12 +94,12 @@ export function ChallengesWidget() {
         </div>
 
         {/* Weekly Challenge */}
-        <div className="space-y-2">
+        <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-bold text-amber-400/70 uppercase tracking-wider">
+            <span className="text-xs font-bold text-amber-400/70 uppercase tracking-wider">
               Weekly Challenge
             </span>
-            <span className="text-sm text-muted tabular-nums">{weeklyCountdown}</span>
+            <span className="text-xs text-muted tabular-nums">{weeklyCountdown}</span>
           </div>
           {weeklies.map((c) => (
             <ChallengeRow
@@ -135,31 +135,31 @@ function ChallengeRow({
 
   return (
     <div
-      className={`flex items-center gap-3 rounded-lg px-2 py-1.5 -mx-2 transition-colors ${
+      className={`flex items-center gap-2 rounded-md px-1.5 py-1 -mx-1.5 transition-colors ${
         completed
           ? "bg-correct/[0.04] ring-1 ring-correct/[0.10]"
           : "ring-1 ring-transparent"
       }`}
     >
-      <span className="text-lg shrink-0 w-6 text-center">{challenge.icon}</span>
+      <span className="text-sm shrink-0 w-5 text-center">{challenge.icon}</span>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between mb-0.5">
-          <span className="flex items-center gap-1.5 min-w-0">
-            <span className={`text-sm font-medium truncate ${completed ? "text-text/70" : "text-text"}`}>
+        <div className="flex items-center justify-between">
+          <span className="flex items-center gap-1 min-w-0">
+            <span className={`text-xs font-medium truncate ${completed ? "text-text/70" : "text-text"}`}>
               {challenge.name}
             </span>
             {completed && (
-              <span className="shrink-0 text-xs font-black text-correct bg-correct/15 ring-1 ring-correct/25 px-1 py-[2px] rounded leading-none">
+              <span className="shrink-0 text-[10px] font-black text-correct bg-correct/15 ring-1 ring-correct/25 px-0.5 py-[1px] rounded leading-none">
                 ✓
               </span>
             )}
           </span>
-          <span className={`text-sm tabular-nums shrink-0 ml-2 ${loading ? "text-transparent" : "text-muted"}`}>
+          <span className={`text-xs tabular-nums shrink-0 ml-2 ${loading ? "text-transparent" : "text-muted"}`}>
             {clamped}/{challenge.target}
           </span>
         </div>
-        <p className="text-sm text-muted/65 truncate mb-1">{challenge.description}</p>
-        <div className="h-1 rounded-full bg-surface overflow-hidden">
+        <p className="text-xs text-muted/65 truncate mb-0.5">{challenge.description}</p>
+        <div className="h-0.5 rounded-full bg-surface overflow-hidden">
           <div
             className={`h-full rounded-full transition-all ${
               loading
@@ -184,7 +184,7 @@ function ChallengeRow({
         </div>
       </div>
       <span
-        className={`text-sm font-bold shrink-0 rounded px-1.5 py-0.5 tabular-nums transition-all ${
+        className={`text-xs font-bold shrink-0 rounded px-1 py-0.5 tabular-nums transition-all ${
           completed
             ? "bg-correct/15 text-correct ring-1 ring-correct/25 [box-shadow:0_0_8px_rgba(34,197,94,0.3)]"
             : "bg-white/[0.04] text-muted"
