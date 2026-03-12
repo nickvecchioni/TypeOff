@@ -1201,8 +1201,9 @@ export function RaceResults({
         const quote = getQuoteByIndex(raceSeed);
         return (
           <div className="shrink-0 rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-4 py-3 text-center">
-            <div className="text-sm text-text/70 italic leading-relaxed">&ldquo;{quote.text}&rdquo;</div>
-            <div className="text-xs text-muted/50 mt-1.5">&mdash; {quote.author}</div>
+            <div className="text-sm text-text/70 italic leading-relaxed">
+              &ldquo;{quote.text}&rdquo; &mdash; {quote.author}
+            </div>
           </div>
         );
       })()}
@@ -1210,7 +1211,7 @@ export function RaceResults({
         const snippet = getCodeSnippet(raceSeed);
         return (
           <div className="shrink-0 rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-4 py-2.5 flex items-center gap-2">
-            <span className="text-xs font-mono text-accent/70">&lt;/&gt;</span>
+            <span className="text-sm font-mono text-accent/70">&lt;/&gt;</span>
             <span className="text-sm text-text/70">{snippet.name}</span>
             <span className="text-xs text-muted/60">{snippet.language}</span>
           </div>

@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useSession, signIn } from "next-auth/react";
 import Link from "next/link";
-import type { TestStats, TestConfig, WpmSample } from "@typeoff/shared";
+import type { TestStats, TestConfig, WpmSample, CodeSnippet } from "@typeoff/shared";
 import { getQuoteByIndex, getCodeSnippet, getXpLevel, SOLO_DAILY_XP_CAP } from "@typeoff/shared";
 import { WpmChart } from "@/components/typing/WpmChart";
 import { KeyboardHeatmap } from "@/components/typing/KeyboardHeatmap";
@@ -266,6 +266,43 @@ function SoloXpPanel({ xp }: { xp: SoloXpProgress }) {
   );
 }
 
+/* ── Code Info Bar (expandable) ─────────────────────────── */
+
+function CodeInfoBar({ snippet }: { snippet: CodeSnippet }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden">
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        className="w-full px-4 py-2.5 flex items-center gap-2 hover:bg-white/[0.02] transition-colors cursor-pointer"
+      >
+        <span className="text-sm font-mono text-accent/70">&lt;/&gt;</span>
+        <span className="text-sm text-text/70">{snippet.name}</span>
+        <span className="text-xs text-muted/60">{snippet.language}</span>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={`ml-auto text-muted/40 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      {expanded && (
+        <div className="border-t border-white/[0.04] px-4 py-3 overflow-x-auto">
+          <pre className="text-xs text-text/70 font-mono leading-relaxed whitespace-pre">{snippet.code}</pre>
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface PracticeResultsProps {
   stats: TestStats;
   config: TestConfig;
@@ -425,20 +462,15 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed, xpProgre
         const quote = getQuoteByIndex(seed);
         return (
           <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-4 py-3 text-center">
-            <div className="text-sm text-text/70 italic leading-relaxed">&ldquo;{quote.text}&rdquo;</div>
-            <div className="text-xs text-muted/50 mt-1.5">&mdash; {quote.author}</div>
+            <div className="text-sm text-text/70 italic leading-relaxed">
+              &ldquo;{quote.text}&rdquo; &mdash; {quote.author}
+            </div>
           </div>
         );
       })()}
       {config.contentType === "code" && seed != null && (() => {
         const snippet = getCodeSnippet(seed, config.codeLanguage);
-        return (
-          <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-4 py-2.5 flex items-center gap-2">
-            <span className="text-xs font-mono text-accent/70">&lt;/&gt;</span>
-            <span className="text-sm text-text/70">{snippet.name}</span>
-            <span className="text-xs text-muted/60">{snippet.language}</span>
-          </div>
-        );
+        return <CodeInfoBar snippet={snippet} />;
       })()}
 
       {/* ── Two-column grid ────────────────────────────────── */}

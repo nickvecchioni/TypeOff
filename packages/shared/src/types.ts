@@ -115,5 +115,5 @@ export interface EngineAPI {
   liveWpm: number;
   stats: TestStats | null;
   setConfig: (config: TestConfig) => void;
-  restart: () => void;
+  restart: (keepText?: boolean) => void;
 }

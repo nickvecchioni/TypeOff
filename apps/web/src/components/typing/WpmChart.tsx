@@ -28,7 +28,7 @@ export function WpmChart({ samples, compact = false, opponents }: WpmChartProps)
   const CHART_HEIGHT = compact ? 120 : 240;
   const PADDING = compact
     ? { top: 8, right: 16, bottom: 16, left: 36 }
-    : { top: 12, right: 16, bottom: 24, left: 44 };
+    : { top: 12, right: 16, bottom: 28, left: 52 };
   const svgRef = useRef<SVGSVGElement>(null);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
@@ -132,7 +132,7 @@ export function WpmChart({ samples, compact = false, opponents }: WpmChartProps)
             x={PADDING.left - 6}
             y={scaleY(tick)}
             fill="var(--color-muted)"
-            fontSize={compact ? 9 : 11}
+            fontSize={compact ? 10 : 14}
             textAnchor="end"
             dominantBaseline="middle"
             fillOpacity={0.7}
@@ -237,8 +237,8 @@ export function WpmChart({ samples, compact = false, opponents }: WpmChartProps)
         const errorsThisSecond = Math.max(0, Math.round(cumErrors(hovered) - (prevSample ? cumErrors(prevSample) : 0)));
 
         const hasErrors = errorsThisSecond > 0;
-        const TOOLTIP_W = 100;
-        const TOOLTIP_H = hasErrors ? 42 : 30;
+        const TOOLTIP_W = 116;
+        const TOOLTIP_H = hasErrors ? 52 : 38;
         const flipLeft = x + TOOLTIP_W + 14 > CHART_WIDTH - PADDING.right;
         const tx = flipLeft ? x - TOOLTIP_W - 8 : x + 8;
         const ty = Math.max(PADDING.top, Math.min(y - TOOLTIP_H / 2, PADDING.top + innerHeight - TOOLTIP_H));
@@ -266,17 +266,17 @@ export function WpmChart({ samples, compact = false, opponents }: WpmChartProps)
               strokeWidth={1}
             />
             {/* WPM value */}
-            <text x={tx + 8} y={ty + 12} fill="var(--color-accent)" fontSize={12} fontWeight="700">
+            <text x={tx + 8} y={ty + 15} fill="var(--color-accent)" fontSize={15} fontWeight="700">
               {wpmVal} wpm
             </text>
             {/* Error count */}
             {hasErrors && (
-              <text x={tx + 8} y={ty + 24} fill="#f87171" fontSize={10} fillOpacity={0.85}>
+              <text x={tx + 8} y={ty + 29} fill="#f87171" fontSize={13} fillOpacity={0.85}>
                 {errorsThisSecond} {errorsThisSecond === 1 ? "error" : "errors"}
               </text>
             )}
             {/* Time */}
-            <text x={tx + 8} y={ty + (hasErrors ? 36 : 24)} fill="var(--color-muted)" fontSize={10} fillOpacity={0.7}>
+            <text x={tx + 8} y={ty + (hasErrors ? 43 : 30)} fill="var(--color-muted)" fontSize={13} fillOpacity={0.7}>
               at {timeSec}s
             </text>
           </g>
@@ -288,9 +288,9 @@ export function WpmChart({ samples, compact = false, opponents }: WpmChartProps)
         x={CHART_WIDTH / 2}
         y={PADDING.top + innerHeight + (compact ? 10 : 16)}
         fill="var(--color-muted)"
-        fontSize={9}
+        fontSize={13}
         textAnchor="middle"
-        fillOpacity={0.4}
+        fillOpacity={0.6}
       >
         seconds
       </text>

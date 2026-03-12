@@ -268,10 +268,15 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     }
   }, [words, currentWordIndex, currentCharIndex, status, config, isWordcountBehavior, finishTest]);
 
-  const restart = useCallback(() => {
+  const restart = useCallback((keepText?: boolean) => {
     stopTimer();
     let newWords: WordState[];
-    if (external?.externalWords) {
+    if (keepText && wordsRef.current.length > 0) {
+      // Reuse the same text but reset all character statuses
+      newWords = createWordStates(
+        wordsRef.current.map(w => w.chars.map(c => c.expected).join(""))
+      );
+    } else if (external?.externalWords) {
       newWords = createWordStates(external.externalWords);
     } else if (external?.externalSeed != null || external?.externalWordCount != null) {
       const seed = external?.externalSeed ?? undefined;
@@ -558,6 +563,20 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent | KeyboardEvent) => {
+      // Allow Tab+Enter restart even when finished
+      if (e.key === "Tab" && status === "finished") {
+        e.preventDefault();
+        tabPressedRef.current = true;
+        return;
+      }
+      if (e.key === "Enter" && status === "finished" && tabPressedRef.current) {
+        e.preventDefault();
+        tabPressedRef.current = false;
+        // After finishing, keep same text so user can retry
+        restart(true);
+        return;
+      }
+
       if (status === "finished") return;
 
       const isCodeMode = config.contentType === "code";
@@ -608,7 +627,8 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
         if (tabPressedRef.current) {
           e.preventDefault();
           tabPressedRef.current = false;
-          restart();
+          // Keep same text if user has started typing; new text if still idle
+          restart(status === "typing");
           return;
         }
         // In code mode, Enter advances past \n tokens

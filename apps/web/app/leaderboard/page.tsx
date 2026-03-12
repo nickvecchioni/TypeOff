@@ -85,6 +85,7 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
       avgWpm: userStats.avgWpm,
       maxWpm: userStats.maxWpm,
       avgAccuracy: userStats.avgAccuracy,
+      currentStreak: userStats.currentStreak,
       totalXp: userStats.totalXp,
     })
     .from(users)
@@ -109,6 +110,7 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
         avgWpm: userStats.avgWpm,
         maxWpm: userStats.maxWpm,
         avgAccuracy: userStats.avgAccuracy,
+        currentStreak: userStats.currentStreak,
         totalXp: userStats.totalXp,
       })
       .from(users)
@@ -148,7 +150,7 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
     : [];
   const cosmeticMap = new Map(cosmeticRows.map((r) => [r.userId, r]));
 
-  const gridCols = "grid-cols-[2rem_1fr_4rem_3.5rem] sm:grid-cols-[2.5rem_1fr_5rem_5.5rem_5.5rem_5rem_4rem_4rem]";
+  const gridCols = "grid-cols-[2rem_1fr_4rem_3.5rem] sm:grid-cols-[2.5rem_1fr_5rem_5.5rem_5.5rem_5rem_4rem_4rem_4rem]";
 
   return (
     <>
