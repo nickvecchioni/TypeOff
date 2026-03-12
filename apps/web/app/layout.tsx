@@ -101,10 +101,10 @@ export default function RootLayout({
                 <UserMenu />
               </div>
             </nav>
-            <div className="relative z-10 flex-1 flex flex-col">
+            <div className="relative z-10 flex-1 flex flex-col min-h-0">
               {children}
             </div>
-            <footer className="focus-fade relative z-10 flex items-center justify-center gap-3 py-3 text-sm text-muted/80">
+            <footer className="focus-fade relative z-10 shrink-0 flex items-center justify-center gap-3 py-3 text-sm text-muted/80">
               <Link href="/privacy" className="hover:text-muted transition-colors">Privacy</Link>
               <span>·</span>
               <Link href="/terms" className="hover:text-muted transition-colors">Terms</Link>
