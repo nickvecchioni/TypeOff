@@ -12,7 +12,6 @@ interface ConfigBarProps {
   status: EngineStatus;
   onConfigChange: (config: TestConfig) => void;
   onAfterChange?: () => void;
-  onCustomTextChange?: (words: string[]) => void;
   practiceWeakKeys?: string[];
   practiceWeakBigrams?: string[];
   isPro?: boolean;
@@ -29,12 +28,10 @@ export function ConfigBar({
   status,
   onConfigChange,
   onAfterChange,
-  onCustomTextChange,
   practiceWeakKeys,
   practiceWeakBigrams,
   isPro = false,
 }: ConfigBarProps) {
-  const [customInput, setCustomInput] = React.useState("");
   const isTyping = status === "typing";
   const ct = config.contentType ?? "words";
   // Treat "practice" as a words/mixed variant for UI purposes
@@ -96,8 +93,6 @@ export function ConfigBar({
     }
   };
 
-  // Whether to show the secondary row (words/mixed controls or code picker)
-  const showSecondary = isWordsVariant || ct === "code";
   // Whether to show practice details
   const showPracticeDetails = isWordsVariant && hasPracticeData && isPracticeOn && !!(practiceWeakKeys?.length || practiceWeakBigrams?.length);
 
@@ -107,26 +102,6 @@ export function ConfigBar({
         isTyping ? "pointer-events-none opacity-40" : ""
       }`}
     >
-      {/* ── Custom text input — above mode chips ── */}
-      <div className={`grid transition-[grid-template-rows] duration-200 w-full ${
-        ct === "custom" && !isTyping ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-      }`}>
-        <div className="overflow-hidden">
-          <div className="w-full max-w-lg pb-3 mx-auto">
-            <textarea
-              value={customInput}
-              onChange={(e) => {
-                setCustomInput(e.target.value);
-                const words = e.target.value.trim().split(/\s+/).filter(Boolean);
-                if (words.length > 0) onCustomTextChange?.(words);
-              }}
-              placeholder="Paste custom text here, or just start typing below..."
-              className="w-full h-20 rounded-lg bg-surface/60 ring-1 ring-white/[0.08] px-3 py-2 text-sm text-text placeholder:text-muted/65 resize-none focus:outline-none focus:ring-accent/30"
-            />
-          </div>
-        </div>
-      </div>
-
       {/* ── Primary row: mode / content type — always fixed position ── */}
       <div className="flex items-center gap-1">
         <Chip active={isWordsVariant && !(config.punctuation ?? false)} onClick={() => setWordMode(false)}>
@@ -242,7 +217,14 @@ export function ConfigBar({
           />
         </div>
 
-        {/* Empty placeholder for quotes/custom — keeps the reserved height */}
+        {/* Custom: paste hint */}
+        <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 ${
+          ct === "custom" || ct === "zen" ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}>
+          <span className="text-xs text-muted/45">
+            paste any text below to start typing
+          </span>
+        </div>
       </div>
 
       {/* ── Practice details — shown when practice mode is active ── */}

@@ -306,8 +306,32 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
   const showStopwatch = ct === "quotes" || ct === "custom" || ct === "code" || ct === "zen" ||
     ((ct === "words" || ct === "practice") && engine.config.mode === "wordcount");
 
-  // Route custom mode with no text (freeform) or legacy zen to freeform arena
-  const isFreeform = ct === "zen" || (ct === "custom" && !engine.config.customText);
+  // Custom mode: waiting for paste (no text yet)
+  const isCustomEmpty = ct === "custom" && !engine.config.customText;
+
+  // Handle paste for custom mode
+  const handlePaste = useCallback((e: React.ClipboardEvent) => {
+    if (ct !== "custom") return;
+    const text = e.clipboardData.getData("text/plain").trim();
+    if (!text) return;
+    e.preventDefault();
+    const words = text.split(/\s+/).filter(Boolean);
+    if (words.length > 0) {
+      setCustomWords(words);
+      engine.setConfig({
+        ...engine.config,
+        contentType: "custom",
+        customText: words.join(" "),
+        mode: "wordcount",
+        duration: 0,
+      });
+      setCascadeKey((k) => k + 1);
+      requestAnimationFrame(() => containerRef.current?.focus());
+    }
+  }, [ct, engine]);
+
+  // Route only legacy zen to freeform arena
+  const isFreeform = ct === "zen";
   if (isFreeform) {
     return (
       <div className="flex flex-col items-center gap-6 w-full max-w-5xl mx-auto">
@@ -324,10 +348,6 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
               }
             }}
             onAfterChange={handleAfterConfigChange}
-            onCustomTextChange={(words) => {
-              setCustomWords(words);
-              engine.setConfig({ ...engine.config, contentType: "custom", customText: words.join(" "), mode: "wordcount", duration: 0 });
-            }}
             practiceWeakKeys={weakKeys}
             practiceWeakBigrams={weakBigrams}
             isPro={isPro}
@@ -337,6 +357,11 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
       </div>
     );
   }
+
+  // Code snippet info (resolved once, used in the title slot)
+  const codeSnippet = ct === "code" && engine.lastSeed != null
+    ? getCodeSnippet(engine.lastSeed, engine.config.codeLanguage)
+    : null;
 
   return (
     <div
@@ -383,10 +408,6 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
               }
             }}
             onAfterChange={handleAfterConfigChange}
-            onCustomTextChange={(words) => {
-              setCustomWords(words);
-              engine.setConfig({ ...engine.config, contentType: "custom", customText: words.join(" "), mode: "wordcount", duration: 0 });
-            }}
             practiceWeakKeys={weakKeys}
             practiceWeakBigrams={weakBigrams}
             isPro={isPro}
@@ -414,44 +435,64 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
         </div>
       )}
 
+      {/* Code snippet title — fixed height slot, fades in/out */}
+      {!isFinished && (
+        <div className={`h-5 flex items-center justify-center transition-opacity duration-200 ${
+          codeSnippet ? "opacity-100" : "opacity-0"
+        }`}>
+          {codeSnippet && (
+            <span className="text-xs text-muted/50">
+              {codeSnippet.name} <span className="text-muted/35">·</span> <span className="text-muted/35">{codeSnippet.language}</span>
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Typing area with scroll clipping */}
       {!isFinished && (
         <div
           ref={containerRef}
           tabIndex={0}
           onKeyDown={engine.handleKeyDown}
+          onPaste={handlePaste}
           className="relative w-full outline-none cursor-default select-none overflow-hidden opacity-0 animate-fade-in"
           style={{ height: containerHeight, animationDelay: "40ms", animationFillMode: "both" }}
           role="textbox"
           aria-label="Solo typing area"
         >
-          <div
-            ref={wordsInnerRef}
-            className={suppressTransitionRef.current ? "" : "transition-transform duration-150 ease-out"}
-            style={{ transform: `translateY(-${scrollOffset}px)` }}
-          >
-            <WordDisplay
-              words={engine.words}
-              currentWordIndex={engine.currentWordIndex}
-              currentCharIndex={engine.currentCharIndex}
-              isTyping={isTyping}
-              contentType={engine.config.contentType}
-            />
-          </div>
+          {isCustomEmpty ? (
+            /* Custom mode placeholder — waiting for paste */
+            <div className="flex items-center justify-center h-full">
+              <div className="flex flex-col items-center gap-2 text-muted/40">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+                </svg>
+                <span className="text-sm">
+                  <kbd className="px-1.5 py-0.5 rounded bg-white/[0.05] text-muted/50 text-xs font-medium">
+                    {typeof navigator !== "undefined" && /Mac/.test(navigator.userAgent) ? "⌘" : "Ctrl"}+V
+                  </kbd>
+                  {" "}to paste text
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div
+              ref={wordsInnerRef}
+              className={suppressTransitionRef.current ? "" : "transition-transform duration-150 ease-out"}
+              style={{ transform: `translateY(-${scrollOffset}px)` }}
+            >
+              <WordDisplay
+                words={engine.words}
+                currentWordIndex={engine.currentWordIndex}
+                currentCharIndex={engine.currentCharIndex}
+                isTyping={isTyping}
+                contentType={engine.config.contentType}
+              />
+            </div>
+          )}
         </div>
       )}
-
-
-
-      {/* Code snippet info */}
-      {ct === "code" && engine.lastSeed != null && (() => {
-        const snippet = getCodeSnippet(engine.lastSeed);
-        return (
-          <div className="text-center mt-1 -mb-2 text-xs text-muted/50">
-            {snippet.name} <span className="text-muted/60">·</span> <span className="text-muted/60">{snippet.language}</span>
-          </div>
-        );
-      })()}
 
       {/* Live WPM+time / Tab+Enter hint — overlaid in shared space */}
       {!isFinished && (
