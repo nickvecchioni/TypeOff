@@ -77,7 +77,7 @@ export default async function ReplayPage({
   const hasReplayData = participants.some((p) => p.replayData != null);
 
   return (
-    <main className="flex flex-col items-center px-4 py-8 sm:py-12 min-h-[60vh] animate-fade-in">
+    <main className="flex-1 flex flex-col items-center px-4 py-8 sm:py-12 min-h-0 overflow-y-auto animate-fade-in">
       {hasReplayData && replayLocked ? (
         <div className="flex flex-col items-center gap-6 text-center max-w-sm py-4">
           <div className="w-14 h-14 rounded-2xl bg-accent/10 ring-1 ring-accent/20 flex items-center justify-center text-2xl">
