@@ -146,120 +146,120 @@ export function ConfigBar({
         </Chip>
       </div>
 
-      {/* ── Secondary row: mode-dependent controls ── */}
-      <div className={`grid transition-[grid-template-rows] duration-200 ${
-        showSecondary ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-      }`}>
-        <div className="overflow-hidden">
-          <div className="flex items-center gap-2 pt-3 justify-center">
-            {/* Words/Mixed: time/words toggle + duration + strict + practice */}
-            {isWordsVariant && (
-              <>
-                <div className="flex items-center gap-1">
-                  <Tooltip label="Time mode" position="bottom">
-                    <Sub
-                      active={mode === "time"}
-                      onClick={() => set({ mode: "timed", duration: TIME_OPTIONS[0] })}
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="13" r="8" />
-                        <path d="M12 9v4l2 2" />
-                        <path d="M5 3L2 6" />
-                        <path d="M22 6l-3-3" />
-                        <line x1="12" y1="1" x2="12" y2="3" />
-                      </svg>
-                    </Sub>
-                  </Tooltip>
-                  <Tooltip label="Word count mode" position="bottom">
-                    <Sub
-                      active={mode === "words"}
-                      onClick={() => set({ mode: "wordcount", duration: WORD_OPTIONS[0] })}
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="4" y1="9" x2="20" y2="9" />
-                        <line x1="4" y1="15" x2="20" y2="15" />
-                        <line x1="10" y1="3" x2="8" y2="21" />
-                        <line x1="16" y1="3" x2="14" y2="21" />
-                      </svg>
-                    </Sub>
-                  </Tooltip>
-                  <MicroDivider />
-                  {durations.map((d) => (
-                    <Sub
-                      key={d}
-                      active={config.duration === d}
-                      onClick={() => set({ duration: d })}
-                    >
-                      {d}
-                    </Sub>
-                  ))}
-                </div>
+      {/* ── Secondary row: fixed height, content fades in/out ── */}
+      <div className="relative h-[36px] mt-3 flex items-center justify-center w-full">
+        {/* Words/Mixed: time/words toggle + duration + strict + practice */}
+        <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 ${
+          isWordsVariant ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <Tooltip label="Time mode" position="bottom">
+                <Sub
+                  active={mode === "time"}
+                  onClick={() => set({ mode: "timed", duration: TIME_OPTIONS[0] })}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="13" r="8" />
+                    <path d="M12 9v4l2 2" />
+                    <path d="M5 3L2 6" />
+                    <path d="M22 6l-3-3" />
+                    <line x1="12" y1="1" x2="12" y2="3" />
+                  </svg>
+                </Sub>
+              </Tooltip>
+              <Tooltip label="Word count mode" position="bottom">
+                <Sub
+                  active={mode === "words"}
+                  onClick={() => set({ mode: "wordcount", duration: WORD_OPTIONS[0] })}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="4" y1="9" x2="20" y2="9" />
+                    <line x1="4" y1="15" x2="20" y2="15" />
+                    <line x1="10" y1="3" x2="8" y2="21" />
+                    <line x1="16" y1="3" x2="14" y2="21" />
+                  </svg>
+                </Sub>
+              </Tooltip>
+              <MicroDivider />
+              {durations.map((d) => (
+                <Sub
+                  key={d}
+                  active={config.duration === d}
+                  onClick={() => set({ duration: d })}
+                >
+                  {d}
+                </Sub>
+              ))}
+            </div>
 
-                <div className="flex items-center gap-1">
-                  <MicroDivider />
-                  <StrictModeSelector
-                    value={config.strictMode ?? "easy"}
-                    onChange={(m: StrictMode) =>
-                      set({
-                        strictMode: m,
-                        difficulty: m,
-                      })
-                    }
-                  />
-                </div>
+            <div className="flex items-center gap-1">
+              <MicroDivider />
+              <StrictModeSelector
+                value={config.strictMode ?? "easy"}
+                onChange={(m: StrictMode) =>
+                  set({
+                    strictMode: m,
+                    difficulty: m,
+                  })
+                }
+              />
+            </div>
 
-                {hasPracticeData && (
-                  <div className="flex items-center">
-                    <MicroDivider />
-                    <Tooltip label={isPracticeOn ? "Targeting your weakest keys & bigrams — click to disable" : "Generate text targeting your weak spots"} position="bottom">
-                      <button
-                        onClick={togglePractice}
-                        className={`p-1.5 rounded-md transition-all inline-flex items-center ${
-                          isPracticeOn
-                            ? "text-amber-400 bg-amber-500/15"
-                            : "text-muted/55 hover:text-muted/70 hover:bg-white/[0.03]"
-                        }`}
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="12" cy="12" r="8" />
-                          <line x1="12" y1="2" x2="12" y2="6" />
-                          <line x1="12" y1="18" x2="12" y2="22" />
-                          <line x1="2" y1="12" x2="6" y2="12" />
-                          <line x1="18" y1="12" x2="22" y2="12" />
-                        </svg>
-                      </button>
-                    </Tooltip>
-                  </div>
-                )}
-              </>
-            )}
-
-            {/* Code: language picker + indent style */}
-            {ct === "code" && (
-              <div className="flex items-center gap-1">
-                <CodeLanguagePicker
-                  value={config.codeLanguage}
-                  onChange={(lang) => set({ codeLanguage: lang })}
-                />
+            {hasPracticeData && (
+              <div className="flex items-center">
                 <MicroDivider />
-                <div className="flex items-center gap-0.5">
-                  <Sub
-                    active={(config.codeIndent ?? "spaces") === "spaces"}
-                    onClick={() => set({ codeIndent: "spaces" })}
+                <Tooltip label={isPracticeOn ? "Targeting your weakest keys & bigrams — click to disable" : "Generate text targeting your weak spots"} position="bottom">
+                  <button
+                    onClick={togglePractice}
+                    className={`p-1.5 rounded-md transition-all inline-flex items-center ${
+                      isPracticeOn
+                        ? "text-amber-400 bg-amber-500/15"
+                        : "text-muted/55 hover:text-muted/70 hover:bg-white/[0.03]"
+                    }`}
                   >
-                    spaces
-                  </Sub>
-                  <Sub
-                    active={config.codeIndent === "tabs"}
-                    onClick={() => set({ codeIndent: "tabs" })}
-                  >
-                    tabs
-                  </Sub>
-                </div>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="8" />
+                      <line x1="12" y1="2" x2="12" y2="6" />
+                      <line x1="12" y1="18" x2="12" y2="22" />
+                      <line x1="2" y1="12" x2="6" y2="12" />
+                      <line x1="18" y1="12" x2="22" y2="12" />
+                    </svg>
+                  </button>
+                </Tooltip>
               </div>
             )}
           </div>
         </div>
+
+        {/* Code: language picker + indent style */}
+        <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 ${
+          ct === "code" ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}>
+          <div className="flex items-center gap-1">
+            <CodeLanguagePicker
+              value={config.codeLanguage}
+              onChange={(lang) => set({ codeLanguage: lang })}
+            />
+            <MicroDivider />
+            <div className="flex items-center gap-0.5">
+              <Sub
+                active={(config.codeIndent ?? "spaces") === "spaces"}
+                onClick={() => set({ codeIndent: "spaces" })}
+              >
+                spaces
+              </Sub>
+              <Sub
+                active={config.codeIndent === "tabs"}
+                onClick={() => set({ codeIndent: "tabs" })}
+              >
+                tabs
+              </Sub>
+            </div>
+          </div>
+        </div>
+
+        {/* Empty placeholder for quotes/custom — keeps the reserved height */}
       </div>
 
       {/* ── Practice details — shown when practice mode is active ── */}
