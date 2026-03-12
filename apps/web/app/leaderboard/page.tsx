@@ -191,7 +191,8 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
             <span className="text-right hidden sm:block">Avg WPM</span>
             <span className="text-right hidden sm:block">Avg Acc</span>
             <span className="text-right hidden sm:block">Races</span>
-            <span className="text-right">Wins</span>
+            <span className="text-right hidden sm:block">Win %</span>
+            <span className="text-right">Streak</span>
           </div>
 
           {/* Rows */}
@@ -205,6 +206,8 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
 
               const racesPlayed = row.racesPlayed ?? 0;
               const racesWon = row.racesWon ?? 0;
+              const winRate = racesPlayed > 0 ? Math.round((racesWon / racesPlayed) * 100) : 0;
+              const streak = row.currentStreak ?? 0;
 
               const rankDisplay = rank === 1
                 ? "text-rank-gold"
@@ -262,8 +265,11 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
                   <span className="text-base text-text tabular-nums text-right hidden sm:block">
                     {racesPlayed}
                   </span>
-                  <span className="text-base text-text tabular-nums text-right">
-                    {racesWon}
+                  <span className="text-base text-text tabular-nums text-right hidden sm:block">
+                    {winRate}%
+                  </span>
+                  <span className="text-base tabular-nums text-right">
+                    {streak > 0 ? <span className="text-amber-400">{streak}</span> : <span className="text-text">0</span>}
                   </span>
                 </Link>
               );
@@ -277,6 +283,8 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
             const tierColor = TIER_TEXT[info.tier];
             const racesPlayed = row.racesPlayed ?? 0;
             const racesWon = row.racesWon ?? 0;
+            const myWinRate = racesPlayed > 0 ? Math.round((racesWon / racesPlayed) * 100) : 0;
+            const myStreak = row.currentStreak ?? 0;
             const myCosmetic = cosmeticMap.get(row.id);
             const myLvl = getXpLevel(row.totalXp ?? 0).level;
 
@@ -321,8 +329,11 @@ async function RankedLeaderboard({ userId, db, universe }: { userId?: string; db
                   <span className="text-base text-text tabular-nums text-right hidden sm:block">
                     {racesPlayed}
                   </span>
-                  <span className="text-base text-text tabular-nums text-right">
-                    {racesWon}
+                  <span className="text-base text-text tabular-nums text-right hidden sm:block">
+                    {myWinRate}%
+                  </span>
+                  <span className="text-base tabular-nums text-right">
+                    {myStreak > 0 ? <span className="text-amber-400">{myStreak}</span> : <span className="text-text">0</span>}
                   </span>
                 </Link>
               </div>
@@ -379,6 +390,7 @@ async function SoloLeaderboard({
       eloRating: users.eloRating,
       rankTier: users.rankTier,
       bestWpm: sql<number>`max(${soloResults.wpm})`.as("best_wpm"),
+      avgWpm: sql<number>`avg(${soloResults.wpm})`.as("avg_wpm"),
       bestRawWpm: sql<number>`(array_agg(${soloResults.rawWpm} ORDER BY ${soloResults.wpm} DESC))[1]`.as("best_raw_wpm"),
       avgAccuracy: sql<number>`avg(${soloResults.accuracy})`.as("avg_accuracy"),
       testCount: sql<number>`count(*)`.as("test_count"),
@@ -407,6 +419,7 @@ async function SoloLeaderboard({
         eloRating: users.eloRating,
         rankTier: users.rankTier,
         bestWpm: sql<number>`max(${soloResults.wpm})`.as("best_wpm"),
+        avgWpm: sql<number>`avg(${soloResults.wpm})`.as("avg_wpm"),
         bestRawWpm: sql<number>`(array_agg(${soloResults.rawWpm} ORDER BY ${soloResults.wpm} DESC))[1]`.as("best_raw_wpm"),
         avgAccuracy: sql<number>`avg(${soloResults.accuracy})`.as("avg_accuracy"),
         testCount: sql<number>`count(*)`.as("test_count"),
@@ -460,7 +473,7 @@ async function SoloLeaderboard({
   const soloCosmeticMap = new Map(soloCosmeticRows.map((r) => [r.userId, r]));
 
   const modeLabel = isFixedText ? category : mode === "timed" ? `${duration}s` : `${duration} words`;
-  const soloGridCols = "grid-cols-[2rem_1fr_4rem] sm:grid-cols-[2.5rem_1fr_5.5rem_5rem_5rem_4rem]";
+  const soloGridCols = "grid-cols-[2rem_1fr_4rem] sm:grid-cols-[2.5rem_1fr_5.5rem_5.5rem_5rem_5rem_4rem]";
 
   return (
     <>
@@ -498,7 +511,8 @@ async function SoloLeaderboard({
           >
             <span></span>
             <span>Player</span>
-            <span className="text-right">WPM</span>
+            <span className="text-right">Best WPM</span>
+            <span className="text-right hidden sm:block">Avg WPM</span>
             <span className="text-right hidden sm:block">Raw</span>
             <span className="text-right hidden sm:block">Avg Acc</span>
             <span className="text-right hidden sm:block">Tests</span>
@@ -556,6 +570,9 @@ async function SoloLeaderboard({
                     {fmtWpm(row.bestWpm)}
                   </span>
                   <span className="text-base text-text tabular-nums text-right hidden sm:block">
+                    {fmtWpm(row.avgWpm)}
+                  </span>
+                  <span className="text-base text-text tabular-nums text-right hidden sm:block">
                     {fmtWpm(row.bestRawWpm)}
                   </span>
                   <span className="text-base text-text tabular-nums text-right hidden sm:block">
@@ -607,6 +624,9 @@ async function SoloLeaderboard({
                     {fmtWpm(row.bestWpm)}
                   </span>
                   <span className="text-base text-text tabular-nums text-right hidden sm:block">
+                    {fmtWpm(row.avgWpm)}
+                  </span>
+                  <span className="text-base text-text tabular-nums text-right hidden sm:block">
                     {fmtWpm(row.bestRawWpm)}
                   </span>
                   <span className="text-base text-text tabular-nums text-right hidden sm:block">
@@ -649,6 +669,7 @@ async function UniverseLeaderboard({
       avgAccuracy: sql<number>`avg(${raceParticipants.accuracy})`.as("avg_accuracy"),
       raceCount: sql<number>`count(*)`.as("race_count"),
       racesWon: sql<number>`count(case when ${raceParticipants.placement} = 1 then 1 end)`.as("races_won"),
+      currentStreak: userStats.currentStreak,
       totalXp: userStats.totalXp,
     })
     .from(raceParticipants)
@@ -663,7 +684,7 @@ async function UniverseLeaderboard({
         eq(raceParticipants.flagged, false),
       ),
     )
-    .groupBy(raceParticipants.userId, users.username, users.lastSeen, users.eloRating, users.rankTier, userStats.totalXp)
+    .groupBy(raceParticipants.userId, users.username, users.lastSeen, users.eloRating, users.rankTier, userStats.totalXp, userStats.currentStreak)
     .orderBy(sql`avg_wpm desc`)
     .limit(100);
 
@@ -683,7 +704,7 @@ async function UniverseLeaderboard({
     : [];
   const cosmeticMap = new Map(cosmeticRows.map((r) => [r.userId, r]));
 
-  const gridCols = "grid-cols-[2rem_1fr_4.5rem] sm:grid-cols-[2.5rem_1fr_5.5rem_5.5rem_5rem_4rem_4rem]";
+  const gridCols = "grid-cols-[2rem_1fr_4.5rem] sm:grid-cols-[2.5rem_1fr_5.5rem_5.5rem_5rem_4rem_4rem_4rem]";
 
   return (
     <>
@@ -724,7 +745,8 @@ async function UniverseLeaderboard({
             <span className="text-right hidden sm:block">Best WPM</span>
             <span className="text-right hidden sm:block">Avg Acc</span>
             <span className="text-right hidden sm:block">Races</span>
-            <span className="text-right hidden sm:block">Wins</span>
+            <span className="text-right hidden sm:block">Win %</span>
+            <span className="text-right hidden sm:block">Streak</span>
           </div>
 
           <div className="animate-fade-in">
@@ -735,6 +757,11 @@ async function UniverseLeaderboard({
               const isOnline = row.lastSeen != null && (Date.now() - new Date(row.lastSeen).getTime()) < 3 * 60 * 1000;
               const info = getRankInfo(row.eloRating ?? 1000);
               const tierColor = TIER_TEXT[info.tier];
+
+              const raceCount = row.raceCount ?? 0;
+              const racesWon = row.racesWon ?? 0;
+              const winRate = raceCount > 0 ? Math.round((racesWon / raceCount) * 100) : 0;
+              const streak = row.currentStreak ?? 0;
 
               const rankDisplay =
                 rank === 1 ? "text-rank-gold" :
@@ -782,10 +809,13 @@ async function UniverseLeaderboard({
                     {row.avgAccuracy != null ? (<>{Math.floor(row.avgAccuracy)}<span className="text-[0.8em] opacity-70">.{((row.avgAccuracy % 1) * 10).toFixed(0)}%</span></>) : "-"}
                   </span>
                   <span className="text-base text-text tabular-nums text-right hidden sm:block">
-                    {row.raceCount}
+                    {raceCount}
                   </span>
                   <span className="text-base text-text tabular-nums text-right hidden sm:block">
-                    {row.racesWon}
+                    {winRate}%
+                  </span>
+                  <span className="text-base tabular-nums text-right hidden sm:block">
+                    {streak > 0 ? <span className="text-amber-400">{streak}</span> : <span className="text-text">0</span>}
                   </span>
                 </Link>
               );
