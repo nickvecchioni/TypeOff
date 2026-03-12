@@ -317,7 +317,7 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed, xpProgre
   const showRawWpm = stats.rawWpm > 0 && Math.floor(stats.rawWpm) !== Math.floor(stats.wpm);
 
   return (
-    <div className="flex flex-col gap-2 w-full animate-slide-up">
+    <div className="flex flex-col gap-1.5 w-full animate-slide-up">
       {/* ── Hero stats ─────────────────────────────────────── */}
       <div
         className="relative rounded-xl overflow-hidden ring-1 ring-white/[0.06]"
@@ -443,15 +443,15 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed, xpProgre
 
       {/* ── Two-column grid ────────────────────────────────── */}
       <div
-        className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full"
+        className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 w-full"
         style={{ animation: "fade-in 0.3s ease-out 0.05s both" }}
       >
         {/* ── Left: WPM Chart ── */}
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1.5">
           {stats.wpmHistory.length >= 2 && (
-            <div className="rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-3 pt-2.5 pb-1.5 flex flex-col" style={{ aspectRatio: "8 / 1" }}>
-              <div className="text-xs font-bold text-muted/50 uppercase tracking-widest mb-1.5">WPM over time</div>
-              <div className="flex-1 min-h-0">
+            <div className="rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-3 pt-2.5 pb-1.5 flex flex-col">
+              <div className="text-xs font-bold text-muted/50 uppercase tracking-widest mb-0.5">WPM over time</div>
+              <div className="w-full" style={{ aspectRatio: "600 / 240" }}>
                 <WpmChart samples={stats.wpmHistory} />
               </div>
             </div>
@@ -494,7 +494,7 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed, xpProgre
         </div>
 
         {/* ── Right: Keyboard Heatmap ── */}
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1.5">
           {stats.keyStats && Object.keys(stats.keyStats).length > 0 && (
             <div className="rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-3 pt-2.5 pb-2 flex flex-col">
               <div className="text-xs font-bold text-muted/50 uppercase tracking-widest mb-2">Key Accuracy</div>
