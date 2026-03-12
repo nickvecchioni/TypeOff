@@ -1217,7 +1217,7 @@ export function RaceResults({
         );
       })()}
 
-      {/* ── TOP ROW: Standings + XP ─────────────────────── */}
+      {/* ── TOP ROW: Standings + XP/Challenges ────────────── */}
       <div
         className="grid grid-cols-1 sm:grid-cols-[1fr_minmax(0,20rem)] gap-1.5 w-full"
       >
@@ -1352,7 +1352,7 @@ export function RaceResults({
           </div>
         </div>
 
-        {/* ── RIGHT: XP + Achievements ── */}
+        {/* ── RIGHT: XP + Challenges + Achievements ── */}
         <div className="flex flex-col gap-1.5 min-h-0">
           {/* XP Progress — always reserve space to prevent jitter */}
           {!isPlacement && (
@@ -1377,32 +1377,91 @@ export function RaceResults({
             )
           )}
 
+          {/* Challenges — compact in the right column */}
+          {!isPlacement && (
+            <div className="rounded-xl bg-surface/20 ring-1 ring-white/[0.05] overflow-hidden px-3 py-2">
+              <div className="flex items-center justify-between mb-0.5">
+                <h3 className="text-xs font-bold text-muted/65 uppercase tracking-widest">
+                  Challenges
+                </h3>
+                {myResult?.xpEarned != null && myResult.xpEarned > 0 && (
+                  <span className="text-xs font-bold text-accent tabular-nums">
+                    +{myResult.xpEarned} XP
+                  </span>
+                )}
+              </div>
+              {hasChallenges ? (
+                <div>
+                  {myResult!.challengeProgress!.filter((c) => c.progress > 0).map((cp) => {
+                    const def = CHALLENGE_MAP.get(cp.challengeId);
+                    if (!def) return null;
+                    const progress = Math.min(cp.progress, cp.target);
+                    const pct = cp.target > 0 ? (progress / cp.target) * 100 : 0;
+                    return (
+                      <div key={cp.challengeId} className="flex items-center gap-1.5 py-0.5">
+                        <span className="text-sm shrink-0">{def.icon}</span>
+                        <span className="text-xs font-medium text-text truncate min-w-0">
+                          {def.name}
+                          {cp.completed && <span className="text-correct ml-1">✓</span>}
+                        </span>
+                        <span className="text-xs text-muted tabular-nums shrink-0 ml-auto">
+                          {progress}/{cp.target}
+                        </span>
+                        <div className="w-10 h-1 rounded-full bg-surface overflow-hidden shrink-0">
+                          <div
+                            className={`h-full rounded-full transition-all ${cp.completed ? "bg-correct" : "bg-accent"}`}
+                            style={{ width: `${Math.round(pct)}%` }}
+                          />
+                        </div>
+                        {cp.justCompleted && (
+                          <span className="text-xs font-bold text-correct bg-correct/10 rounded px-1 py-0.5 tabular-nums shrink-0">
+                            +{cp.xpAwarded} XP
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="space-y-1 py-0.5">
+                  <div className="h-3 w-3/4 rounded bg-white/[0.03] animate-pulse" />
+                  <div className="h-3 w-1/2 rounded bg-white/[0.03] animate-pulse" />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Pro upsell card (non-Pro only) */}
+          {showProPanel && (
+            <ProPanel level={currentLevel} xpEarned={myResult?.xpProgress?.xpEarned ?? 0} />
+          )}
+
           {/* Achievements */}
           {hasAchievements && (
             <div className="flex flex-col gap-1 w-full">
-              <h3 className="text-sm font-bold text-muted/65 uppercase tracking-widest px-0.5">
+              <h3 className="text-xs font-bold text-muted/65 uppercase tracking-widest px-0.5">
                 Achievements Unlocked
               </h3>
-              <div className="grid grid-cols-1 gap-1.5">
+              <div className="grid grid-cols-1 gap-1">
                 {myResult!.newAchievements!.map((id) => {
                   const def = ACHIEVEMENT_MAP.get(id);
                   if (!def) return null;
                   return (
                     <div
                       key={id}
-                      className={`flex items-center gap-3 rounded-lg px-3 py-2.5 ring-1 animate-fade-in ${RARITY_BG[def.rarity]} ${RARITY_RING[def.rarity]} ${RARITY_GLOW[def.rarity]}`}
+                      className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 ring-1 animate-fade-in ${RARITY_BG[def.rarity]} ${RARITY_RING[def.rarity]} ${RARITY_GLOW[def.rarity]}`}
                     >
-                      <span className="text-xl shrink-0">{def.icon}</span>
+                      <span className="text-lg shrink-0">{def.icon}</span>
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <div className="text-base font-bold text-text">{def.name}</div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="text-sm font-bold text-text">{def.name}</div>
                           {def.rarity !== "common" && (
                             <span className={`text-xs font-black uppercase tracking-wider ${RARITY_LABEL[def.rarity]}`}>
                               {def.rarity}
                             </span>
                           )}
                         </div>
-                        <div className="text-sm text-muted/60 truncate mt-0.5">{def.description}</div>
+                        <div className="text-xs text-muted/60 truncate">{def.description}</div>
                       </div>
                     </div>
                   );
@@ -1420,7 +1479,7 @@ export function RaceResults({
             className="rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-3 pt-2.5 pb-1.5 flex flex-col min-w-0"
           >
             <div className="text-xs font-bold text-muted/60 uppercase tracking-widest mb-0.5">WPM over time</div>
-            <div className="w-full" style={{ aspectRatio: "600 / 120" }}>
+            <div className="w-full" style={{ aspectRatio: "5 / 1" }}>
               <WpmChart samples={myWpmHistory} compact />
             </div>
           </div>
@@ -1465,70 +1524,6 @@ export function RaceResults({
                 );
               })()}
             </div>
-          )}
-        </div>
-      )}
-
-      {/* ── BOTTOM ROW: Challenges + Pro upsell ────────────── */}
-      {!isPlacement && (
-        <div className={`grid gap-1.5 w-full ${showProPanel ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"}`}>
-          {/* Challenges */}
-          <div className="rounded-xl bg-surface/20 ring-1 ring-white/[0.05] overflow-hidden px-3 py-2 sm:px-4 sm:py-2.5">
-            <div className="flex items-center justify-between mb-1">
-              <h3 className="text-xs font-bold text-muted/65 uppercase tracking-widest">
-                Challenges
-              </h3>
-              {myResult?.xpEarned != null && myResult.xpEarned > 0 && (
-                <span className="text-xs font-bold text-accent tabular-nums">
-                  +{myResult.xpEarned} XP
-                </span>
-              )}
-            </div>
-            {hasChallenges ? (
-              <div>
-                {myResult!.challengeProgress!.filter((c) => c.progress > 0).map((cp) => {
-                  const def = CHALLENGE_MAP.get(cp.challengeId);
-                  if (!def) return null;
-                  const progress = Math.min(cp.progress, cp.target);
-                  const pct = cp.target > 0 ? (progress / cp.target) * 100 : 0;
-                  return (
-                    <div key={cp.challengeId} className="flex items-center gap-2 py-0.5">
-                      <span className="text-sm shrink-0">{def.icon}</span>
-                      <div className="min-w-0 flex-1">
-                        <span className="text-xs font-medium text-text truncate block leading-tight">
-                          {def.name}
-                          {cp.completed && <span className="text-correct ml-1">✓</span>}
-                        </span>
-                      </div>
-                      <span className="text-xs text-muted tabular-nums shrink-0">
-                        {progress}/{cp.target}
-                      </span>
-                      <div className="w-12 h-1 rounded-full bg-surface overflow-hidden shrink-0">
-                        <div
-                          className={`h-full rounded-full transition-all ${cp.completed ? "bg-correct" : "bg-accent"}`}
-                          style={{ width: `${Math.round(pct)}%` }}
-                        />
-                      </div>
-                      {cp.justCompleted && (
-                        <span className="text-xs font-bold text-correct bg-correct/10 rounded px-1 py-0.5 tabular-nums shrink-0">
-                          +{cp.xpAwarded} XP
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="space-y-1 py-0.5">
-                <div className="h-3 w-3/4 rounded bg-white/[0.03] animate-pulse" />
-                <div className="h-3 w-1/2 rounded bg-white/[0.03] animate-pulse" />
-              </div>
-            )}
-          </div>
-
-          {/* Pro upsell card (non-Pro only) */}
-          {showProPanel && (
-            <ProPanel level={currentLevel} xpEarned={myResult?.xpProgress?.xpEarned ?? 0} />
           )}
         </div>
       )}
