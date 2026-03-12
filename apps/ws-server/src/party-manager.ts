@@ -240,23 +240,28 @@ export class PartyManager {
     const userId = this.socketToUser.get(socketId);
     if (!userId) return;
 
+    this.socketToUser.delete(socketId);
+
+    // If the user already reconnected with a new socket (via reconnectSocket),
+    // their member entry has a different socketId — don't remove them from the party.
     const partyId = this.userToParty.get(userId);
-    if (!partyId) {
-      this.socketToUser.delete(socketId);
-      return;
-    }
+    if (!partyId) return;
 
     const party = this.parties.get(partyId);
     if (!party) {
       this.userToParty.delete(userId);
-      this.socketToUser.delete(socketId);
+      return;
+    }
+
+    const member = party.members.get(userId);
+    if (member && member.socketId !== socketId) {
+      // User already reconnected with a new socket — keep them in the party
       return;
     }
 
     party.members.delete(userId);
     party.readyState.delete(userId);
     this.userToParty.delete(userId);
-    this.socketToUser.delete(socketId);
 
     if (party.members.size === 0) {
       this.parties.delete(partyId);
@@ -358,6 +363,29 @@ export class PartyManager {
 
   getUserForSocket(socketId: string): string | undefined {
     return this.socketToUser.get(socketId);
+  }
+
+  /** Update a party member's socket ID after reconnection. */
+  reconnectSocket(userId: string, newSocket: TypedSocket): boolean {
+    const partyId = this.userToParty.get(userId);
+    if (!partyId) return false;
+
+    const party = this.parties.get(partyId);
+    if (!party) return false;
+
+    const member = party.members.get(userId);
+    if (!member) return false;
+
+    // Clean up old socket mapping
+    this.socketToUser.delete(member.socketId);
+
+    // Update to new socket
+    member.socketId = newSocket.id;
+    this.socketToUser.set(newSocket.id, userId);
+
+    // Re-send current party state so the reconnected client is in sync
+    this.broadcastPartyUpdate(party);
+    return true;
   }
 
   sendMessage(socket: TypedSocket, message: string) {

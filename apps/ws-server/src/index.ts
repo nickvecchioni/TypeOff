@@ -92,6 +92,9 @@ io.use(async (socket, next) => {
       if (result) {
         console.log(`[middleware] proactive reconnect: ${socket.id} → race ${result.raceId} (userId=${player.id})`);
       }
+
+      // Reconnect party socket so chat/updates reach the right socket
+      partyManager.reconnectSocket(player.id, socket);
     } catch {
       // Auth failed (token expired, invalid, etc.) — try to decode the JWT
       // payload WITHOUT verification to extract the userId for routing purposes.
@@ -115,6 +118,8 @@ io.use(async (socket, next) => {
             if (result) {
               console.log(`[middleware] proactive reconnect (expired token): ${socket.id} → race ${result.raceId}`);
             }
+
+            partyManager.reconnectSocket(payload.sub, socket);
           }
         }
       } catch {
