@@ -418,7 +418,7 @@ export default function AboutPage() {
             TypeOff
           </h1>
           <p className="text-muted text-sm mt-2">
-            Competitive typing — ranked multiplayer with ELO matchmaking.
+            Competitive typing. Ranked multiplayer with ELO matchmaking.
           </p>
           <p className="text-muted/60 text-xs mt-1">
             Race head-to-head, climb the ladder, and prove you&apos;re the
@@ -473,8 +473,8 @@ export default function AboutPage() {
           </InfoCard>
 
           <InfoCard title="ELO System">
-            4-player races. Your ELO shifts based on relative skill —
-            beat higher-rated players for bigger gains, lose to
+            4-player races. Your ELO shifts based on relative skill.
+            Beat higher-rated players for bigger gains, lose to
             lower-rated ones for steeper penalties. First 30 races
             adjust faster.
           </InfoCard>
@@ -497,7 +497,7 @@ export default function AboutPage() {
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
               {[
-                "Stay accurate — mistakes cost time",
+                "Stay accurate. Mistakes cost time",
                 "Warm up before ranked",
                 "Pattern recognition > raw speed",
                 "Stay consistent, don\u2019t tilt",

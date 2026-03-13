@@ -140,7 +140,7 @@ export function ZenArena({ engine }: ZenArenaProps) {
       {/* Hint */}
       {!isFinished && engine.status === "idle" && (
         <p className="text-muted/65 text-xs opacity-0 animate-fade-in" style={{ animationDelay: "100ms", animationFillMode: "both" }}>
-          start typing — no time limit, no word count
+          start typing. no time limit, no word count
         </p>
       )}
 

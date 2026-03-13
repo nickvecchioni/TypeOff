@@ -321,7 +321,7 @@ export function useRace(myPlayerId?: string | null) {
           setPhase("idle");
         }, 25_000);
       } else if (rateLimited) {
-        setError("Too many requests — please wait a moment and try again");
+        setError("Too many requests. Please wait a moment and try again");
         setPhase("idle");
       } else {
         setError("Sign in required to play");

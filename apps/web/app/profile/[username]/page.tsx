@@ -427,7 +427,7 @@ export default async function ProfilePage({
               value={
                 stats?.racesPlayed
                   ? `${Math.round((stats.racesWon / stats.racesPlayed) * 100)}%`
-                  : "—"
+                  : "-"
               }
             />
             <StatCard label="Streak" value={stats?.currentStreak ?? 0} />
@@ -645,7 +645,7 @@ export default async function ProfilePage({
                         <td className="px-3 py-3 text-muted/60 tabular-nums text-xs" suppressHydrationWarning>
                           {race.finishedAt
                             ? <LocalDateTime date={race.finishedAt.toISOString()} />
-                            : "—"}
+                            : "-"}
                         </td>
                         <td className="hidden sm:table-cell px-3 py-3">
                           {race.modeCategory ? (
@@ -653,7 +653,7 @@ export default async function ProfilePage({
                               {race.modeCategory === "words" ? "aa" : race.modeCategory === "special" ? "A1!" : race.modeCategory === "quotes" ? '""' : race.modeCategory === "code" ? "</>" : ""}
                             </span>
                           ) : (
-                            <span className="text-muted/50">—</span>
+                            <span className="text-muted/50">-</span>
                           )}
                         </td>
                         <td className="px-3 py-3">
@@ -669,10 +669,10 @@ export default async function ProfilePage({
                                 .{(race.wpm % 1).toFixed(2).slice(2)}
                               </span>
                             </>
-                          ) : "—"}
+                          ) : "-"}
                         </td>
                         <td className="hidden sm:table-cell px-3 py-3 text-right tabular-nums text-muted/60 text-xs">
-                          {race.accuracy != null ? `${race.accuracy.toFixed(1)}%` : "—"}
+                          {race.accuracy != null ? `${race.accuracy.toFixed(1)}%` : "-"}
                         </td>
                         <td className="px-3 py-3 text-right tabular-nums">
                           {eloChange != null ? (
@@ -689,7 +689,7 @@ export default async function ProfilePage({
                               {eloChange}
                             </span>
                           ) : (
-                            <span className="text-muted/50 text-xs">—</span>
+                            <span className="text-muted/50 text-xs">-</span>
                           )}
                         </td>
                         <td className="px-3 py-3 text-right">

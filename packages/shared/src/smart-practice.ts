@@ -97,7 +97,7 @@ export function estimateWpmImpact(
       insight = `Your '${w.value}' bigram (${accPct}% accuracy) appears frequently and is costing you roughly ~${Math.max(1, Math.round(estimatedWpmCost))} WPM`;
     } else {
       const examples = getKeyExamples(w.value);
-      insight = `Your '${w.value}' key (${accPct}% accuracy)${examples ? ` — focus on words like ${examples}` : ""}`;
+      insight = `Your '${w.value}' key (${accPct}% accuracy)${examples ? `. Focus on words like ${examples}` : ""}`;
     }
 
     return { ...w, estimatedWpmCost, insight };

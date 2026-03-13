@@ -140,7 +140,7 @@ export default function HistoryPage() {
             <h1 className="text-lg font-bold text-text tracking-tight">Race History</h1>
             <p className="text-xs text-muted/65 mt-0.5">
               {total} total races
-              {!isPro && " — showing last 10"}
+              {!isPro && " (showing last 10)"}
             </p>
           </div>
           {!isPro && (

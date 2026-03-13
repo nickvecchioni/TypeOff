@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — TypeOff",
+  title: "Privacy Policy | TypeOff",
 };
 
 export default function PrivacyPage() {
@@ -74,9 +74,9 @@ export default function PrivacyPage() {
             third-party services that are necessary to operate TypeOff:
           </p>
           <ul className="list-disc pl-5 space-y-1">
-            <li><strong>Google</strong> — OAuth authentication and AdSense advertising</li>
-            <li><strong>Stripe</strong> — payment processing for Pro subscriptions</li>
-            <li><strong>Neon</strong> — database hosting</li>
+            <li><strong>Google</strong>: OAuth authentication and AdSense advertising</li>
+            <li><strong>Stripe</strong>: payment processing for Pro subscriptions</li>
+            <li><strong>Neon</strong>: database hosting</li>
           </ul>
         </section>
 

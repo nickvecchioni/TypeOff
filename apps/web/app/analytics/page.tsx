@@ -282,7 +282,7 @@ export default function AnalyticsPage() {
                 <div className="text-[10px] text-muted/50 uppercase tracking-[0.15em] mb-1 font-medium">Best WPM</div>
                 <div className="flex items-baseline gap-0.5">
                   <span className="text-4xl font-black text-accent tabular-nums leading-none tracking-tight">
-                    {data.personalRecords.bestWpm ? Math.floor(data.personalRecords.bestWpm.wpm) : "—"}
+                    {data.personalRecords.bestWpm ? Math.floor(data.personalRecords.bestWpm.wpm) : "-"}
                   </span>
                   {data.personalRecords.bestWpm && (
                     <span className="text-lg font-bold text-accent/50 tabular-nums">
@@ -306,10 +306,10 @@ export default function AnalyticsPage() {
 
               {/* Secondary stats */}
               <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-x-5 gap-y-2">
-                <MiniStat label="Best Accuracy" value={data.personalRecords.bestAccuracy ? `${data.personalRecords.bestAccuracy.accuracy.toFixed(1)}%` : "—"} />
-                <MiniStat label="Avg WPM" value={avgWpm > 0 ? avgWpm.toFixed(1) : "—"} sub="last 50" />
-                <MiniStat label="Consistency" value={data.consistencyScore != null ? `±${data.consistencyScore.toFixed(1)}` : "—"} />
-                <MiniStat label="Win Rate" value={data.winRate != null ? `${data.winRate}%` : "—"} />
+                <MiniStat label="Best Accuracy" value={data.personalRecords.bestAccuracy ? `${data.personalRecords.bestAccuracy.accuracy.toFixed(1)}%` : "-"} />
+                <MiniStat label="Avg WPM" value={avgWpm > 0 ? avgWpm.toFixed(1) : "-"} sub="last 50" />
+                <MiniStat label="Consistency" value={data.consistencyScore != null ? `±${data.consistencyScore.toFixed(1)}` : "-"} />
+                <MiniStat label="Win Rate" value={data.winRate != null ? `${data.winRate}%` : "-"} />
                 <MiniStat label="Best Streak" value={String(data.personalRecords.maxStreak ?? 0)} />
                 <MiniStat label="Day Streak" value={String(data.personalRecords.maxRankedDayStreak ?? 0)} />
               </div>

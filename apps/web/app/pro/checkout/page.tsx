@@ -31,7 +31,7 @@ export default function ProCheckoutPage() {
         }
       })
       .catch(() => {
-        setError("Failed to load payment system — please try again");
+        setError("Failed to load payment system. Please try again");
         setLoading(false);
       });
   }, []);

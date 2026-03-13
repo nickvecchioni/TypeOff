@@ -309,7 +309,7 @@ function LevelWidget({
               </span>
               <div className="flex-1 min-w-0">
                 <div className="text-xs font-bold uppercase tracking-wider leading-none mb-1" style={{ color: meta.color }}>
-                  Next unlock — Lvl {nextReward.level}
+                  Next unlock · Lvl {nextReward.level}
                 </div>
                 <div className="text-sm font-semibold text-text/90 truncate leading-none">{nextReward.name}</div>
               </div>

@@ -113,7 +113,7 @@ export default function RanksPage() {
           </InfoCard>
 
           <InfoCard title="ELO System">
-            4-player races. Your ELO shifts based on relative skill — beat
+            4-player races. Your ELO shifts based on relative skill. Beat
             higher-rated players for bigger gains, lose to lower-rated ones for
             steeper penalties. First 30 races adjust faster.
           </InfoCard>
@@ -141,7 +141,7 @@ export default function RanksPage() {
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
               {[
-                "Stay accurate — mistakes cost time",
+                "Stay accurate. Mistakes cost time",
                 "Warm up before ranked",
                 "Pattern recognition > raw speed",
                 "Stay consistent, don\u2019t tilt",

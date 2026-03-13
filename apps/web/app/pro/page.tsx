@@ -27,7 +27,7 @@ const COMPARISON_ROWS: { feature: string; desc?: string; free: boolean | string;
   { feature: "Race Replays",        desc: "Rewatch any race keystroke by keystroke",                   free: true,                              pro: true },
   { feature: "Race History",        desc: "Browse and filter your past race results",                  free: true,                              pro: true },
   { feature: "Data Export",         desc: "Download your full stats as CSV/JSON",                      free: true,                              pro: true },
-  { feature: "Ad-Free Experience",  desc: "No ads, no distractions — just typing",                    free: false,                             pro: true },
+  { feature: "Ad-Free Experience",  desc: "No ads, no distractions. Just typing",                    free: false,                             pro: true },
   { feature: "Profile Bio & Pin",   desc: "Custom bio and pin your best race on your profile",         free: false,                             pro: true },
   { feature: "XP Multiplier",       desc: "Earn XP faster to unlock cosmetics sooner",                 free: "1×",                              pro: "1.5×" },
   { feature: "Level Rewards",       desc: "Exclusive themes, cursors, effects, and more",              free: `${FREE_REWARD_COUNT} cosmetics`,  pro: `All ${TOTAL_REWARD_COUNT}` },
@@ -61,7 +61,7 @@ const FEATURES = [
       </svg>
     ),
     title: "Pro Cosmetics",
-    description: `${PRO_REWARD_COUNT} exclusive rewards in the level track — badges, name effects, themes, cursors, and more. Yours forever.`,
+    description: `${PRO_REWARD_COUNT} exclusive rewards in the level track: badges, name effects, themes, cursors, and more. Yours forever.`,
     amber: false,
   },
   {
@@ -143,7 +143,7 @@ export default function ProPage() {
 
                 <p className="text-sm text-muted/65 max-w-md mx-auto leading-relaxed">
                   Pro unlocks {PRO_REWARD_COUNT} exclusive cosmetics, 1.5x XP, ad-free racing,
-                  and profile customization. One-time purchase — yours forever.
+                  and profile customization. One-time purchase, yours forever.
                 </p>
 
                 {/* Stat highlights */}
@@ -272,7 +272,7 @@ export default function ProPage() {
                             <polyline points="20 6 9 17 4 12" />
                           </svg>
                         ) : row.free === false ? (
-                          <span className="text-muted/50">—</span>
+                          <span className="text-muted/50">-</span>
                         ) : (
                           <span className="text-muted/45 text-[12px]">{row.free}</span>
                         )}

@@ -513,7 +513,7 @@ function LoadoutSlot({
         {displayItem ? (
           <SlotPreview item={displayItem} />
         ) : (
-          <span className="text-muted/50 text-lg">—</span>
+          <span className="text-muted/50 text-lg">-</span>
         )}
       </div>
       {isSelected && (

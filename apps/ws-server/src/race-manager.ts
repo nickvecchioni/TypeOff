@@ -1592,7 +1592,7 @@ export class RaceManager {
                 this.notificationManager.notify(entry.player.id, {
                   type: "challenge_complete",
                   title: "Challenge Complete!",
-                  body: `${CHALLENGE_MAP.get(ch.challengeId)?.name ?? ch.challengeId} — earned ${ch.xpAwarded} XP`,
+                  body: `${CHALLENGE_MAP.get(ch.challengeId)?.name ?? ch.challengeId}: earned ${ch.xpAwarded} XP`,
                 });
               } else if (completed.length > 1) {
                 const totalXp = completed.reduce((sum, ch) => sum + ch.xpAwarded, 0);

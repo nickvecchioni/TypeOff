@@ -222,7 +222,7 @@ export function ConfigBar({
             {hasPracticeData && (
               <div className="flex items-center">
                 <MicroDivider />
-                <Tooltip label={isPracticeOn ? "Targeting your weakest keys & bigrams — click to disable" : "Generate text targeting your weak spots"} position="bottom">
+                <Tooltip label={isPracticeOn ? "Targeting your weakest keys & bigrams. Click to disable" : "Generate text targeting your weak spots"} position="bottom">
                   <button
                     onClick={togglePractice}
                     className={`p-1.5 rounded-md transition-all inline-flex items-center ${

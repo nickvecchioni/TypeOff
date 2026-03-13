@@ -36,7 +36,7 @@ export async function POST() {
   // Lifetime users (one-time purchase) have no subscription to manage
   if (sub.status === "lifetime") {
     return NextResponse.json(
-      { lifetime: true, message: "Your Pro access is permanent — no subscription to manage." },
+      { lifetime: true, message: "Your Pro access is permanent. No subscription to manage." },
     );
   }
 

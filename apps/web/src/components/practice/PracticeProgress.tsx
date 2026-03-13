@@ -99,7 +99,7 @@ function ProgressRow({ item }: { item: ProgressItem }) {
         <span className={`block text-xs font-medium tabular-nums ${
           isPositive ? "text-correct/70" : delta < 0 ? "text-error/70" : "text-muted/50"
         }`}>
-          {isPositive ? "↑" : delta < 0 ? "↓" : "—"}{" "}
+          {isPositive ? "↑" : delta < 0 ? "↓" : "-"}{" "}
           {Math.abs(deltaPct)}%
         </span>
       </div>

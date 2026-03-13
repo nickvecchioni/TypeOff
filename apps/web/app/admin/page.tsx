@@ -204,7 +204,7 @@ export default function AdminPage() {
               {accounts.map((acc) => (
                 <tr key={acc.id} className="border-b border-surface/50">
                   <td className="py-2.5 text-text">
-                    {acc.username ?? "—"}
+                    {acc.username ?? "-"}
                   </td>
                   <td className="py-2.5 tabular-nums">{acc.eloRating}</td>
                   <td className="py-2.5">
@@ -259,7 +259,7 @@ export default function AdminPage() {
                         {u.username}
                       </a>
                     ) : (
-                      <span className="text-muted">—</span>
+                      <span className="text-muted">-</span>
                     )}
                   </td>
                   <td className="py-2.5 text-muted">{u.email}</td>

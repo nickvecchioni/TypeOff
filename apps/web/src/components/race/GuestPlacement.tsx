@@ -30,7 +30,7 @@ const FEATURES = [
         <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
       </svg>
     ),
-    text: "ELO matchmaking — every race is a fair fight",
+    text: "ELO matchmaking. Every race is a fair fight",
   },
   {
     icon: (
@@ -52,7 +52,7 @@ const FEATURES = [
         <path d="M19 17v4M17 19h4" />
       </svg>
     ),
-    text: "Unlock cosmetics — titles, cursors, effects",
+    text: "Unlock cosmetics: titles, cursors, effects",
   },
 ] as const;
 
@@ -360,7 +360,7 @@ export function GuestPlacement({
             className="text-muted/70 text-xs text-center leading-relaxed opacity-0 animate-fade-in"
             style={{ animationDelay: "70ms", animationFillMode: "both" }}
           >
-            No pressure — your first 30 races use boosted ELO adjustments to get
+            No pressure. Your first 30 races use boosted ELO adjustments to get
             you to your true rank fast.
           </p>
           <p
@@ -560,7 +560,7 @@ export function GuestPlacement({
               : undefined
           }
         >
-          just start typing — each word must be correct before you advance
+          just start typing. each word must be correct before you advance
         </p>
       </div>
 
@@ -570,16 +570,16 @@ export function GuestPlacement({
           isTyping ? "opacity-0 pointer-events-none" : "opacity-100"
         }`}
       >
-        {/* Rank ladder + social proof */}
+        {/* Rank progression + social proof */}
         <div
-          className="flex flex-col items-center gap-2 opacity-0 animate-fade-in"
+          className="flex flex-col items-center gap-3 opacity-0 animate-fade-in"
           style={{ animationDelay: "180ms", animationFillMode: "both" }}
         >
-          <div className="flex items-end justify-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1">
             {RANK_TIERS.map((tier, i) => (
-              <div key={tier.label} className="group relative flex flex-col items-center w-9 sm:w-11">
+              <div key={tier.label} className="group relative flex items-center">
                 {/* Tooltip */}
-                <div className="pointer-events-none absolute bottom-full mb-2 left-1/2 -translate-x-1/2 opacity-0 scale-90 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 origin-bottom z-50">
+                <div className="pointer-events-none absolute bottom-full mb-2.5 left-1/2 -translate-x-1/2 opacity-0 scale-90 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 origin-bottom z-50">
                   <div
                     className="rounded-lg px-3 py-2 text-center whitespace-nowrap backdrop-blur-md"
                     style={{
@@ -593,49 +593,37 @@ export function GuestPlacement({
                     <div className="text-[10px] text-muted/60">{tier.wpm}</div>
                     <div className="text-[10px] text-muted/45 italic mt-0.5">{tier.desc}</div>
                   </div>
-                  {/* Arrow */}
                   <div
                     className="mx-auto w-2 h-2 rotate-45 -mt-1"
                     style={{ background: `${tier.color}18`, borderRight: `1px solid ${tier.color}30`, borderBottom: `1px solid ${tier.color}30` }}
                   />
                 </div>
+                {/* Rank dot */}
                 <div
-                  className="w-6 sm:w-8 rounded-sm transition-all duration-300 ease-out group-hover:scale-110 group-hover:opacity-100 cursor-default"
+                  className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full cursor-default transition-all duration-300 group-hover:scale-150"
                   style={{
-                    height: 10 + i * 6,
-                    background: tier.color,
-                    opacity: 0.75,
-                    boxShadow:
-                      i === 6
-                        ? `0 0 10px ${tier.color}99, 0 0 22px ${tier.color}44`
-                        : `0 0 4px ${tier.color}33`,
-                    animation: `rank-bar-rise 0.5s ease-out ${180 + i * 60}ms both`,
+                    backgroundColor: tier.color,
+                    opacity: 0.7,
+                    boxShadow: `0 0 6px ${tier.color}50`,
+                    animation: `fade-in 0.4s ease-out ${180 + i * 50}ms both`,
                   }}
                 />
-                {/* Abbreviated on mobile */}
-                <span
-                  className="mt-1.5 text-[10px] font-bold tracking-wide uppercase sm:hidden transition-opacity duration-200 group-hover:opacity-100"
-                  style={{
-                    color: tier.color,
-                    opacity: i === 6 ? 0.85 : 0.6,
-                  }}
-                >
-                  {tier.abbr}
-                </span>
-                {/* Full name on desktop */}
-                <span
-                  className="mt-1.5 text-[10px] font-bold tracking-wide hidden sm:block transition-opacity duration-200 group-hover:opacity-100"
-                  style={{
-                    color: tier.color,
-                    opacity: i === 6 ? 0.85 : 0.6,
-                    textShadow:
-                      i === 6 ? `0 0 8px ${tier.color}88` : "none",
-                  }}
-                >
-                  {tier.label === "Grandmaster" ? "GM" : tier.label}
-                </span>
+                {/* Connecting line */}
+                {i < RANK_TIERS.length - 1 && (
+                  <div
+                    className="w-4 sm:w-6 h-px mx-0.5"
+                    style={{
+                      background: `linear-gradient(90deg, ${tier.color}40, ${RANK_TIERS[i + 1].color}40)`,
+                    }}
+                  />
+                )}
               </div>
             ))}
+          </div>
+          <div className="flex items-center gap-3 text-[10px] text-muted/50">
+            <span style={{ color: RANK_TIERS[0].color + "90" }}>Bronze</span>
+            <span className="text-muted/25">→</span>
+            <span style={{ color: RANK_TIERS[6].color + "90" }}>Grandmaster</span>
           </div>
 
           {/* Social proof */}

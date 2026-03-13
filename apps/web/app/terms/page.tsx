@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — TypeOff",
+  title: "Terms of Service | TypeOff",
 };
 
 export default function TermsPage() {

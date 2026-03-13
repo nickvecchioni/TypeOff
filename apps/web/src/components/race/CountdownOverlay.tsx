@@ -18,11 +18,11 @@ const MODE_LABELS: Record<RaceMode, string | null> = {
 
 const MODE_DESCRIPTIONS: Record<RaceMode, string> = {
   standard: "Common English words",
-  sprint: "One line — go fast",
-  marathon: "Four lines — stay steady",
+  sprint: "One line. Go fast",
+  marathon: "Four lines. Stay steady",
   special: "Punctuation & numbers",
   quotes: "A famous quote with natural punctuation",
-  code: "Real code syntax — symbols, brackets, the works",
+  code: "Real code syntax: symbols, brackets, the works",
   punctuation: "Common words with commas, periods, and sentence breaks",
   numbers: "Common words interspersed with digit sequences",
   difficult: "Uncommon and challenging vocabulary",
@@ -81,11 +81,11 @@ export function CountdownOverlay({
       )}
       {/* Quote author */}
       {mode === "quotes" && quoteAuthor && !placementRace && (
-        <p className="text-muted/60 text-xs text-center -mt-0.5">— <span className="italic">{quoteAuthor}</span></p>
+        <p className="text-muted/60 text-xs text-center -mt-0.5"><span className="italic">{quoteAuthor}</span></p>
       )}
       {placementRace != null && (
         <p className="text-muted text-xs">
-          Placement Test &mdash; type to determine your starting rank
+          Placement Test · type to determine your starting rank
         </p>
       )}
       {capsLock && (
