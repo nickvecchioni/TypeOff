@@ -686,47 +686,68 @@ export default function AnalyticsPage() {
         {/* -- Accuracy Tab (merged Keys + Bigrams) ---------------------- */}
         {activeTab === "accuracy" && (
           <div className="space-y-4 animate-fade-in">
-            {/* Keyboard Heatmap */}
-            {keyStats && Object.keys(keyStats).length > 0 ? (
-              <Card
-                title="Keyboard Heatmap"
-                headerRight={
-                  isPro ? (
-                    <Link
-                      href="/solo?drill=true"
-                      className="px-3.5 py-1.5 rounded-lg bg-accent/10 ring-1 ring-accent/20 text-sm font-semibold text-accent hover:bg-accent/15 transition-colors"
-                    >
-                      Start Practice
-                    </Link>
-                  ) : undefined
-                }
-              >
-                <KeyboardHeatmap keyStats={keyStats} />
-              </Card>
+            {/* Row 1: Keyboard Heatmap + Bigram Heatmap side by side */}
+            {(keyStats && Object.keys(keyStats).length > 0) || bigrams.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {keyStats && Object.keys(keyStats).length > 0 && (
+                  <Card
+                    title="Keyboard Heatmap"
+                    headerRight={
+                      isPro ? (
+                        <Link
+                          href="/solo?drill=true"
+                          className="px-3.5 py-1.5 rounded-lg bg-accent/10 ring-1 ring-accent/20 text-sm font-semibold text-accent hover:bg-accent/15 transition-colors"
+                        >
+                          Start Practice
+                        </Link>
+                      ) : undefined
+                    }
+                  >
+                    <KeyboardHeatmap keyStats={keyStats} />
+                  </Card>
+                )}
+                {bigrams.length > 0 && (
+                  <Card title="Bigram Heatmap" subtitle="rows = first char, cols = second char">
+                    <BigramHeatmap bigrams={bigrams} />
+                  </Card>
+                )}
+              </div>
             ) : (
-              <EmptyState message="Complete more typing tests to see key accuracy data." />
+              <EmptyState message="Complete more typing tests to see accuracy data." />
             )}
 
-            {/* Bigram Analysis + Heatmap */}
+            {/* Row 2: Weakest Bigrams list */}
             {bigrams.length > 0 ? (
               <>
                 {isPro ? (
-                  <Card title="Weakest Bigrams">
-                    <BigramAnalysis bigrams={bigrams} onPractice={(weak) => router.push(`/solo?bigrams=${weak.join(",")}`)} />
+                  <Card
+                    title="Weakest Bigrams"
+                    headerRight={
+                      <button
+                        onClick={() => {
+                          const worst = bigrams
+                            .filter((b) => b.total >= 5)
+                            .sort((a, b) => a.accuracy - b.accuracy)
+                            .slice(0, 10)
+                            .map((b) => b.bigram);
+                          if (worst.length > 0) router.push(`/solo?bigrams=${worst.join(",")}`);
+                        }}
+                        className="px-3.5 py-1.5 rounded-lg bg-accent/10 ring-1 ring-accent/20 text-sm font-semibold text-accent hover:bg-accent/15 transition-colors"
+                      >
+                        Practice These
+                      </button>
+                    }
+                  >
+                    <BigramAnalysis bigrams={bigrams} />
                   </Card>
                 ) : (
-                  <FreeBigramPreview bigrams={bigrams} keyStats={keyStats} avgWpm={avgWpm} />
+                  <>
+                    <FreeBigramPreview bigrams={bigrams} keyStats={keyStats} avgWpm={avgWpm} />
+                    <ProUpsell />
+                  </>
                 )}
-                <Card title="Bigram Heatmap" subtitle="rows = first char, cols = second char">
-                  <BigramHeatmap bigrams={bigrams} />
-                </Card>
-                {!isPro && <ProUpsell />}
               </>
-            ) : (
-              !keyStats || Object.keys(keyStats).length === 0 ? null : (
-                <EmptyState message="Complete more typing tests to see bigram accuracy data." />
-              )
-            )}
+            ) : null}
           </div>
         )}
 

@@ -36,8 +36,7 @@ export function KeyboardHeatmap({ keyStats }: KeyboardHeatmapProps) {
 
   return (
     <div className="w-full flex flex-col items-center gap-2">
-      <div className="text-xs text-muted/60 uppercase tracking-widest">key accuracy</div>
-      <div className="relative w-full max-w-sm">
+      <div className="relative w-full max-w-md">
         <svg
           viewBox={`0 0 ${totalWidth} ${totalHeight}`}
           className="w-full"
