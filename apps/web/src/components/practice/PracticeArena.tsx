@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect, useCallback, useState } from "react";
 import { useSession } from "next-auth/react";
-import { getPbKey, getCodeSnippet } from "@typeoff/shared";
+import { getPbKey, getCodeSnippet, getQuoteAuthor } from "@typeoff/shared";
 import { useTypingEngine } from "@/hooks/useTypingEngine";
 import { useCapsLock } from "@/hooks/useCapsLock";
 import { WordDisplay } from "@/components/typing/WordDisplay";
@@ -443,14 +443,17 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
         </div>
       )}
 
-      {/* Code snippet title — fixed height slot, fades in/out */}
-      {!isFinished && (
-        <div className={`h-5 -mb-1 flex items-center justify-center transition-opacity duration-200 ${
-          codeSnippet ? "opacity-100" : "opacity-0"
-        }`}>
+      {/* Info row: code snippet title or quote author (only when relevant) */}
+      {!isFinished && (codeSnippet || ct === "quotes") && (
+        <div className="-mb-1 flex items-center justify-center">
           {codeSnippet && (
             <span className="text-xs text-muted/50">
               {codeSnippet.name} <span className="text-muted/35">·</span> <span className="text-muted/35">{codeSnippet.language}</span>
+            </span>
+          )}
+          {ct === "quotes" && engine.lastSeed != null && (
+            <span className="text-xs text-muted/45">
+              {getQuoteAuthor(engine.lastSeed)}
             </span>
           )}
         </div>

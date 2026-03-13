@@ -265,17 +265,14 @@ export function ConfigBar({
           ct === "custom" || ct === "zen" ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}>
           <span className="text-xs text-muted/45">
-            paste any text below to start typing
+            paste any text to start typing
           </span>
         </div>
       </div>
 
       {/* ── Practice details — shown when practice mode is active ── */}
-      {/* Fixed height slot so toggling doesn't shift the typing area */}
-      <div className="h-6 mt-1 flex items-center justify-center">
-        <div className={`flex items-center gap-1.5 justify-center transition-opacity duration-200 ${
-          showPracticeDetails ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}>
+      {showPracticeDetails && (
+        <div className="mt-1 flex items-center gap-1.5 justify-center">
           {filteredWeakKeys.length > 0 && (
             <span className="text-xs text-muted/50 leading-tight">
               keys:{" "}
@@ -321,7 +318,7 @@ export function ConfigBar({
             </span>
           )}
         </div>
-      </div>
+      )}
 
     </div>
   );
