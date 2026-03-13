@@ -419,7 +419,6 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
             practiceWeakKeysData={weakKeysData}
             practiceWeakBigrams={weakBigrams}
             practiceWeakBigramsData={weakBigramsData}
-            isPro={isPro}
           />
         </div>
       )}
