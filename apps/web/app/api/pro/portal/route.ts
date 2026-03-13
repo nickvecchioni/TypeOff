@@ -21,7 +21,7 @@ export async function POST() {
 
   const db = getDb();
   const [sub] = await db
-    .select({ stripeCustomerId: userSubscription.stripeCustomerId })
+    .select({ stripeCustomerId: userSubscription.stripeCustomerId, status: userSubscription.status })
     .from(userSubscription)
     .where(eq(userSubscription.userId, session.user.id))
     .limit(1);
@@ -30,6 +30,13 @@ export async function POST() {
     return NextResponse.json(
       { error: "No subscription found" },
       { status: 404 },
+    );
+  }
+
+  // Lifetime users (one-time purchase) have no subscription to manage
+  if (sub.status === "lifetime") {
+    return NextResponse.json(
+      { lifetime: true, message: "Your Pro access is permanent — no subscription to manage." },
     );
   }
 

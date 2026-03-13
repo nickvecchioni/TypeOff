@@ -17,12 +17,11 @@ interface ProgressItem {
 
 export function PracticeProgress() {
   const { data: session } = useSession();
-  const isPro = session?.user?.isPro ?? false;
   const [progress, setProgress] = useState<ProgressItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!session?.user?.id || !isPro) {
+    if (!session?.user?.id) {
       setLoading(false);
       return;
     }
@@ -31,7 +30,7 @@ export function PracticeProgress() {
       .then((d) => { if (d.progress) setProgress(d.progress); })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [session?.user?.id, isPro]);
+  }, [session?.user?.id]);
 
   if (loading) {
     return <div className="h-20 rounded-xl bg-surface/30 animate-pulse" />;

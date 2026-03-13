@@ -57,8 +57,7 @@ No test runner is configured. No CI/CD pipelines exist. No ESLint/Prettier confi
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe public key |
 | `STRIPE_SECRET_KEY` | Stripe secret key |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
-| `STRIPE_PRO_MONTHLY_PRICE_ID` | Stripe monthly price ID |
-| `STRIPE_PRO_YEARLY_PRICE_ID` | Stripe yearly price ID |
+| `STRIPE_PRO_PRICE_ID` | Stripe one-time Pro price ID |
 | `GITHUB_TOKEN` | GitHub PAT for bug report integration |
 | `GITHUB_REPO_OWNER` | GitHub repo owner |
 | `GITHUB_REPO_NAME` | GitHub repo name |

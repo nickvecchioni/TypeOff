@@ -5,15 +5,18 @@ export const dynamic = "force-dynamic";
 import { auth } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { races, raceParticipants, users } from "@typeoff/db";
-import { eq, desc } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
-// GET — race replay data (Pro: unlimited, Free: last 3 own races)
+// GET — race replay data
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ raceId: string }> },
 ) {
   const { raceId } = await params;
   const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Sign in to view replays" }, { status: 401 });
+  }
   const db = getDb();
 
   const [race] = await db
@@ -24,31 +27,6 @@ export async function GET(
 
   if (!race) {
     return NextResponse.json({ error: "Race not found" }, { status: 404 });
-  }
-
-  // Pro gating: free users can only view their most recent 3 race replays
-  const isPro = session?.user?.isPro ?? false;
-  if (!isPro && session?.user?.id) {
-    // Check if this race is in the user's last 3
-    const recentRaces = await db
-      .select({ raceId: raceParticipants.raceId })
-      .from(raceParticipants)
-      .where(eq(raceParticipants.userId, session.user.id))
-      .orderBy(desc(raceParticipants.finishedAt))
-      .limit(3);
-
-    const recentIds = new Set(recentRaces.map((r) => r.raceId));
-    if (!recentIds.has(raceId)) {
-      return NextResponse.json(
-        { error: "Upgrade to Pro to view older replays", requiresPro: true },
-        { status: 403 },
-      );
-    }
-  } else if (!isPro && !session?.user?.id) {
-    return NextResponse.json(
-      { error: "Sign in to view replays" },
-      { status: 401 },
-    );
   }
 
   const participants = await db

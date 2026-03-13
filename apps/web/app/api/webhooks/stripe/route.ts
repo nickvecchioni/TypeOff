@@ -31,15 +31,15 @@ export async function POST(request: Request) {
   const db = getDb();
 
   switch (event.type) {
-    // ── Subscription checkout completed ────────────────────────
+    // ── Checkout completed (one-time payment or legacy subscription) ──
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
 
-      // Handle subscription checkout
-      if (session.mode === "subscription") {
+      // Handle one-time payment checkout (new model)
+      if (session.mode === "payment") {
         const userId = session.metadata?.userId;
         if (!userId) {
-          console.error("[stripe-webhook] subscription checkout missing userId metadata");
+          console.error("[stripe-webhook] payment checkout missing userId metadata");
           break;
         }
 
@@ -47,46 +47,21 @@ export async function POST(request: Request) {
           typeof session.customer === "string"
             ? session.customer
             : session.customer?.id;
-        const subscriptionId =
-          typeof session.subscription === "string"
-            ? session.subscription
-            : session.subscription?.id;
 
         if (!customerId) break;
-
-        // Fetch subscription details for price info
-        let stripePriceId: string | undefined;
-        let currentPeriodEnd: Date | undefined;
-        if (subscriptionId) {
-          const sub = await stripe.subscriptions.retrieve(subscriptionId);
-          stripePriceId = sub.items.data[0]?.price.id;
-          // In Stripe v20+, current_period_end moved to item level
-          const itemPeriodEnd = (sub.items.data[0] as any)?.current_period_end;
-          if (itemPeriodEnd) {
-            currentPeriodEnd = new Date(itemPeriodEnd * 1000);
-          }
-        }
 
         await db
           .insert(userSubscription)
           .values({
             userId,
             stripeCustomerId: customerId,
-            stripeSubscriptionId: subscriptionId ?? null,
-            stripePriceId: stripePriceId ?? null,
-            status: "active",
-            currentPeriodEnd: currentPeriodEnd ?? null,
-            cancelAtPeriodEnd: false,
+            status: "lifetime",
           })
           .onConflictDoUpdate({
             target: userSubscription.userId,
             set: {
               stripeCustomerId: customerId,
-              stripeSubscriptionId: subscriptionId ?? null,
-              stripePriceId: stripePriceId ?? null,
-              status: "active",
-              currentPeriodEnd: currentPeriodEnd ?? null,
-              cancelAtPeriodEnd: false,
+              status: "lifetime",
               updatedAt: new Date(),
             },
           });
@@ -130,6 +105,73 @@ export async function POST(request: Request) {
             .insert(userCosmetics)
             .values({ userId, cosmeticId: reward.id, seasonId: "xp" })
             .onConflictDoNothing();
+        }
+
+        break;
+      }
+
+      // Handle legacy subscription checkout (for existing subscribers)
+      if (session.mode === "subscription") {
+        const userId = session.metadata?.userId;
+        if (!userId) break;
+
+        const customerId =
+          typeof session.customer === "string"
+            ? session.customer
+            : session.customer?.id;
+        const subscriptionId =
+          typeof session.subscription === "string"
+            ? session.subscription
+            : session.subscription?.id;
+
+        if (!customerId) break;
+
+        let stripePriceId: string | undefined;
+        let currentPeriodEnd: Date | undefined;
+        if (subscriptionId) {
+          const sub = await stripe.subscriptions.retrieve(subscriptionId);
+          stripePriceId = sub.items.data[0]?.price.id;
+          const itemPeriodEnd = (sub.items.data[0] as any)?.current_period_end;
+          if (itemPeriodEnd) {
+            currentPeriodEnd = new Date(itemPeriodEnd * 1000);
+          }
+        }
+
+        await db
+          .insert(userSubscription)
+          .values({
+            userId,
+            stripeCustomerId: customerId,
+            stripeSubscriptionId: subscriptionId ?? null,
+            stripePriceId: stripePriceId ?? null,
+            status: "active",
+            currentPeriodEnd: currentPeriodEnd ?? null,
+            cancelAtPeriodEnd: false,
+          })
+          .onConflictDoUpdate({
+            target: userSubscription.userId,
+            set: {
+              stripeCustomerId: customerId,
+              stripeSubscriptionId: subscriptionId ?? null,
+              stripePriceId: stripePriceId ?? null,
+              status: "active",
+              currentPeriodEnd: currentPeriodEnd ?? null,
+              cancelAtPeriodEnd: false,
+              updatedAt: new Date(),
+            },
+          });
+
+        // Grant Pro badge + retroactive cosmetics (same as payment flow)
+        await db.insert(userCosmetics).values({ userId, cosmeticId: PRO_BADGE_ID, seasonId: "pro" }).onConflictDoNothing();
+        await db.insert(userActiveCosmetics).values({ userId, activeBadge: PRO_BADGE_ID }).onConflictDoUpdate({ target: userActiveCosmetics.userId, set: { activeBadge: PRO_BADGE_ID } });
+
+        const [[statsRow2], existingCosmetics2] = await Promise.all([
+          db.select({ totalXp: userStats.totalXp }).from(userStats).where(eq(userStats.userId, userId)).limit(1),
+          db.select({ cosmeticId: userCosmetics.cosmeticId }).from(userCosmetics).where(eq(userCosmetics.userId, userId)),
+        ]);
+        const missed2 = getMissedProRewards(statsRow2?.totalXp ?? 0, new Set(existingCosmetics2.map((c) => c.cosmeticId)));
+        for (const reward of missed2) {
+          await db.insert(userCosmetics).values({ userId, cosmeticId: reward.id, seasonId: "xp" }).onConflictDoNothing();
         }
 
         break;

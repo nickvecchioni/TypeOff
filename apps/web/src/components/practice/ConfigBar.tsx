@@ -28,7 +28,6 @@ interface ConfigBarProps {
   practiceWeakKeysData?: WeakKeyData[];
   practiceWeakBigrams?: string[];
   practiceWeakBigramsData?: WeakBigramData[];
-  isPro?: boolean;
 }
 
 /** Characters that appear in plain "words" mode (lowercase alpha only) */
@@ -63,7 +62,6 @@ export function ConfigBar({
   practiceWeakKeysData,
   practiceWeakBigrams,
   practiceWeakBigramsData,
-  isPro = false,
 }: ConfigBarProps) {
   const isTyping = status === "typing";
   const ct = config.contentType ?? "words";
@@ -82,7 +80,7 @@ export function ConfigBar({
   const keyDataMap = new Map(practiceWeakKeysData?.map((d) => [d.key, d]));
   const bigramDataMap = new Map(practiceWeakBigramsData?.map((d) => [d.bigram, d]));
 
-  const hasPracticeData = isPro && !!(filteredWeakKeys.length || filteredWeakBigrams.length);
+  const hasPracticeData = !!(filteredWeakKeys.length || filteredWeakBigrams.length);
   const isPracticeOn = ct === "practice";
 
   const set = (patch: Partial<TestConfig>) => {

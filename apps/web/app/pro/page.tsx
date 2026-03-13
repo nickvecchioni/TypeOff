@@ -5,8 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  PRO_MONTHLY_PRICE,
-  PRO_YEARLY_PRICE,
+  PRO_PRICE,
   COSMETIC_REWARDS,
   BADGE_EMOJIS,
   TITLE_TEXTS,
@@ -22,19 +21,17 @@ const TOTAL_REWARD_COUNT = COSMETIC_REWARDS.length;
 const FREE_REWARD_COUNT = TOTAL_REWARD_COUNT - PRO_REWARD_COUNT;
 
 const COMPARISON_ROWS: { feature: string; desc?: string; free: boolean | string; pro: boolean | string }[] = [
+  { feature: "Ranked Racing",       desc: "ELO-rated matches with skill-based matchmaking",            free: true,                              pro: true },
+  { feature: "Adaptive Practice",   desc: "Targets your weakest keys & bigrams",                      free: true,                              pro: true },
+  { feature: "Advanced Analytics",  desc: "Per-key heatmaps, bigram breakdown, WPM trends",           free: true,                              pro: true },
+  { feature: "Race Replays",        desc: "Rewatch any race keystroke by keystroke",                   free: true,                              pro: true },
+  { feature: "Race History",        desc: "Browse and filter your past race results",                  free: true,                              pro: true },
+  { feature: "Data Export",         desc: "Download your full stats as CSV/JSON",                      free: true,                              pro: true },
   { feature: "Ad-Free Experience",  desc: "No ads, no distractions — just typing",                    free: false,                             pro: true },
-  { feature: "Adaptive Practice",   desc: "Targets your weakest keys & bigrams",                      free: false,                             pro: true },
-  { feature: "Advanced Analytics",  desc: "Per-key heatmaps, bigram breakdown, WPM trends",           free: false,                             pro: true },
-  { feature: "Speed Analysis",      desc: "Post-race breakdown: peak sustained WPM, hesitations, warmup curve", free: false,                   pro: true },
-  { feature: "Race Replays",        desc: "Rewatch any race keystroke by keystroke",                   free: "Last 3",                          pro: "Unlimited" },
-  { feature: "Custom Text Mode",    desc: "Practice with your own text or code snippets",              free: false,                             pro: true },
-  { feature: "Race History",        desc: "Browse and filter your past race results",                  free: "Last 10",                         pro: "Full Archive" },
   { feature: "Profile Bio & Pin",   desc: "Custom bio and pin your best race on your profile",         free: false,                             pro: true },
-  { feature: "Data Export",         desc: "Download your full stats, races, and accuracy as CSV/JSON",  free: false,                             pro: true },
   { feature: "XP Multiplier",       desc: "Earn XP faster to unlock cosmetics sooner",                 free: "1×",                              pro: "1.5×" },
   { feature: "Level Rewards",       desc: "Exclusive themes, cursors, effects, and more",              free: `${FREE_REWARD_COUNT} cosmetics`,  pro: `All ${TOTAL_REWARD_COUNT}` },
-  { feature: "Ranked Racing",       desc: "Compete in ELO-rated matches with skill-based matchmaking",  free: true,                              pro: true },
-  { feature: "Leaderboard",         desc: "Global rankings by PP, text, and universe",                 free: true,                              pro: true },
+  { feature: "Pro Badge & Effects", desc: "Stand out with exclusive name effects and Pro badge",       free: false,                             pro: true },
 ];
 
 const TEASER_IDS = [
@@ -60,41 +57,41 @@ const FEATURES = [
   {
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" />
-      </svg>
-    ),
-    title: "Adaptive Practice",
-    description: "Targets your weakest keys and bigrams. Generates words from your accuracy data so every session attacks what slows you down.",
-    amber: false,
-  },
-  {
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-      </svg>
-    ),
-    title: "Advanced Analytics",
-    description: "Per-key heatmaps, bigram breakdown, WPM curves, consistency scores, and trend tracking. See exactly where your speed leaks.",
-    amber: false,
-  },
-  {
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <polygon points="5 3 19 12 5 21 5 3" />
-      </svg>
-    ),
-    title: "Race Replays",
-    description: "Rewatch any race keystroke by keystroke. Study your pacing, spot hesitation points, compare runs side by side, and share your best performances.",
-    amber: false,
-  },
-  {
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
       </svg>
     ),
     title: "Pro Cosmetics",
-    description: `${PRO_REWARD_COUNT} exclusive rewards in the level track — badges, name effects, themes, cursors, and more. Yours to keep permanently, even if you cancel.`,
+    description: `${PRO_REWARD_COUNT} exclusive rewards in the level track — badges, name effects, themes, cursors, and more. Yours forever.`,
+    amber: false,
+  },
+  {
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+      </svg>
+    ),
+    title: "Profile Bio & Pin",
+    description: "Write a custom bio and pin your best race on your profile. Show visitors what you're about.",
+    amber: false,
+  },
+  {
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="13 17 18 12 13 7" /><polyline points="6 17 11 12 6 7" />
+      </svg>
+    ),
+    title: "1.5x XP",
+    description: "Earn XP 50% faster on every race and solo session. Unlock cosmetics sooner and climb the level track.",
+    amber: false,
+  },
+  {
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" />
+      </svg>
+    ),
+    title: "Pro Badge & Effects",
+    description: "Stand out in races with a Pro badge, exclusive name effects, and animated styling that free users can't get.",
     amber: false,
   },
 ] as const;
@@ -105,19 +102,6 @@ export default function ProPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const isPro = session?.user?.isPro ?? false;
-
-  const [portalLoading, setPortalLoading] = useState(false);
-
-  async function handleManageSubscription() {
-    setPortalLoading(true);
-    try {
-      const res = await fetch("/api/pro/portal", { method: "POST" });
-      const data = await res.json();
-      if (data.url) window.location.href = data.url;
-    } finally {
-      setPortalLoading(false);
-    }
-  }
 
   if (status === "loading") {
     return (
@@ -140,11 +124,7 @@ export default function ProPage() {
     <main className="flex-1 flex flex-col min-h-0 overflow-y-auto px-4 sm:px-6 py-6">
       <div className="max-w-5xl mx-auto w-full">
         {isPro ? (
-          <SubscriberView
-            session={session}
-            portalLoading={portalLoading}
-            onManage={handleManageSubscription}
-          />
+          <SubscriberView session={session} />
         ) : (
           <div className="flex flex-col gap-8 pb-8">
 
@@ -156,14 +136,14 @@ export default function ProPage() {
                 </div>
 
                 <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-tight mb-4">
-                  <span className="text-text">Random practice plateaus.</span>
+                  <span className="text-text">Type fast.</span>
                   <br />
-                  <span className="text-accent">Targeted training doesn&apos;t.</span>
+                  <span className="text-accent">Look even faster.</span>
                 </h1>
 
                 <p className="text-sm text-muted/65 max-w-md mx-auto leading-relaxed">
-                  Pro gives you adaptive practice built from your accuracy data, analytics that
-                  pinpoint where you lose speed, and tools to turn weak spots into strengths.
+                  Pro unlocks {PRO_REWARD_COUNT} exclusive cosmetics, 1.5x XP, ad-free racing,
+                  and profile customization. One-time purchase — yours forever.
                 </p>
 
                 {/* Stat highlights */}
@@ -171,8 +151,8 @@ export default function ProPage() {
                   {[
                     { value: "0",                        label: "Ads"           },
                     { value: "1.5×",                     label: "XP Multiplier" },
-                    { value: "∞",                        label: "Race Replays"  },
                     { value: String(PRO_REWARD_COUNT),   label: "Pro Cosmetics" },
+                    { value: "$0",                       label: "/month"        },
                   ].map((s) => (
                     <div key={s.label} className="text-center">
                       <div className="text-2xl font-black tabular-nums text-accent flex items-center justify-center h-9">
@@ -223,7 +203,7 @@ export default function ProPage() {
                 <p className="text-[11px] font-bold text-muted/65 uppercase tracking-widest">
                   {PRO_REWARD_COUNT} Pro Cosmetics
                 </p>
-                <p className="text-[11px] text-muted/50">yours to keep on cancel</p>
+                <p className="text-[11px] text-muted/50">yours forever</p>
               </div>
               <div className="rounded-xl ring-1 ring-accent/10 overflow-hidden bg-[#0c0c12]" style={{ boxShadow: "0 0 60px rgba(77,158,255,0.04)" }}>
                 {/* Live name preview */}
@@ -313,75 +293,42 @@ export default function ProPage() {
             </div>
 
             {/* ── Pricing ── */}
-            <div className="animate-slide-up" style={{ animationDelay: "80ms" }}>
-              <p className="text-xs font-bold text-muted/65 uppercase tracking-widest mb-5 text-center">
-                Choose your plan
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-
-                {/* Monthly */}
-                <div className="rounded-xl px-5 py-5 ring-1 ring-white/[0.06] bg-surface/30 flex flex-col">
-                  <div className="text-xs font-bold text-muted/60 uppercase tracking-wider mb-3">
-                    Monthly
-                  </div>
-                  <div className="text-3xl font-black text-text tabular-nums leading-none mb-0.5">
-                    ${PRO_MONTHLY_PRICE.toFixed(2)}
-                    <span className="text-sm font-normal text-muted/60">/mo</span>
-                  </div>
-                  <div className="text-xs text-muted/45 mb-6">Billed monthly, cancel anytime</div>
-                  <button
-                    onClick={() => router.push("/pro/checkout?plan=monthly")}
-                    className="mt-auto w-full rounded-lg py-3 text-sm font-bold ring-1 ring-white/[0.10] bg-white/[0.04] text-text/70 hover:ring-accent/30 hover:bg-accent/[0.05] hover:text-accent/80 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
-                  >
-                    Get Pro
-                  </button>
+            <div className="animate-slide-up flex flex-col items-center" style={{ animationDelay: "80ms" }}>
+              <div
+                className="relative rounded-xl px-8 py-6 ring-1 ring-accent/25 bg-accent/[0.04] w-full max-w-sm text-center"
+                style={{ boxShadow: "0 0 40px rgba(77,158,255,0.08), inset 0 1px 0 rgba(77,158,255,0.12)" }}
+              >
+                <div className="text-xs font-bold text-accent/60 uppercase tracking-wider mb-3">
+                  One-Time Purchase
                 </div>
-
-                {/* Yearly — highlighted */}
-                <div
-                  className="relative rounded-xl px-5 py-5 ring-1 ring-accent/25 bg-accent/[0.04] flex flex-col"
-                  style={{ boxShadow: "0 0 40px rgba(77,158,255,0.08), inset 0 1px 0 rgba(77,158,255,0.12)" }}
+                <div className="text-4xl font-black text-text tabular-nums leading-none mb-1">
+                  ${PRO_PRICE.toFixed(2)}
+                </div>
+                <div className="text-xs text-accent/60 mb-6">
+                  Pay once, keep forever
+                </div>
+                <button
+                  onClick={() => router.push("/pro/checkout")}
+                  className="w-full rounded-lg py-3 text-sm font-black tracking-wide overflow-hidden transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                  style={{
+                    background: "linear-gradient(135deg, #3d7ed4 0%, #5a9de6 50%, #3d7ed4 100%)",
+                    color: "rgba(255,255,255,0.95)",
+                    boxShadow: "0 2px 16px rgba(77,158,255,0.2)",
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLButtonElement).style.boxShadow =
+                      "0 4px 24px rgba(77,158,255,0.4)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLButtonElement).style.boxShadow =
+                      "0 2px 16px rgba(77,158,255,0.2)";
+                  }}
                 >
-                  <div className="absolute -top-3 left-0 right-0 flex justify-center">
-                    <span className="text-[11px] font-black bg-accent text-white px-3 py-1 rounded-full uppercase tracking-wider shadow-[0_2px_12px_rgba(77,158,255,0.5)]">
-                      Save 50%
-                    </span>
-                  </div>
-                  <div className="text-xs font-bold text-accent/60 uppercase tracking-wider mb-3">
-                    Yearly
-                  </div>
-                  <div className="text-3xl font-black text-text tabular-nums leading-none mb-0.5">
-                    ${PRO_YEARLY_PRICE.toFixed(2)}
-                    <span className="text-sm font-normal text-muted/60">/yr</span>
-                  </div>
-                  <div className="text-xs text-accent/60 mb-6">
-                    ${(PRO_YEARLY_PRICE / 12).toFixed(2)}/mo billed annually
-                  </div>
-                  <button
-                    onClick={() => router.push("/pro/checkout?plan=yearly")}
-                    className="mt-auto relative w-full rounded-lg py-3 text-sm font-black tracking-wide overflow-hidden transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-                    style={{
-                      background: "linear-gradient(135deg, #3d7ed4 0%, #5a9de6 50%, #3d7ed4 100%)",
-                      color: "rgba(255,255,255,0.95)",
-                      boxShadow: "0 2px 16px rgba(77,158,255,0.2)",
-                    }}
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLButtonElement).style.boxShadow =
-                        "0 4px 24px rgba(77,158,255,0.4)";
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLButtonElement).style.boxShadow =
-                        "0 2px 16px rgba(77,158,255,0.2)";
-                    }}
-                  >
-                    Get Pro →
-                  </button>
-                </div>
-
+                  Get Pro →
+                </button>
               </div>
               <p className="text-center text-xs text-muted/55 mt-3 leading-relaxed">
-                Subscriptions cancel anytime.{" "}
-                Cosmetics earned are yours to keep.
+                One-time purchase. No subscription. Yours forever.
               </p>
             </div>
 
@@ -397,23 +344,16 @@ export default function ProPage() {
 const PRO_PERKS = [
   { label: "Ad-Free", detail: "Zero distractions" },
   { label: "1.5× XP", detail: "Every race & solo" },
-  { label: "∞ Replays", detail: "Full access" },
-  { label: "Adaptive", detail: "Smart practice" },
-  { label: "Analytics", detail: "Deep insights" },
-  { label: "Custom Text", detail: "Your own content" },
-  { label: "Full History", detail: "Complete archive" },
+  { label: "Pro Cosmetics", detail: "Exclusive rewards" },
+  { label: "Pro Badge", detail: "Stand out in races" },
   { label: "Bio & Pin", detail: "Profile features" },
-  { label: "Data Export", detail: "CSV & JSON" },
+  { label: "Name Effects", detail: "Animated styling" },
 ];
 
 function SubscriberView({
   session,
-  portalLoading,
-  onManage,
 }: {
   session: ReturnType<typeof useSession>["data"];
-  portalLoading: boolean;
-  onManage: () => void;
 }) {
   const totalXp = session?.user?.totalXp ?? 0;
   const { level, currentXp, nextLevelXp } = getXpLevel(totalXp);
@@ -474,13 +414,9 @@ function SubscriberView({
                   TypeOff Pro
                 </span>
               </div>
-              <button
-                onClick={onManage}
-                disabled={portalLoading}
-                className="text-[11px] text-muted/45 hover:text-muted/75 transition-colors px-3 py-1.5 rounded-lg ring-1 ring-white/[0.06] hover:ring-white/[0.12] disabled:opacity-50"
-              >
-                {portalLoading ? "Loading..." : "Manage Subscription →"}
-              </button>
+              <span className="text-[11px] text-correct/60 font-medium px-3 py-1.5 rounded-lg ring-1 ring-correct/15 bg-correct/[0.04]">
+                Lifetime Pro
+              </span>
             </div>
 
             {/* Level + username */}

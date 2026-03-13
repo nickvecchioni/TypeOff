@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { users, userSubscription } from "@typeoff/db";
-import { desc, isNotNull, eq } from "drizzle-orm";
+import { desc, isNotNull, eq, inArray } from "drizzle-orm";
 import { validateAdmin } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
@@ -33,6 +33,21 @@ export async function GET() {
   }));
 
   return NextResponse.json(result);
+}
+
+// POST — one-time migration: convert all active/past_due subscribers to lifetime
+export async function POST() {
+  if (!(await validateAdmin())) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const db = getDb();
+  const result = await db
+    .update(userSubscription)
+    .set({ status: "lifetime", updatedAt: new Date() })
+    .where(inArray(userSubscription.status, ["active", "past_due"]));
+
+  return NextResponse.json({ ok: true, message: "All active subscribers converted to lifetime Pro" });
 }
 
 export async function PATCH(req: NextRequest) {

@@ -60,9 +60,8 @@ export async function GET(request: Request) {
 
   const db = getDb();
   const userId = session.user.id;
-  const isPro = session.user.isPro ?? false;
 
-  // Per-mode stats (always returned, all tiers)
+  // Per-mode stats
   const modeStatsRows = await db
     .select()
     .from(userModeStats)
@@ -77,93 +76,7 @@ export async function GET(request: Request) {
     avgAccuracy: r.avgAccuracy,
   }));
 
-  // Free users: return limited data (last 20 results, best records only)
-  if (!isPro) {
-    // Fetch ranked races (skip if filtering to solo-only)
-    const raceResults: UnifiedResult[] = [];
-    if (modeFilter !== "solo") {
-      const conditions = [eq(raceParticipants.userId, userId)];
-      if (modeFilter && modeFilter !== "solo") conditions.push(eq(races.modeCategory, modeFilter as ModeCategory));
-      if (rangeCutoff) conditions.push(gte(raceParticipants.finishedAt, rangeCutoff));
-
-      const freeRaces = await db
-        .select({
-          wpm: raceParticipants.wpm,
-          accuracy: raceParticipants.accuracy,
-          finishedAt: raceParticipants.finishedAt,
-        })
-        .from(raceParticipants)
-        .innerJoin(races, eq(raceParticipants.raceId, races.id))
-        .where(and(...conditions))
-        .orderBy(desc(raceParticipants.finishedAt))
-        .limit(20);
-
-      for (const r of freeRaces) {
-        if (r.wpm != null && r.finishedAt) {
-          raceResults.push({
-            wpm: r.wpm,
-            accuracy: r.accuracy ?? 0,
-            date: r.finishedAt,
-            source: "race",
-          });
-        }
-      }
-    }
-
-    // Fetch solo results
-    const soloConditions = [eq(soloResults.userId, userId)];
-    if (rangeCutoff) soloConditions.push(gte(soloResults.createdAt, rangeCutoff));
-
-    const soloRows = await db
-      .select({
-        wpm: soloResults.wpm,
-        accuracy: soloResults.accuracy,
-        createdAt: soloResults.createdAt,
-        wordPool: soloResults.wordPool,
-      })
-      .from(soloResults)
-      .where(and(...soloConditions))
-      .orderBy(desc(soloResults.createdAt))
-      .limit(20);
-
-    const soloFiltered: UnifiedResult[] = [];
-    for (const r of soloRows) {
-      if (modeFilter && modeFilter !== "solo" && soloModeCategory(r.wordPool) !== modeFilter) continue;
-      soloFiltered.push({
-        wpm: r.wpm,
-        accuracy: r.accuracy,
-        date: r.createdAt,
-        source: "solo",
-      });
-    }
-
-    // Merge, sort by date desc, take 20
-    const merged = [...raceResults, ...soloFiltered]
-      .sort((a, b) => b.date.getTime() - a.date.getTime())
-      .slice(0, 20);
-
-    const wpmTrend = merged
-      .map((r) => ({ date: r.date.toISOString(), wpm: r.wpm, accuracy: r.accuracy }))
-      .reverse();
-
-    // Activity per day
-    const racesPerDay: Record<string, number> = {};
-    for (const r of merged) {
-      const day = r.date.toISOString().slice(0, 10);
-      racesPerDay[day] = (racesPerDay[day] ?? 0) + 1;
-    }
-
-    let bestWpm: { wpm: number; date: string } | null = null;
-    let bestAccuracy: { accuracy: number; date: string } | null = null;
-    for (const r of merged) {
-      if (!bestWpm || r.wpm > bestWpm.wpm) bestWpm = { wpm: r.wpm, date: r.date.toISOString() };
-      if (!bestAccuracy || r.accuracy > bestAccuracy.accuracy) bestAccuracy = { accuracy: r.accuracy, date: r.date.toISOString() };
-    }
-
-    return NextResponse.json({ wpmTrend, personalRecords: { bestWpm, bestAccuracy }, modeStats, racesPerDay });
-  }
-
-  // ── Pro users: fetch everything ──────────────────────────────────
+  // ── Fetch everything ──────────────────────────────────
 
   // Fetch ranked races (skip if filtering to solo-only)
   const raceResults: UnifiedResult[] = [];
@@ -208,7 +121,7 @@ export async function GET(request: Request) {
   }
 
   // Fetch solo results
-  const soloConditionsPro = [eq(soloResults.userId, userId)];
+  const soloConditions = [eq(soloResults.userId, userId)];
   if (rangeCutoff) soloConditionsPro.push(gte(soloResults.createdAt, rangeCutoff));
 
   const soloRows = await db
@@ -221,7 +134,7 @@ export async function GET(request: Request) {
       duration: soloResults.duration,
     })
     .from(soloResults)
-    .where(and(...soloConditionsPro))
+    .where(and(...soloConditions))
     .orderBy(desc(soloResults.createdAt));
 
   const soloFiltered: UnifiedResult[] = [];

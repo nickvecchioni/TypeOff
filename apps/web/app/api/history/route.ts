@@ -7,7 +7,6 @@ import { eq, desc, lt, and, gte, lte, sql } from "drizzle-orm";
 export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 20;
-const FREE_LIMIT = 10;
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -15,7 +14,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const isPro = session.user.isPro;
   const params = req.nextUrl.searchParams;
   const cursor = params.get("cursor"); // ISO date string
   const sort = params.get("sort") ?? "date";
@@ -24,12 +22,8 @@ export async function GET(req: NextRequest) {
   const dateTo = params.get("dateTo");
   const isExport = params.get("export") === "true";
 
-  if (isExport && !isPro) {
-    return NextResponse.json({ error: "Pro required" }, { status: 403 });
-  }
-
   const db = getDb();
-  const limit = isExport ? undefined : (isPro ? PAGE_SIZE : FREE_LIMIT);
+  const limit = isExport ? undefined : PAGE_SIZE;
 
   // Build conditions
   const conditions = [eq(raceParticipants.userId, session.user.id)];
@@ -106,8 +100,7 @@ export async function GET(req: NextRequest) {
       seed: r.seed,
       date: r.finishedAt?.toISOString() ?? null,
     })),
-    nextCursor: isPro ? nextCursor : undefined,
+    nextCursor,
     total: countRow?.count ?? 0,
-    isPro,
   });
 }

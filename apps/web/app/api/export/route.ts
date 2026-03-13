@@ -19,10 +19,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!session.user.isPro) {
-    return NextResponse.json({ error: "Pro required" }, { status: 403 });
-  }
-
   const type = req.nextUrl.searchParams.get("type") ?? "all";
   const format = req.nextUrl.searchParams.get("format") ?? "json";
   const db = getDb();

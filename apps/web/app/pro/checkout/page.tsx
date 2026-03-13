@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
@@ -15,8 +14,6 @@ const stripePromise = publishableKey ? loadStripe(publishableKey) : null;
 
 export default function ProCheckoutPage() {
   const { status } = useSession();
-  const searchParams = useSearchParams();
-  const plan = searchParams.get("plan") ?? "monthly";
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -40,7 +37,7 @@ export default function ProCheckoutPage() {
   }, []);
 
   const fetchClientSecret = useCallback(async () => {
-    const res = await fetch(`/api/pro/checkout?plan=${plan}`, { method: "POST" });
+    const res = await fetch("/api/pro/checkout", { method: "POST" });
     const body = await res.json();
     if (!res.ok || !body.clientSecret) {
       const msg = body.error ?? "Failed to start checkout";
@@ -50,7 +47,7 @@ export default function ProCheckoutPage() {
     }
     setLoading(false);
     return body.clientSecret as string;
-  }, [plan]);
+  }, []);
 
   const options = useMemo(
     () => ({ fetchClientSecret }),

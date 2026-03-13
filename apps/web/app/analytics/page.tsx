@@ -9,7 +9,6 @@ import { BigramAnalysis } from "@/components/practice/BigramAnalysis";
 import { BigramHeatmap } from "@/components/practice/BigramHeatmap";
 import { KeyboardHeatmap } from "@/components/typing/KeyboardHeatmap";
 import type { KeyStatsMap } from "@typeoff/shared";
-import { estimateWpmImpact, rankWeaknesses } from "@typeoff/shared";
 import { AnalyticsInsights } from "@/components/analytics/AnalyticsInsights";
 import { PracticeProgress } from "@/components/practice/PracticeProgress";
 import { ActivityCalendar } from "@/components/profile/ActivityCalendar";
@@ -690,97 +689,6 @@ function PlacementBar({ dist }: {
             <span className="text-[11px] text-muted/40">{s.label}</span>
           </div>
         ))}
-      </div>
-    </div>
-  );
-}
-
-function FreeBigramPreview({
-  bigrams,
-  keyStats,
-  avgWpm,
-  inline,
-}: {
-  bigrams: Array<{ bigram: string; correct: number; total: number; accuracy: number }>;
-  keyStats: KeyStatsMap | null;
-  avgWpm: number;
-  inline?: boolean;
-}) {
-  const meaningful = bigrams.filter((b) => b.total >= 10);
-  meaningful.sort((a, b) => a.accuracy - b.accuracy);
-  const worst5 = meaningful.slice(0, 5);
-
-  const teaserInsight = worst5.length > 0
-    ? (() => {
-        const rawKeys = keyStats
-          ? Object.entries(keyStats).map(([key, stat]) => ({
-              key,
-              accuracy: stat.total > 0 ? stat.correct / stat.total : 1,
-              total: stat.total,
-            }))
-          : [];
-        const ranked = rankWeaknesses(rawKeys, worst5.map((b) => ({ bigram: b.bigram, accuracy: b.accuracy / 100, total: b.total })));
-        const insights = estimateWpmImpact(avgWpm || 60, ranked);
-        return insights[0];
-      })()
-    : null;
-
-  if (worst5.length === 0) return null;
-
-  const content = (
-    <div className="space-y-0 divide-y divide-white/[0.04]">
-      {worst5.map((b) => {
-        const accColor = b.accuracy < 70 ? "text-error/60" : b.accuracy < 90 ? "text-amber-400/60" : "text-correct/50";
-        return (
-          <div key={b.bigram} className="flex items-center gap-3 py-2 first:pt-0 last:pb-0">
-            <span className="text-accent font-bold text-sm w-7 shrink-0 text-center">{b.bigram}</span>
-            <span className={`text-xs font-bold tabular-nums ${accColor}`}>{Math.round(b.accuracy)}%</span>
-            <span className="text-[11px] text-muted/30 tabular-nums">{b.total}</span>
-          </div>
-        );
-      })}
-    </div>
-  );
-
-  if (inline) return content;
-
-  return (
-    <>
-      <Panel>
-        <PanelHeader title="Bigrams" />
-        {content}
-      </Panel>
-      {teaserInsight && (
-        <div className="rounded-xl ring-1 ring-accent/8 bg-accent/[0.02] px-4 py-3">
-          <p className="text-xs text-muted/60 leading-relaxed">{teaserInsight.insight}</p>
-          <p className="text-[11px] text-muted/40 mt-1">Upgrade to Pro for all insights and adaptive practice</p>
-        </div>
-      )}
-    </>
-  );
-}
-
-function ProUpsell() {
-  return (
-    <div className="relative rounded-xl overflow-hidden ring-1 ring-accent/12">
-      <div className="h-px bg-gradient-to-r from-accent/20 via-accent/50 to-accent/20" />
-      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,rgba(77,158,255,0.03),transparent_60%)]" />
-      <div className="relative px-5 py-4">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-[10px] font-black tracking-[0.15em] text-accent bg-accent/8 ring-1 ring-accent/20 rounded px-1.5 py-0.5 leading-none">PRO</span>
-          <span className="text-sm font-bold text-text/70">Unlock Full Analytics</span>
-        </div>
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2 mb-4">
-          {["Ad-free experience", "Adaptive practice", "ELO trends & placements", "Full bigram insights"].map((label) => (
-            <div key={label} className="flex items-center gap-1.5 text-xs text-text/45">
-              <span className="text-accent/50 shrink-0">+</span>
-              <span>{label}</span>
-            </div>
-          ))}
-        </div>
-        <Link href="/pro" className="block w-full rounded-lg bg-accent/8 ring-1 ring-accent/25 text-accent text-sm font-bold px-4 py-2 hover:bg-accent/15 transition-colors text-center">
-          Upgrade — $4.99/mo
-        </Link>
       </div>
     </div>
   );

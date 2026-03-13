@@ -44,7 +44,7 @@ export default function ProCheckoutReturnPage() {
         {!status && !error && (
           <div className="space-y-3">
             <div className="w-8 h-8 mx-auto rounded-full bg-surface/40 animate-pulse" />
-            <p className="text-sm text-muted/65">Confirming subscription...</p>
+            <p className="text-sm text-muted/65">Confirming purchase...</p>
           </div>
         )}
 
