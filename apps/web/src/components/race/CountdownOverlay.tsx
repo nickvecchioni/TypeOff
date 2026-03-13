@@ -81,7 +81,7 @@ export function CountdownOverlay({
       )}
       {/* Quote author */}
       {mode === "quotes" && quoteAuthor && !placementRace && (
-        <p className="text-muted/60 text-xs text-center italic -mt-0.5">— {quoteAuthor}</p>
+        <p className="text-muted/60 text-xs text-center -mt-0.5">— <span className="italic">{quoteAuthor}</span></p>
       )}
       {placementRace != null && (
         <p className="text-muted text-xs">

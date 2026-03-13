@@ -981,7 +981,7 @@ export function RaceResults({
     : null;
 
   const currentLevel = myResult?.xpProgress?.level ?? 0;
-  const showProPanel = !isPro && !isPlacement && myResult != null && session?.user != null;
+  const showProPanel = false;
 
   // #4: Personal best detection (per-text when available, global otherwise)
   // Use per-text best if the user has typed this text before, otherwise global best
@@ -1201,8 +1201,8 @@ export function RaceResults({
         const quote = getQuoteByIndex(raceSeed);
         return (
           <div className="shrink-0 rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-4 py-3 text-center">
-            <div className="text-sm text-text/70 italic leading-relaxed">
-              &ldquo;{quote.text}&rdquo; &mdash; {quote.author}
+            <div className="text-sm text-text/70 leading-relaxed">
+              &ldquo;{quote.text}&rdquo; — <span className="italic">{quote.author}</span>
             </div>
           </div>
         );
@@ -1467,17 +1467,16 @@ export function RaceResults({
         </div>
       </div>
 
-      {/* ── Speed Analysis (Pro, full width) */}
-      {isPro && myWpmHistory && myWpmHistory.length >= 4 && myResult && (
+      {/* ── Speed Analysis (full width) */}
+      {myWpmHistory && myWpmHistory.length >= 4 && myResult && (
         <SpeedAnalysis wpmHistory={myWpmHistory} wpm={myResult.wpm} accuracy={myResult.accuracy} />
       )}
 
-      {/* ── TYPING ANALYSIS (Pro, full width — only if key stats exist) */}
-      {isPro && myKeyStats && Object.keys(myKeyStats).length > 0 && (
+      {/* ── TYPING ANALYSIS (full width — only if key stats exist) */}
+      {myKeyStats && Object.keys(myKeyStats).length > 0 && (
         <div className="shrink-0 w-full rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-3 pt-2.5 pb-3 flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <div className="text-xs font-bold text-muted/50 uppercase tracking-widest">Typing Analysis</div>
-            <span className="text-xs font-black text-accent/50 bg-accent/[0.06] ring-1 ring-accent/15 rounded px-1.5 py-0.5 uppercase tracking-wider leading-none">PRO</span>
           </div>
           <KeyboardHeatmap keyStats={myKeyStats} />
           {myResult && (
