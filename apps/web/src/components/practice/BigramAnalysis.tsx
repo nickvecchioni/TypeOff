@@ -18,7 +18,7 @@ export function BigramAnalysis({ bigrams, onPractice }: BigramAnalysisProps) {
   const worstBigrams = bigrams
     .filter((b) => b.total >= 5)
     .sort((a, b) => a.accuracy - b.accuracy)
-    .slice(0, 20);
+;
 
   if (worstBigrams.length === 0) {
     return (

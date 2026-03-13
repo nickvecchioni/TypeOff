@@ -565,7 +565,7 @@ export default function AnalyticsPage() {
                   {bigrams.length > 0 && (
                     <Panel className="lg:col-span-2">
                       <PanelHeader
-                        title="Weakest Bigrams"
+                        title="Bigrams"
                         right={isPro ? (
                           <button
                             onClick={() => {
@@ -794,7 +794,7 @@ function FreeBigramPreview({
   return (
     <>
       <Panel>
-        <PanelHeader title="Weakest Bigrams" />
+        <PanelHeader title="Bigrams" />
         {content}
       </Panel>
       {teaserInsight && (
