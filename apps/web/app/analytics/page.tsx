@@ -41,6 +41,10 @@ interface AnalyticsData {
   placementDistribution?: { first: number; second: number; third: number; other: number; total: number };
   racesPerDay?: Record<string, number>;
   wordCountStats?: Array<{ wordCount: number; bestWpm: number; avgWpm: number; count: number }>;
+  soloVsRanked?: {
+    solo: { count: number; bestWpm: number; avgWpm: number; avgAccuracy: number } | null;
+    ranked: { count: number; bestWpm: number; avgWpm: number; avgAccuracy: number } | null;
+  };
 }
 
 const MODE_FILTERS = [
@@ -254,7 +258,12 @@ export default function AnalyticsPage() {
               <div className="flex items-center gap-3">
                 <h1 className="text-base font-bold text-text tracking-tight">Analytics</h1>
                 {isPro && data.totalRaces != null && (
-                  <span className="text-sm text-muted/60 tabular-nums">{data.totalRaces} races analyzed</span>
+                  <span className="text-sm text-muted/60 tabular-nums">
+                    {data.soloVsRanked?.ranked && data.soloVsRanked?.solo
+                      ? `${data.soloVsRanked.ranked.count} races + ${data.soloVsRanked.solo.count} solo`
+                      : `${data.totalRaces} races analyzed`
+                    }
+                  </span>
                 )}
               </div>
               {/* Export + filters */}
@@ -469,7 +478,7 @@ export default function AnalyticsPage() {
                   )}
                 </div>
 
-                {/* Row 3: By Mode/Word Count + Speed by Placement */}
+                {/* Row 3: By Mode/Word Count + Speed by Placement + Solo vs Ranked */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {(() => {
                     const hasMode = modeFilter === "all" && (data.modeStats?.length ?? 0) > 0;
@@ -581,7 +590,44 @@ export default function AnalyticsPage() {
                       )}
                     </Card>
                   )}
+
                 </div>
+
+                {/* Solo vs Ranked comparison */}
+                {data.soloVsRanked?.solo && data.soloVsRanked?.ranked && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Card title="Solo vs Ranked">
+                      <div className="grid grid-cols-2 gap-4">
+                        {([
+                          { label: "Solo", stats: data.soloVsRanked.solo, accent: "text-accent" },
+                          { label: "Ranked", stats: data.soloVsRanked.ranked, accent: "text-rank-gold" },
+                        ] as const).map(({ label, stats, accent }) => (
+                          <div key={label}>
+                            <div className={`text-xs font-bold uppercase tracking-widest mb-3 ${accent}`}>{label}</div>
+                            <div className="space-y-2.5">
+                              <div className="flex items-baseline justify-between">
+                                <span className="text-xs text-muted/50">Played</span>
+                                <span className="text-sm font-bold text-text tabular-nums">{stats.count}</span>
+                              </div>
+                              <div className="flex items-baseline justify-between">
+                                <span className="text-xs text-muted/50">Best</span>
+                                <span className="text-sm font-bold text-text tabular-nums">{Math.floor(stats.bestWpm)}</span>
+                              </div>
+                              <div className="flex items-baseline justify-between">
+                                <span className="text-xs text-muted/50">Avg WPM</span>
+                                <span className="text-sm font-bold text-text tabular-nums">{Math.floor(stats.avgWpm)}</span>
+                              </div>
+                              <div className="flex items-baseline justify-between">
+                                <span className="text-xs text-muted/50">Accuracy</span>
+                                <span className="text-sm font-bold text-text tabular-nums">{stats.avgAccuracy.toFixed(1)}%</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </Card>
+                  </div>
+                )}
               </>
             ) : (
               /* Free user overview */

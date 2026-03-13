@@ -354,6 +354,25 @@ export async function GET(request: Request) {
     }
   }
 
+  // Solo vs Ranked breakdown
+  function computeSourceStats(results: UnifiedResult[]) {
+    if (results.length === 0) return null;
+    const best = Math.max(...results.map((r) => r.wpm));
+    const avg = results.reduce((s, r) => s + r.wpm, 0) / results.length;
+    const avgAcc = results.reduce((s, r) => s + r.accuracy, 0) / results.length;
+    return {
+      count: results.length,
+      bestWpm: Math.round(best * 100) / 100,
+      avgWpm: Math.round(avg * 100) / 100,
+      avgAccuracy: Math.round(avgAcc * 10) / 10,
+    };
+  }
+
+  const soloVsRanked = {
+    solo: computeSourceStats(soloFiltered),
+    ranked: computeSourceStats(raceResults),
+  };
+
   return NextResponse.json({
     totalRaces: allResults.length,
     wpmTrend,
@@ -366,6 +385,7 @@ export async function GET(request: Request) {
     racesPerDay,
     modeStats,
     wordCountStats,
+    soloVsRanked,
     personalRecords: {
       bestWpm,
       bestAccuracy,
