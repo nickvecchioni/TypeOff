@@ -464,9 +464,9 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
                 )}
               </span>
             )}
-            {/* Quote author */}
+            {/* Quote author — hides while typing */}
             {ct === "quotes" && engine.lastSeed != null && (
-              <span className="text-xs text-muted/45">
+              <span className={`text-xs text-muted/45 transition-opacity duration-300 ${isTyping ? "opacity-0" : "opacity-100"}`}>
                 {getQuoteAuthor(engine.lastSeed)}
               </span>
             )}
