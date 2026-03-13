@@ -228,7 +228,7 @@ function LevelWidget({
   isPro: boolean;
 }) {
   const xpPct = Math.round((currentXp / nextLevelXp) * 100);
-  const upcomingRewards = COSMETIC_REWARDS.filter((r) => r.level > level).slice(0, 5);
+  const upcomingRewards = COSMETIC_REWARDS.filter((r) => r.level > level).slice(0, 6);
   const xpRemaining = nextLevelXp - currentXp;
   const nextReward = upcomingRewards[0];
 
