@@ -143,7 +143,9 @@ export default function ProPage() {
 
                 <p className="text-sm text-muted/65 max-w-md mx-auto leading-relaxed">
                   Pro unlocks {PRO_REWARD_COUNT} exclusive cosmetics, 1.5x XP, ad-free racing,
-                  and profile customization. One-time purchase, yours forever.
+                  and profile customization.
+                  <br />
+                  One-time purchase, yours forever.
                 </p>
 
                 {/* Stat highlights */}
@@ -152,7 +154,7 @@ export default function ProPage() {
                     { value: "0",                        label: "Ads"           },
                     { value: "1.5×",                     label: "XP Multiplier" },
                     { value: String(PRO_REWARD_COUNT),   label: "Pro Cosmetics" },
-                    { value: "$0",                       label: "/month"        },
+                    { value: `$${PRO_PRICE}`,            label: "One-Time"      },
                   ].map((s) => (
                     <div key={s.label} className="text-center">
                       <div className="text-2xl font-black tabular-nums text-accent flex items-center justify-center h-9">
