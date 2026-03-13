@@ -30,7 +30,7 @@ const FEATURES = [
         <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
       </svg>
     ),
-    text: "Never race someone out of your league",
+    text: "ELO matchmaking — every race is a fair fight",
   },
   {
     icon: (
@@ -42,7 +42,7 @@ const FEATURES = [
         <line x1="8" y1="20" x2="16" y2="20" />
       </svg>
     ),
-    text: "Watch your rank climb in real time",
+    text: "Climb 7 ranks from Bronze to Grandmaster",
   },
   {
     icon: (
@@ -52,7 +52,7 @@ const FEATURES = [
         <path d="M19 17v4M17 19h4" />
       </svg>
     ),
-    text: "Earn titles, cursors, and name effects",
+    text: "Unlock cosmetics — titles, cursors, effects",
   },
 ] as const;
 
@@ -475,9 +475,8 @@ export function GuestPlacement({
             Competitive typing,{" "}
             <span className="text-accent text-glow-accent">ranked.</span>
           </h1>
-          <p className="relative text-muted/70 text-sm text-center max-w-md leading-relaxed">
-            Start typing to find your rank. Race real players at your exact
-            skill level.
+          <p className="relative text-muted/70 text-sm text-center whitespace-nowrap">
+            Start typing to find your rank. Race real players at your exact skill level.
           </p>
         </div>
       </div>
@@ -576,11 +575,11 @@ export function GuestPlacement({
           className="flex flex-col items-center gap-2 opacity-0 animate-fade-in"
           style={{ animationDelay: "180ms", animationFillMode: "both" }}
         >
-          <div className="flex items-end justify-center">
+          <div className="flex items-end justify-center gap-2 sm:gap-3">
             {RANK_TIERS.map((tier, i) => (
-              <div key={tier.label} className="flex flex-col items-center">
+              <div key={tier.label} className="flex flex-col items-center w-9 sm:w-11">
                 <div
-                  className="w-7 sm:w-9 rounded-sm mx-[1px]"
+                  className="w-6 sm:w-8 rounded-sm"
                   style={{
                     height: 10 + i * 6,
                     background: tier.color,
@@ -593,7 +592,7 @@ export function GuestPlacement({
                 />
                 {/* Abbreviated on mobile */}
                 <span
-                  className="mt-1 text-[10px] font-bold tracking-wide uppercase sm:hidden"
+                  className="mt-1.5 text-[10px] font-bold tracking-wide uppercase sm:hidden"
                   style={{
                     color: tier.color,
                     opacity: i === 6 ? 0.85 : 0.6,
@@ -603,7 +602,7 @@ export function GuestPlacement({
                 </span>
                 {/* Full name on desktop */}
                 <span
-                  className="mt-1 text-[10px] font-bold tracking-wide hidden sm:block"
+                  className="mt-1.5 text-[10px] font-bold tracking-wide hidden sm:block"
                   style={{
                     color: tier.color,
                     opacity: i === 6 ? 0.85 : 0.6,
