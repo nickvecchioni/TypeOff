@@ -489,22 +489,8 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed, xpProgre
             </div>
           )}
 
-          {/* Share + Sign-in */}
+          {/* Sign-in prompt */}
           <div className="flex flex-col items-center gap-3">
-            {session?.user?.username && (
-              <ShareResultCard
-                data={{
-                  variant: "solo",
-                  wpm: stats.wpm,
-                  accuracy: stats.accuracy,
-                  consistency: stats.consistency,
-                  modeLabel,
-                  username: session.user!.username!,
-                  date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-                }}
-              />
-            )}
-
             {!session?.user && (
               <div className="flex flex-col items-center gap-3 w-full">
                 <p className="text-muted/60 text-xs">Sign in to save your result</p>
@@ -600,6 +586,20 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed, xpProgre
             <kbd className="inline-flex items-center px-1 py-px rounded bg-white/[0.04] ring-1 ring-white/[0.07] text-xs font-medium">Enter ↵</kbd>
           </span>
         </button>
+
+        {session?.user?.username && (
+          <ShareResultCard
+            data={{
+              variant: "solo",
+              wpm: stats.wpm,
+              accuracy: stats.accuracy,
+              consistency: stats.consistency,
+              modeLabel,
+              username: session.user!.username!,
+              date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+            }}
+          />
+        )}
 
         {/* Secondary actions */}
         <div className="flex items-center gap-1">

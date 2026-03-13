@@ -1561,6 +1561,33 @@ export function RaceResults({
           </>
         )}
 
+        {/* Share */}
+        {!isPlacement &&
+          myResult != null &&
+          myResult.elo != null &&
+          myResult.eloChange != null &&
+          session?.user?.username && (
+            <ShareResultCard
+              data={{
+                variant: "ranked",
+                wpm: myResult.wpm,
+                accuracy: myResult.accuracy,
+                placement: myResult.placement,
+                totalPlayers: results.length,
+                elo: myResult.elo,
+                eloChange: myResult.eloChange,
+                rankLabel: getRankInfo(myResult.elo).label,
+                rankTier: getRankInfo(myResult.elo).tier,
+                username: session.user.username,
+                date: new Date().toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                }),
+              }}
+            />
+          )}
+
         {/* Secondary actions row */}
         <div className="flex items-center gap-1">
           {/* Go Home */}
@@ -1610,36 +1637,9 @@ export function RaceResults({
                 </svg>
                 <span className="text-sm font-medium">Analytics</span>
               </Link>
-              <span className="text-white/[0.06]">·</span>
             </>
           )}
 
-          {/* Share */}
-          {!isPlacement &&
-            myResult != null &&
-            myResult.elo != null &&
-            myResult.eloChange != null &&
-            session?.user?.username && (
-              <ShareResultCard
-                data={{
-                  variant: "ranked",
-                  wpm: myResult.wpm,
-                  accuracy: myResult.accuracy,
-                  placement: myResult.placement,
-                  totalPlayers: results.length,
-                  elo: myResult.elo,
-                  eloChange: myResult.eloChange,
-                  rankLabel: getRankInfo(myResult.elo).label,
-                  rankTier: getRankInfo(myResult.elo).tier,
-                  username: session.user.username,
-                  date: new Date().toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  }),
-                }}
-              />
-            )}
         </div>
       </div>
 
