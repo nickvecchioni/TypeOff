@@ -1,7 +1,6 @@
 import type { NextConfig } from "next";
 import { resolve } from "path";
 
-// prettier-ignore
 const nextConfig: NextConfig = {
   async redirects() {
     return [
