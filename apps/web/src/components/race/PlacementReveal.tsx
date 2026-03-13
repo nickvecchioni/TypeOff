@@ -104,7 +104,7 @@ export function PlacementReveal({ elo, wpm, accuracy, onContinue, subtitle, ctaL
         >
           <div className="flex flex-col items-center gap-1">
             <div className="text-4xl font-black tabular-nums" style={{ color, textShadow: `0 0 20px ${color}55` }}>
-              {Math.round(wpm)}
+              {Math.floor(wpm)}<span className="text-[0.6em] opacity-40">.{(wpm % 1).toFixed(2).slice(2)}</span>
             </div>
             <div className="text-xs uppercase tracking-widest text-muted/60 font-bold">WPM</div>
           </div>
