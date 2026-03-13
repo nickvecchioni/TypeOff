@@ -86,8 +86,6 @@ export default function AnalyticsPage() {
   const [exporting, setExporting] = useState(false);
   const [breakdownView, setBreakdownView] = useState<"mode" | "wordcount">("mode");
 
-  const isPro = session?.user?.isPro ?? false;
-
   const handleExport = async (format: "json" | "csv") => {
     setExporting(true);
     try {
@@ -232,10 +230,10 @@ export default function AnalyticsPage() {
     return recent5 - prev5;
   })();
 
-  const TABS: { id: Tab; label: string; pro?: boolean }[] = [
+  const TABS: { id: Tab; label: string }[] = [
     { id: "overview", label: "Overview" },
     { id: "accuracy", label: "Accuracy" },
-    ...(isPro ? [{ id: "progress" as Tab, label: "Progress", pro: true }] : []),
+    { id: "progress", label: "Progress" },
   ];
 
   return (
@@ -246,7 +244,7 @@ export default function AnalyticsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 animate-fade-in">
           <div className="flex items-center gap-3">
             <h1 className="text-base font-bold text-text tracking-tight">Analytics</h1>
-            {isPro && data.totalRaces != null && (
+            {data.totalRaces != null && (
               <span className="text-xs text-muted/50 tabular-nums">
                 {data.soloVsRanked?.ranked && data.soloVsRanked?.solo
                   ? `${data.soloVsRanked.ranked.count} ranked · ${data.soloVsRanked.solo.count} solo`
@@ -256,8 +254,7 @@ export default function AnalyticsPage() {
             )}
           </div>
           <div className="flex items-center gap-2">
-            {isPro && (
-              <div className="flex items-center gap-0.5 mr-1">
+            <div className="flex items-center gap-0.5 mr-1">
                 {(["json", "csv"] as const).map((fmt) => (
                   <button
                     key={fmt}
@@ -268,8 +265,7 @@ export default function AnalyticsPage() {
                     {exporting ? "…" : fmt}
                   </button>
                 ))}
-              </div>
-            )}
+            </div>
             <FilterPill options={RANGE_FILTERS} value={rangeFilter} onChange={setRangeFilter} />
             <FilterPill options={MODE_FILTERS} value={modeFilter} onChange={setModeFilter} />
           </div>
@@ -312,15 +308,11 @@ export default function AnalyticsPage() {
               {/* Secondary stats */}
               <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-x-5 gap-y-2">
                 <MiniStat label="Best Accuracy" value={data.personalRecords.bestAccuracy ? `${data.personalRecords.bestAccuracy.accuracy.toFixed(1)}%` : "—"} />
-                <MiniStat label="Avg WPM" value={avgWpm > 0 ? avgWpm.toFixed(1) : "—"} sub={isPro ? "last 50" : `last ${recentWpms.length}`} />
-                {isPro && (
-                  <>
-                    <MiniStat label="Consistency" value={data.consistencyScore != null ? `±${data.consistencyScore.toFixed(1)}` : "—"} />
-                    <MiniStat label="Win Rate" value={data.winRate != null ? `${data.winRate}%` : "—"} />
-                    <MiniStat label="Best Streak" value={String(data.personalRecords.maxStreak ?? 0)} />
-                    <MiniStat label="Day Streak" value={String(data.personalRecords.maxRankedDayStreak ?? 0)} />
-                  </>
-                )}
+                <MiniStat label="Avg WPM" value={avgWpm > 0 ? avgWpm.toFixed(1) : "—"} sub="last 50" />
+                <MiniStat label="Consistency" value={data.consistencyScore != null ? `±${data.consistencyScore.toFixed(1)}` : "—"} />
+                <MiniStat label="Win Rate" value={data.winRate != null ? `${data.winRate}%` : "—"} />
+                <MiniStat label="Best Streak" value={String(data.personalRecords.maxStreak ?? 0)} />
+                <MiniStat label="Day Streak" value={String(data.personalRecords.maxRankedDayStreak ?? 0)} />
               </div>
             </div>
           </div>
@@ -337,7 +329,6 @@ export default function AnalyticsPage() {
               }`}
             >
               {tab.label}
-              {tab.pro && <span className="ml-1 text-[10px] font-black tracking-wider text-accent/50 uppercase">pro</span>}
               {activeTab === tab.id && <div className="absolute bottom-0 left-2 right-2 h-[2px] bg-accent rounded-full" />}
             </button>
           ))}
@@ -348,14 +339,15 @@ export default function AnalyticsPage() {
         {/* ── Overview Tab ────────────────────────────────────────── */}
         {activeTab === "overview" && (
           <div className="animate-fade-in">
-            {isPro ? (
               <>
                 {/* Bento row 1: WPM chart (wide) + Insights (narrow) */}
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 mb-3">
                   {data.wpmTrend.length >= 2 && (
-                    <Panel className="lg:col-span-3" flush>
+                    <Panel className="lg:col-span-3 flex flex-col" flush>
                       <PanelHeader title="WPM Trend" />
-                      <WpmTrendChart points={data.wpmTrend} />
+                      <div className="flex-1 min-h-[220px]">
+                        <WpmTrendChart points={data.wpmTrend} />
+                      </div>
                     </Panel>
                   )}
                   <Panel className="lg:col-span-2">
@@ -376,48 +368,50 @@ export default function AnalyticsPage() {
                   </Panel>
                 </div>
 
-                {/* Bento row 2: ELO chart + Activity + Solo vs Ranked */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+                {/* Bento row 2: ELO chart + Solo vs Ranked */}
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 mb-3">
                   {(data.eloTrend?.length ?? 0) >= 2 && (
-                    <Panel className="sm:col-span-2">
+                    <Panel className="lg:col-span-3">
                       <PanelHeader title="ELO Trend" />
                       <EloMiniChart eloTrend={data.eloTrend!} color="#eab308" height={180} />
                     </Panel>
                   )}
-                  {activityData.length > 0 && (
-                    <Panel>
-                      <PanelHeader title="Activity" />
-                      <ActivityCalendar activity={activityData} />
-                    </Panel>
-                  )}
-                  {data.soloVsRanked?.solo && data.soloVsRanked?.ranked && (
-                    <Panel>
-                      <PanelHeader title="Solo vs Ranked" />
-                      <div className="grid grid-cols-2 gap-3">
-                        {([
-                          { label: "Solo", stats: data.soloVsRanked.solo, color: "text-accent" },
-                          { label: "Ranked", stats: data.soloVsRanked.ranked, color: "text-rank-gold" },
-                        ] as const).map(({ label, stats, color }) => (
-                          <div key={label}>
-                            <div className={`text-[10px] font-bold uppercase tracking-[0.15em] mb-2 ${color}`}>{label}</div>
-                            <div className="space-y-1.5">
-                              {[
-                                { k: "Played", v: String(stats.count) },
-                                { k: "Best", v: String(Math.floor(stats.bestWpm)) },
-                                { k: "Avg", v: String(Math.floor(stats.avgWpm)) },
-                                { k: "Acc", v: `${stats.avgAccuracy.toFixed(1)}%` },
-                              ].map((r) => (
-                                <div key={r.k} className="flex justify-between text-[11px]">
-                                  <span className="text-muted/40">{r.k}</span>
-                                  <span className="font-bold text-text tabular-nums">{r.v}</span>
-                                </div>
-                              ))}
+                  <div className="lg:col-span-2 flex flex-col gap-3">
+                    {data.soloVsRanked?.solo && data.soloVsRanked?.ranked && (
+                      <Panel>
+                        <PanelHeader title="Solo vs Ranked" />
+                        <div className="grid grid-cols-2 gap-4">
+                          {([
+                            { label: "Solo", stats: data.soloVsRanked.solo, color: "text-accent" },
+                            { label: "Ranked", stats: data.soloVsRanked.ranked, color: "text-rank-gold" },
+                          ] as const).map(({ label, stats, color }) => (
+                            <div key={label}>
+                              <div className={`text-[10px] font-bold uppercase tracking-[0.15em] mb-2 ${color}`}>{label}</div>
+                              <div className="space-y-1">
+                                {[
+                                  { k: "Played", v: String(stats.count) },
+                                  { k: "Best", v: String(Math.floor(stats.bestWpm)) },
+                                  { k: "Avg", v: String(Math.floor(stats.avgWpm)) },
+                                  { k: "Acc", v: `${stats.avgAccuracy.toFixed(1)}%` },
+                                ].map((r) => (
+                                  <div key={r.k} className="flex justify-between text-[11px]">
+                                    <span className="text-muted/40">{r.k}</span>
+                                    <span className="font-bold text-text tabular-nums">{r.v}</span>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    </Panel>
-                  )}
+                          ))}
+                        </div>
+                      </Panel>
+                    )}
+                    {activityData.length > 0 && (
+                      <Panel className="flex-1">
+                        <PanelHeader title="Activity" />
+                        <ActivityCalendar activity={activityData} />
+                      </Panel>
+                    )}
+                  </div>
                 </div>
 
                 {/* Bento row 3: By Mode + Speed by Placement */}
@@ -495,40 +489,6 @@ export default function AnalyticsPage() {
                   )}
                 </div>
               </>
-            ) : (
-              /* Free user overview */
-              <div className="space-y-3">
-                {data.wpmTrend.length >= 2 && (
-                  <Panel flush>
-                    <PanelHeader title="WPM Trend" subtitle="last 20 races" />
-                    <WpmTrendChart points={data.wpmTrend} />
-                  </Panel>
-                )}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {modeFilter === "all" && (data.modeStats?.length ?? 0) > 0 && (
-                    <Panel>
-                      <PanelHeader title="By Mode" />
-                      <BarRows
-                        rows={(data.modeStats ?? []).map((m) => ({
-                          key: m.modeCategory,
-                          label: MODE_LABELS[m.modeCategory] ?? m.modeCategory,
-                          value: m.bestWpm,
-                          count: m.racesPlayed,
-                        }))}
-                      />
-                    </Panel>
-                  )}
-                  {activityData.length > 0 && (
-                    <Panel>
-                      <PanelHeader title="Activity" />
-                      <ActivityCalendar activity={activityData} />
-                    </Panel>
-                  )}
-                </div>
-                {bigrams.length > 0 && <FreeBigramPreview bigrams={bigrams} keyStats={keyStats} avgWpm={avgWpm} />}
-                <ProUpsell />
-              </div>
-            )}
           </div>
         )}
 
@@ -542,11 +502,11 @@ export default function AnalyticsPage() {
                   <Panel className="mb-3">
                     <PanelHeader
                       title="Key Accuracy"
-                      right={isPro ? (
+                      right={
                         <Link href="/solo?drill=true" className="text-xs text-accent hover:text-accent/80 font-medium transition-colors">
                           Start Practice →
                         </Link>
-                      ) : undefined}
+                      }
                     />
                     <div className="max-w-lg mx-auto">
                       <KeyboardHeatmap keyStats={keyStats} />
@@ -566,7 +526,7 @@ export default function AnalyticsPage() {
                     <Panel className="lg:col-span-2">
                       <PanelHeader
                         title="Bigrams"
-                        right={isPro ? (
+                        right={
                           <button
                             onClick={() => {
                               const worst = bigrams.filter((b) => b.total >= 5).sort((a, b) => a.accuracy - b.accuracy).slice(0, 10).map((b) => b.bigram);
@@ -576,16 +536,9 @@ export default function AnalyticsPage() {
                           >
                             Practice →
                           </button>
-                        ) : undefined}
+                        }
                       />
-                      {isPro ? (
-                        <BigramAnalysis bigrams={bigrams} />
-                      ) : (
-                        <>
-                          <FreeBigramPreview bigrams={bigrams} keyStats={keyStats} avgWpm={avgWpm} inline />
-                          <div className="mt-3"><ProUpsell /></div>
-                        </>
-                      )}
+                      <BigramAnalysis bigrams={bigrams} />
                     </Panel>
                   )}
                 </div>
@@ -596,8 +549,8 @@ export default function AnalyticsPage() {
           </div>
         )}
 
-        {/* ── Progress Tab (Pro) ──────────────────────────────────── */}
-        {activeTab === "progress" && isPro && (
+        {/* ── Progress Tab ──────────────────────────────────── */}
+        {activeTab === "progress" && (
           <div className="animate-fade-in">
             <Panel>
               <PanelHeader title="Practice Progress" subtitle="accuracy trends over time" />
@@ -627,7 +580,7 @@ function MiniStat({ label, value, sub }: { label: string; value: string; sub?: s
 function Panel({ children, className = "", flush }: { children: React.ReactNode; className?: string; flush?: boolean }) {
   return (
     <div className={`rounded-xl bg-white/[0.02] ring-1 ring-white/[0.05] overflow-hidden ${flush ? "" : "p-4"} ${className}`}>
-      {flush ? <div className="[&>*:first-child]:px-4 [&>*:first-child]:pt-4">{children}</div> : children}
+      {flush ? <div className="flex flex-col h-full [&>*:first-child]:px-4 [&>*:first-child]:pt-4">{children}</div> : children}
     </div>
   );
 }
@@ -877,24 +830,19 @@ function runningAverage(values: number[], window: number): number[] {
 
 function WpmTrendChart({ points }: { points: Array<{ date: string; wpm: number; accuracy: number }> }) {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
-  const [showAccuracy, setShowAccuracy] = useState(false);
   const svgRef = useRef<SVGSVGElement>(null);
 
   if (points.length < 2) return null;
 
-  const ACC_COLOR = "#22c55e";
   const W = 600;
-  const H = 220;
-  const pad = { top: 16, right: showAccuracy ? 36 : 8, bottom: 24, left: 36 };
+  const H = 260;
+  const pad = { top: 16, right: 8, bottom: 24, left: 36 };
   const iW = W - pad.left - pad.right;
   const iH = H - pad.top - pad.bottom;
 
   // Running average (window scales with data size)
   const avgWindow = Math.max(5, Math.min(50, Math.round(points.length * 0.04)));
   const avgValues = useMemo(() => runningAverage(points.map((p) => p.wpm), avgWindow), [points, avgWindow]);
-
-  // Accuracy running average
-  const accAvgValues = useMemo(() => runningAverage(points.map((p) => p.accuracy), avgWindow), [points, avgWindow]);
 
   // Tight Y-axis domain fitted to data (not starting at 0)
   const allWpms = points.map((p) => p.wpm);
@@ -909,22 +857,6 @@ function WpmTrendChart({ points }: { points: Array<{ date: string; wpm: number; 
     { length: Math.floor((yMax - yMin) / niceStep) + 1 },
     (_, i) => yMin + i * niceStep
   );
-
-  // Accuracy Y-axis (right side) — tight range
-  const allAccs = points.map((p) => p.accuracy);
-  const accMin = Math.min(...allAccs);
-  const accMax = Math.max(...allAccs);
-  const accRange = accMax - accMin || 5;
-  const accStep = accRange <= 5 ? 1 : accRange <= 15 ? 2.5 : 5;
-  const accYMin = Math.max(0, Math.floor((accMin - accRange * 0.1) / accStep) * accStep);
-  const accYMax = Math.min(100, Math.ceil((accMax + accRange * 0.05) / accStep) * accStep);
-  const accYRange = accYMax - accYMin || 1;
-  const accYTicks = Array.from(
-    { length: Math.min(6, Math.floor((accYMax - accYMin) / accStep) + 1) },
-    (_, i) => accYMin + i * accStep
-  ).filter((v) => v <= accYMax);
-
-  const accSy = (v: number) => pad.top + iH - ((v - accYMin) / accYRange) * iH;
 
   // Downsample raw dots for rendering
   const MAX_RENDER = 300;
@@ -952,13 +884,6 @@ function WpmTrendChart({ points }: { points: Array<{ date: string; wpm: number; 
     [avgWithIndex]
   );
 
-  // Downsample accuracy average line
-  const accAvgWithIndex = useMemo(() => accAvgValues.map((v, i) => ({ v, i })), [accAvgValues]);
-  const renderAccAvg = useMemo(
-    () => downsampleLTTB(accAvgWithIndex, MAX_RENDER, (d) => d.v),
-    [accAvgWithIndex]
-  );
-
   const sx = (i: number) => pad.left + (i / (points.length - 1)) * iW;
   const sy = (v: number) => pad.top + iH - ((v - yMin) / yRange) * iH;
 
@@ -968,9 +893,6 @@ function WpmTrendChart({ points }: { points: Array<{ date: string; wpm: number; 
   const avgAreaPath = avgLinePath +
     ` L ${sx(renderAvg[renderAvg.length - 1].i)} ${pad.top + iH}` +
     ` L ${sx(renderAvg[0].i)} ${pad.top + iH} Z`;
-
-  // Accuracy average line path
-  const accAvgLinePath = renderAccAvg.map((d, j) => `${j === 0 ? "M" : "L"} ${sx(d.i)} ${accSy(d.v)}`).join(" ");
 
   function handleMouseMove(e: React.MouseEvent<SVGSVGElement>) {
     const svg = svgRef.current;
@@ -985,150 +907,116 @@ function WpmTrendChart({ points }: { points: Array<{ date: string; wpm: number; 
   const hovered = hoveredIdx !== null ? points[hoveredIdx] : null;
 
   return (
-    <div className="relative">
-      {/* Accuracy toggle */}
-      <button
-        onClick={() => setShowAccuracy((v) => !v)}
-        className={`absolute top-1 right-2 z-10 px-2 py-1 rounded text-xs font-medium transition-all ${
-          showAccuracy
-            ? "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/20"
-            : "text-muted/50 hover:text-muted/70"
-        }`}
-      >
-        Accuracy
-      </button>
-      <svg
-        ref={svgRef}
-        viewBox={`0 0 ${W} ${H}`}
-        className="w-full"
-        style={{ height: 220, cursor: "crosshair" }}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={() => setHoveredIdx(null)}
-      >
-        <defs>
-          <linearGradient id="wpmAvgGrad" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.15" />
-            <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0.01" />
-          </linearGradient>
-        </defs>
+    <svg
+      ref={svgRef}
+      viewBox={`0 0 ${W} ${H}`}
+      className="w-full"
+      preserveAspectRatio="none"
+      style={{ height: "100%", minHeight: 220, cursor: "crosshair" }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={() => setHoveredIdx(null)}
+    >
+      <defs>
+        <linearGradient id="wpmAvgGrad" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.15" />
+          <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0.01" />
+        </linearGradient>
+      </defs>
 
-        {/* Grid lines */}
-        {yTicks.map((t) => (
-          <g key={t}>
-            <line x1={pad.left} x2={W - pad.right} y1={sy(t)} y2={sy(t)} stroke="rgba(255,255,255,0.06)" strokeWidth={1} />
-            <text x={pad.left - 6} y={sy(t)} fill="var(--color-muted)" fontSize={10} textAnchor="end" dominantBaseline="middle" fillOpacity={0.55}>
-              {t}
+      {/* Grid lines */}
+      {yTicks.map((t) => (
+        <g key={t}>
+          <line x1={pad.left} x2={W - pad.right} y1={sy(t)} y2={sy(t)} stroke="rgba(255,255,255,0.06)" strokeWidth={1} />
+          <text x={pad.left - 6} y={sy(t)} fill="var(--color-muted)" fontSize={10} textAnchor="end" dominantBaseline="middle" fillOpacity={0.55}>
+            {t}
+          </text>
+        </g>
+      ))}
+
+      {/* Bottom axis */}
+      <line x1={pad.left} x2={W - pad.right} y1={pad.top + iH} y2={pad.top + iH} stroke="rgba(255,255,255,0.08)" strokeWidth={1} />
+
+      {/* Average area fill */}
+      <path d={avgAreaPath} fill="url(#wpmAvgGrad)" />
+
+      {/* Raw data scatter dots (subtle) */}
+      {renderPoints.map((p, j) => (
+        <circle
+          key={j}
+          cx={sx(renderIndices[j])}
+          cy={sy(p.wpm)}
+          r={points.length > 200 ? 1.2 : 1.8}
+          fill="var(--color-accent)"
+          fillOpacity={0.25}
+        />
+      ))}
+
+      {/* Running average line (prominent) */}
+      <path d={avgLinePath} fill="none" stroke="var(--color-accent)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+
+      {/* Best WPM marker */}
+      {(() => {
+        let bestIdx = 0;
+        for (let i = 1; i < points.length; i++) {
+          if (points[i].wpm > points[bestIdx].wpm) bestIdx = i;
+        }
+        const bx = sx(bestIdx);
+        const by = sy(points[bestIdx].wpm);
+        return (
+          <g pointerEvents="none">
+            <circle cx={bx} cy={by} r={3} fill="none" stroke="#eab308" strokeWidth={1.5} strokeOpacity={0.7} />
+          </g>
+        );
+      })()}
+
+      {/* X-axis label */}
+      <text x={W / 2} y={H - 4} fill="var(--color-muted)" fontSize={10} textAnchor="middle" fillOpacity={0.4}>
+        races
+      </text>
+
+      {/* Legend */}
+      <g transform={`translate(${W - pad.right - 110}, ${pad.top - 2})`}>
+        <line x1={0} y1={4} x2={12} y2={4} stroke="var(--color-accent)" strokeWidth={2} strokeLinecap="round" />
+        <text x={16} y={7} fill="var(--color-muted)" fontSize={8.5} fillOpacity={0.5}>avg ({avgWindow})</text>
+        <circle cx={70} cy={4} r={2} fill="var(--color-accent)" fillOpacity={0.4} />
+        <text x={76} y={7} fill="var(--color-muted)" fontSize={8.5} fillOpacity={0.5}>raw</text>
+      </g>
+
+      {/* Hover tooltip */}
+      {hovered !== null && hoveredIdx !== null && (() => {
+        const x = sx(hoveredIdx);
+        const y = sy(hovered.wpm);
+        const avgY = sy(avgValues[hoveredIdx]);
+        const dateStr = new Date(hovered.date).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+        const TOOLTIP_W = 108;
+        const TOOLTIP_H = 48;
+        const flipLeft = x + TOOLTIP_W + 10 > W - pad.right;
+        const tx = flipLeft ? x - TOOLTIP_W - 8 : x + 8;
+        const ty = Math.max(pad.top, Math.min(y - TOOLTIP_H / 2, pad.top + iH - TOOLTIP_H));
+
+        return (
+          <g pointerEvents="none">
+            {/* Vertical crosshair */}
+            <line x1={x} x2={x} y1={pad.top} y2={pad.top + iH} stroke="rgba(255,255,255,0.12)" strokeWidth={1} strokeDasharray="3 3" />
+            {/* Raw dot */}
+            <circle cx={x} cy={y} r={3.5} fill="var(--color-accent)" fillOpacity={0.6} stroke="var(--color-accent)" strokeWidth={1} />
+            {/* Avg dot */}
+            <circle cx={x} cy={avgY} r={3} fill="var(--color-accent)" />
+            {/* Tooltip card */}
+            <rect x={tx} y={ty} width={TOOLTIP_W} height={TOOLTIP_H} rx={5} fill="rgba(12,12,20,0.95)" stroke="rgba(255,255,255,0.08)" strokeWidth={1} />
+            <text x={tx + 7} y={ty + 13} fill="var(--color-accent)" fontSize={11} fontWeight="700">
+              {Math.round(hovered.wpm)} wpm
+            </text>
+            <text x={tx + 7} y={ty + 26} fill="var(--color-muted)" fontSize={9} fillOpacity={0.7}>
+              avg {Math.round(avgValues[hoveredIdx])} · {hovered.accuracy.toFixed(1)}%
+            </text>
+            <text x={tx + 7} y={ty + 39} fill="var(--color-muted)" fontSize={9} fillOpacity={0.45}>
+              {dateStr} · race #{hoveredIdx + 1}
             </text>
           </g>
-        ))}
-
-        {/* Right Y-axis labels (accuracy) */}
-        {showAccuracy && accYTicks.map((t) => (
-          <text key={`acc-${t}`} x={W - pad.right + 6} y={accSy(t)} fill={ACC_COLOR} fontSize={9} textAnchor="start" dominantBaseline="middle" fillOpacity={0.5}>
-            {t % 1 === 0 ? t : t.toFixed(1)}%
-          </text>
-        ))}
-
-        {/* Bottom axis */}
-        <line x1={pad.left} x2={W - pad.right} y1={pad.top + iH} y2={pad.top + iH} stroke="rgba(255,255,255,0.08)" strokeWidth={1} />
-
-        {/* Average area fill */}
-        <path d={avgAreaPath} fill="url(#wpmAvgGrad)" />
-
-        {/* Raw data scatter dots (subtle) */}
-        {renderPoints.map((p, j) => (
-          <circle
-            key={j}
-            cx={sx(renderIndices[j])}
-            cy={sy(p.wpm)}
-            r={points.length > 200 ? 1.2 : 1.8}
-            fill="var(--color-accent)"
-            fillOpacity={0.25}
-          />
-        ))}
-
-        {/* Running average line (prominent) */}
-        <path d={avgLinePath} fill="none" stroke="var(--color-accent)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-
-        {/* Accuracy running average overlay */}
-        {showAccuracy && (
-          <path d={accAvgLinePath} fill="none" stroke={ACC_COLOR} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" strokeOpacity={0.7} />
-        )}
-
-        {/* Best WPM marker */}
-        {(() => {
-          let bestIdx = 0;
-          for (let i = 1; i < points.length; i++) {
-            if (points[i].wpm > points[bestIdx].wpm) bestIdx = i;
-          }
-          const bx = sx(bestIdx);
-          const by = sy(points[bestIdx].wpm);
-          return (
-            <g pointerEvents="none">
-              <circle cx={bx} cy={by} r={3} fill="none" stroke="#eab308" strokeWidth={1.5} strokeOpacity={0.7} />
-            </g>
-          );
-        })()}
-
-        {/* X-axis label */}
-        <text x={W / 2} y={H - 4} fill="var(--color-muted)" fontSize={10} textAnchor="middle" fillOpacity={0.4}>
-          races
-        </text>
-
-        {/* Legend */}
-        <g transform={`translate(${W - pad.right - (showAccuracy ? 150 : 110)}, ${pad.top - 2})`}>
-          <line x1={0} y1={4} x2={12} y2={4} stroke="var(--color-accent)" strokeWidth={2} strokeLinecap="round" />
-          <text x={16} y={7} fill="var(--color-muted)" fontSize={8.5} fillOpacity={0.5}>avg ({avgWindow})</text>
-          <circle cx={70} cy={4} r={2} fill="var(--color-accent)" fillOpacity={0.4} />
-          <text x={76} y={7} fill="var(--color-muted)" fontSize={8.5} fillOpacity={0.5}>raw</text>
-          {showAccuracy && (
-            <>
-              <line x1={100} y1={4} x2={112} y2={4} stroke={ACC_COLOR} strokeWidth={1.5} strokeLinecap="round" strokeOpacity={0.7} />
-              <text x={116} y={7} fill={ACC_COLOR} fontSize={8.5} fillOpacity={0.5}>acc</text>
-            </>
-          )}
-        </g>
-
-        {/* Hover tooltip */}
-        {hovered !== null && hoveredIdx !== null && (() => {
-          const x = sx(hoveredIdx);
-          const y = sy(hovered.wpm);
-          const avgY = sy(avgValues[hoveredIdx]);
-          const dateStr = new Date(hovered.date).toLocaleDateString(undefined, { month: "short", day: "numeric" });
-          const TOOLTIP_W = 108;
-          const TOOLTIP_H = 48;
-          const flipLeft = x + TOOLTIP_W + 10 > W - pad.right;
-          const tx = flipLeft ? x - TOOLTIP_W - 8 : x + 8;
-          const ty = Math.max(pad.top, Math.min(y - TOOLTIP_H / 2, pad.top + iH - TOOLTIP_H));
-
-          return (
-            <g pointerEvents="none">
-              {/* Vertical crosshair */}
-              <line x1={x} x2={x} y1={pad.top} y2={pad.top + iH} stroke="rgba(255,255,255,0.12)" strokeWidth={1} strokeDasharray="3 3" />
-              {/* Raw dot */}
-              <circle cx={x} cy={y} r={3.5} fill="var(--color-accent)" fillOpacity={0.6} stroke="var(--color-accent)" strokeWidth={1} />
-              {/* Avg dot */}
-              <circle cx={x} cy={avgY} r={3} fill="var(--color-accent)" />
-              {/* Accuracy dot */}
-              {showAccuracy && (
-                <circle cx={x} cy={accSy(hovered.accuracy)} r={2.5} fill={ACC_COLOR} fillOpacity={0.7} />
-              )}
-              {/* Tooltip card */}
-              <rect x={tx} y={ty} width={TOOLTIP_W} height={TOOLTIP_H} rx={5} fill="rgba(12,12,20,0.95)" stroke="rgba(255,255,255,0.08)" strokeWidth={1} />
-              <text x={tx + 7} y={ty + 13} fill="var(--color-accent)" fontSize={11} fontWeight="700">
-                {Math.round(hovered.wpm)} wpm
-              </text>
-              <text x={tx + 7} y={ty + 26} fill="var(--color-muted)" fontSize={9} fillOpacity={0.7}>
-                avg {Math.round(avgValues[hoveredIdx])} · {hovered.accuracy.toFixed(1)}%
-              </text>
-              <text x={tx + 7} y={ty + 39} fill="var(--color-muted)" fontSize={9} fillOpacity={0.45}>
-                {dateStr} · race #{hoveredIdx + 1}
-              </text>
-            </g>
-          );
-        })()}
-      </svg>
-    </div>
+        );
+      })()}
+    </svg>
   );
 }
 
