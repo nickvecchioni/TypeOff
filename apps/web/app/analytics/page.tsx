@@ -80,6 +80,7 @@ export default function AnalyticsPage() {
   const [rangeFilter, setRangeFilter] = useState<string>("all");
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [exporting, setExporting] = useState(false);
+  const [breakdownView, setBreakdownView] = useState<"mode" | "wordcount">("mode");
 
   const isPro = session?.user?.isPro ?? false;
 
@@ -428,7 +429,30 @@ export default function AnalyticsPage() {
           <div className="space-y-4 animate-fade-in">
             {isPro ? (
               <>
-                {/* Row 1: WPM + ELO charts side by side */}
+                {/* Row 1: Insights + Activity side by side */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {(bigrams.length > 0 || (keyStats && Object.keys(keyStats).length > 0)) && (
+                    <Card title="Insights" subtitle="estimated WPM cost from weak spots">
+                      <AnalyticsInsights
+                        weakKeys={keyStats ? Object.entries(keyStats).map(([key, stat]) => ({
+                          key,
+                          accuracy: stat.total > 0 ? stat.correct / stat.total : 1,
+                          total: stat.total,
+                        })) : []}
+                        weakBigrams={bigrams.map((b) => ({ bigram: b.bigram, accuracy: b.accuracy / 100, total: b.total }))}
+                        avgWpm={avgWpm}
+                      />
+                    </Card>
+                  )}
+
+                  {activityData.length > 0 && (
+                    <Card title="Activity">
+                      <ActivityCalendar activity={activityData} />
+                    </Card>
+                  )}
+                </div>
+
+                {/* Row 2: WPM + ELO charts side by side */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {data.wpmTrend.length >= 2 && (
                     <Card title="WPM Trend" flush>
@@ -445,37 +469,89 @@ export default function AnalyticsPage() {
                   )}
                 </div>
 
-                {/* Row 2: By Mode + Speed by Placement */}
+                {/* Row 3: By Mode/Word Count + Speed by Placement */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {modeFilter === "all" && (data.modeStats?.length ?? 0) > 0 && (
-                    <Card title="By Mode">
-                      <div className="space-y-0 divide-y divide-white/[0.04]">
-                        {(data.modeStats ?? []).map((m) => {
-                          const maxBest = Math.max(...(data.modeStats ?? []).map((s) => s.bestWpm), 1);
-                          const barPct = (m.bestWpm / maxBest) * 100;
-                          return (
+                  {(() => {
+                    const hasMode = modeFilter === "all" && (data.modeStats?.length ?? 0) > 0;
+                    const hasWordCount = (data.wordCountStats?.length ?? 0) > 0;
+                    if (!hasMode && !hasWordCount) return null;
+                    return (
+                      <Card
+                        title={breakdownView === "mode" ? "By Mode" : "By Word Count"}
+                        headerRight={hasMode && hasWordCount ? (
+                          <div className="flex items-center gap-0.5 bg-white/[0.02] rounded-lg p-0.5 ring-1 ring-white/[0.04]">
                             <button
-                              key={m.modeCategory}
-                              onClick={() => setModeFilter(m.modeCategory)}
-                              className="group w-full flex items-center gap-3 py-2.5 text-left transition-colors hover:bg-white/[0.02] -mx-1 px-1 rounded first:pt-0 last:pb-0"
+                              onClick={() => setBreakdownView("mode")}
+                              className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${
+                                breakdownView === "mode"
+                                  ? "bg-accent/15 text-accent shadow-sm shadow-accent/10"
+                                  : "text-muted/60 hover:text-text"
+                              }`}
                             >
-                              <span className="text-xs text-muted/55 uppercase tracking-wider w-14 shrink-0 group-hover:text-accent/70 transition-colors font-medium">
-                                {MODE_LABELS[m.modeCategory] ?? m.modeCategory}
-                              </span>
-                              <div className="flex-1 flex items-center gap-3 min-w-0">
-                                <div className="flex-1 h-1 rounded-full bg-white/[0.04] overflow-hidden">
-                                  <div className="h-full rounded-full bg-accent/30 group-hover:bg-accent/45 transition-colors" style={{ width: `${barPct}%` }} />
-                                </div>
-                                <span className="text-sm font-bold text-text tabular-nums w-8 text-right">{Math.floor(m.bestWpm)}</span>
-                                <span className="text-xs text-muted/40 tabular-nums w-16 text-right">{Math.floor(m.avgWpm)} avg</span>
-                                <span className="text-xs text-muted/30 tabular-nums w-10 text-right">{m.racesPlayed}</span>
-                              </div>
+                              Mode
                             </button>
-                          );
-                        })}
-                      </div>
-                    </Card>
-                  )}
+                            <button
+                              onClick={() => setBreakdownView("wordcount")}
+                              className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${
+                                breakdownView === "wordcount"
+                                  ? "bg-accent/15 text-accent shadow-sm shadow-accent/10"
+                                  : "text-muted/60 hover:text-text"
+                              }`}
+                            >
+                              Words
+                            </button>
+                          </div>
+                        ) : undefined}
+                      >
+                        {breakdownView === "mode" && hasMode ? (
+                          <div className="space-y-0 divide-y divide-white/[0.04]">
+                            {(data.modeStats ?? []).map((m) => {
+                              const maxBest = Math.max(...(data.modeStats ?? []).map((s) => s.bestWpm), 1);
+                              const barPct = (m.bestWpm / maxBest) * 100;
+                              return (
+                                <button
+                                  key={m.modeCategory}
+                                  onClick={() => setModeFilter(m.modeCategory)}
+                                  className="group w-full flex items-center gap-3 py-2.5 text-left transition-colors hover:bg-white/[0.02] -mx-1 px-1 rounded first:pt-0 last:pb-0"
+                                >
+                                  <span className="text-xs text-muted/55 uppercase tracking-wider w-14 shrink-0 group-hover:text-accent/70 transition-colors font-medium">
+                                    {MODE_LABELS[m.modeCategory] ?? m.modeCategory}
+                                  </span>
+                                  <div className="flex-1 flex items-center gap-3 min-w-0">
+                                    <div className="flex-1 h-1 rounded-full bg-white/[0.04] overflow-hidden">
+                                      <div className="h-full rounded-full bg-accent/30 group-hover:bg-accent/45 transition-colors" style={{ width: `${barPct}%` }} />
+                                    </div>
+                                    <span className="text-sm font-bold text-text tabular-nums w-8 text-right">{Math.floor(m.bestWpm)}</span>
+                                    <span className="text-xs text-muted/40 tabular-nums w-16 text-right">{Math.floor(m.avgWpm)} avg</span>
+                                    <span className="text-xs text-muted/30 tabular-nums w-10 text-right">{m.racesPlayed}</span>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        ) : hasWordCount ? (
+                          <div className="space-y-0 divide-y divide-white/[0.04]">
+                            {data.wordCountStats!.map((wc) => {
+                              const label = wc.wordCount >= 150 ? "150+" : String(wc.wordCount);
+                              const maxBest = Math.max(...data.wordCountStats!.map((s) => s.bestWpm), 1);
+                              const barPct = (wc.bestWpm / maxBest) * 100;
+                              return (
+                                <div key={wc.wordCount} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+                                  <span className="text-xs text-muted/55 tabular-nums w-12 shrink-0 font-medium text-right">{label}</span>
+                                  <div className="flex-1 h-1 rounded-full bg-white/[0.04] overflow-hidden">
+                                    <div className="h-full rounded-full bg-accent/30" style={{ width: `${barPct}%` }} />
+                                  </div>
+                                  <span className="text-sm font-bold text-text tabular-nums w-8 text-right">{Math.floor(wc.bestWpm)}</span>
+                                  <span className="text-xs text-muted/40 tabular-nums w-16 text-right">{Math.floor(wc.avgWpm)} avg</span>
+                                  <span className="text-xs text-muted/30 tabular-nums w-10 text-right">{wc.count}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : null}
+                      </Card>
+                    );
+                  })()}
 
                   {(data.speedByPlacement?.length ?? 0) > 0 && (
                     <Card title="Speed by Placement">
@@ -506,52 +582,6 @@ export default function AnalyticsPage() {
                     </Card>
                   )}
                 </div>
-
-                {/* Row 3: Word Count Breakdown */}
-                {(data.wordCountStats?.length ?? 0) > 0 && (
-                  <Card title="By Word Count">
-                    <div className="space-y-0 divide-y divide-white/[0.04]">
-                      {data.wordCountStats!.map((wc) => {
-                        const label = wc.wordCount >= 150 ? "150+" : String(wc.wordCount);
-                        const maxBest = Math.max(...data.wordCountStats!.map((s) => s.bestWpm), 1);
-                        const barPct = (wc.bestWpm / maxBest) * 100;
-                        return (
-                          <div key={wc.wordCount} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
-                            <span className="text-xs text-muted/55 tabular-nums w-12 shrink-0 font-medium text-right">{label}</span>
-                            <div className="flex-1 h-1 rounded-full bg-white/[0.04] overflow-hidden">
-                              <div className="h-full rounded-full bg-accent/30" style={{ width: `${barPct}%` }} />
-                            </div>
-                            <span className="text-sm font-bold text-text tabular-nums w-8 text-right">{Math.floor(wc.bestWpm)}</span>
-                            <span className="text-xs text-muted/40 tabular-nums w-16 text-right">{Math.floor(wc.avgWpm)} avg</span>
-                            <span className="text-xs text-muted/30 tabular-nums w-10 text-right">{wc.count}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </Card>
-                )}
-
-                {/* Row 4: Activity Calendar (full width) */}
-                {activityData.length > 0 && (
-                  <Card title="Activity">
-                    <ActivityCalendar activity={activityData} />
-                  </Card>
-                )}
-
-                {/* Row 4: Insights (full width) */}
-                {(bigrams.length > 0 || (keyStats && Object.keys(keyStats).length > 0)) && (
-                  <Card title="Insights" subtitle="estimated WPM cost from weak spots">
-                    <AnalyticsInsights
-                      weakKeys={keyStats ? Object.entries(keyStats).map(([key, stat]) => ({
-                        key,
-                        accuracy: stat.total > 0 ? stat.correct / stat.total : 1,
-                        total: stat.total,
-                      })) : []}
-                      weakBigrams={bigrams.map((b) => ({ bigram: b.bigram, accuracy: b.accuracy / 100, total: b.total }))}
-                      avgWpm={avgWpm}
-                    />
-                  </Card>
-                )}
               </>
             ) : (
               /* Free user overview */

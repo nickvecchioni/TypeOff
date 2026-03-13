@@ -14,13 +14,13 @@ type Phase = "idle" | "racing" | "reveal";
 const GUEST_WORD_COUNT = 50;
 
 const RANK_TIERS = [
-  { label: "Bronze", abbr: "BR", color: "#d97706" },
-  { label: "Silver", abbr: "SI", color: "#9ca3af" },
-  { label: "Gold", abbr: "GO", color: "#eab308" },
-  { label: "Platinum", abbr: "PL", color: "#67e8f9" },
-  { label: "Diamond", abbr: "DI", color: "#3b82f6" },
-  { label: "Master", abbr: "MA", color: "#a855f7" },
-  { label: "Grandmaster", abbr: "GM", color: "#ef4444" },
+  { label: "Bronze", abbr: "BR", color: "#d97706", elo: "0 – 999", wpm: "~10–50 WPM", desc: "Just starting out" },
+  { label: "Silver", abbr: "SI", color: "#9ca3af", elo: "1000 – 1299", wpm: "~50–80 WPM", desc: "Getting consistent" },
+  { label: "Gold", abbr: "GO", color: "#eab308", elo: "1300 – 1599", wpm: "~80–110 WPM", desc: "Above average" },
+  { label: "Platinum", abbr: "PL", color: "#67e8f9", elo: "1600 – 1899", wpm: "~110–140 WPM", desc: "Seriously fast" },
+  { label: "Diamond", abbr: "DI", color: "#3b82f6", elo: "1900 – 2199", wpm: "~140–170 WPM", desc: "Top competitor" },
+  { label: "Master", abbr: "MA", color: "#a855f7", elo: "2200 – 2499", wpm: "~170–200 WPM", desc: "Elite typist" },
+  { label: "Grandmaster", abbr: "GM", color: "#ef4444", elo: "2500+", wpm: "200+ WPM", desc: "The fastest alive" },
 ] as const;
 
 const FEATURES = [
@@ -577,9 +577,30 @@ export function GuestPlacement({
         >
           <div className="flex items-end justify-center gap-2 sm:gap-3">
             {RANK_TIERS.map((tier, i) => (
-              <div key={tier.label} className="flex flex-col items-center w-9 sm:w-11">
+              <div key={tier.label} className="group relative flex flex-col items-center w-9 sm:w-11">
+                {/* Tooltip */}
+                <div className="pointer-events-none absolute bottom-full mb-2 left-1/2 -translate-x-1/2 opacity-0 scale-90 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 origin-bottom z-50">
+                  <div
+                    className="rounded-lg px-3 py-2 text-center whitespace-nowrap backdrop-blur-md"
+                    style={{
+                      background: `linear-gradient(135deg, ${tier.color}18, ${tier.color}08)`,
+                      border: `1px solid ${tier.color}30`,
+                      boxShadow: `0 4px 20px ${tier.color}15, 0 0 40px ${tier.color}08`,
+                    }}
+                  >
+                    <div className="text-[11px] font-bold" style={{ color: tier.color }}>{tier.label}</div>
+                    <div className="text-[10px] text-muted/70 mt-0.5">{tier.elo} ELO</div>
+                    <div className="text-[10px] text-muted/60">{tier.wpm}</div>
+                    <div className="text-[10px] text-muted/45 italic mt-0.5">{tier.desc}</div>
+                  </div>
+                  {/* Arrow */}
+                  <div
+                    className="mx-auto w-2 h-2 rotate-45 -mt-1"
+                    style={{ background: `${tier.color}18`, borderRight: `1px solid ${tier.color}30`, borderBottom: `1px solid ${tier.color}30` }}
+                  />
+                </div>
                 <div
-                  className="w-6 sm:w-8 rounded-sm"
+                  className="w-6 sm:w-8 rounded-sm transition-all duration-300 ease-out group-hover:scale-110 group-hover:opacity-100 cursor-default"
                   style={{
                     height: 10 + i * 6,
                     background: tier.color,
@@ -588,11 +609,12 @@ export function GuestPlacement({
                       i === 6
                         ? `0 0 10px ${tier.color}99, 0 0 22px ${tier.color}44`
                         : `0 0 4px ${tier.color}33`,
+                    animation: `rank-bar-rise 0.5s ease-out ${180 + i * 60}ms both`,
                   }}
                 />
                 {/* Abbreviated on mobile */}
                 <span
-                  className="mt-1.5 text-[10px] font-bold tracking-wide uppercase sm:hidden"
+                  className="mt-1.5 text-[10px] font-bold tracking-wide uppercase sm:hidden transition-opacity duration-200 group-hover:opacity-100"
                   style={{
                     color: tier.color,
                     opacity: i === 6 ? 0.85 : 0.6,
@@ -602,7 +624,7 @@ export function GuestPlacement({
                 </span>
                 {/* Full name on desktop */}
                 <span
-                  className="mt-1.5 text-[10px] font-bold tracking-wide hidden sm:block"
+                  className="mt-1.5 text-[10px] font-bold tracking-wide hidden sm:block transition-opacity duration-200 group-hover:opacity-100"
                   style={{
                     color: tier.color,
                     opacity: i === 6 ? 0.85 : 0.6,
@@ -629,13 +651,18 @@ export function GuestPlacement({
           className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 w-full max-w-2xl opacity-0 animate-fade-in"
           style={{ animationDelay: "240ms", animationFillMode: "both" }}
         >
-          {FEATURES.map((item) => (
+          {FEATURES.map((item, i) => (
             <div
               key={item.text}
-              className="flex items-center gap-2.5 rounded-lg bg-white/[0.025] ring-1 ring-white/[0.06] px-3 py-2"
+              className="group/feat flex items-center gap-2.5 rounded-lg bg-white/[0.025] ring-1 ring-white/[0.06] px-3 py-2 transition-all duration-300 hover:bg-white/[0.05] hover:ring-white/[0.12] hover:scale-[1.02] hover:-translate-y-0.5 cursor-default"
+              style={{
+                animation: `feat-slide-up 0.4s ease-out ${280 + i * 70}ms both`,
+              }}
             >
-              <span className="text-accent/50 shrink-0">{item.icon}</span>
-              <span className="text-muted/65 text-xs leading-snug">
+              <span className="text-accent/50 shrink-0 transition-all duration-300 group-hover/feat:text-accent/80 group-hover/feat:scale-110">
+                {item.icon}
+              </span>
+              <span className="text-muted/65 text-xs leading-snug transition-colors duration-300 group-hover/feat:text-muted/85">
                 {item.text}
               </span>
             </div>

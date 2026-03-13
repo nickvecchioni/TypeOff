@@ -55,6 +55,16 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes rank-bar-rise {
+  from { opacity: 0; transform: scaleY(0); transform-origin: bottom; }
+  to { opacity: 0.75; transform: scaleY(1); transform-origin: bottom; }
+}
+
+@keyframes feat-slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @keyframes rank-up-glow {
   0%, 100% { filter: brightness(1) drop-shadow(0 0 0 transparent); }
   50% { filter: brightness(1.2) drop-shadow(0 0 16px currentColor); }
