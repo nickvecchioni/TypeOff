@@ -33,22 +33,21 @@ export function BigramHeatmap({ bigrams }: BigramHeatmapProps) {
   const getColor = (accuracy: number, total: number): string => {
     if (total < 3) return "bg-white/[0.02]";
     if (accuracy >= 95) return "bg-correct/20";
-    if (accuracy >= 85) return "bg-correct/10";
-    if (accuracy >= 75) return "bg-amber-500/15";
-    if (accuracy >= 60) return "bg-amber-500/25";
-    return "bg-error/25";
+    if (accuracy >= 85) return "bg-correct/12";
+    if (accuracy >= 75) return "bg-amber-500/20";
+    if (accuracy >= 60) return "bg-amber-500/30";
+    return "bg-error/30";
   };
 
-  // CSS grid: label column + 26 letter columns, all 1fr
-  const gridTemplateColumns = `20px repeat(${LETTERS.length}, 1fr)`;
+  const gridCols = `16px repeat(${LETTERS.length}, 1fr)`;
 
   return (
     <div className="relative" ref={containerRef}>
       {/* Column headers */}
-      <div className="grid mb-[2px]" style={{ gridTemplateColumns }}>
-        <div /> {/* empty corner */}
+      <div className="grid mb-px" style={{ gridTemplateColumns: gridCols }}>
+        <div />
         {LETTERS.map((col) => (
-          <div key={col} className="text-[10px] text-muted/60 font-bold text-center leading-none py-0.5">
+          <div key={col} className="text-[9px] text-muted/45 font-medium text-center leading-none py-0.5">
             {col}
           </div>
         ))}
@@ -56,8 +55,8 @@ export function BigramHeatmap({ bigrams }: BigramHeatmapProps) {
 
       {/* Rows */}
       {LETTERS.map((row) => (
-        <div key={row} className="grid gap-[2px] mb-[2px]" style={{ gridTemplateColumns }}>
-          <div className="text-[10px] text-muted/60 font-bold flex items-center justify-center leading-none">
+        <div key={row} className="grid gap-px mb-px" style={{ gridTemplateColumns: gridCols }}>
+          <div className="text-[9px] text-muted/45 font-medium flex items-center justify-center leading-none">
             {row}
           </div>
           {LETTERS.map((col) => {
@@ -68,7 +67,7 @@ export function BigramHeatmap({ bigrams }: BigramHeatmapProps) {
             return (
               <div
                 key={col}
-                className={`aspect-square rounded-[2px] ${getColor(accuracy, total)} transition-colors cursor-default`}
+                className={`aspect-square rounded-[1px] ${getColor(accuracy, total)} transition-colors cursor-default`}
                 onMouseEnter={(e) => {
                   if (total === 0) return;
                   const container = containerRef.current;

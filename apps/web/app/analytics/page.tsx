@@ -239,209 +239,128 @@ export default function AnalyticsPage() {
   ];
 
   return (
-    <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
+    <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
       <div className="max-w-7xl mx-auto">
 
-        {/* -- Hero Stats ------------------------------------------------- */}
-        <div
-          className="relative rounded-xl overflow-hidden ring-1 ring-white/[0.06] mb-5 animate-fade-in"
-        >
-          {/* Top accent line */}
-          <div className="h-[2px] bg-gradient-to-r from-transparent via-accent to-transparent opacity-60" />
+        {/* ── Header Bar ─────────────────────────────────────────── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 animate-fade-in">
+          <div className="flex items-center gap-3">
+            <h1 className="text-base font-bold text-text tracking-tight">Analytics</h1>
+            {isPro && data.totalRaces != null && (
+              <span className="text-xs text-muted/50 tabular-nums">
+                {data.soloVsRanked?.ranked && data.soloVsRanked?.solo
+                  ? `${data.soloVsRanked.ranked.count} ranked · ${data.soloVsRanked.solo.count} solo`
+                  : `${data.totalRaces} analyzed`
+                }
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {isPro && (
+              <div className="flex items-center gap-0.5 mr-1">
+                {(["json", "csv"] as const).map((fmt) => (
+                  <button
+                    key={fmt}
+                    onClick={() => handleExport(fmt)}
+                    disabled={exporting}
+                    className="text-[11px] text-muted/40 hover:text-accent transition-colors disabled:opacity-50 px-1.5 py-0.5 uppercase"
+                  >
+                    {exporting ? "…" : fmt}
+                  </button>
+                ))}
+              </div>
+            )}
+            <FilterPill options={RANGE_FILTERS} value={rangeFilter} onChange={setRangeFilter} />
+            <FilterPill options={MODE_FILTERS} value={modeFilter} onChange={setModeFilter} />
+          </div>
+        </div>
 
-          {/* Subtle radial glow */}
-          <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top_left,rgba(77,158,255,0.06),transparent_50%)]" />
+        {/* ── Hero Stats Strip ───────────────────────────────────── */}
+        <div className="relative rounded-xl overflow-hidden ring-1 ring-white/[0.06] mb-4 animate-fade-in">
+          <div className="h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
+          <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top_left,rgba(77,158,255,0.05),transparent_50%)]" />
 
-          <div className="relative px-5 sm:px-6 py-5 sm:py-6">
-            {/* Header row */}
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-3">
-                <h1 className="text-base font-bold text-text tracking-tight">Analytics</h1>
-                {isPro && data.totalRaces != null && (
-                  <span className="text-sm text-muted/60 tabular-nums">
-                    {data.soloVsRanked?.ranked && data.soloVsRanked?.solo
-                      ? `${data.soloVsRanked.ranked.count} races + ${data.soloVsRanked.solo.count} solo`
-                      : `${data.totalRaces} races analyzed`
-                    }
+          <div className={`relative px-5 py-4 transition-opacity duration-200 ${loading && data ? "opacity-50 pointer-events-none" : ""}`}>
+            <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-6">
+              {/* Primary: Best WPM */}
+              <div className="shrink-0">
+                <div className="text-[10px] text-muted/50 uppercase tracking-[0.15em] mb-1 font-medium">Best WPM</div>
+                <div className="flex items-baseline gap-0.5">
+                  <span className="text-4xl font-black text-accent tabular-nums leading-none tracking-tight">
+                    {data.personalRecords.bestWpm ? Math.floor(data.personalRecords.bestWpm.wpm) : "—"}
                   </span>
+                  {data.personalRecords.bestWpm && (
+                    <span className="text-lg font-bold text-accent/50 tabular-nums">
+                      .{(data.personalRecords.bestWpm.wpm % 1).toFixed(2).slice(2)}
+                    </span>
+                  )}
+                  {trendDelta !== null && (
+                    <span className={`ml-1.5 text-xs font-bold tabular-nums ${trendDelta >= 0 ? "text-correct/70" : "text-error/70"}`}>
+                      {trendDelta >= 0 ? "+" : ""}{trendDelta.toFixed(1)}
+                    </span>
+                  )}
+                </div>
+                {data.personalRecords.bestWpm && (
+                  <div className="text-[10px] text-muted/40 mt-0.5 tabular-nums">
+                    {new Date(data.personalRecords.bestWpm.date).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+                  </div>
                 )}
               </div>
-              {/* Export + filters */}
-              <div className="flex items-center gap-2">
-              {isPro && (
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => handleExport("json")}
-                    disabled={exporting}
-                    className="text-xs text-muted/60 hover:text-accent transition-colors disabled:opacity-50 px-2 py-1"
-                    title="Export all data as JSON"
-                  >
-                    {exporting ? "..." : "JSON"}
-                  </button>
-                  <button
-                    onClick={() => handleExport("csv")}
-                    disabled={exporting}
-                    className="text-xs text-muted/60 hover:text-accent transition-colors disabled:opacity-50 px-2 py-1"
-                    title="Export race data as CSV"
-                  >
-                    CSV
-                  </button>
-                </div>
-              )}
-              {/* Time range filter */}
-              <div className="flex items-center gap-0.5 bg-white/[0.02] rounded-lg p-0.5 ring-1 ring-white/[0.04]">
-                {RANGE_FILTERS.map((f) => (
-                  <button
-                    key={f.value}
-                    onClick={() => setRangeFilter(f.value)}
-                    className={`px-2.5 py-1.5 rounded-md text-xs font-medium transition-all ${
-                      rangeFilter === f.value
-                        ? "bg-accent/15 text-accent shadow-sm shadow-accent/10"
-                        : "text-muted/60 hover:text-text"
-                    }`}
-                  >
-                    {f.label}
-                  </button>
-                ))}
-              </div>
-              {/* Mode filter */}
-              <div className="flex items-center gap-0.5 bg-white/[0.02] rounded-lg p-0.5 ring-1 ring-white/[0.04]">
-                {MODE_FILTERS.map((f) => (
-                  <button
-                    key={f.value}
-                    onClick={() => setModeFilter(f.value)}
-                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                      modeFilter === f.value
-                        ? "bg-accent/15 text-accent shadow-sm shadow-accent/10"
-                        : "text-muted/60 hover:text-text"
-                    }`}
-                  >
-                    {f.label}
-                  </button>
-                ))}
-              </div>
-              </div>
-            </div>
 
-            <div className={`transition-opacity duration-200 ${loading && data ? "opacity-50 pointer-events-none" : ""}`}>
-              {/* Primary + secondary stats */}
-              <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-8">
-                {/* Primary: Best WPM */}
-                <div className="shrink-0">
-                  <div className="text-xs text-muted/60 uppercase tracking-widest mb-1.5 font-medium">Best WPM</div>
-                  <div className="flex items-baseline gap-0.5">
-                    <span className="text-4xl sm:text-5xl font-black text-accent tabular-nums leading-none tracking-tight">
-                      {data.personalRecords.bestWpm ? Math.floor(data.personalRecords.bestWpm.wpm) : "\u2014"}
-                    </span>
-                    {data.personalRecords.bestWpm && (
-                      <span className="text-xl font-bold text-accent/55 tabular-nums">
-                        .{(data.personalRecords.bestWpm.wpm % 1).toFixed(2).slice(2)}
-                      </span>
-                    )}
-                    {trendDelta !== null && (
-                      <span className={`ml-2 text-sm font-bold tabular-nums ${trendDelta >= 0 ? "text-correct/80" : "text-error/80"}`}>
-                        {trendDelta >= 0 ? "+" : ""}{trendDelta.toFixed(1)}
-                      </span>
-                    )}
-                  </div>
-                  {data.personalRecords.bestWpm && (
-                    <div className="text-xs text-muted/50 mt-1 tabular-nums">
-                      {new Date(data.personalRecords.bestWpm.date).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
-                    </div>
-                  )}
-                </div>
+              <div className="hidden sm:block w-px h-10 bg-white/[0.06] self-center" />
 
-                {/* Divider */}
-                <div className="hidden sm:block w-px h-12 bg-white/[0.08] self-center" />
-
-                {/* Secondary stats grid */}
-                <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3">
-                  <StatCell
-                    label="Best Accuracy"
-                    value={data.personalRecords.bestAccuracy ? `${data.personalRecords.bestAccuracy.accuracy.toFixed(1)}%` : "\u2014"}
-                    sub={data.personalRecords.bestAccuracy
-                      ? new Date(data.personalRecords.bestAccuracy.date).toLocaleDateString(undefined, { month: "short", day: "numeric" })
-                      : undefined
-                    }
-                  />
-                  {isPro && (
-                    <>
-                      <StatCell
-                        label="Avg WPM"
-                        value={avgWpm > 0 ? avgWpm.toFixed(1) : "\u2014"}
-                        sub="last 50 races"
-                      />
-                      <StatCell
-                        label="Consistency"
-                        value={data.consistencyScore != null ? `\u00B1${data.consistencyScore.toFixed(1)}` : "\u2014"}
-                        sub="std dev"
-                      />
-                      <StatCell
-                        label="Win Rate"
-                        value={data.winRate != null ? `${data.winRate}%` : "\u2014"}
-                        sub="multiplayer"
-                      />
-                      <StatCell
-                        label="Best Streak"
-                        value={String(data.personalRecords.maxStreak ?? 0)}
-                        sub="consecutive"
-                      />
-                      <StatCell
-                        label="Day Streak"
-                        value={String(data.personalRecords.maxRankedDayStreak ?? 0)}
-                        sub="ranked days"
-                      />
-                    </>
-                  )}
-                  {!isPro && (
-                    <StatCell
-                      label="Avg WPM"
-                      value={avgWpm > 0 ? avgWpm.toFixed(1) : "\u2014"}
-                      sub={`last ${recentWpms.length} races`}
-                    />
-                  )}
-                </div>
+              {/* Secondary stats */}
+              <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-x-5 gap-y-2">
+                <MiniStat label="Best Accuracy" value={data.personalRecords.bestAccuracy ? `${data.personalRecords.bestAccuracy.accuracy.toFixed(1)}%` : "—"} />
+                <MiniStat label="Avg WPM" value={avgWpm > 0 ? avgWpm.toFixed(1) : "—"} sub={isPro ? "last 50" : `last ${recentWpms.length}`} />
+                {isPro && (
+                  <>
+                    <MiniStat label="Consistency" value={data.consistencyScore != null ? `±${data.consistencyScore.toFixed(1)}` : "—"} />
+                    <MiniStat label="Win Rate" value={data.winRate != null ? `${data.winRate}%` : "—"} />
+                    <MiniStat label="Best Streak" value={String(data.personalRecords.maxStreak ?? 0)} />
+                    <MiniStat label="Day Streak" value={String(data.personalRecords.maxRankedDayStreak ?? 0)} />
+                  </>
+                )}
               </div>
             </div>
           </div>
         </div>
 
-        {/* -- Tab Navigation -------------------------------------------- */}
-        <div
-          className="flex items-center gap-1 mb-5 border-b border-white/[0.06] animate-fade-in"
-        >
+        {/* ── Tab Navigation ─────────────────────────────────────── */}
+        <div className="flex items-center gap-0.5 mb-4 border-b border-white/[0.05] animate-fade-in">
           {TABS.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`relative px-4 py-2.5 text-sm font-medium transition-colors ${
-                activeTab === tab.id
-                  ? "text-accent"
-                  : "text-muted/60 hover:text-text"
+              className={`relative px-3.5 py-2 text-sm font-medium transition-colors ${
+                activeTab === tab.id ? "text-accent" : "text-muted/50 hover:text-text"
               }`}
             >
               {tab.label}
-              {tab.pro && (
-                <span className="ml-1 text-[11px] font-black tracking-wider text-accent/60 uppercase">pro</span>
-              )}
-              {activeTab === tab.id && (
-                <div className="absolute bottom-0 left-2 right-2 h-[2px] bg-accent rounded-full" />
-              )}
+              {tab.pro && <span className="ml-1 text-[10px] font-black tracking-wider text-accent/50 uppercase">pro</span>}
+              {activeTab === tab.id && <div className="absolute bottom-0 left-2 right-2 h-[2px] bg-accent rounded-full" />}
             </button>
           ))}
         </div>
 
         <div className={`transition-opacity duration-200 ${loading && data ? "opacity-50 pointer-events-none" : ""}`}>
 
-        {/* -- Overview Tab ---------------------------------------------- */}
+        {/* ── Overview Tab ────────────────────────────────────────── */}
         {activeTab === "overview" && (
-          <div className="space-y-4 animate-fade-in">
+          <div className="animate-fade-in">
             {isPro ? (
               <>
-                {/* Row 1: Insights + Activity side by side */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {(bigrams.length > 0 || (keyStats && Object.keys(keyStats).length > 0)) && (
-                    <Card title="Insights" subtitle="estimated WPM cost from weak spots">
+                {/* Bento row 1: WPM chart (wide) + Insights (narrow) */}
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 mb-3">
+                  {data.wpmTrend.length >= 2 && (
+                    <Panel className="lg:col-span-3" flush>
+                      <PanelHeader title="WPM Trend" />
+                      <WpmTrendChart points={data.wpmTrend} />
+                    </Panel>
+                  )}
+                  <Panel className="lg:col-span-2">
+                    <PanelHeader title="Insights" subtitle="WPM cost" />
+                    {(bigrams.length > 0 || (keyStats && Object.keys(keyStats).length > 0)) ? (
                       <AnalyticsInsights
                         weakKeys={keyStats ? Object.entries(keyStats).map(([key, stat]) => ({
                           key,
@@ -451,119 +370,103 @@ export default function AnalyticsPage() {
                         weakBigrams={bigrams.map((b) => ({ bigram: b.bigram, accuracy: b.accuracy / 100, total: b.total }))}
                         avgWpm={avgWpm}
                       />
-                    </Card>
-                  )}
-
-                  {activityData.length > 0 && (
-                    <Card title="Activity">
-                      <ActivityCalendar activity={activityData} />
-                    </Card>
-                  )}
+                    ) : (
+                      <p className="text-xs text-muted/40 py-4">More data needed</p>
+                    )}
+                  </Panel>
                 </div>
 
-                {/* Row 2: WPM + ELO charts side by side */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {data.wpmTrend.length >= 2 && (
-                    <Card title="WPM Trend" flush>
-                      <WpmTrendChart points={data.wpmTrend} />
-                    </Card>
-                  )}
-
+                {/* Bento row 2: ELO chart + Activity + Solo vs Ranked */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
                   {(data.eloTrend?.length ?? 0) >= 2 && (
-                    <Card title="ELO Trend">
-                      <div>
-                        <EloMiniChart eloTrend={data.eloTrend!} color="#eab308" height={220} />
+                    <Panel className="sm:col-span-2">
+                      <PanelHeader title="ELO Trend" />
+                      <EloMiniChart eloTrend={data.eloTrend!} color="#eab308" height={180} />
+                    </Panel>
+                  )}
+                  {activityData.length > 0 && (
+                    <Panel>
+                      <PanelHeader title="Activity" />
+                      <ActivityCalendar activity={activityData} />
+                    </Panel>
+                  )}
+                  {data.soloVsRanked?.solo && data.soloVsRanked?.ranked && (
+                    <Panel>
+                      <PanelHeader title="Solo vs Ranked" />
+                      <div className="grid grid-cols-2 gap-3">
+                        {([
+                          { label: "Solo", stats: data.soloVsRanked.solo, color: "text-accent" },
+                          { label: "Ranked", stats: data.soloVsRanked.ranked, color: "text-rank-gold" },
+                        ] as const).map(({ label, stats, color }) => (
+                          <div key={label}>
+                            <div className={`text-[10px] font-bold uppercase tracking-[0.15em] mb-2 ${color}`}>{label}</div>
+                            <div className="space-y-1.5">
+                              {[
+                                { k: "Played", v: String(stats.count) },
+                                { k: "Best", v: String(Math.floor(stats.bestWpm)) },
+                                { k: "Avg", v: String(Math.floor(stats.avgWpm)) },
+                                { k: "Acc", v: `${stats.avgAccuracy.toFixed(1)}%` },
+                              ].map((r) => (
+                                <div key={r.k} className="flex justify-between text-[11px]">
+                                  <span className="text-muted/40">{r.k}</span>
+                                  <span className="font-bold text-text tabular-nums">{r.v}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    </Card>
+                    </Panel>
                   )}
                 </div>
 
-                {/* Row 3: By Mode/Word Count + Speed by Placement + Solo vs Ranked */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Bento row 3: By Mode + Speed by Placement */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {(() => {
                     const hasMode = modeFilter === "all" && (data.modeStats?.length ?? 0) > 0;
                     const hasWordCount = (data.wordCountStats?.length ?? 0) > 0;
                     if (!hasMode && !hasWordCount) return null;
                     return (
-                      <Card
-                        title={breakdownView === "mode" ? "By Mode" : "By Word Count"}
-                        headerRight={hasMode && hasWordCount ? (
-                          <div className="flex items-center gap-0.5 bg-white/[0.02] rounded-lg p-0.5 ring-1 ring-white/[0.04]">
-                            <button
-                              onClick={() => setBreakdownView("mode")}
-                              className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${
-                                breakdownView === "mode"
-                                  ? "bg-accent/15 text-accent shadow-sm shadow-accent/10"
-                                  : "text-muted/60 hover:text-text"
-                              }`}
-                            >
-                              Mode
-                            </button>
-                            <button
-                              onClick={() => setBreakdownView("wordcount")}
-                              className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${
-                                breakdownView === "wordcount"
-                                  ? "bg-accent/15 text-accent shadow-sm shadow-accent/10"
-                                  : "text-muted/60 hover:text-text"
-                              }`}
-                            >
-                              Words
-                            </button>
-                          </div>
-                        ) : undefined}
-                      >
+                      <Panel>
+                        <PanelHeader
+                          title={breakdownView === "mode" ? "By Mode" : "By Word Count"}
+                          right={hasMode && hasWordCount ? (
+                            <FilterPill
+                              options={[{ value: "mode", label: "Mode" }, { value: "wordcount", label: "Words" }]}
+                              value={breakdownView}
+                              onChange={(v) => setBreakdownView(v as "mode" | "wordcount")}
+                            />
+                          ) : undefined}
+                        />
                         {breakdownView === "mode" && hasMode ? (
-                          <div className="space-y-0 divide-y divide-white/[0.04]">
-                            {(data.modeStats ?? []).map((m) => {
-                              const maxBest = Math.max(...(data.modeStats ?? []).map((s) => s.bestWpm), 1);
-                              const barPct = (m.bestWpm / maxBest) * 100;
-                              return (
-                                <button
-                                  key={m.modeCategory}
-                                  onClick={() => setModeFilter(m.modeCategory)}
-                                  className="group w-full flex items-center gap-3 py-2.5 text-left transition-colors hover:bg-white/[0.02] -mx-1 px-1 rounded first:pt-0 last:pb-0"
-                                >
-                                  <span className="text-xs text-muted/55 uppercase tracking-wider w-14 shrink-0 group-hover:text-accent/70 transition-colors font-medium">
-                                    {MODE_LABELS[m.modeCategory] ?? m.modeCategory}
-                                  </span>
-                                  <div className="flex-1 flex items-center gap-3 min-w-0">
-                                    <div className="flex-1 h-1 rounded-full bg-white/[0.04] overflow-hidden">
-                                      <div className="h-full rounded-full bg-accent/30 group-hover:bg-accent/45 transition-colors" style={{ width: `${barPct}%` }} />
-                                    </div>
-                                    <span className="text-sm font-bold text-text tabular-nums w-8 text-right">{Math.floor(m.bestWpm)}</span>
-                                    <span className="text-xs text-muted/40 tabular-nums w-16 text-right">{Math.floor(m.avgWpm)} avg</span>
-                                    <span className="text-xs text-muted/30 tabular-nums w-10 text-right">{m.racesPlayed}</span>
-                                  </div>
-                                </button>
-                              );
-                            })}
-                          </div>
+                          <BarRows
+                            rows={(data.modeStats ?? []).map((m) => ({
+                              key: m.modeCategory,
+                              label: MODE_LABELS[m.modeCategory] ?? m.modeCategory,
+                              value: m.bestWpm,
+                              sub: `${Math.floor(m.avgWpm)} avg`,
+                              count: m.racesPlayed,
+                              onClick: () => setModeFilter(m.modeCategory),
+                            }))}
+                          />
                         ) : hasWordCount ? (
-                          <div className="space-y-0 divide-y divide-white/[0.04]">
-                            {data.wordCountStats!.map((wc) => {
-                              const label = wc.wordCount >= 150 ? "150+" : String(wc.wordCount);
-                              const maxBest = Math.max(...data.wordCountStats!.map((s) => s.bestWpm), 1);
-                              const barPct = (wc.bestWpm / maxBest) * 100;
-                              return (
-                                <div key={wc.wordCount} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
-                                  <span className="text-xs text-muted/55 tabular-nums w-12 shrink-0 font-medium text-right">{label}</span>
-                                  <div className="flex-1 h-1 rounded-full bg-white/[0.04] overflow-hidden">
-                                    <div className="h-full rounded-full bg-accent/30" style={{ width: `${barPct}%` }} />
-                                  </div>
-                                  <span className="text-sm font-bold text-text tabular-nums w-8 text-right">{Math.floor(wc.bestWpm)}</span>
-                                  <span className="text-xs text-muted/40 tabular-nums w-16 text-right">{Math.floor(wc.avgWpm)} avg</span>
-                                  <span className="text-xs text-muted/30 tabular-nums w-10 text-right">{wc.count}</span>
-                                </div>
-                              );
-                            })}
-                          </div>
+                          <BarRows
+                            rows={data.wordCountStats!.map((wc) => ({
+                              key: String(wc.wordCount),
+                              label: wc.wordCount >= 150 ? "150+" : String(wc.wordCount),
+                              value: wc.bestWpm,
+                              sub: `${Math.floor(wc.avgWpm)} avg`,
+                              count: wc.count,
+                            }))}
+                          />
                         ) : null}
-                      </Card>
+                      </Panel>
                     );
                   })()}
 
                   {(data.speedByPlacement?.length ?? 0) > 0 && (
-                    <Card title="Speed by Placement">
+                    <Panel>
+                      <PanelHeader title="Speed by Placement" />
                       <div className="space-y-0 divide-y divide-white/[0.04]">
                         {data.speedByPlacement!.map((p) => {
                           const ord = p.placement === 1 ? "1st" : p.placement === 2 ? "2nd" : p.placement === 3 ? "3rd" : `${p.placement}th`;
@@ -572,13 +475,13 @@ export default function AnalyticsPage() {
                           const maxWpm = Math.max(...data.speedByPlacement!.map((s) => s.avgWpm), 1);
                           const barPct = (p.avgWpm / maxWpm) * 100;
                           return (
-                            <div key={p.placement} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+                            <div key={p.placement} className="flex items-center gap-3 py-2 first:pt-0 last:pb-0">
                               <span className={`text-xs font-bold ${color} w-7 shrink-0 uppercase tracking-wider`}>{ord}</span>
                               <div className="flex-1 h-1 rounded-full bg-white/[0.04] overflow-hidden">
                                 <div className={`h-full rounded-full ${barColor}`} style={{ width: `${barPct}%` }} />
                               </div>
                               <span className="text-sm font-bold text-text tabular-nums w-8 text-right">{Math.floor(p.avgWpm)}</span>
-                              <span className="text-xs text-muted/35 tabular-nums w-10 text-right">{p.count}</span>
+                              <span className="text-xs text-muted/30 tabular-nums w-8 text-right">{p.count}</span>
                             </div>
                           );
                         })}
@@ -588,175 +491,118 @@ export default function AnalyticsPage() {
                           <PlacementBar dist={data.placementDistribution} />
                         </div>
                       )}
-                    </Card>
+                    </Panel>
                   )}
-
                 </div>
-
-                {/* Solo vs Ranked comparison */}
-                {data.soloVsRanked?.solo && data.soloVsRanked?.ranked && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Card title="Solo vs Ranked">
-                      <div className="grid grid-cols-2 gap-4">
-                        {([
-                          { label: "Solo", stats: data.soloVsRanked.solo, accent: "text-accent" },
-                          { label: "Ranked", stats: data.soloVsRanked.ranked, accent: "text-rank-gold" },
-                        ] as const).map(({ label, stats, accent }) => (
-                          <div key={label}>
-                            <div className={`text-xs font-bold uppercase tracking-widest mb-3 ${accent}`}>{label}</div>
-                            <div className="space-y-2.5">
-                              <div className="flex items-baseline justify-between">
-                                <span className="text-xs text-muted/50">Played</span>
-                                <span className="text-sm font-bold text-text tabular-nums">{stats.count}</span>
-                              </div>
-                              <div className="flex items-baseline justify-between">
-                                <span className="text-xs text-muted/50">Best</span>
-                                <span className="text-sm font-bold text-text tabular-nums">{Math.floor(stats.bestWpm)}</span>
-                              </div>
-                              <div className="flex items-baseline justify-between">
-                                <span className="text-xs text-muted/50">Avg WPM</span>
-                                <span className="text-sm font-bold text-text tabular-nums">{Math.floor(stats.avgWpm)}</span>
-                              </div>
-                              <div className="flex items-baseline justify-between">
-                                <span className="text-xs text-muted/50">Accuracy</span>
-                                <span className="text-sm font-bold text-text tabular-nums">{stats.avgAccuracy.toFixed(1)}%</span>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </Card>
-                  </div>
-                )}
               </>
             ) : (
               /* Free user overview */
-              <div className="space-y-4">
-                {/* WPM Trend Chart */}
+              <div className="space-y-3">
                 {data.wpmTrend.length >= 2 && (
-                  <Card title="WPM Trend" subtitle="(last 20 races)" flush>
+                  <Panel flush>
+                    <PanelHeader title="WPM Trend" subtitle="last 20 races" />
                     <WpmTrendChart points={data.wpmTrend} />
-                  </Card>
+                  </Panel>
                 )}
-
-                {/* By Mode */}
-                {modeFilter === "all" && (data.modeStats?.length ?? 0) > 0 && (
-                  <Card title="By Mode">
-                    <div className="space-y-0 divide-y divide-white/[0.04]">
-                      {(data.modeStats ?? []).map((m) => {
-                        const maxBest = Math.max(...(data.modeStats ?? []).map((s) => s.bestWpm), 1);
-                        const barPct = (m.bestWpm / maxBest) * 100;
-                        return (
-                          <div
-                            key={m.modeCategory}
-                            className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0"
-                          >
-                            <span className="text-xs text-muted/55 uppercase tracking-wider w-14 shrink-0 font-medium">
-                              {MODE_LABELS[m.modeCategory] ?? m.modeCategory}
-                            </span>
-                            <div className="flex-1 h-1 rounded-full bg-white/[0.04] overflow-hidden">
-                              <div className="h-full rounded-full bg-accent/30" style={{ width: `${barPct}%` }} />
-                            </div>
-                            <span className="text-sm font-bold text-text tabular-nums w-8 text-right">{Math.floor(m.bestWpm)}</span>
-                            <span className="text-xs text-muted/30 tabular-nums w-10 text-right">{m.racesPlayed}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </Card>
-                )}
-
-                {/* Activity Calendar */}
-                {activityData.length > 0 && (
-                  <Card title="Activity">
-                    <ActivityCalendar activity={activityData} />
-                  </Card>
-                )}
-
-                {/* Free bigram preview */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {modeFilter === "all" && (data.modeStats?.length ?? 0) > 0 && (
+                    <Panel>
+                      <PanelHeader title="By Mode" />
+                      <BarRows
+                        rows={(data.modeStats ?? []).map((m) => ({
+                          key: m.modeCategory,
+                          label: MODE_LABELS[m.modeCategory] ?? m.modeCategory,
+                          value: m.bestWpm,
+                          count: m.racesPlayed,
+                        }))}
+                      />
+                    </Panel>
+                  )}
+                  {activityData.length > 0 && (
+                    <Panel>
+                      <PanelHeader title="Activity" />
+                      <ActivityCalendar activity={activityData} />
+                    </Panel>
+                  )}
+                </div>
                 {bigrams.length > 0 && <FreeBigramPreview bigrams={bigrams} keyStats={keyStats} avgWpm={avgWpm} />}
-
-                {/* Pro upsell */}
                 <ProUpsell />
               </div>
             )}
           </div>
         )}
 
-        {/* -- Accuracy Tab (merged Keys + Bigrams) ---------------------- */}
+        {/* ── Accuracy Tab ────────────────────────────────────────── */}
         {activeTab === "accuracy" && (
-          <div className="space-y-4 animate-fade-in">
-            {/* Row 1: Keyboard Heatmap + Bigram Heatmap side by side */}
+          <div className="animate-fade-in">
             {(keyStats && Object.keys(keyStats).length > 0) || bigrams.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <>
+                {/* Keyboard heatmap — full width hero */}
                 {keyStats && Object.keys(keyStats).length > 0 && (
-                  <Card
-                    title="Keyboard Heatmap"
-                    headerRight={
-                      isPro ? (
-                        <Link
-                          href="/solo?drill=true"
-                          className="px-3.5 py-1.5 rounded-lg bg-accent/10 ring-1 ring-accent/20 text-sm font-semibold text-accent hover:bg-accent/15 transition-colors"
-                        >
-                          Start Practice
+                  <Panel className="mb-3">
+                    <PanelHeader
+                      title="Key Accuracy"
+                      right={isPro ? (
+                        <Link href="/solo?drill=true" className="text-xs text-accent hover:text-accent/80 font-medium transition-colors">
+                          Start Practice →
                         </Link>
-                      ) : undefined
-                    }
-                  >
-                    <KeyboardHeatmap keyStats={keyStats} />
-                  </Card>
+                      ) : undefined}
+                    />
+                    <div className="max-w-lg mx-auto">
+                      <KeyboardHeatmap keyStats={keyStats} />
+                    </div>
+                  </Panel>
                 )}
-                {bigrams.length > 0 && (
-                  <Card title="Bigram Heatmap" subtitle="rows = first char, cols = second char">
-                    <BigramHeatmap bigrams={bigrams} />
-                  </Card>
-                )}
-              </div>
+
+                {/* Bigram heatmap + Weakest bigrams side by side */}
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
+                  {bigrams.length > 0 && (
+                    <Panel className="lg:col-span-3">
+                      <PanelHeader title="Bigram Heatmap" subtitle="rows = first, cols = second" />
+                      <BigramHeatmap bigrams={bigrams} />
+                    </Panel>
+                  )}
+                  {bigrams.length > 0 && (
+                    <Panel className="lg:col-span-2">
+                      <PanelHeader
+                        title="Weakest Bigrams"
+                        right={isPro ? (
+                          <button
+                            onClick={() => {
+                              const worst = bigrams.filter((b) => b.total >= 5).sort((a, b) => a.accuracy - b.accuracy).slice(0, 10).map((b) => b.bigram);
+                              if (worst.length > 0) router.push(`/solo?bigrams=${worst.join(",")}`);
+                            }}
+                            className="text-xs text-accent hover:text-accent/80 font-medium transition-colors"
+                          >
+                            Practice →
+                          </button>
+                        ) : undefined}
+                      />
+                      {isPro ? (
+                        <BigramAnalysis bigrams={bigrams} />
+                      ) : (
+                        <>
+                          <FreeBigramPreview bigrams={bigrams} keyStats={keyStats} avgWpm={avgWpm} inline />
+                          <div className="mt-3"><ProUpsell /></div>
+                        </>
+                      )}
+                    </Panel>
+                  )}
+                </div>
+              </>
             ) : (
               <EmptyState message="Complete more typing tests to see accuracy data." />
             )}
-
-            {/* Row 2: Weakest Bigrams list */}
-            {bigrams.length > 0 ? (
-              <>
-                {isPro ? (
-                  <Card
-                    title="Weakest Bigrams"
-                    headerRight={
-                      <button
-                        onClick={() => {
-                          const worst = bigrams
-                            .filter((b) => b.total >= 5)
-                            .sort((a, b) => a.accuracy - b.accuracy)
-                            .slice(0, 10)
-                            .map((b) => b.bigram);
-                          if (worst.length > 0) router.push(`/solo?bigrams=${worst.join(",")}`);
-                        }}
-                        className="px-3.5 py-1.5 rounded-lg bg-accent/10 ring-1 ring-accent/20 text-sm font-semibold text-accent hover:bg-accent/15 transition-colors"
-                      >
-                        Practice These
-                      </button>
-                    }
-                  >
-                    <BigramAnalysis bigrams={bigrams} />
-                  </Card>
-                ) : (
-                  <>
-                    <FreeBigramPreview bigrams={bigrams} keyStats={keyStats} avgWpm={avgWpm} />
-                    <ProUpsell />
-                  </>
-                )}
-              </>
-            ) : null}
           </div>
         )}
 
-        {/* -- Progress Tab (Pro) ---------------------------------------- */}
+        {/* ── Progress Tab (Pro) ──────────────────────────────────── */}
         {activeTab === "progress" && isPro && (
-          <div className="space-y-4 animate-fade-in">
-            <Card title="Practice Progress" subtitle="accuracy trends over time">
+          <div className="animate-fade-in">
+            <Panel>
+              <PanelHeader title="Practice Progress" subtitle="accuracy trends over time" />
               <PracticeProgress />
-            </Card>
+            </Panel>
           </div>
         )}
 
@@ -766,52 +612,101 @@ export default function AnalyticsPage() {
   );
 }
 
-/* -- Shared Components -------------------------------------------------- */
+/* ── Primitives ─────────────────────────────────────────────────────── */
 
-function StatCell({ label, value, sub }: { label: string; value: string; sub?: string }) {
+function MiniStat({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div>
-      <div className="text-xs text-muted/55 uppercase tracking-widest mb-1 font-medium">{label}</div>
-      <div className="text-base font-bold text-text tabular-nums leading-tight">{value}</div>
-      {sub && <div className="text-xs text-muted/45 tabular-nums mt-0.5">{sub}</div>}
+      <div className="text-[10px] text-muted/45 uppercase tracking-[0.15em] mb-0.5 font-medium">{label}</div>
+      <div className="text-sm font-bold text-text tabular-nums leading-tight">{value}</div>
+      {sub && <div className="text-[10px] text-muted/35 tabular-nums mt-0.5">{sub}</div>}
     </div>
   );
 }
 
-function Card({
-  title,
-  subtitle,
-  headerRight,
-  flush,
-  children,
-}: {
-  title: string;
-  subtitle?: string;
-  headerRight?: React.ReactNode;
-  flush?: boolean;
-  children: React.ReactNode;
+function Panel({ children, className = "", flush }: { children: React.ReactNode; className?: string; flush?: boolean }) {
+  return (
+    <div className={`rounded-xl bg-white/[0.02] ring-1 ring-white/[0.05] overflow-hidden ${flush ? "" : "p-4"} ${className}`}>
+      {flush ? <div className="[&>*:first-child]:px-4 [&>*:first-child]:pt-4">{children}</div> : children}
+    </div>
+  );
+}
+
+function PanelHeader({ title, subtitle, right }: { title: string; subtitle?: string; right?: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between mb-3">
+      <div className="flex items-baseline gap-2">
+        <h2 className="text-xs font-bold text-muted/60 uppercase tracking-[0.12em]">{title}</h2>
+        {subtitle && <span className="text-[11px] text-muted/35">{subtitle}</span>}
+      </div>
+      {right}
+    </div>
+  );
+}
+
+function FilterPill({ options, value, onChange }: {
+  options: ReadonlyArray<{ value: string; label: string }>;
+  value: string;
+  onChange: (v: string) => void;
 }) {
   return (
-    <div
-      className="rounded-xl bg-surface/25 ring-1 ring-white/[0.05] overflow-hidden animate-fade-in flex flex-col"
-    >
-      <div className="px-4 sm:px-5 pt-4 pb-2.5 flex items-center justify-between">
-        <div className="flex items-baseline gap-2.5">
-          <h2 className="text-sm font-bold text-muted/70 uppercase tracking-widest">{title}</h2>
-          {subtitle && <span className="text-xs text-muted/45">{subtitle}</span>}
-        </div>
-        {headerRight}
-      </div>
-      <div className={`flex-1 ${flush ? "pb-2" : "px-4 sm:px-5 pb-4"}`}>{children}</div>
+    <div className="flex items-center gap-0.5 bg-white/[0.02] rounded-lg p-0.5 ring-1 ring-white/[0.04]">
+      {options.map((o) => (
+        <button
+          key={o.value}
+          onClick={() => onChange(o.value)}
+          className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${
+            value === o.value
+              ? "bg-accent/12 text-accent shadow-sm shadow-accent/10"
+              : "text-muted/50 hover:text-text"
+          }`}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function BarRows({ rows }: {
+  rows: Array<{ key: string; label: string; value: number; sub?: string; count: number; onClick?: () => void }>;
+}) {
+  const maxVal = Math.max(...rows.map((r) => r.value), 1);
+  return (
+    <div className="space-y-0 divide-y divide-white/[0.04]">
+      {rows.map((r) => {
+        const barPct = (r.value / maxVal) * 100;
+        const Tag = r.onClick ? "button" : "div";
+        return (
+          <Tag
+            key={r.key}
+            onClick={r.onClick}
+            className={`w-full flex items-center gap-3 py-2 first:pt-0 last:pb-0 ${
+              r.onClick ? "text-left group transition-colors hover:bg-white/[0.02] -mx-1 px-1 rounded cursor-pointer" : ""
+            }`}
+          >
+            <span className={`text-xs text-muted/50 uppercase tracking-wider w-12 shrink-0 font-medium ${r.onClick ? "group-hover:text-accent/60 transition-colors" : ""}`}>
+              {r.label}
+            </span>
+            <div className="flex-1 flex items-center gap-3 min-w-0">
+              <div className="flex-1 h-1 rounded-full bg-white/[0.04] overflow-hidden">
+                <div className={`h-full rounded-full bg-accent/25 ${r.onClick ? "group-hover:bg-accent/40" : ""} transition-colors`} style={{ width: `${barPct}%` }} />
+              </div>
+              <span className="text-sm font-bold text-text tabular-nums w-8 text-right">{Math.floor(r.value)}</span>
+              {r.sub && <span className="text-xs text-muted/35 tabular-nums w-14 text-right">{r.sub}</span>}
+              <span className="text-xs text-muted/25 tabular-nums w-8 text-right">{r.count}</span>
+            </div>
+          </Tag>
+        );
+      })}
     </div>
   );
 }
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="rounded-xl bg-surface/20 ring-1 ring-white/[0.04] px-6 py-12 text-center animate-fade-in">
-      <div className="text-muted/55 text-2xl mb-3">{"\u2328"}</div>
-      <p className="text-sm text-muted/55">{message}</p>
+    <div className="rounded-xl bg-white/[0.02] ring-1 ring-white/[0.04] px-6 py-12 text-center">
+      <p className="text-sm text-muted/45">{message}</p>
     </div>
   );
 }
@@ -831,22 +726,15 @@ function PlacementBar({ dist }: {
   return (
     <div>
       <div className="flex h-1.5 rounded-full overflow-hidden gap-px">
-        {segments.map((s) =>
-          s.count > 0 ? (
-            <div
-              key={s.label}
-              className={`${s.color} opacity-60`}
-              style={{ width: `${s.pct}%` }}
-              title={`${s.label}: ${s.count} (${s.pct}%)`}
-            />
-          ) : null
-        )}
+        {segments.map((s) => s.count > 0 ? (
+          <div key={s.label} className={`${s.color} opacity-60`} style={{ width: `${s.pct}%` }} title={`${s.label}: ${s.count} (${s.pct}%)`} />
+        ) : null)}
       </div>
-      <div className="flex gap-4 mt-2">
+      <div className="flex gap-3 mt-2">
         {segments.map((s) => (
           <div key={s.label} className="flex items-center gap-1">
-            <span className={`text-xs font-bold tabular-nums ${s.textColor}`}>{s.pct}%</span>
-            <span className="text-xs text-muted/50">{s.label}</span>
+            <span className={`text-[11px] font-bold tabular-nums ${s.textColor}`}>{s.pct}%</span>
+            <span className="text-[11px] text-muted/40">{s.label}</span>
           </div>
         ))}
       </div>
@@ -858,10 +746,12 @@ function FreeBigramPreview({
   bigrams,
   keyStats,
   avgWpm,
+  inline,
 }: {
   bigrams: Array<{ bigram: string; correct: number; total: number; accuracy: number }>;
   keyStats: KeyStatsMap | null;
   avgWpm: number;
+  inline?: boolean;
 }) {
   const meaningful = bigrams.filter((b) => b.total >= 10);
   meaningful.sort((a, b) => a.accuracy - b.accuracy);
@@ -884,31 +774,33 @@ function FreeBigramPreview({
 
   if (worst5.length === 0) return null;
 
+  const content = (
+    <div className="space-y-0 divide-y divide-white/[0.04]">
+      {worst5.map((b) => {
+        const accColor = b.accuracy < 70 ? "text-error/60" : b.accuracy < 90 ? "text-amber-400/60" : "text-correct/50";
+        return (
+          <div key={b.bigram} className="flex items-center gap-3 py-2 first:pt-0 last:pb-0">
+            <span className="text-accent font-bold text-sm w-7 shrink-0 text-center">{b.bigram}</span>
+            <span className={`text-xs font-bold tabular-nums ${accColor}`}>{Math.round(b.accuracy)}%</span>
+            <span className="text-[11px] text-muted/30 tabular-nums">{b.total}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  if (inline) return content;
+
   return (
     <>
-      <Card title="Weakest Bigrams">
-        <div className="space-y-0 divide-y divide-white/[0.04]">
-          {worst5.map((b) => {
-            const accColor = b.accuracy < 70 ? "text-error/60" : b.accuracy < 90 ? "text-amber-400/60" : "text-correct/50";
-            const barColor = b.accuracy < 70 ? "bg-error/30" : b.accuracy < 90 ? "bg-amber-400/25" : "bg-correct/25";
-            return (
-              <div key={b.bigram} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
-                <span className="text-accent font-bold text-sm w-8 shrink-0 text-center">{b.bigram}</span>
-                <div className="flex-1 h-1 rounded-full bg-white/[0.04] overflow-hidden max-w-32">
-                  <div className={`h-full rounded-full ${barColor}`} style={{ width: `${b.accuracy}%` }} />
-                </div>
-                <span className={`text-xs font-bold tabular-nums ${accColor}`}>
-                  {Math.round(b.accuracy)}%
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </Card>
+      <Panel>
+        <PanelHeader title="Weakest Bigrams" />
+        {content}
+      </Panel>
       {teaserInsight && (
-        <div className="rounded-xl ring-1 ring-accent/10 bg-accent/[0.03] px-4 py-3 animate-fade-in">
-          <p className="text-sm text-muted/70 leading-relaxed">{teaserInsight.insight}</p>
-          <p className="text-xs text-muted/50 mt-1.5">Upgrade to Pro for all insights, adaptive practice, and no ads</p>
+        <div className="rounded-xl ring-1 ring-accent/8 bg-accent/[0.02] px-4 py-3">
+          <p className="text-xs text-muted/60 leading-relaxed">{teaserInsight.insight}</p>
+          <p className="text-[11px] text-muted/40 mt-1">Upgrade to Pro for all insights and adaptive practice</p>
         </div>
       )}
     </>
@@ -917,44 +809,25 @@ function FreeBigramPreview({
 
 function ProUpsell() {
   return (
-    <div
-      className="relative rounded-xl overflow-hidden ring-1 ring-accent/15 animate-fade-in"
-    >
-      {/* Gradient top edge */}
-      <div className="h-[2px] bg-gradient-to-r from-accent/30 via-accent/60 to-accent/30" />
-
-      {/* Subtle glow background */}
-      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,rgba(77,158,255,0.04),transparent_60%)]" />
-
-      <div className="relative px-5 py-5">
-        <div className="flex items-center gap-2.5 mb-4">
-          <span className="text-xs font-black tracking-[0.15em] text-accent bg-accent/10 ring-1 ring-accent/25 rounded px-2 py-0.5 leading-none">
-            PRO
-          </span>
-          <span className="text-sm font-bold text-text/75">Unlock Full Analytics</span>
+    <div className="relative rounded-xl overflow-hidden ring-1 ring-accent/12">
+      <div className="h-px bg-gradient-to-r from-accent/20 via-accent/50 to-accent/20" />
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,rgba(77,158,255,0.03),transparent_60%)]" />
+      <div className="relative px-5 py-4">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-[10px] font-black tracking-[0.15em] text-accent bg-accent/8 ring-1 ring-accent/20 rounded px-1.5 py-0.5 leading-none">PRO</span>
+          <span className="text-sm font-bold text-text/70">Unlock Full Analytics</span>
         </div>
-
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 mb-5">
-          {[
-            "Ad-free experience across the site",
-            "Adaptive practice for weak keys & bigrams",
-            "ELO trends & placement distribution",
-            "Full bigram analysis & WPM insights",
-          ].map((label) => (
-            <div key={label} className="flex items-start gap-2 text-sm text-text/55">
-              <span className="text-accent/60 mt-px shrink-0">+</span>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2 mb-4">
+          {["Ad-free experience", "Adaptive practice", "ELO trends & placements", "Full bigram insights"].map((label) => (
+            <div key={label} className="flex items-center gap-1.5 text-xs text-text/45">
+              <span className="text-accent/50 shrink-0">+</span>
               <span>{label}</span>
             </div>
           ))}
         </div>
-
-        <Link
-          href="/pro"
-          className="block w-full rounded-lg bg-accent/10 ring-1 ring-accent/30 text-accent text-sm font-bold px-4 py-2.5 hover:bg-accent/20 transition-colors text-center"
-        >
-          Upgrade to Pro — $4.99/mo
+        <Link href="/pro" className="block w-full rounded-lg bg-accent/8 ring-1 ring-accent/25 text-accent text-sm font-bold px-4 py-2 hover:bg-accent/15 transition-colors text-center">
+          Upgrade — $4.99/mo
         </Link>
-        <p className="text-xs text-muted/45 text-center mt-1.5">cancel anytime</p>
       </div>
     </div>
   );

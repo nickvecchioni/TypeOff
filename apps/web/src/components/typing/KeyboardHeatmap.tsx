@@ -21,7 +21,6 @@ const ROW_HEIGHT = KEY_SIZE + KEY_GAP;
 const CORNER_R = 5;
 
 function accuracyToColor(accuracy: number): string {
-  // Green: [63, 185, 80] → Red: [248, 81, 73]
   const r = Math.round(248 + (63 - 248) * accuracy);
   const g = Math.round(81 + (185 - 81) * accuracy);
   const b = Math.round(73 + (80 - 73) * accuracy);
@@ -35,8 +34,8 @@ export function KeyboardHeatmap({ keyStats }: KeyboardHeatmapProps) {
   const totalHeight = ROWS.length * ROW_HEIGHT - KEY_GAP;
 
   return (
-    <div className="w-full flex flex-col items-center gap-2">
-      <div className="relative w-full max-w-md">
+    <div className="w-full flex flex-col items-center gap-3">
+      <div className="relative w-full">
         <svg
           viewBox={`0 0 ${totalWidth} ${totalHeight}`}
           className="w-full"
@@ -54,7 +53,7 @@ export function KeyboardHeatmap({ keyStats }: KeyboardHeatmapProps) {
               const hasData = stat != null && stat.total > 0;
               const accuracy = hasData ? stat!.correct / stat!.total : null;
               const fillColor = accuracy !== null ? accuracyToColor(accuracy) : "var(--color-surface-bright)";
-              const fillOpacity = accuracy !== null ? 0.8 : 0.4;
+              const fillOpacity = accuracy !== null ? 0.85 : 0.35;
               const textColor = accuracy !== null ? "#0c0c12" : "var(--color-muted)";
 
               return (
@@ -83,37 +82,35 @@ export function KeyboardHeatmap({ keyStats }: KeyboardHeatmapProps) {
         </svg>
         {tooltip && (
           <div
-            className="absolute pointer-events-none px-2 py-1 rounded bg-surface-bright text-xs text-white font-mono whitespace-nowrap border border-white/10 shadow-lg"
+            className="absolute pointer-events-none px-2.5 py-1.5 rounded-lg bg-surface ring-1 ring-white/[0.08] text-xs text-white font-mono whitespace-nowrap shadow-lg"
             style={{
               left: `${(tooltip.x / totalWidth) * 100}%`,
               top: `${(tooltip.y / totalHeight) * 100}%`,
-              transform: "translate(-50%, -100%) translateY(-6px)",
+              transform: "translate(-50%, -100%) translateY(-8px)",
             }}
           >
-            <span className="font-semibold">{tooltip.label.toUpperCase()}</span>
+            <span className="font-bold">{tooltip.label.toUpperCase()}</span>
             {" "}
             <span style={{ color: accuracyToColor(tooltip.accuracy) }}>
               {Math.round(tooltip.accuracy * 100)}%
             </span>
-            <span className="text-muted/60"> ({tooltip.total})</span>
+            <span className="text-muted/50 ml-1">({tooltip.total})</span>
           </div>
         )}
       </div>
-      <div className="flex items-center gap-3 text-xs text-muted/60">
+      <div className="flex items-center gap-4 text-[11px] text-muted/50">
+        {[
+          { acc: 1, label: "100%" },
+          { acc: 0.85, label: "85%" },
+          { acc: 0.5, label: "50%" },
+        ].map(({ acc, label }) => (
+          <div key={label} className="flex items-center gap-1.5">
+            <div className="w-2.5 h-2.5 rounded-sm" style={{ background: accuracyToColor(acc) }} />
+            <span>{label}</span>
+          </div>
+        ))}
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded-sm" style={{ background: accuracyToColor(1) }} />
-          <span>100%</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded-sm" style={{ background: accuracyToColor(0.85) }} />
-          <span>85%</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded-sm" style={{ background: accuracyToColor(0.5) }} />
-          <span>50%</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded-sm opacity-40" style={{ background: "var(--color-surface-bright)" }} />
+          <div className="w-2.5 h-2.5 rounded-sm opacity-35" style={{ background: "var(--color-surface-bright)" }} />
           <span>n/a</span>
         </div>
       </div>

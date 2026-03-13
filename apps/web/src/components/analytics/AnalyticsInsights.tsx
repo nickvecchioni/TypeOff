@@ -27,7 +27,7 @@ export function AnalyticsInsights({ weakKeys, weakBigrams, avgWpm }: AnalyticsIn
   const maxCost = Math.max(...topInsights.map((i) => i.estimatedWpmCost), 1);
 
   return (
-    <div className="space-y-0 divide-y divide-white/[0.04]">
+    <div className="flex flex-col gap-2">
       {topInsights.map((insight) => {
         const accPct = Math.round(insight.accuracy * 100);
         const cost = Math.max(1, Math.round(insight.estimatedWpmCost));
@@ -40,26 +40,24 @@ export function AnalyticsInsights({ weakKeys, weakBigrams, avgWpm }: AnalyticsIn
           <Link
             key={`${insight.type}-${insight.value}`}
             href={practiceUrl}
-            className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0 group transition-colors hover:bg-white/[0.02] -mx-1 px-1 rounded"
+            className="group flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-colors hover:bg-white/[0.03]"
           >
-            {/* Bigram / key value */}
-            <span className="text-accent font-bold text-sm w-7 shrink-0 text-center tracking-wide">
+            {/* Bigram / key pill */}
+            <span className="text-sm font-bold text-accent bg-accent/[0.08] rounded px-1.5 py-0.5 min-w-[28px] text-center tracking-wide shrink-0">
               {insight.value}
             </span>
 
-            {/* Cost bar — visual weight proportional to WPM impact */}
-            <div className="flex-1 h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
+            {/* Cost bar */}
+            <div className="flex-1 h-1 rounded-full bg-white/[0.04] overflow-hidden">
               <div
-                className="h-full rounded-full bg-error/40 group-hover:bg-error/55 transition-colors"
+                className="h-full rounded-full bg-error/35 group-hover:bg-error/50 transition-colors"
                 style={{ width: `${costBarPct}%` }}
               />
             </div>
 
-            {/* Accuracy */}
-            <span className="text-xs text-muted/50 tabular-nums w-9 text-right">{accPct}%</span>
-
-            {/* WPM cost — hero number */}
-            <span className="text-sm font-bold text-error/80 tabular-nums w-16 text-right">
+            {/* Accuracy + WPM cost */}
+            <span className="text-[11px] text-muted/45 tabular-nums shrink-0">{accPct}%</span>
+            <span className="text-xs font-bold text-error/75 tabular-nums shrink-0 w-14 text-right">
               -{cost} wpm
             </span>
           </Link>
