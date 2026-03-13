@@ -122,7 +122,7 @@ export async function GET(request: Request) {
 
   // Fetch solo results
   const soloConditions = [eq(soloResults.userId, userId)];
-  if (rangeCutoff) soloConditionsPro.push(gte(soloResults.createdAt, rangeCutoff));
+  if (rangeCutoff) soloConditions.push(gte(soloResults.createdAt, rangeCutoff));
 
   const soloRows = await db
     .select({
