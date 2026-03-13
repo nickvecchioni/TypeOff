@@ -38,8 +38,10 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
   const [customWords, setCustomWords] = useState<string[] | null>(null);
   // Weak keys for practice mode (Pro only)
   const [weakKeys, setWeakKeys] = useState<string[]>([]);
+  const [weakKeysData, setWeakKeysData] = useState<Array<{ key: string; accuracy: number; total: number }>>([]);
   // Weak bigrams for practice mode (Pro only)
   const [weakBigrams, setWeakBigrams] = useState<string[]>([]);
+  const [weakBigramsData, setWeakBigramsData] = useState<Array<{ bigram: string; accuracy: number; total: number }>>([]);
   const [xpProgress, setXpProgress] = useState<{
     xpEarned: number; totalXp: number; level: number; levelUp: boolean;
     newRewards: Array<{ level: number; type: string; id: string; name: string; value: string }>;
@@ -63,8 +65,9 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
     if (!session?.user?.id || !isPro) return;
     fetch("/api/key-accuracy")
       .then((res) => res.json())
-      .then((data: { weakKeys?: string[] }) => {
+      .then((data: { weakKeys?: string[]; all?: Array<{ key: string; accuracy: number; total: number }> }) => {
         if (data.weakKeys) setWeakKeys(data.weakKeys);
+        if (data.all) setWeakKeysData(data.all);
       })
       .catch(() => {});
     fetch("/api/bigram-accuracy")
@@ -76,6 +79,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
         meaningful.sort((a, b) => a.accuracy - b.accuracy);
         const worst = meaningful.slice(0, 10);
         setWeakBigrams(worst.map((b) => b.bigram));
+        setWeakBigramsData(worst);
       })
       .catch(() => {});
   }, [session?.user?.id, isPro]);
@@ -349,7 +353,9 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
             }}
             onAfterChange={handleAfterConfigChange}
             practiceWeakKeys={weakKeys}
+            practiceWeakKeysData={weakKeysData}
             practiceWeakBigrams={weakBigrams}
+            practiceWeakBigramsData={weakBigramsData}
             isPro={isPro}
           />
         </div>
@@ -411,7 +417,9 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
             }}
             onAfterChange={handleAfterConfigChange}
             practiceWeakKeys={weakKeys}
+            practiceWeakKeysData={weakKeysData}
             practiceWeakBigrams={weakBigrams}
+            practiceWeakBigramsData={weakBigramsData}
             isPro={isPro}
           />
         </div>
