@@ -8,8 +8,9 @@ import { useCapsLock } from "@/hooks/useCapsLock";
 import { WordDisplay } from "@/components/typing/WordDisplay";
 import { useFocusActive } from "@/contexts/SettingsContext";
 import Link from "next/link";
-import { ConfigBar } from "./ConfigBar";
+import { ConfigBar, isKeyRelevant, isBigramRelevant } from "./ConfigBar";
 import { PracticeResults } from "./PracticeResults";
+import { Tooltip } from "@/components/shared/Tooltip";
 import { ZenFreeformArena } from "./ZenFreeformArena";
 import { useSettings } from "@/contexts/SettingsContext";
 
@@ -443,21 +444,80 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
         </div>
       )}
 
-      {/* Info row: code snippet title or quote author (only when relevant) */}
-      {!isFinished && (codeSnippet || ct === "quotes") && (
-        <div className="-mb-1 flex items-center justify-center">
-          {codeSnippet && (
-            <span className="text-xs text-muted/50">
-              {codeSnippet.name} <span className="text-muted/35">·</span> <span className="text-muted/35">{codeSnippet.language}</span>
-            </span>
-          )}
-          {ct === "quotes" && engine.lastSeed != null && (
-            <span className="text-xs text-muted/45">
-              {getQuoteAuthor(engine.lastSeed)}
-            </span>
-          )}
-        </div>
-      )}
+      {/* Info row: fixed-height slot for code snippet / quote author / practice details */}
+      {!isFinished && (() => {
+        const isPunctuation = engine.config.punctuation ?? false;
+        const filteredWeakKeys = weakKeys.filter((k) => isKeyRelevant(k, isPunctuation));
+        const filteredWeakBigrams = weakBigrams.filter((b) => isBigramRelevant(b, isPunctuation));
+        const keyDataMap = new Map(weakKeysData.map((d) => [d.key, d]));
+        const bigramDataMap = new Map(weakBigramsData.map((d) => [d.bigram, d]));
+        const showPractice = ct === "practice" && isPro && (filteredWeakKeys.length > 0 || filteredWeakBigrams.length > 0);
+        return (
+          <div className="h-5 flex items-center justify-center">
+            {/* Code snippet */}
+            {codeSnippet && (
+              <span className="text-xs text-muted/50">
+                {codeSnippet.name} <span className="text-muted/35">·</span> <span className="text-muted/35">{codeSnippet.language}</span>
+              </span>
+            )}
+            {/* Quote author */}
+            {ct === "quotes" && engine.lastSeed != null && (
+              <span className="text-xs text-muted/45">
+                {getQuoteAuthor(engine.lastSeed)}
+              </span>
+            )}
+            {/* Practice details */}
+            {showPractice && (
+              <div className="flex items-center gap-1.5 justify-center">
+                {filteredWeakKeys.length > 0 && (
+                  <span className="text-xs text-muted/50 leading-tight">
+                    keys:{" "}
+                    <span className="text-amber-400/70 font-mono">
+                      {filteredWeakKeys.slice(0, 6).map((k, i) => {
+                        const data = keyDataMap.get(k);
+                        const label = data
+                          ? `${Math.round(data.accuracy * 100)}% accuracy · ${data.total} samples`
+                          : k;
+                        return (
+                          <React.Fragment key={k}>
+                            {i > 0 && " "}
+                            <Tooltip label={label} position="bottom" delay={150}>
+                              <span className="cursor-default hover:text-amber-300 transition-colors">{k}</span>
+                            </Tooltip>
+                          </React.Fragment>
+                        );
+                      })}
+                      {filteredWeakKeys.length > 6 ? " ..." : ""}
+                    </span>
+                  </span>
+                )}
+                {filteredWeakBigrams.length > 0 && (
+                  <span className="text-xs text-muted/50 leading-tight">
+                    {filteredWeakKeys.length ? "· " : ""}bigrams:{" "}
+                    <span className="text-amber-400/70 font-mono">
+                      {filteredWeakBigrams.slice(0, 5).map((b, i) => {
+                        const data = bigramDataMap.get(b);
+                        const label = data
+                          ? `${data.accuracy}% accuracy · ${data.total} samples`
+                          : b;
+                        return (
+                          <React.Fragment key={b}>
+                            {i > 0 && " "}
+                            <Tooltip label={label} position="bottom" delay={150}>
+                              <span className="cursor-default hover:text-amber-300 transition-colors">{b}</span>
+                            </Tooltip>
+                          </React.Fragment>
+                        );
+                      })}
+                      {filteredWeakBigrams.length > 5 ? " ..." : ""}
+                    </span>
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Typing area with scroll clipping */}
       {!isFinished && (

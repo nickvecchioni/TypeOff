@@ -37,14 +37,14 @@ const WORDS_CHARS = new Set("abcdefghijklmnopqrstuvwxyz".split(""));
 /** Additional characters that appear in "mixed" mode (punctuation + numbers) */
 const MIXED_EXTRA_CHARS = new Set(".,;:?!()-'\"0123456789".split(""));
 
-function isKeyRelevant(key: string, punctuation: boolean): boolean {
+export function isKeyRelevant(key: string, punctuation: boolean): boolean {
   const k = key.toLowerCase();
   if (WORDS_CHARS.has(k)) return true;
   if (punctuation && MIXED_EXTRA_CHARS.has(k)) return true;
   return false;
 }
 
-function isBigramRelevant(bigram: string, punctuation: boolean): boolean {
+export function isBigramRelevant(bigram: string, punctuation: boolean): boolean {
   return bigram.split("").every((ch) => isKeyRelevant(ch, punctuation));
 }
 
@@ -135,9 +135,6 @@ export function ConfigBar({
       set({ contentType: "practice", weakBigrams: practiceWeakBigrams });
     }
   };
-
-  // Whether to show practice details
-  const showPracticeDetails = isWordsVariant && hasPracticeData && isPracticeOn && !!(filteredWeakKeys.length || filteredWeakBigrams.length);
 
   return (
     <div
@@ -269,56 +266,6 @@ export function ConfigBar({
           </span>
         </div>
       </div>
-
-      {/* ── Practice details — shown when practice mode is active ── */}
-      {showPracticeDetails && (
-        <div className="mt-1 flex items-center gap-1.5 justify-center">
-          {filteredWeakKeys.length > 0 && (
-            <span className="text-xs text-muted/50 leading-tight">
-              keys:{" "}
-              <span className="text-amber-400/70 font-mono">
-                {filteredWeakKeys.slice(0, 6).map((k, i) => {
-                  const data = keyDataMap.get(k);
-                  const label = data
-                    ? `${Math.round(data.accuracy * 100)}% accuracy · ${data.total} samples`
-                    : k;
-                  return (
-                    <React.Fragment key={k}>
-                      {i > 0 && " "}
-                      <Tooltip label={label} position="bottom" delay={150}>
-                        <span className="cursor-default hover:text-amber-300 transition-colors">{k}</span>
-                      </Tooltip>
-                    </React.Fragment>
-                  );
-                })}
-                {filteredWeakKeys.length > 6 ? " ..." : ""}
-              </span>
-            </span>
-          )}
-          {filteredWeakBigrams.length > 0 && (
-            <span className="text-xs text-muted/50 leading-tight">
-              {filteredWeakKeys.length ? "· " : ""}bigrams:{" "}
-              <span className="text-amber-400/70 font-mono">
-                {filteredWeakBigrams.slice(0, 5).map((b, i) => {
-                  const data = bigramDataMap.get(b);
-                  const label = data
-                    ? `${data.accuracy}% accuracy · ${data.total} samples`
-                    : b;
-                  return (
-                    <React.Fragment key={b}>
-                      {i > 0 && " "}
-                      <Tooltip label={label} position="bottom" delay={150}>
-                        <span className="cursor-default hover:text-amber-300 transition-colors">{b}</span>
-                      </Tooltip>
-                    </React.Fragment>
-                  );
-                })}
-                {filteredWeakBigrams.length > 5 ? " ..." : ""}
-              </span>
-            </span>
-          )}
-        </div>
-      )}
 
     </div>
   );
