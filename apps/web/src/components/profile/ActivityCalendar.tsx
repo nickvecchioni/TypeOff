@@ -67,7 +67,7 @@ export function ActivityCalendar({ activity }: ActivityCalendarProps) {
     }
   }
 
-  // Month labels: positioned absolutely to avoid overlap
+  // Month labels
   const monthLabels: Array<{ label: string; weekIndex: number }> = [];
   for (let wi = 0; wi < weeks.length; wi++) {
     const week = weeks[wi];
@@ -91,66 +91,69 @@ export function ActivityCalendar({ activity }: ActivityCalendarProps) {
     }
   }
 
+  // Use CSS grid to fill available width
+  // Day label column is fixed width, remaining columns stretch equally
+  const gridTemplateColumns = `24px repeat(${weeks.length}, 1fr)`;
+
   return (
     <div className="relative" ref={containerRef}>
-      <div className="flex gap-0">
-        {/* Day-of-week labels */}
-        <div className="flex flex-col gap-[3px] mr-2 shrink-0" style={{ marginTop: 18 }}>
-          {DAY_LABELS.map((label, i) => (
-            <div
-              key={i}
-              className="h-[11px] w-6 text-[11px] text-muted/60 text-right leading-[11px]"
-            >
-              {label}
+      {/* Month labels row */}
+      <div
+        className="grid mb-1"
+        style={{ gridTemplateColumns }}
+      >
+        {/* Empty cell for day-label column */}
+        <div />
+        {weeks.map((_, wi) => {
+          const ml = monthLabels.find((m) => m.weekIndex === wi);
+          return (
+            <div key={wi} className="text-[11px] text-muted/60 leading-[14px] truncate">
+              {ml?.label ?? ""}
             </div>
-          ))}
-        </div>
-
-        <div className="flex flex-col min-w-0">
-          {/* Month labels */}
-          <div className="relative mb-1 h-[14px]">
-            {monthLabels.map((ml) => (
-              <div
-                key={ml.weekIndex}
-                className="absolute text-[11px] text-muted/60 leading-[14px] whitespace-nowrap"
-                style={{ left: ml.weekIndex * 14 }}
-              >
-                {ml.label}
-              </div>
-            ))}
-          </div>
-
-          {/* Cell grid */}
-          <div className="flex gap-[3px] overflow-x-auto pb-1">
-            {weeks.map((week, wi) => (
-              <div key={wi} className="flex flex-col gap-[3px] shrink-0">
-                {week.map((day) => (
-                  <div
-                    key={day.date}
-                    className={`w-[11px] h-[11px] rounded-[2px] cursor-default ${
-                      day.future ? "opacity-0" : getColor(day.count, maxCount)
-                    }`}
-                    onMouseEnter={(e) => {
-                      if (day.future) return;
-                      const container = containerRef.current;
-                      if (!container) return;
-                      const containerRect = container.getBoundingClientRect();
-                      const cellRect = e.currentTarget.getBoundingClientRect();
-                      setTooltip({
-                        date: day.date,
-                        count: day.count,
-                        x: cellRect.left - containerRect.left + cellRect.width / 2,
-                        y: cellRect.top - containerRect.top,
-                      });
-                    }}
-                    onMouseLeave={() => setTooltip(null)}
-                  />
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
+          );
+        })}
       </div>
+
+      {/* Grid: 7 rows (Sun–Sat), day labels + week columns */}
+      {Array.from({ length: 7 }).map((_, dayIdx) => (
+        <div
+          key={dayIdx}
+          className="grid gap-[3px] mb-[3px]"
+          style={{ gridTemplateColumns }}
+        >
+          {/* Day label */}
+          <div className="text-[11px] text-muted/60 text-right pr-1 leading-none flex items-center justify-end">
+            {DAY_LABELS[dayIdx]}
+          </div>
+          {/* Cells for this day across all weeks */}
+          {weeks.map((week, wi) => {
+            const day = week[dayIdx];
+            if (!day) return <div key={wi} />;
+            return (
+              <div
+                key={wi}
+                className={`aspect-square rounded-[2px] cursor-default ${
+                  day.future ? "opacity-0" : getColor(day.count, maxCount)
+                }`}
+                onMouseEnter={(e) => {
+                  if (day.future) return;
+                  const container = containerRef.current;
+                  if (!container) return;
+                  const containerRect = container.getBoundingClientRect();
+                  const cellRect = e.currentTarget.getBoundingClientRect();
+                  setTooltip({
+                    date: day.date,
+                    count: day.count,
+                    x: cellRect.left - containerRect.left + cellRect.width / 2,
+                    y: cellRect.top - containerRect.top,
+                  });
+                }}
+                onMouseLeave={() => setTooltip(null)}
+              />
+            );
+          })}
+        </div>
+      ))}
 
       {tooltip && (
         <div
