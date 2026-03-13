@@ -61,9 +61,9 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
       .catch((err) => console.warn("[solo-results] PB fetch error:", err));
   }, [session?.user?.id]);
 
-  // Fetch weak keys + weak bigrams for practice mode (Pro only)
+  // Fetch weak keys + weak bigrams for practice mode
   useEffect(() => {
-    if (!session?.user?.id || !isPro) return;
+    if (!session?.user?.id) return;
     fetch("/api/key-accuracy")
       .then((res) => res.json())
       .then((data: { weakKeys?: string[]; all?: Array<{ key: string; accuracy: number; total: number }> }) => {
@@ -83,7 +83,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
         setWeakBigramsData(worst);
       })
       .catch(() => {});
-  }, [session?.user?.id, isPro]);
+  }, [session?.user?.id]);
 
   // Load practice config from localStorage on mount
   const configLoadedRef = useRef(false);
@@ -188,7 +188,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
   // Auto-start practice mode when ?drill=true or ?bigrams=... is set
   const practiceActivatedRef = useRef(false);
   useEffect(() => {
-    if (practiceActivatedRef.current || !isPro) return;
+    if (practiceActivatedRef.current) return;
     if (initialDrill && !weakKeys.length) return; // wait for weak keys to load
     if (!initialDrill && !initialBigrams?.length) return; // no practice param set
     practiceActivatedRef.current = true;
@@ -200,10 +200,9 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
     });
     handleAfterConfigChange();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialDrill, initialBigrams, isPro, weakKeys, weakBigrams]);
+  }, [initialDrill, initialBigrams, weakKeys, weakBigrams]);
 
-  // Show Pro upsell banner for free users trying practice mode
-  const showProUpsell = !isPro && session?.user?.id && (initialDrill || !!initialBigrams?.length);
+  const showProUpsell = false;
 
   // Save results when test finishes (logged-in only)
   useEffect(() => {
@@ -357,7 +356,6 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
             practiceWeakKeysData={weakKeysData}
             practiceWeakBigrams={weakBigrams}
             practiceWeakBigramsData={weakBigramsData}
-            isPro={isPro}
           />
         </div>
         <ZenFreeformArena />
@@ -451,13 +449,19 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
         const filteredWeakBigrams = weakBigrams.filter((b) => isBigramRelevant(b, isPunctuation));
         const keyDataMap = new Map(weakKeysData.map((d) => [d.key, d]));
         const bigramDataMap = new Map(weakBigramsData.map((d) => [d.bigram, d]));
-        const showPractice = ct === "practice" && isPro && (filteredWeakKeys.length > 0 || filteredWeakBigrams.length > 0);
+        const showPractice = ct === "practice" && (filteredWeakKeys.length > 0 || filteredWeakBigrams.length > 0);
         return (
           <div className="h-5 flex items-center justify-center">
             {/* Code snippet */}
             {codeSnippet && (
               <span className="text-xs text-muted/50">
-                {codeSnippet.name} <span className="text-muted/35">·</span> <span className="text-muted/35">{codeSnippet.language}</span>
+                {engine.config.codeLanguage ? (
+                  /* Specific language selected — just show the snippet name */
+                  codeSnippet.name
+                ) : (
+                  /* "Any" mode — show language first, then snippet name */
+                  <>{codeSnippet.language} <span className="text-muted/35">·</span> <span className="text-muted/35">{codeSnippet.name}</span></>
+                )}
               </span>
             )}
             {/* Quote author */}
