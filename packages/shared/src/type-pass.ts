@@ -453,10 +453,6 @@ export function calculateRaceXp(data: {
   }
   return base + speedBonus + accBonus + placementBonus;
 }
-
-/** Daily XP cap for solo mode to prevent farming */
-export const SOLO_DAILY_XP_CAP = 1500;
-
 /** Calculate XP earned from a solo practice session (~50% of race XP, no placement bonus).
  *  Scaled by elapsed time normalized to 60s to prevent short-test farming. */
 export function calculateSoloXp(data: {

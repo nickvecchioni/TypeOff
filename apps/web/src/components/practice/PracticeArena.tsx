@@ -46,7 +46,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
   const [xpProgress, setXpProgress] = useState<{
     xpEarned: number; totalXp: number; level: number; levelUp: boolean;
     newRewards: Array<{ level: number; type: string; id: string; name: string; value: string }>;
-    isPro: boolean; dailyXpUsed: number; dailyXpCap: number;
+    isPro: boolean;
   } | null>(null);
 
   // Fetch PBs on mount (logged-in only)

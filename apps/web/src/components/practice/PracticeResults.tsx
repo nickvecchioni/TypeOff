@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useSession, signIn } from "next-auth/react";
 import Link from "next/link";
 import type { TestStats, TestConfig, WpmSample, CodeSnippet } from "@typeoff/shared";
-import { getQuoteByIndex, getCodeSnippet, getXpLevel, SOLO_DAILY_XP_CAP } from "@typeoff/shared";
+import { getQuoteByIndex, getCodeSnippet, getXpLevel } from "@typeoff/shared";
 import { WpmChart } from "@/components/typing/WpmChart";
 import { KeyboardHeatmap } from "@/components/typing/KeyboardHeatmap";
 import { ShareResultCard } from "@/components/shared/ShareResultCard";
@@ -131,8 +131,6 @@ interface SoloXpProgress {
   levelUp: boolean;
   newRewards: Array<{ level: number; type: string; id: string; name: string; value: string }>;
   isPro: boolean;
-  dailyXpUsed: number;
-  dailyXpCap: number;
 }
 
 function SoloXpPanel({ xp }: { xp: SoloXpProgress }) {
@@ -187,9 +185,6 @@ function SoloXpPanel({ xp }: { xp: SoloXpProgress }) {
   }, [prevPct, finalPct, xp.levelUp, xp.xpEarned]);
 
   const displayLevel = xp.levelUp && !levelUpVisible ? xp.level - 1 : xp.level;
-  const dailyPct = Math.min(100, (xp.dailyXpUsed / xp.dailyXpCap) * 100);
-  const cappedOut = xp.dailyXpUsed >= xp.dailyXpCap;
-
   return (
     <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden">
       <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
@@ -237,21 +232,6 @@ function SoloXpPanel({ xp }: { xp: SoloXpProgress }) {
               {(curInfo.nextLevelXp - curInfo.currentXp).toLocaleString()} XP to level {xp.level + 1}
             </div>
           </div>
-        </div>
-
-        {/* Daily cap indicator */}
-        <div className="flex items-center gap-2 text-xs text-muted/50">
-          <span className="shrink-0">Daily solo XP:</span>
-          <div className="flex-1 h-1 rounded-full bg-surface overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all ${cappedOut ? "bg-muted/40" : "bg-accent/40"}`}
-              style={{ width: `${dailyPct}%` }}
-            />
-          </div>
-          <span className={`tabular-nums shrink-0 ${cappedOut ? "text-muted/70 font-bold" : ""}`}>
-            {xp.dailyXpUsed.toLocaleString()} / {xp.dailyXpCap.toLocaleString()}
-            {cappedOut && " (capped)"}
-          </span>
         </div>
 
         {/* Pro multiplier hint */}

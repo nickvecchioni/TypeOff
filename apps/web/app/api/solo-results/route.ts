@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { soloResults, userKeyAccuracy, userBigramAccuracy, userAccuracySnapshots, textLeaderboards, userStats, userSubscription, userCosmetics } from "@typeoff/db";
-import { eq, and, desc, sql, gte } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 import type { KeyStatsMap } from "@typeoff/shared";
-import { scoreTextDifficulty, calculatePP, calculateTotalPP, getQuoteWords, getCodeSnippet, tokenizeCode, calculateSoloXp, SOLO_DAILY_XP_CAP, getXpLevel, getNewCosmeticRewards } from "@typeoff/shared";
+import { scoreTextDifficulty, calculatePP, calculateTotalPP, getQuoteWords, getCodeSnippet, tokenizeCode, calculateSoloXp, getXpLevel, getNewCosmeticRewards } from "@typeoff/shared";
 import { createRateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -153,15 +153,11 @@ export async function POST(request: Request) {
 
   let xpEarned = 0;
   let isPro = false;
-  let dailyXpUsed = 0;
   let prevXp = 0;
 
   if (xpEligible) {
-    // Check Pro status, current XP, and today's solo XP in parallel
-    const todayStart = new Date();
-    todayStart.setUTCHours(0, 0, 0, 0);
-
-    const [[sub], [xpStats], dailyXpRows] = await Promise.all([
+    // Check Pro status and current XP in parallel
+    const [[sub], [xpStats]] = await Promise.all([
       db
         .select({ status: userSubscription.status })
         .from(userSubscription)
@@ -172,24 +168,13 @@ export async function POST(request: Request) {
         .from(userStats)
         .where(eq(userStats.userId, userId))
         .limit(1),
-      db
-        .select({ xpSum: sql<number>`coalesce(sum(${soloResults.xpAwarded}), 0)` })
-        .from(soloResults)
-        .where(and(
-          eq(soloResults.userId, userId),
-          gte(soloResults.createdAt, todayStart),
-        )),
     ]);
 
     isPro = sub?.status === "active" || sub?.status === "lifetime" || sub?.status === "past_due";
-    dailyXpUsed = Number(dailyXpRows[0]?.xpSum ?? 0);
     prevXp = xpStats?.totalXp ?? 0;
-    const dailyXpRemaining = Math.max(0, SOLO_DAILY_XP_CAP - dailyXpUsed);
 
     const baseXp = calculateSoloXp({ wpm, accuracy, elapsedSeconds: time });
     xpEarned = isPro ? Math.round(baseXp * PRO_XP_MULTIPLIER) : baseXp;
-    // Clamp to daily cap
-    xpEarned = Math.min(xpEarned, dailyXpRemaining);
   }
 
   await db.insert(soloResults).values({
@@ -215,7 +200,7 @@ export async function POST(request: Request) {
 
   // Award XP to user stats
   const newXp = prevXp + xpEarned;
-  let xpProgress: { xpEarned: number; totalXp: number; level: number; levelUp: boolean; newRewards: Array<{ level: number; type: string; id: string; name: string; value: string }>; isPro: boolean; dailyXpUsed: number; dailyXpCap: number } | undefined;
+  let xpProgress: { xpEarned: number; totalXp: number; level: number; levelUp: boolean; newRewards: Array<{ level: number; type: string; id: string; name: string; value: string }>; isPro: boolean } | undefined;
 
   if (xpEarned > 0) {
     await db
@@ -244,8 +229,6 @@ export async function POST(request: Request) {
       levelUp,
       newRewards,
       isPro,
-      dailyXpUsed: dailyXpUsed + xpEarned,
-      dailyXpCap: SOLO_DAILY_XP_CAP,
     };
   }
 
