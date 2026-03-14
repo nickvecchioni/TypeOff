@@ -117,12 +117,43 @@ export default function AnalyticsPage() {
     }
   };
 
+  const isPro = session?.user?.isPro ?? false;
+
   if (status === "unauthenticated") {
     return (
       <SignInPrompt
         title="Sign in to view analytics"
         message="Sign in to see your per-key heatmaps, bigram accuracy, and WPM trends."
       />
+    );
+  }
+
+  if (status === "authenticated" && !isPro) {
+    return (
+      <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
+        <div className="max-w-lg mx-auto text-center animate-fade-in">
+          <div className="rounded-xl bg-surface/40 ring-1 ring-white/[0.06] px-6 py-10">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-accent/[0.08] ring-1 ring-accent/20 mb-4">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-accent">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg>
+            </div>
+            <h1 className="text-lg font-bold text-text mb-2">Advanced Analytics</h1>
+            <p className="text-sm text-muted/65 leading-relaxed mb-1">
+              Per-key heatmaps, bigram accuracy breakdowns,
+            </p>
+            <p className="text-sm text-muted/65 leading-relaxed mb-6">
+              WPM trends, and personalized practice insights.
+            </p>
+            <Link
+              href="/pro"
+              className="inline-block text-sm font-bold text-white bg-accent hover:bg-accent/80 px-6 py-2.5 rounded-lg transition-colors"
+            >
+              Unlock with Pro
+            </Link>
+          </div>
+        </div>
+      </main>
     );
   }
 

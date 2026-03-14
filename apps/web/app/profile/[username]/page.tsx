@@ -175,7 +175,7 @@ export default async function ProfilePage({
     .from(userSubscription)
     .where(eq(userSubscription.userId, user.id))
     .limit(1);
-  const isProUser = subRow?.status === "active";
+  const isProUser = subRow?.status === "active" || subRow?.status === "lifetime";
 
   // Load featured race data
   let featuredRaceData: {
@@ -340,7 +340,7 @@ export default async function ProfilePage({
                 <CosmeticTitle title={activeCosmetics?.activeTitle} />
                 {/* Bio */}
                 <div className="mt-1.5">
-                  {isOwn && isProUser ? (
+                  {isOwn ? (
                     <BioEditor initialBio={user.bio} />
                   ) : (
                     <BioDisplay bio={user.bio} />
@@ -722,10 +722,7 @@ export default async function ProfilePage({
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted/65 group-hover:text-accent transition-colors shrink-0">
                 <path d="M12 8v4l3 3" /><circle cx="12" cy="12" r="10" />
               </svg>
-              <span className="text-xs font-medium text-muted/65 group-hover:text-text transition-colors">Full History</span>
-              {!session?.user?.isPro && (
-                <span className="text-[10px] font-bold text-accent/50 bg-accent/[0.06] px-1.5 py-0.5 rounded uppercase tracking-wider ml-auto">Pro</span>
-              )}
+              <span className="text-xs font-medium text-muted/65 group-hover:text-text transition-colors">Race History</span>
             </Link>
             <Link
               href="/analytics"

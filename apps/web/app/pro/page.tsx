@@ -23,12 +23,10 @@ const FREE_REWARD_COUNT = TOTAL_REWARD_COUNT - PRO_REWARD_COUNT;
 const COMPARISON_ROWS: { feature: string; desc?: string; free: boolean | string; pro: boolean | string }[] = [
   { feature: "Ranked Racing",       desc: "ELO-rated matches with skill-based matchmaking",            free: true,                              pro: true },
   { feature: "Adaptive Practice",   desc: "Targets your weakest keys & bigrams",                      free: true,                              pro: true },
-  { feature: "Advanced Analytics",  desc: "Per-key heatmaps, bigram breakdown, WPM trends",           free: true,                              pro: true },
-  { feature: "Race Replays",        desc: "Rewatch any race keystroke by keystroke",                   free: true,                              pro: true },
-  { feature: "Race History",        desc: "Browse and filter your past race results",                  free: true,                              pro: true },
-  { feature: "Data Export",         desc: "Download your full stats as CSV/JSON",                      free: true,                              pro: true },
-  { feature: "Ad-Free Experience",  desc: "No ads, no distractions. Just typing",                    free: false,                             pro: true },
-  { feature: "Profile Bio & Pin",   desc: "Custom bio and pin your best race on your profile",         free: false,                             pro: true },
+  { feature: "Advanced Analytics",  desc: "Per-key heatmaps, bigram breakdown, WPM trends",           free: false,                             pro: true },
+  { feature: "Race Replays",        desc: "Rewatch any race keystroke by keystroke",                   free: "Last 3",                          pro: "Unlimited" },
+  { feature: "Race History",        desc: "Browse, filter, sort, and export past results",             free: "Last 10",                         pro: "Unlimited" },
+  { feature: "Featured Race",       desc: "Pin your best race on your profile",                        free: false,                             pro: true },
   { feature: "XP Multiplier",       desc: "Earn XP faster to unlock cosmetics sooner",                 free: "1×",                              pro: "1.5×" },
   { feature: "Level Rewards",       desc: "Exclusive themes, cursors, effects, and more",              free: `${FREE_REWARD_COUNT} cosmetics`,  pro: `All ${TOTAL_REWARD_COUNT}` },
   { feature: "Pro Badge & Effects", desc: "Stand out with exclusive name effects and Pro badge",       free: false,                             pro: true },
@@ -47,11 +45,11 @@ const FEATURES = [
   {
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="18" height="18" rx="2" /><line x1="3" y1="3" x2="21" y2="21" />
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
       </svg>
     ),
-    title: "Ad-Free",
-    description: "No banners, no distractions. Just you and the words. A completely clean experience across every page.",
+    title: "Advanced Analytics",
+    description: "Per-key heatmaps, bigram accuracy, WPM trends, and personalized practice insights to sharpen your weaknesses.",
     amber: true,
   },
   {
@@ -67,11 +65,11 @@ const FEATURES = [
   {
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+        <path d="M12 8v4l3 3" /><circle cx="12" cy="12" r="10" />
       </svg>
     ),
-    title: "Profile Bio & Pin",
-    description: "Write a custom bio and pin your best race on your profile. Show visitors what you're about.",
+    title: "Full History",
+    description: "Unlimited race history with sorting, filtering, and CSV/JSON export. Free users see their last 10.",
     amber: false,
   },
   {
@@ -142,8 +140,8 @@ export default function ProPage() {
                 </h1>
 
                 <p className="text-sm text-muted/65 max-w-md mx-auto leading-relaxed">
-                  Pro unlocks {PRO_REWARD_COUNT} exclusive cosmetics, 1.5x XP, ad-free racing,
-                  and profile customization.
+                  Pro unlocks advanced analytics, {PRO_REWARD_COUNT} exclusive cosmetics,
+                  1.5x XP, and unlimited history.
                   <br />
                   One-time purchase, yours forever.
                 </p>
@@ -151,7 +149,7 @@ export default function ProPage() {
                 {/* Stat highlights */}
                 <div className="flex justify-center gap-10 mt-8">
                   {[
-                    { value: "0",                        label: "Ads"           },
+                    { value: "∞",                        label: "History"       },
                     { value: "1.5×",                     label: "XP Multiplier" },
                     { value: String(PRO_REWARD_COUNT),   label: "Pro Cosmetics" },
                     { value: `$${PRO_PRICE}`,            label: "One-Time"      },
@@ -344,11 +342,11 @@ export default function ProPage() {
 /* ── Subscriber View ───────────────────────────────────── */
 
 const PRO_PERKS = [
-  { label: "Ad-Free", detail: "Zero distractions" },
+  { label: "Analytics", detail: "Full insights" },
   { label: "1.5× XP", detail: "Every race & solo" },
   { label: "Pro Cosmetics", detail: "Exclusive rewards" },
   { label: "Pro Badge", detail: "Stand out in races" },
-  { label: "Bio & Pin", detail: "Profile features" },
+  { label: "Full History", detail: "Unlimited + export" },
   { label: "Name Effects", detail: "Animated styling" },
 ];
 
@@ -472,7 +470,7 @@ function SubscriberView({
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-correct animate-pulse" />
-                <span className="text-[11px] text-correct/70 font-medium">Ad-Free</span>
+                <span className="text-[11px] text-correct/70 font-medium">Analytics</span>
               </div>
               <span className="text-white/[0.08]">|</span>
               <span className="text-[11px] text-muted/60 tabular-nums">

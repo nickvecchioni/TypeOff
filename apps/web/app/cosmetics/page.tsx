@@ -28,7 +28,7 @@ export default async function ItemsPage() {
     .where(eq(userSubscription.userId, session.user.id))
     .limit(1);
 
-  const isPro = subRow?.status === "active";
+  const isPro = subRow?.status === "active" || subRow?.status === "lifetime";
 
   return (
     <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-8 animate-fade-in">

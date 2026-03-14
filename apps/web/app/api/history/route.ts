@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { raceParticipants, races } from "@typeoff/db";
+import { raceParticipants, races, userSubscription } from "@typeoff/db";
 import { eq, desc, lt, and, gte, lte, sql } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 20;
+const FREE_LIMIT = 10;
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -14,16 +15,25 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const db = getDb();
+
+  // Check Pro status
+  const [subRow] = await db
+    .select({ status: userSubscription.status })
+    .from(userSubscription)
+    .where(eq(userSubscription.userId, session.user.id))
+    .limit(1);
+  const isPro = subRow?.status === "active" || subRow?.status === "lifetime";
+
   const params = req.nextUrl.searchParams;
   const cursor = params.get("cursor"); // ISO date string
   const sort = params.get("sort") ?? "date";
-  const minWpm = params.get("minWpm") ? Number(params.get("minWpm")) : undefined;
-  const dateFrom = params.get("dateFrom");
-  const dateTo = params.get("dateTo");
-  const isExport = params.get("export") === "true";
+  const minWpm = isPro && params.get("minWpm") ? Number(params.get("minWpm")) : undefined;
+  const dateFrom = isPro ? params.get("dateFrom") : null;
+  const dateTo = isPro ? params.get("dateTo") : null;
+  const isExport = isPro && params.get("export") === "true";
 
-  const db = getDb();
-  const limit = isExport ? undefined : PAGE_SIZE;
+  const limit = isExport ? undefined : isPro ? PAGE_SIZE : FREE_LIMIT;
 
   // Build conditions
   const conditions = [eq(raceParticipants.userId, session.user.id)];
@@ -102,5 +112,6 @@ export async function GET(req: NextRequest) {
     })),
     nextCursor,
     total: countRow?.count ?? 0,
+    isPro,
   });
 }
