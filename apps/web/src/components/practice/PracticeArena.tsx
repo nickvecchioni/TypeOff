@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect, useCallback, useState } from "react";
 import { useSession } from "next-auth/react";
-import { getPbKey, getCodeSnippet, getQuoteAuthor } from "@typeoff/shared";
+import { getPbKey, getCodeSnippetByIndex, getQuoteAuthor } from "@typeoff/shared";
 import { useTypingEngine } from "@/hooks/useTypingEngine";
 import { useCapsLock } from "@/hooks/useCapsLock";
 import { WordDisplay } from "@/components/typing/WordDisplay";
@@ -365,7 +365,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
 
   // Code snippet info (resolved once, used in the title slot)
   const codeSnippet = ct === "code" && engine.lastSeed != null
-    ? getCodeSnippet(engine.lastSeed, engine.config.codeLanguage)
+    ? getCodeSnippetByIndex(engine.lastSeed, engine.config.codeLanguage)
     : null;
 
   return (

@@ -1211,7 +1211,7 @@ export function RaceResults({
         const snippet = getCodeSnippet(raceSeed);
         return (
           <div className="shrink-0 rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-4 py-2.5 flex items-center gap-2">
-            <span className="text-sm font-mono text-accent/70">&lt;/&gt;</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent/70 shrink-0"><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></svg>
             <span className="text-sm text-text/70">{snippet.name}</span>
             <span className="text-xs text-muted/60">{snippet.language}</span>
           </div>

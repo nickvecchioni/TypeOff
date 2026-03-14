@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useSession, signIn } from "next-auth/react";
 import Link from "next/link";
 import type { TestStats, TestConfig, WpmSample, CodeSnippet } from "@typeoff/shared";
-import { getQuoteByIndex, getCodeSnippet, getXpLevel } from "@typeoff/shared";
+import { getQuoteByIndex, getCodeSnippetByIndex, getXpLevel } from "@typeoff/shared";
 import { WpmChart } from "@/components/typing/WpmChart";
 import { KeyboardHeatmap } from "@/components/typing/KeyboardHeatmap";
 import { ShareResultCard } from "@/components/shared/ShareResultCard";
@@ -257,7 +257,7 @@ function CodeInfoBar({ snippet }: { snippet: CodeSnippet }) {
         onClick={() => setExpanded((v) => !v)}
         className="w-full px-4 py-2.5 flex items-center gap-2 hover:bg-white/[0.02] transition-colors cursor-pointer"
       >
-        <span className="text-sm font-mono text-accent/70">&lt;/&gt;</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent/70 shrink-0"><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></svg>
         <span className="text-sm text-text/70">{snippet.name}</span>
         <span className="text-xs text-muted/60">{snippet.language}</span>
         <svg
@@ -449,7 +449,7 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed, xpProgre
         );
       })()}
       {config.contentType === "code" && seed != null && (() => {
-        const snippet = getCodeSnippet(seed, config.codeLanguage);
+        const snippet = getCodeSnippetByIndex(seed, config.codeLanguage);
         return <CodeInfoBar snippet={snippet} />;
       })()}
 

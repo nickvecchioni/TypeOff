@@ -168,6 +168,18 @@ export function normalizeCodeSeed(seed: number, language?: string): number {
   return Math.floor(rng() * pool.length);
 }
 
+/**
+ * Get a code snippet by its normalized index (from normalizeCodeSeed).
+ * Use this in results screens where the seed has already been normalized.
+ */
+export function getCodeSnippetByIndex(index: number, language?: string): CodeSnippet {
+  const pool = language
+    ? CODE_SNIPPETS.filter((s) => s.language === language)
+    : CODE_SNIPPETS;
+  if (pool.length === 0) return CODE_SNIPPETS[0];
+  return pool[index % pool.length];
+}
+
 /** Get all available languages */
 export function getCodeLanguages(): string[] {
   return [...LANGUAGES];
