@@ -442,8 +442,6 @@ export function useRace(myPlayerId?: string | null) {
     setRaceState(null);
     setProgress({});
     setResults([]);
-    setPlacementRace(undefined);
-    setPlacementTotal(undefined);
     setCountdown(0);
     setQueueCount(0);
     setFinishTimeoutEnd(null);
@@ -458,8 +456,6 @@ export function useRace(myPlayerId?: string | null) {
       setRaceState(null);
       setProgress({});
       setResults([]);
-      setPlacementRace(undefined);
-      setPlacementTotal(undefined);
       setCountdown(0);
       setFinishTimeoutEnd(null);
       setError(null);
