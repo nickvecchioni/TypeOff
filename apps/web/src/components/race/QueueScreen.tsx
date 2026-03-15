@@ -562,32 +562,51 @@ export function QueueScreen({
   return (
     <div className="flex flex-col items-center w-full max-w-5xl gap-3">
         <>
-          {/* ── Guest banner ──────────────────────────────────────────── */}
+          {/* ── Guest hero + banner ────────────────────────────────────── */}
           {isGuest && (
             <div
-              className="w-full rounded-lg bg-accent/[0.06] ring-1 ring-accent/15 px-4 py-3 flex items-center justify-between animate-fade-in"
+              className="w-full flex flex-col items-center gap-3 animate-fade-in"
               style={{ animationDelay: "0ms", animationFillMode: "both" }}
             >
-              <div className="flex flex-col gap-0.5">
-                <span className="text-sm font-semibold text-text/90">
-                  Playing as Guest
-                </span>
-                <span className="text-xs text-muted/65">
-                  Sign in to save your progress and climb the ranks
-                </span>
+              {/* Hero */}
+              <div className="relative flex flex-col items-center gap-1.5 mb-1">
+                <div
+                  className="absolute -inset-16 pointer-events-none"
+                  style={{
+                    background: "radial-gradient(ellipse 70% 50% at 50% 40%, rgba(77,158,255,0.07) 0%, transparent 70%)",
+                  }}
+                />
+                <h1 className="relative text-2xl sm:text-3xl font-black text-text tracking-tight text-center leading-tight">
+                  Competitive typing, <span className="text-accent">ranked.</span>
+                </h1>
+                <p className="relative text-muted/60 text-sm text-center">
+                  Race against players at your skill level. Try it now as a guest.
+                </p>
               </div>
-              <button
-                onClick={() => signIn("google")}
-                className="shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-accent bg-accent/[0.08] ring-1 ring-accent/20 hover:bg-accent hover:text-bg hover:ring-accent transition-all"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="shrink-0">
-                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
-                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 0 0 1 12c0 1.77.42 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                </svg>
-                Sign in
-              </button>
+
+              {/* Sign-in banner */}
+              <div className="w-full rounded-lg bg-accent/[0.06] ring-1 ring-accent/15 px-4 py-2.5 flex items-center justify-between">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-sm font-semibold text-text/90">
+                    Playing as Guest
+                  </span>
+                  <span className="text-xs text-muted/65">
+                    Sign in to save your progress and climb the ranks
+                  </span>
+                </div>
+                <button
+                  onClick={() => signIn("google")}
+                  className="shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-accent bg-accent/[0.08] ring-1 ring-accent/20 hover:bg-accent hover:text-bg hover:ring-accent transition-all"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="shrink-0">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 0 0 1 12c0 1.77.42 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                  </svg>
+                  Sign in
+                </button>
+              </div>
             </div>
           )}
 
@@ -828,7 +847,7 @@ export function QueueScreen({
             </div>
           )}
 
-          {/* ── Dashboard ─────────────────────────────────────────────── */}
+          {/* ── Dashboard (signed-in) ──────────────────────────────────── */}
           {xpInfo && !isGuest && (
             <div className="w-full border-t border-white/[0.05] pt-2 shrink-0">
             <div
@@ -844,6 +863,104 @@ export function QueueScreen({
               />
             </div>
             <AdBanner slot="queue_screen" format="horizontal" className="w-full mt-3" />
+            </div>
+          )}
+
+          {/* ── Guest dashboard ────────────────────────────────────────── */}
+          {isGuest && (
+            <div
+              className="w-full border-t border-white/[0.05] pt-3 flex flex-col gap-3 animate-fade-in"
+              style={{ animationDelay: "150ms", animationFillMode: "both" }}
+            >
+              {/* Feature highlights */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {[
+                  {
+                    icon: (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                      </svg>
+                    ),
+                    title: "ELO Matchmaking",
+                    desc: "Every race matches you against players at your exact skill level",
+                  },
+                  {
+                    icon: (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M6 9H3.5a2.5 2.5 0 010-5H6" />
+                        <path d="M18 9h2.5a2.5 2.5 0 000-5H18" />
+                        <path d="M6 4h12v6a6 6 0 01-12 0V4z" />
+                        <line x1="12" y1="16" x2="12" y2="20" />
+                        <line x1="8" y1="20" x2="16" y2="20" />
+                      </svg>
+                    ),
+                    title: "Ranked Climbing",
+                    desc: "3 placement races per mode, then climb from Bronze to Grandmaster",
+                  },
+                  {
+                    icon: (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 3l1.5 4 4 1.5-4 1.5L12 14l-1.5-4-4-1.5 4-1.5L12 3z" />
+                        <path d="M5 3v4M3 5h4" />
+                        <path d="M19 17v4M17 19h4" />
+                      </svg>
+                    ),
+                    title: "Cosmetics & XP",
+                    desc: "Unlock titles, cursors, name effects, and typing themes as you level up",
+                  },
+                ].map((item) => (
+                  <div
+                    key={item.title}
+                    className="rounded-xl bg-surface/40 ring-1 ring-white/[0.04] px-4 py-3.5 flex flex-col gap-2"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-accent/60">{item.icon}</span>
+                      <span className="text-sm font-bold text-text/90">{item.title}</span>
+                    </div>
+                    <p className="text-xs text-muted/55 leading-relaxed">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Rank tier strip */}
+              <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-4 py-3">
+                <div className="text-xs font-bold text-muted/50 uppercase tracking-wider mb-2.5">7 Ranks to climb</div>
+                <div className="flex items-center gap-1.5">
+                  {([
+                    { tier: "bronze" as const, label: "Bronze", elo: "0" },
+                    { tier: "silver" as const, label: "Silver", elo: "1000" },
+                    { tier: "gold" as const, label: "Gold", elo: "1300" },
+                    { tier: "platinum" as const, label: "Plat", elo: "1600" },
+                    { tier: "diamond" as const, label: "Diamond", elo: "1900" },
+                    { tier: "master" as const, label: "Master", elo: "2200" },
+                    { tier: "grandmaster" as const, label: "GM", elo: "2500" },
+                  ]).map((r) => (
+                    <div
+                      key={r.tier}
+                      className="flex-1 flex flex-col items-center gap-1 py-1.5 rounded-lg"
+                      style={{ background: `${RANK_HEX[r.tier]}08` }}
+                    >
+                      <span
+                        className="text-xs font-black leading-none"
+                        style={{ color: RANK_HEX[r.tier] }}
+                      >
+                        {r.label}
+                      </span>
+                      <span className="text-[10px] text-muted/40 tabular-nums leading-none">{r.elo}+</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Solo practice link */}
+              <div className="flex items-center justify-center gap-4 pt-1">
+                <Link
+                  href="/solo"
+                  className="text-xs text-muted/50 hover:text-accent/70 transition-colors"
+                >
+                  or try Solo Practice →
+                </Link>
+              </div>
             </div>
           )}
         </>
