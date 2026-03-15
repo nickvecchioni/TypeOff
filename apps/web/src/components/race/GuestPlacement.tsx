@@ -13,16 +13,6 @@ type Phase = "idle" | "racing" | "reveal";
 
 const GUEST_WORD_COUNT = 50;
 
-const RANK_TIERS = [
-  { label: "Bronze", abbr: "BR", color: "#d97706", elo: "0 – 999", wpm: "~10–50 WPM", desc: "Just starting out" },
-  { label: "Silver", abbr: "SI", color: "#9ca3af", elo: "1000 – 1299", wpm: "~50–80 WPM", desc: "Getting consistent" },
-  { label: "Gold", abbr: "GO", color: "#eab308", elo: "1300 – 1599", wpm: "~80–110 WPM", desc: "Above average" },
-  { label: "Platinum", abbr: "PL", color: "#67e8f9", elo: "1600 – 1899", wpm: "~110–140 WPM", desc: "Seriously fast" },
-  { label: "Diamond", abbr: "DI", color: "#3b82f6", elo: "1900 – 2199", wpm: "~140–170 WPM", desc: "Top competitor" },
-  { label: "Master", abbr: "MA", color: "#a855f7", elo: "2200 – 2499", wpm: "~170–200 WPM", desc: "Elite typist" },
-  { label: "Grandmaster", abbr: "GM", color: "#ef4444", elo: "2500+", wpm: "200+ WPM", desc: "The fastest alive" },
-] as const;
-
 const FEATURES = [
   {
     icon: (
@@ -342,7 +332,7 @@ export function GuestPlacement({
             style={{ animationDelay: "0ms", animationFillMode: "both" }}
           >
             <span className="text-accent text-xs font-bold uppercase tracking-[0.2em]">
-              Placement Test
+              Speed Test
             </span>
             <span className="text-muted/60">·</span>
             <span className="text-muted/70 text-xs">
@@ -353,14 +343,13 @@ export function GuestPlacement({
             className="text-muted/80 text-sm text-center leading-relaxed opacity-0 animate-fade-in"
             style={{ animationDelay: "40ms", animationFillMode: "both" }}
           >
-            Your speed determines your starting rank and who you get matched
-            against.
+            See how fast you type. Your rank adjusts naturally from your first race.
           </p>
           <p
             className="text-muted/70 text-xs text-center leading-relaxed opacity-0 animate-fade-in"
             style={{ animationDelay: "70ms", animationFillMode: "both" }}
           >
-            No pressure. Your first 30 races use boosted ELO adjustments to get
+            No pressure. Your first races use boosted ELO adjustments to get
             you to your true rank fast.
           </p>
           <p
@@ -383,7 +372,7 @@ export function GuestPlacement({
             animationFillMode: "both",
           }}
           role="textbox"
-          aria-label="Placement typing area"
+          aria-label="Typing speed test"
         >
           <div
             ref={wordsInnerRef}
@@ -476,12 +465,12 @@ export function GuestPlacement({
             <span className="text-accent text-glow-accent">ranked.</span>
           </h1>
           <p className="relative text-muted/70 text-sm text-center whitespace-nowrap">
-            Start typing to find your rank. Race real players at your exact skill level.
+            Race real players at your exact skill level. Start typing to try it out.
           </p>
         </div>
       </div>
 
-      {/* ── Placement label (fades when typing) ────────────────────────────── */}
+      {/* ── Speed test label (fades when typing) ─────────────────────────── */}
       <div
         className={`transition-opacity duration-500 ease-out ${
           isTyping ? "opacity-0 pointer-events-none" : "opacity-100"
@@ -492,7 +481,7 @@ export function GuestPlacement({
           style={{ animationDelay: "60ms", animationFillMode: "both" }}
         >
           <span className="text-accent text-xs font-bold uppercase tracking-[0.2em]">
-            Placement Test
+            Speed Test
           </span>
           <span className="text-muted/60">·</span>
           <span className="text-muted/70 text-xs">
@@ -513,7 +502,7 @@ export function GuestPlacement({
           animationFillMode: "both",
         }}
         role="textbox"
-        aria-label="Placement typing area"
+        aria-label="Typing speed test"
       >
         <div
           ref={wordsInnerRef}
@@ -571,68 +560,15 @@ export function GuestPlacement({
         }`}
       >
         {/* Rank progression + social proof */}
-        <div
-          className="flex flex-col items-center gap-3 opacity-0 animate-fade-in"
-          style={{ animationDelay: "180ms", animationFillMode: "both" }}
-        >
-          <div className="flex items-center gap-1">
-            {RANK_TIERS.map((tier, i) => (
-              <div key={tier.label} className="group relative flex items-center">
-                {/* Tooltip */}
-                <div className="pointer-events-none absolute bottom-full mb-2.5 left-1/2 -translate-x-1/2 opacity-0 scale-90 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 origin-bottom z-50">
-                  <div
-                    className="rounded-lg px-3 py-2 text-center whitespace-nowrap backdrop-blur-md"
-                    style={{
-                      background: `linear-gradient(135deg, ${tier.color}18, ${tier.color}08)`,
-                      border: `1px solid ${tier.color}30`,
-                      boxShadow: `0 4px 20px ${tier.color}15, 0 0 40px ${tier.color}08`,
-                    }}
-                  >
-                    <div className="text-[11px] font-bold" style={{ color: tier.color }}>{tier.label}</div>
-                    <div className="text-[10px] text-muted/70 mt-0.5">{tier.elo} ELO</div>
-                    <div className="text-[10px] text-muted/60">{tier.wpm}</div>
-                    <div className="text-[10px] text-muted/45 italic mt-0.5">{tier.desc}</div>
-                  </div>
-                  <div
-                    className="mx-auto w-2 h-2 rotate-45 -mt-1"
-                    style={{ background: `${tier.color}18`, borderRight: `1px solid ${tier.color}30`, borderBottom: `1px solid ${tier.color}30` }}
-                  />
-                </div>
-                {/* Rank dot */}
-                <div
-                  className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full cursor-default transition-all duration-300 group-hover:scale-150"
-                  style={{
-                    backgroundColor: tier.color,
-                    opacity: 0.7,
-                    boxShadow: `0 0 6px ${tier.color}50`,
-                    animation: `fade-in 0.4s ease-out ${180 + i * 50}ms both`,
-                  }}
-                />
-                {/* Connecting line */}
-                {i < RANK_TIERS.length - 1 && (
-                  <div
-                    className="w-4 sm:w-6 h-px mx-0.5"
-                    style={{
-                      background: `linear-gradient(90deg, ${tier.color}40, ${RANK_TIERS[i + 1].color}40)`,
-                    }}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-          <div className="flex items-center gap-3 text-[10px] text-muted/50">
-            <span style={{ color: RANK_TIERS[0].color + "90" }}>Bronze</span>
-            <span className="text-muted/25">→</span>
-            <span style={{ color: RANK_TIERS[6].color + "90" }}>Grandmaster</span>
-          </div>
-
-          {/* Social proof */}
-          {racesThisWeek != null && racesThisWeek > 0 && (
-            <span className="text-muted/45 text-xs tabular-nums">
-              {racesThisWeek.toLocaleString()} races this week
-            </span>
-          )}
-        </div>
+        {/* Social proof */}
+        {racesThisWeek != null && racesThisWeek > 0 && (
+          <span
+            className="text-muted/45 text-xs tabular-nums opacity-0 animate-fade-in"
+            style={{ animationDelay: "180ms", animationFillMode: "both" }}
+          >
+            {racesThisWeek.toLocaleString()} races this week
+          </span>
+        )}
 
         {/* Feature highlights */}
         <div
