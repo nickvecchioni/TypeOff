@@ -2,11 +2,9 @@
 
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { RankBadge } from "@/components/RankBadge";
 import { CosmeticName } from "@/components/CosmeticName";
 import { CosmeticBadge } from "@/components/CosmeticBadge";
 import { useActiveCosmetics } from "@/contexts/CosmeticContext";
-import type { RankTier } from "@typeoff/shared";
 
 export function UserMenu() {
   const { data: session, status } = useSession();
@@ -37,13 +35,8 @@ export function UserMenu() {
       href={profileHref}
       className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 hover:bg-white/[0.05] transition-colors group"
     >
-      <RankBadge
-        tier={session.user.rankTier as RankTier}
-        elo={session.user.eloRating}
-        size="xs"
-      />
       <CosmeticBadge badge={cosmetics.activeBadge} />
-      <span className="hidden sm:block text-sm font-bold text-text group-hover:text-accent transition-colors">
+      <span className="text-sm font-bold text-text group-hover:text-accent transition-colors">
         <CosmeticName nameColor={cosmetics.activeNameColor} nameEffect={cosmetics.activeNameEffect}>
           {session.user.username ?? "set username"}
         </CosmeticName>

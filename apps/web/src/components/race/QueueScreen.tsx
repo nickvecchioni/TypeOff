@@ -553,63 +553,6 @@ export function QueueScreen({
     <div className="flex flex-col items-center w-full max-w-5xl gap-3">
       {session?.user ? (
         <>
-          {/* ── Player identity card ──────────────────────────────────── */}
-          <div
-              className="relative w-full rounded-xl overflow-hidden animate-fade-in"
-              style={{ animationFillMode: "both" }}
-            >
-              {/* Ambient rank glow */}
-              <div
-                className="absolute inset-0 pointer-events-none"
-                style={{
-                  background: `radial-gradient(ellipse at 20% 50%, ${RANK_GLOW[session.user.rankTier]} 0%, transparent 65%)`,
-                }}
-              />
-
-              <div className="relative flex items-center gap-4 sm:gap-5 px-5 py-3.5 ring-1 ring-white/[0.05] rounded-xl bg-surface/40">
-                {/* ELO */}
-                <div className="shrink-0">
-                  <div className="text-xs text-muted/60 uppercase tracking-widest leading-none mb-0.5">
-                    elo
-                  </div>
-                  <div
-                    className="text-2xl font-black tabular-nums tracking-tight leading-none"
-                    style={{
-                      color: RANK_HEX[session.user.rankTier],
-                      textShadow: `0 0 24px ${RANK_GLOW[session.user.rankTier]}`,
-                    }}
-                  >
-                    {session.user.eloRating}
-                  </div>
-                </div>
-
-                {/* Rank label */}
-                <div className="shrink-0">
-                  <span
-                    className="text-xs font-bold leading-none"
-                    style={{ color: RANK_HEX[getRankInfo(session.user.eloRating).tier] }}
-                  >
-                    {getRankInfo(session.user.eloRating).label}
-                  </span>
-                </div>
-
-                {/* Win streak */}
-                {session.user.currentStreak > 1 && (
-                  <>
-                    <div className="w-px h-8 bg-white/[0.05] shrink-0" />
-                    <div className="shrink-0">
-                      <div className="text-xs text-muted/60 uppercase tracking-widest leading-none mb-0.5">
-                        win streak
-                      </div>
-                      <div className="text-sm font-bold text-amber-400 tabular-nums leading-none">
-                        {session.user.currentStreak}
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-
           {/* ── Action area ───────────────────────────────────────────── */}
           {inPartyNotLeader ? (
             <div
@@ -686,7 +629,7 @@ export function QueueScreen({
                         key={id}
                         type="button"
                         onClick={() => toggleMode(id)}
-                        className={`flex flex-col items-center gap-1 px-2 py-2.5 rounded-lg text-center transition-all ${
+                        className={`flex flex-col items-center gap-1.5 px-2 py-3 rounded-lg text-center transition-all ${
                           active
                             ? "ring-1 ring-accent bg-accent/[0.08] text-accent"
                             : "ring-1 ring-white/[0.09] bg-white/[0.02] text-text/70 hover:text-text/90 hover:ring-white/[0.15] hover:bg-white/[0.04]"
@@ -699,17 +642,31 @@ export function QueueScreen({
                         </span>
                         <span className="text-xs font-semibold leading-none">{label}</span>
                         <span
-                          className={`text-xs leading-tight hidden sm:block ${active ? "text-accent/70" : "text-text/50"}`}
+                          className={`text-[11px] leading-tight hidden sm:block ${active ? "text-accent/70" : "text-text/50"}`}
                         >
                           {desc}
                         </span>
-                        {modeRank && (
-                          <span
-                            className="text-[10px] font-bold tabular-nums leading-none mt-0.5"
-                            style={{ color: RANK_HEX[modeRank.tier] }}
-                          >
-                            {modeElo}
-                          </span>
+                        {modeRank ? (
+                          <div className="flex flex-col items-center gap-0.5 mt-0.5">
+                            <span
+                              className="text-sm font-black tabular-nums leading-none"
+                              style={{ color: RANK_HEX[modeRank.tier] }}
+                            >
+                              {modeElo}
+                            </span>
+                            <span
+                              className="text-[10px] font-bold leading-none"
+                              style={{ color: RANK_HEX[modeRank.tier] }}
+                            >
+                              {modeRank.label}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center gap-0.5 mt-0.5">
+                            <span className="text-[10px] text-muted/40 leading-none">
+                              unranked
+                            </span>
+                          </div>
                         )}
                       </button>
                     );
