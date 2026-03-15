@@ -592,7 +592,6 @@ export function QueueScreen({
                 <EloProgressBar elo={session.user.eloRating} tier={session.user.rankTier} />
               </div>
             </div>
-          </div>
 
           {/* ── Action area ───────────────────────────────────────────── */}
           {inPartyNotLeader ? (
