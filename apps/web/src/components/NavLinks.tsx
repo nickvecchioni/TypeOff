@@ -2,21 +2,23 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 const NAV_LINKS = [
   { href: "/leaderboard", label: "Leaderboard" },
   { href: "/solo", label: "Solo" },
-  { href: "/analytics", label: "Analytics" },
-  { href: "/cosmetics", label: "Cosmetics" },
-  { href: "/pro", label: "Pro", isPro: true },
+  { href: "/analytics", label: "Analytics", authRequired: true },
+  { href: "/cosmetics", label: "Cosmetics", authRequired: true },
+  { href: "/pro", label: "Pro", isPro: true, authRequired: true },
 ];
 
 export function NavLinks() {
   const pathname = usePathname();
+  const { data: session } = useSession();
 
   return (
     <>
-      {NAV_LINKS.map((link) => {
+      {NAV_LINKS.filter((link) => !link.authRequired || session).map((link) => {
         const isActive =
           pathname === link.href || pathname.startsWith(link.href + "/");
 

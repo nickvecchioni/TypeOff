@@ -462,7 +462,7 @@ export function GuestPlacement({
           />
           <h1 className="relative text-3xl sm:text-4xl font-black text-text tracking-tight text-center leading-tight">
             Competitive typing,{" "}
-            <span className="text-accent text-glow-accent">ranked.</span>
+            <span className="text-accent">ranked.</span>
           </h1>
           <p className="relative text-muted/70 text-sm text-center whitespace-nowrap">
             Race real players at your exact skill level. Start typing to try it out.

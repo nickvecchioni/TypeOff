@@ -3,7 +3,6 @@
 import { useRouter, useSearchParams } from "next/navigation";
 
 const UNIVERSES = [
-  { value: "all", label: "Overall" },
   { value: "words", label: "Words" },
   { value: "special", label: "Mixed" },
   { value: "quotes", label: "Quotes" },
@@ -13,15 +12,11 @@ const UNIVERSES = [
 export function UniverseSelector() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const active = searchParams.get("universe") ?? "all";
+  const active = searchParams.get("universe") ?? "words";
 
   function select(universe: string) {
     const params = new URLSearchParams(searchParams.toString());
-    if (universe === "all") {
-      params.delete("universe");
-    } else {
-      params.set("universe", universe);
-    }
+    params.set("universe", universe);
     router.replace(`?${params.toString()}`);
   }
 

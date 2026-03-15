@@ -402,6 +402,16 @@ export function QueueScreen({
 }: QueueScreenProps) {
   const { data: session, status } = useSession();
   const tabPressedRef = React.useRef(false);
+  const [modeElos, setModeElos] = React.useState<Record<string, number>>({});
+
+  // Fetch per-mode ELOs
+  React.useEffect(() => {
+    if (!session?.user?.id) return;
+    fetch("/api/mode-elos")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => { if (data?.modeElos) setModeElos(data.modeElos); })
+      .catch(() => {});
+  }, [session?.user?.id]);
 
   function toggleMode(id: ModeCategory) {
     onSetModeCategories(
@@ -573,6 +583,15 @@ export function QueueScreen({
                   </div>
                 </div>
 
+                {/* Rank label */}
+                <div className="shrink-0">
+                  <span
+                    className="text-xs font-bold leading-none"
+                    style={{ color: RANK_HEX[getRankInfo(session.user.eloRating).tier] }}
+                  >
+                    {getRankInfo(session.user.eloRating).label}
+                  </span>
+                </div>
 
                 {/* Win streak */}
                 {session.user.currentStreak > 1 && (
@@ -583,13 +602,11 @@ export function QueueScreen({
                         win streak
                       </div>
                       <div className="text-sm font-bold text-amber-400 tabular-nums leading-none">
-                        🔥 {session.user.currentStreak}
+                        {session.user.currentStreak}
                       </div>
                     </div>
                   </>
                 )}
-
-                <EloProgressBar elo={session.user.eloRating} tier={session.user.rankTier} />
               </div>
             </div>
 
@@ -662,6 +679,8 @@ export function QueueScreen({
                 <div className="grid grid-cols-4 gap-1.5">
                   {MODES.map(({ id, label, icon, desc }) => {
                     const active = modeCategories.includes(id);
+                    const modeElo = modeElos[id];
+                    const modeRank = modeElo != null ? getRankInfo(modeElo) : null;
                     return (
                       <button
                         key={id}
@@ -684,12 +703,20 @@ export function QueueScreen({
                         >
                           {desc}
                         </span>
+                        {modeRank && (
+                          <span
+                            className="text-[10px] font-bold tabular-nums leading-none mt-0.5"
+                            style={{ color: RANK_HEX[modeRank.tier] }}
+                          >
+                            {modeElo}
+                          </span>
+                        )}
                       </button>
                     );
                   })}
                 </div>
                   <p className="text-sm text-muted/70 mt-2 leading-relaxed text-center">
-                    Select one or more modes. One is picked at random each race. Your ELO rating is shared across all modes.
+                    Select one or more modes. One is picked at random each race. Each mode has its own ELO rating.
                   </p>
                 </div>
 

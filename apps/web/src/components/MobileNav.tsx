@@ -3,19 +3,21 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 const NAV_LINKS = [
   { href: "/leaderboard", label: "Leaderboard" },
   { href: "/about", label: "About" },
   { href: "/solo", label: "Solo" },
-  { href: "/analytics", label: "Analytics" },
-  { href: "/cosmetics", label: "Cosmetics" },
-  { href: "/pro", label: "Pro", className: "text-accent/70" },
+  { href: "/analytics", label: "Analytics", authRequired: true },
+  { href: "/cosmetics", label: "Cosmetics", authRequired: true },
+  { href: "/pro", label: "Pro", className: "text-accent/70", authRequired: true },
 ];
 
 export function MobileNav() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const { data: session } = useSession();
 
   // Close on route change
   useEffect(() => {
@@ -83,7 +85,7 @@ export function MobileNav() {
         }`}
       >
         <nav className="flex flex-col gap-1">
-          {NAV_LINKS.map((link) => {
+          {NAV_LINKS.filter((link) => !link.authRequired || session).map((link) => {
             const isActive = pathname === link.href;
             return (
               <Link
