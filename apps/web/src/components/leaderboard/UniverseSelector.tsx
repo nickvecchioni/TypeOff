@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 
 const UNIVERSES = [
-  { value: "all", label: "ELO" },
+  { value: "all", label: "Overall" },
   { value: "words", label: "Words" },
   { value: "special", label: "Mixed" },
   { value: "quotes", label: "Quotes" },

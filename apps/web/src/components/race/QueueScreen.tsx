@@ -400,19 +400,8 @@ export function QueueScreen({
   modeCategories,
   onSetModeCategories,
 }: QueueScreenProps) {
-  const { data: session, status, update: updateSession } = useSession();
+  const { data: session, status } = useSession();
   const tabPressedRef = React.useRef(false);
-
-  async function handlePlacementClaim(wpm: number) {
-    try {
-      await fetch("/api/claim-placement", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ wpm }),
-      });
-      await updateSession({});
-    } catch {}
-  }
 
   function toggleMode(id: ModeCategory) {
     onSetModeCategories(
@@ -437,7 +426,7 @@ export function QueueScreen({
 
   // Tab+Enter shortcut to join queue (or mark ready for non-leaders)
   React.useEffect(() => {
-    if (isQueuing || !session?.user || !session.user.placementsCompleted || !connected) return;
+    if (isQueuing || !session?.user || !connected) return;
 
     function handleKeyDown(e: KeyboardEvent) {
       const tag = (e.target as HTMLElement)?.tagName;
@@ -553,13 +542,9 @@ export function QueueScreen({
   return (
     <div className="flex flex-col items-center w-full max-w-5xl gap-3">
       {session?.user ? (
-        !session.user.placementsCompleted ? (
-          <GuestPlacement startFromIdle onPlacementComplete={handlePlacementClaim} />
-        ) : (
         <>
           {/* ── Player identity card ──────────────────────────────────── */}
-          {session.user.placementsCompleted && (
-            <div
+          <div
               className="relative w-full rounded-xl overflow-hidden animate-fade-in"
               style={{ animationFillMode: "both" }}
             >
@@ -607,7 +592,7 @@ export function QueueScreen({
                 <EloProgressBar elo={session.user.eloRating} tier={session.user.rankTier} />
               </div>
             </div>
-          )}
+          </div>
 
           {/* ── Action area ───────────────────────────────────────────── */}
           {inPartyNotLeader ? (
@@ -674,8 +659,7 @@ export function QueueScreen({
               />
 
               {/* Mode selector */}
-              {session.user.placementsCompleted && (
-                <div className="relative w-full mb-2">
+              <div className="relative w-full mb-2">
                 <div className="grid grid-cols-4 gap-1.5">
                   {MODES.map(({ id, label, icon, desc }) => {
                     const active = modeCategories.includes(id);
@@ -709,7 +693,6 @@ export function QueueScreen({
                     Select one or more modes. One is picked at random each race. Your ELO rating is shared across all modes.
                   </p>
                 </div>
-              )}
 
               {/* Find Race button */}
               <button
@@ -717,11 +700,7 @@ export function QueueScreen({
                 disabled={!connected || (inParty && !allMembersReady)}
                 className="relative w-full rounded-xl bg-accent/[0.08] ring-1 ring-accent/25 text-accent py-4 text-base font-bold tracking-wide glow-accent hover:bg-accent hover:text-bg hover:ring-accent hover:glow-accent-strong transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent/[0.08] disabled:hover:text-accent disabled:hover:ring-accent/25"
               >
-                {session.user.placementsCompleted
-                  ? privateRace
-                    ? "Start Private Race"
-                    : "Find Race"
-                  : "Start Placement"}
+                {privateRace ? "Start Private Race" : "Find Race"}
               </button>
 
               {/* Hint row + secondary actions */}
@@ -739,7 +718,7 @@ export function QueueScreen({
                   )}
                 </span>
 
-                {session.user.placementsCompleted && !party && (
+                {!party && (
                   <div className="flex items-center gap-2">
                     <button
                       onClick={onCreateParty}
@@ -762,7 +741,7 @@ export function QueueScreen({
               </div>
 
               {/* Party bar + private race toggle */}
-              {session.user.placementsCompleted && party && (
+              {party && (
                 <div className="relative w-full mt-1 flex flex-col items-center gap-2 animate-fade-in">
                   <PartyPanel
                     party={party}
@@ -797,16 +776,11 @@ export function QueueScreen({
                 </div>
               )}
 
-              {!session.user.placementsCompleted && (
-                <p className="relative text-xs text-muted/65 mt-1">
-                  complete a placement test to unlock ranked
-                </p>
-              )}
             </div>
           )}
 
           {/* ── Dashboard ─────────────────────────────────────────────── */}
-          {session.user.placementsCompleted && xpInfo && (
+          {xpInfo && (
             <div className="w-full border-t border-white/[0.05] pt-2 shrink-0">
             <div
               className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2 animate-fade-in"
@@ -824,7 +798,6 @@ export function QueueScreen({
             </div>
           )}
         </>
-        )
       ) : (
         /* ── Signed-out: Hero landing ───────────────────────────────── */
         <GuestPlacement />

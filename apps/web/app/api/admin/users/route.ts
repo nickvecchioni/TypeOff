@@ -19,7 +19,6 @@ export async function GET() {
       email: users.email,
       eloRating: users.eloRating,
       rankTier: users.rankTier,
-      placementsCompleted: users.placementsCompleted,
       subStatus: userSubscription.status,
     })
     .from(users)

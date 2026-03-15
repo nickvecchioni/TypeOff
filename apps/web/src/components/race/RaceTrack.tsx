@@ -10,10 +10,9 @@ interface RaceTrackProps {
   players: RacePlayer[];
   progress: Record<string, RacePlayerProgress>;
   myPlayerId: string | null;
-  isPlacement?: boolean;
 }
 
-export function RaceTrack({ players, progress, myPlayerId, isPlacement }: RaceTrackProps) {
+export function RaceTrack({ players, progress, myPlayerId }: RaceTrackProps) {
   // Sort: other players first (preserving order), current user always last
   const sorted = [...players].sort((a, b) => {
     const aMe = a.id === myPlayerId ? 1 : 0;
@@ -35,7 +34,7 @@ export function RaceTrack({ players, progress, myPlayerId, isPlacement }: RaceTr
           <div key={player.id} className="relative flex flex-col gap-1">
             <div className="flex justify-between text-sm">
               <span className={`flex items-center gap-2 min-w-0 ${isMe ? "text-accent font-bold" : "text-text"}`}>
-                {!isPlacement && !isBot && <RankBadge tier={getRankTier(player.elo)} />}
+                {!isBot && <RankBadge tier={getRankTier(player.elo)} />}
                 {!isBot && <CosmeticBadge badge={player.activeBadge} />}
                 <span className="truncate">
                   {isBot ? (

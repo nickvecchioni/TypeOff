@@ -46,23 +46,7 @@ export default function SetupUsernamePage() {
       }
 
       setDone(true);
-      // Claim guest placement before refreshing the session so the user
-      // lands on the dashboard with placementsCompleted already true
-      try {
-        const stored = localStorage.getItem("guest-placement");
-        if (stored) {
-          const { wpm } = JSON.parse(stored);
-          if (typeof wpm === "number") {
-            const claimRes = await fetch("/api/claim-placement", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ wpm }),
-            });
-            if (claimRes.ok) localStorage.removeItem("guest-placement");
-          }
-        }
-      } catch {}
-      // Refresh session so the new username + placementsCompleted are available
+      // Refresh session so the new username is available
       // client-side, then replace (not push) so back-button can't return here
       await update();
       router.replace("/");

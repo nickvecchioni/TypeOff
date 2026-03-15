@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { SignJWT } from "jose";
 import { eq } from "drizzle-orm";
-import { users, userActiveCosmetics } from "@typeoff/db";
+import { users, userActiveCosmetics, userModeStats } from "@typeoff/db";
 import { createRateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -26,24 +26,41 @@ export async function GET() {
 
     const db = getDb();
 
-    // Read ELO + active cosmetics from users table
-    const [row] = await db
-      .select({
-        eloRating: users.eloRating,
-        username: users.username,
-        activeBadge: userActiveCosmetics.activeBadge,
-        activeNameColor: userActiveCosmetics.activeNameColor,
-        activeNameEffect: userActiveCosmetics.activeNameEffect,
-      })
-      .from(users)
-      .leftJoin(userActiveCosmetics, eq(users.id, userActiveCosmetics.userId))
-      .where(eq(users.id, session.user.id))
-      .limit(1);
+    // Read display ELO + active cosmetics + per-mode ELOs
+    const [[row], modeRows] = await Promise.all([
+      db
+        .select({
+          eloRating: users.eloRating,
+          username: users.username,
+          activeBadge: userActiveCosmetics.activeBadge,
+          activeNameColor: userActiveCosmetics.activeNameColor,
+          activeNameEffect: userActiveCosmetics.activeNameEffect,
+        })
+        .from(users)
+        .leftJoin(userActiveCosmetics, eq(users.id, userActiveCosmetics.userId))
+        .where(eq(users.id, session.user.id))
+        .limit(1),
+      db
+        .select({
+          modeCategory: userModeStats.modeCategory,
+          eloRating: userModeStats.eloRating,
+        })
+        .from(userModeStats)
+        .where(eq(userModeStats.userId, session.user.id)),
+    ]);
+
+    // Build per-mode ELO map, defaulting to display ELO for modes without stats
+    const displayElo = row?.eloRating ?? 1000;
+    const modeElos: Record<string, number> = {};
+    for (const m of modeRows) {
+      modeElos[m.modeCategory] = m.eloRating;
+    }
 
     const token = await new SignJWT({
       sub: session.user.id,
       name: row?.username ?? "Anonymous",
-      elo: row?.eloRating ?? 1000,
+      elo: displayElo,
+      modeElos,
       username: row?.username ?? null,
       isPro: session.user.isPro ?? false,
       activeBadge: row?.activeBadge ?? null,

@@ -9,7 +9,7 @@ import type {
 } from "@typeoff/shared";
 import { useSocket } from "./useSocket";
 
-export type RacePhase = "idle" | "queuing" | "countdown" | "racing" | "finished" | "placed";
+export type RacePhase = "idle" | "queuing" | "countdown" | "racing" | "finished";
 
 export interface RaceResult {
   playerId: string;
@@ -66,8 +66,6 @@ export function useRace(myPlayerId?: string | null) {
   const [raceState, setRaceState] = useState<RaceState | null>(null);
   const [progress, setProgress] = useState<Record<string, RacePlayerProgress>>({});
   const [results, setResults] = useState<RaceResult[]>([]);
-  const [placementRace, setPlacementRace] = useState<number | undefined>();
-  const [placementTotal, setPlacementTotal] = useState<number | undefined>();
   const [finishTimeoutEnd, setFinishTimeoutEnd] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -212,14 +210,7 @@ export function useRace(myPlayerId?: string | null) {
             return existing ? { ...existing, ...r } : r;
           });
         });
-        setPlacementRace(data.placementRace);
-        setPlacementTotal(data.placementTotal);
-        // Show rank reveal screen after final placement race
-        if (data.placementRace != null && data.placementTotal != null && data.placementRace >= data.placementTotal) {
-          setPhase("placed");
-        } else {
-          setPhase("finished");
-        }
+        setPhase("finished");
       }),
       on("error", (data) => {
         if (queueTimeoutRef.current) {
@@ -229,7 +220,7 @@ export function useRace(myPlayerId?: string | null) {
         // Don't kick the user back to idle if results are already showing
         // (e.g. "No active race found" from a reconnection after the race ended)
         setPhase(prev => {
-          if (prev === "finished" || prev === "placed") return prev;
+          if (prev === "finished") return prev;
           setError(data.message);
           return "idle";
         });
@@ -488,8 +479,6 @@ export function useRace(myPlayerId?: string | null) {
     raceId: raceState?.raceId ?? null,
     progress,
     results,
-    placementRace,
-    placementTotal,
     finishTimeoutEnd,
     error,
     joinQueue,

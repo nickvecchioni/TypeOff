@@ -37,13 +37,11 @@ export function UserMenu() {
       href={profileHref}
       className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 hover:bg-white/[0.05] transition-colors group"
     >
-      {session.user.placementsCompleted && (
-        <RankBadge
-          tier={session.user.rankTier as RankTier}
-          elo={session.user.eloRating}
-          size="xs"
-        />
-      )}
+      <RankBadge
+        tier={session.user.rankTier as RankTier}
+        elo={session.user.eloRating}
+        size="xs"
+      />
       <CosmeticBadge badge={cosmetics.activeBadge} />
       <span className="hidden sm:block text-sm font-bold text-text group-hover:text-accent transition-colors">
         <CosmeticName nameColor={cosmetics.activeNameColor} nameEffect={cosmetics.activeNameEffect}>

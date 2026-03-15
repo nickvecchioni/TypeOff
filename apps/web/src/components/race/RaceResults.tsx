@@ -44,8 +44,6 @@ interface RaceResultsProps {
   myPlayerId: string | null;
   onRaceAgain: () => void;
   onGoHome: () => void;
-  placementRace?: number;
-  placementTotal?: number;
   rankChange?: RankChange | null;
   myWpmHistory?: WpmSample[];
   myKeyStats?: KeyStatsMap;
@@ -892,8 +890,6 @@ export function RaceResults({
   myPlayerId,
   onRaceAgain,
   onGoHome,
-  placementRace,
-  placementTotal,
   rankChange,
   myWpmHistory,
   myKeyStats,
@@ -907,7 +903,6 @@ export function RaceResults({
   const { data: session } = useSession();
   const isPro = session?.user?.isPro ?? false;
 
-  const isPlacement = placementRace != null && placementTotal != null;
   const myResult = results.find((r) => r.playerId === myPlayerId);
 
   const inParty = party != null && party.members.length >= 2;
@@ -951,15 +946,11 @@ export function RaceResults({
   const allOpponentsAreBots = results.every(
     (r) => r.playerId === myPlayerId || r.playerId.startsWith("bot_")
   );
-  const showEloCol = !isPlacement && !allOpponentsAreBots;
-  const mobileCols = isPlacement
-    ? "grid-cols-[2rem_1fr_5rem]"
-    : showEloCol
+  const showEloCol = !allOpponentsAreBots;
+  const mobileCols = showEloCol
     ? "grid-cols-[2rem_1fr_4rem_3.5rem]"
     : "grid-cols-[2rem_1fr_4rem]";
-  const desktopCols = isPlacement
-    ? ""
-    : showEloCol
+  const desktopCols = showEloCol
     ? "sm:grid-cols-[2rem_1fr_auto_4rem_3.5rem_3.5rem]"
     : "sm:grid-cols-[2rem_1fr_auto_4rem_3.5rem]";
   const tableCols = `${mobileCols} ${desktopCols}`;
@@ -970,11 +961,8 @@ export function RaceResults({
   const hasXpProgress = myResult?.xpProgress != null;
   const hasProgress = hasChallenges || hasXpProgress;
 
-  const hasElo = !isPlacement && myResult?.eloChange != null && myResult?.elo != null;
-  // Always reserve 4 columns for non-placement races to prevent layout shift when ELO arrives
-  const statCols = isPlacement
-    ? "grid-cols-2 sm:grid-cols-3"
-    : "grid-cols-2 sm:grid-cols-4";
+  const hasElo = myResult?.eloChange != null && myResult?.elo != null;
+  const statCols = "grid-cols-2 sm:grid-cols-4";
 
   const pStyle = myResult
     ? PLACEMENT_STYLE[myResult.placement] ?? { bar: "bg-muted/30", text: "text-muted", leftBorder: "" }
@@ -1079,7 +1067,7 @@ export function RaceResults({
 
               {/* Stats grid — fills remaining space */}
               <div className="flex-1 min-w-0">
-                <div className={`grid gap-px ${isPlacement ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-2 sm:grid-cols-3"}`}>
+                <div className="grid gap-px grid-cols-2 sm:grid-cols-3">
 
                   {/* WPM */}
                   <div className="bg-surface/30 px-3 py-2 sm:px-4">
@@ -1105,66 +1093,47 @@ export function RaceResults({
                   </div>
 
                   {/* Accuracy */}
-                  {!isPlacement && (
-                    <div className="bg-surface/30 px-3 py-2 sm:px-4">
-                      <div className="text-xs text-muted/50 uppercase tracking-widest mb-0.5">Accuracy</div>
-                      <div className="text-2xl sm:text-3xl font-black text-text tabular-nums leading-none">
-                        {Math.floor(myResult.accuracy)}
-                        <span className="text-base opacity-40">
-                          .{((myResult.accuracy % 1) * 10).toFixed(0)}%
-                        </span>
-                      </div>
-                      {myResult.misstypedChars != null && myResult.misstypedChars > 0 && (
-                        <div className="text-sm text-error/50 tabular-nums mt-0.5">
-                          {myResult.misstypedChars} mistake{myResult.misstypedChars !== 1 ? "s" : ""}
-                        </div>
-                      )}
+                  <div className="bg-surface/30 px-3 py-2 sm:px-4">
+                    <div className="text-xs text-muted/50 uppercase tracking-widest mb-0.5">Accuracy</div>
+                    <div className="text-2xl sm:text-3xl font-black text-text tabular-nums leading-none">
+                      {Math.floor(myResult.accuracy)}
+                      <span className="text-base opacity-40">
+                        .{((myResult.accuracy % 1) * 10).toFixed(0)}%
+                      </span>
                     </div>
-                  )}
+                    {myResult.misstypedChars != null && myResult.misstypedChars > 0 && (
+                      <div className="text-sm text-error/50 tabular-nums mt-0.5">
+                        {myResult.misstypedChars} mistake{myResult.misstypedChars !== 1 ? "s" : ""}
+                      </div>
+                    )}
+                  </div>
 
-                  {/* ELO / Placement progress */}
-                  {isPlacement ? (
-                    <div className="bg-surface/30 p-3 sm:p-4">
-                      <div className="text-xs text-muted/50 uppercase tracking-widest mb-1">Placement</div>
-                      <div className="text-sm font-bold text-accent">
-                        Race {placementRace} / {placementTotal}
-                      </div>
-                      <div className="flex items-center gap-1.5 mt-2">
-                        {Array.from({ length: placementTotal! }, (_, i) => (
-                          <div
-                            key={i}
-                            className={`w-2 h-2 rounded-full transition-colors ${i < placementRace! ? "bg-accent" : "bg-surface-bright"}`}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="bg-surface/30 px-3 py-2 sm:px-4 flex flex-col items-center justify-center">
-                      {hasElo ? (
-                        <AnimatedElo
-                          oldElo={myResult.elo! - myResult.eloChange!}
-                          newElo={myResult.elo!}
-                          change={myResult.eloChange!}
-                          rankChange={rankChange}
-                        />
-                      ) : !isPlacement && myResult?.elo != null ? (
-                        <div className="flex flex-col items-center text-center">
-                          <span className="text-2xl sm:text-3xl font-black text-text tabular-nums leading-none">
-                            {myResult.elo}
-                          </span>
-                          <div className="mt-1">
-                            <RankBadge tier={getRankInfo(myResult.elo).tier} elo={myResult.elo} showElo={false} size="xs" />
-                          </div>
+                  {/* ELO */}
+                  <div className="bg-surface/30 px-3 py-2 sm:px-4 flex flex-col items-center justify-center">
+                    {hasElo ? (
+                      <AnimatedElo
+                        oldElo={myResult.elo! - myResult.eloChange!}
+                        newElo={myResult.elo!}
+                        change={myResult.eloChange!}
+                        rankChange={rankChange}
+                      />
+                    ) : myResult?.elo != null ? (
+                      <div className="flex flex-col items-center text-center">
+                        <span className="text-2xl sm:text-3xl font-black text-text tabular-nums leading-none">
+                          {myResult.elo}
+                        </span>
+                        <div className="mt-1">
+                          <RankBadge tier={getRankInfo(myResult.elo).tier} elo={myResult.elo} showElo={false} size="xs" />
                         </div>
-                      ) : (
-                        <div className="h-[52px]" />
-                      )}
-                    </div>
-                  )}
+                      </div>
+                    ) : (
+                      <div className="h-[52px]" />
+                    )}
+                  </div>
                 </div>
 
                 {/* Secondary stats — time + consistency inline */}
-                {!isPlacement && (raceTime != null || consistency != null) && (
+                {(raceTime != null || consistency != null) && (
                   <div className="flex items-center divide-x divide-white/[0.04] border-t border-white/[0.04]">
                     {raceTime != null && (
                       <div className="flex-1 px-3 py-1.5 sm:px-4">
@@ -1230,9 +1199,9 @@ export function RaceResults({
             >
               <span className="font-medium">#</span>
               <span className="font-medium">Name</span>
-              {!isPlacement && <span className="font-medium hidden sm:block">Rank</span>}
+              <span className="font-medium hidden sm:block">Rank</span>
               <span className="font-medium text-right">WPM</span>
-              {!isPlacement && <span className="font-medium text-right hidden sm:block">Acc</span>}
+              <span className="font-medium text-right hidden sm:block">Acc</span>
               {showEloCol && <span className="font-medium text-right">ELO</span>}
             </div>
 
@@ -1304,27 +1273,23 @@ export function RaceResults({
                     )}
                   </span>
 
-                  {!isPlacement && (
-                    <span className="hidden sm:block">
-                      {rInfo ? (
-                        <RankBadge tier={rInfo.tier} elo={result.elo!} showElo={false} size="xs" />
-                      ) : (
-                        <span className="text-muted/60 text-sm">—</span>
-                      )}
-                    </span>
-                  )}
+                  <span className="hidden sm:block">
+                    {rInfo ? (
+                      <RankBadge tier={rInfo.tier} elo={result.elo!} showElo={false} size="xs" />
+                    ) : (
+                      <span className="text-muted/60 text-sm">—</span>
+                    )}
+                  </span>
 
                   <span className="text-right tabular-nums whitespace-nowrap">
                     {Math.floor(result.wpm)}
                     <span className="text-[0.7em] opacity-50">.{(result.wpm % 1).toFixed(2).slice(2)}</span>
                   </span>
 
-                  {!isPlacement && (
-                    <span className="text-right tabular-nums whitespace-nowrap hidden sm:block">
-                      {Math.floor(result.accuracy)}
-                      <span className="text-[0.7em] opacity-50">.{((result.accuracy % 1) * 10).toFixed(0)}%</span>
-                    </span>
-                  )}
+                  <span className="text-right tabular-nums whitespace-nowrap hidden sm:block">
+                    {Math.floor(result.accuracy)}
+                    <span className="text-[0.7em] opacity-50">.{((result.accuracy % 1) * 10).toFixed(0)}%</span>
+                  </span>
 
                   {showEloCol && (
                     <span className="text-right tabular-nums whitespace-nowrap">
@@ -1346,7 +1311,7 @@ export function RaceResults({
               );
             })}
 
-            {!isPlacement && !allOpponentsAreBots && <PresetChatFeed emotes={emotes} />}
+            {!allOpponentsAreBots && <PresetChatFeed emotes={emotes} />}
           </div>
 
           {/* WPM Chart — fills remaining left-column space */}
@@ -1363,10 +1328,9 @@ export function RaceResults({
         {/* ── RIGHT COLUMN ── */}
         <div className="flex flex-col gap-1.5 min-h-0">
           {/* XP Progress */}
-          {!isPlacement && (
-            hasXpProgress ? (
-              <AnimatedXpPanel xp={myResult!.xpProgress!} isPro={isPro} />
-            ) : (
+          {hasXpProgress ? (
+            <AnimatedXpPanel xp={myResult!.xpProgress!} isPro={isPro} />
+          ) : (
               <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] overflow-hidden">
                 <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
                 <div className="px-3 py-2.5 sm:px-4 sm:py-3 flex flex-col gap-2.5">
@@ -1380,15 +1344,13 @@ export function RaceResults({
                     </div>
                   </div>
                 </div>
-              </div>
-            )
+            </div>
           )}
 
           {/* Challenges */}
-          {!isPlacement && (
-            <div className="rounded-xl bg-surface/20 ring-1 ring-white/[0.05] overflow-hidden px-3 py-2">
-              <div className="flex items-center justify-between mb-0.5">
-                <h3 className="text-xs font-bold text-muted/65 uppercase tracking-widest">Challenges</h3>
+          <div className="rounded-xl bg-surface/20 ring-1 ring-white/[0.05] overflow-hidden px-3 py-2">
+            <div className="flex items-center justify-between mb-0.5">
+              <h3 className="text-xs font-bold text-muted/65 uppercase tracking-widest">Challenges</h3>
                 {myResult?.xpEarned != null && myResult.xpEarned > 0 && (
                   <span className="text-xs font-bold text-accent tabular-nums">+{myResult.xpEarned} XP</span>
                 )}
@@ -1427,8 +1389,7 @@ export function RaceResults({
                   <div className="h-3 w-1/2 rounded bg-white/[0.03] animate-pulse" />
                 </div>
               )}
-            </div>
-          )}
+          </div>
 
           {/* Pro upsell (non-Pro only) */}
           {showProPanel && (
@@ -1506,7 +1467,7 @@ export function RaceResults({
         className="shrink-0 flex flex-col items-center gap-1.5 w-full max-w-lg mx-auto"
       >
         {/* Party ready state */}
-        {inParty && !isPlacement && (
+        {inParty && (
           <div className="flex items-center justify-center gap-3 flex-wrap">
             {party!.members.map((m) => {
               const ready = party!.readyState[m.userId] ?? false;
@@ -1521,7 +1482,7 @@ export function RaceResults({
           </div>
         )}
 
-        {inParty && !isLeader && !isPlacement ? (
+        {inParty && !isLeader ? (
           <button
             onClick={() => !amReady && onMarkReady?.()}
             disabled={amReady}
@@ -1541,7 +1502,7 @@ export function RaceResults({
               className="group w-full rounded-lg bg-accent/10 ring-1 ring-accent/30 text-accent py-2.5 text-sm font-bold hover:bg-accent hover:text-bg hover:ring-accent transition-all shadow-[0_0_20px_rgba(77,158,255,0.08)] hover:shadow-[0_0_30px_rgba(77,158,255,0.2)] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent/10 disabled:hover:text-accent disabled:hover:ring-accent/30 disabled:shadow-none flex flex-col items-center gap-0.5"
             >
               <span className="flex items-center gap-1">
-                {isPlacement ? "Next Placement" : "Race Again"}
+                Race Again
                 <span className="inline-block w-[2px] h-[1em] bg-current animate-blink translate-y-px" />
               </span>
               {!inParty && (
@@ -1561,8 +1522,7 @@ export function RaceResults({
         )}
 
         {/* Share */}
-        {!isPlacement &&
-          myResult != null &&
+        {myResult != null &&
           myResult.elo != null &&
           myResult.eloChange != null &&
           session?.user?.username && (
@@ -1622,22 +1582,18 @@ export function RaceResults({
           )}
 
           {/* Analytics */}
-          {!isPlacement && (
-            <>
-              <Link
-                href="/analytics"
-                className="flex items-center gap-1.5 px-3 py-2 text-muted/60 hover:text-muted/70 transition-colors rounded hover:bg-white/[0.02]"
-                aria-label="Analytics"
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="20" x2="18" y2="10" />
-                  <line x1="12" y1="20" x2="12" y2="4" />
-                  <line x1="6" y1="20" x2="6" y2="14" />
-                </svg>
-                <span className="text-sm font-medium">Analytics</span>
-              </Link>
-            </>
-          )}
+          <Link
+            href="/analytics"
+            className="flex items-center gap-1.5 px-3 py-2 text-muted/60 hover:text-muted/70 transition-colors rounded hover:bg-white/[0.02]"
+            aria-label="Analytics"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="20" x2="18" y2="10" />
+              <line x1="12" y1="20" x2="12" y2="4" />
+              <line x1="6" y1="20" x2="6" y2="14" />
+            </svg>
+            <span className="text-sm font-medium">Analytics</span>
+          </Link>
 
         </div>
       </div>

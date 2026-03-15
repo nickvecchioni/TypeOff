@@ -16,7 +16,6 @@ interface UserRow {
   email: string;
   eloRating: number;
   rankTier: string;
-  placementsCompleted: boolean;
   isPro: boolean;
 }
 

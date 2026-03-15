@@ -60,7 +60,7 @@ export function PlacementReveal({ elo, wpm, accuracy, onContinue, subtitle, ctaL
 
       {/* Label */}
       <span className="relative text-xs font-bold uppercase tracking-[0.25em] text-muted/60">
-        Placement Complete
+        Your Estimated Rank
       </span>
 
       {/* Rank reveal */}

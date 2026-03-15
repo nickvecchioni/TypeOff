@@ -10,7 +10,6 @@ declare module "next-auth" {
       eloRating: number;
       rankTier: RankTier;
       username: string | null;
-      placementsCompleted: boolean;
       currentStreak: number;
       totalXp: number;
       cosmeticLevel: number;
@@ -32,7 +31,6 @@ declare module "next-auth/jwt" {
     eloRating?: number;
     rankTier?: RankTier;
     username?: string | null;
-    placementsCompleted?: boolean;
     currentStreak?: number;
     totalXp?: number;
     cosmeticLevel?: number;

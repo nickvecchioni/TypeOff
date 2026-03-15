@@ -38,7 +38,6 @@ const LANGUAGE_LABELS: Record<string, string> = {
 
 interface CountdownOverlayProps {
   countdown: number;
-  placementRace?: number;
   mode?: RaceMode;
   codeLanguage?: string;
   codeSnippetName?: string;
@@ -47,7 +46,6 @@ interface CountdownOverlayProps {
 
 export function CountdownOverlay({
   countdown,
-  placementRace,
   mode,
   codeLanguage,
   codeSnippetName,
@@ -72,21 +70,16 @@ export function CountdownOverlay({
       >
         {countdown}
       </div>
-      {modeDesc && !placementRace && (
+      {modeDesc && (
         <p className="text-muted/50 text-xs text-center mt-1">{modeDesc}</p>
       )}
       {/* Code snippet name below language */}
-      {mode === "code" && codeSnippetName && !placementRace && (
+      {mode === "code" && codeSnippetName && (
         <p className="text-muted/60 text-xs text-center -mt-0.5">{codeSnippetName}</p>
       )}
       {/* Quote author */}
-      {mode === "quotes" && quoteAuthor && !placementRace && (
+      {mode === "quotes" && quoteAuthor && (
         <p className="text-muted/60 text-xs text-center -mt-0.5"><span className="italic">{quoteAuthor}</span></p>
-      )}
-      {placementRace != null && (
-        <p className="text-muted text-xs">
-          Placement Test · type to determine your starting rank
-        </p>
       )}
       {capsLock && (
         <span className="px-2 py-0.5 rounded text-xs font-medium bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/20 mt-1">

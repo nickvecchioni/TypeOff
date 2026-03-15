@@ -11,9 +11,6 @@ import { RaceManager } from "./race-manager.js";
 import type { RaceOwner } from "./race-manager.js";
 import type { SocialManager } from "./social-manager.js";
 import type { NotificationManager } from "./notification-manager.js";
-import { users, userStats } from "@typeoff/db";
-import { getDb } from "./db.js";
-import { eq } from "drizzle-orm";
 
 type TypedServer = Server<ClientToServerEvents, ServerToClientEvents>;
 type TypedSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
@@ -27,7 +24,6 @@ interface QueueEntry {
 }
 
 const MAX_PLAYERS = 4;
-const PLACEMENT_RACES = 3;
 const ELO_WINDOW_INITIAL = 100;
 const ELO_WINDOW_EXPAND = 50;
 const ELO_WINDOW_EXPAND_INTERVAL_MS = 5_000;
@@ -85,26 +81,12 @@ export class Matchmaker implements RaceOwner {
       console.log(`[matchmaker] player ${player.id} re-queuing after finished race`);
     }
 
-    // Check placement for authenticated players
-    if (!player.isGuest) {
-      console.log(`[matchmaker] checking stats for ${player.id}...`);
-      const playerData = await this.getPlayerData(player.id);
-      if (playerData === undefined) {
-        console.log(`[matchmaker] could not fetch data for ${player.id}, retrying queue`);
-        socket.emit("error", { message: "Could not verify placement status. Please try again." });
-        return;
-      }
-      const { racesPlayed, placementsCompleted } = playerData;
-      console.log(`[matchmaker] player ${player.id} racesPlayed=${racesPlayed} placementsCompleted=${placementsCompleted}`);
-      if (!placementsCompleted && racesPlayed < PLACEMENT_RACES) {
-        console.log(`[matchmaker] starting placement race ${racesPlayed + 1} for ${player.id}`);
-        this.startPlacementRace(socket, player, racesPlayed + 1);
-        return;
-      }
-    }
+    // Normal ranked queue — use mode-specific ELO for matchmaking
+    // Override player.elo with the ELO for the selected mode categories
+    const modeElo = this.getModeElo(player, modeCategories);
+    const playerWithModeElo = { ...player, elo: modeElo };
 
-    // Normal ranked queue
-    this.queue.push({ socket, player, joinedAt: Date.now(), modeCategories });
+    this.queue.push({ socket, player: playerWithModeElo, joinedAt: Date.now(), modeCategories });
     this.broadcastQueueCount();
 
     // Try to match immediately (solo players get bots, groups get matched)
@@ -137,33 +119,18 @@ export class Matchmaker implements RaceOwner {
       }
     }
 
-    // Check placement for each member — if anyone needs placement, they can't party queue
-    for (const entry of entries) {
-      if (!entry.player.isGuest) {
-        const playerData = await this.getPlayerData(entry.player.id);
-        if (playerData === undefined) {
-          entries[0].socket.emit("error", {
-            message: "Could not verify placement status. Please try again.",
-          });
-          return;
-        }
-        if (!playerData.placementsCompleted && playerData.racesPlayed < PLACEMENT_RACES) {
-          entries[0].socket.emit("error", {
-            message: `${entry.player.name} needs to complete placement races first`,
-          });
-          return;
-        }
-      }
-    }
-
     const now = Date.now();
 
     for (const entry of entries) {
       if (this.socketToRace.has(entry.socket.id)) continue;
 
+      // Override ELO with mode-specific ELO
+      const modeElo = this.getModeElo(entry.player, modeCategories);
+      const playerWithModeElo = { ...entry.player, elo: modeElo };
+
       this.queue.push({
         socket: entry.socket,
-        player: entry.player,
+        player: playerWithModeElo,
         joinedAt: now,
         partyId,
         modeCategories,
@@ -383,33 +350,16 @@ export class Matchmaker implements RaceOwner {
     }
   }
 
-  /** Returns player data for placement check, or undefined on timeout/error */
-  private async getPlayerData(userId: string) {
-    const start = Date.now();
-    try {
-      const db = getDb();
-      const result = await Promise.race([
-        db
-          .select({ racesPlayed: userStats.racesPlayed, placementsCompleted: users.placementsCompleted })
-          .from(userStats)
-          .innerJoin(users, eq(users.id, userStats.userId))
-          .where(eq(userStats.userId, userId))
-          .limit(1),
-        new Promise<undefined>((resolve) => setTimeout(() => resolve(undefined), 3000)),
-      ]);
-      console.log(`[matchmaker] getPlayerData took ${Date.now() - start}ms for ${userId}`);
-      if (result === undefined) {
-        console.log(`[matchmaker] getPlayerData timed out for ${userId}`);
-        return undefined;
-      }
-      return {
-        racesPlayed: result[0]?.racesPlayed ?? 0,
-        placementsCompleted: result[0]?.placementsCompleted ?? false,
-      };
-    } catch (err) {
-      console.error(`[matchmaker] getPlayerData error for ${userId} after ${Date.now() - start}ms:`, err);
-      return undefined;
+  /** Get mode-specific ELO for matchmaking. Uses average across selected modes. */
+  private getModeElo(player: RacePlayer, modeCategories: ModeCategory[]): number {
+    if (!player.modeElos || Object.keys(player.modeElos).length === 0) {
+      return player.elo;
     }
+    const elos = modeCategories
+      .map((m) => player.modeElos?.[m])
+      .filter((e): e is number => e !== undefined);
+    if (elos.length === 0) return player.elo;
+    return Math.round(elos.reduce((a, b) => a + b, 0) / elos.length);
   }
 
   private getEloWindow(waitedMs: number): number {
@@ -509,7 +459,7 @@ export class Matchmaker implements RaceOwner {
     );
     const modeCategory = shared[Math.floor(Math.random() * shared.length)] ?? "words";
     const race = new RaceManager(
-      this.io, entries, this, [], undefined, undefined, this.notificationManager, modeCategory,
+      this.io, entries, this, [], undefined, this.notificationManager, modeCategory,
     );
 
     this.races.set(race.raceId, race);
@@ -526,33 +476,6 @@ export class Matchmaker implements RaceOwner {
 
     race.start();
     this.onRaceStarted?.(race.raceId, userIds);
-  }
-
-  private startPlacementRace(
-    socket: TypedSocket,
-    player: RacePlayer,
-    raceNumber: number,
-  ) {
-    const entry = { socket, player };
-    const race = new RaceManager(
-      this.io, [entry], this, [],
-      undefined,
-      raceNumber,
-      this.notificationManager,
-    );
-    this.races.set(race.raceId, race);
-    this.socketToRace.set(socket.id, race.raceId);
-    if (!player.isGuest) {
-      this.socketToUserId.set(socket.id, player.id);
-      this.userIdToRace.set(player.id, race.raceId);
-      this.socialManager?.setUserRace(player.id, race.raceId);
-    }
-    console.log(`[matchmaker] placement race ${race.raceId} created, calling start() for socket ${socket.id} (connected=${socket.connected})`);
-    race.start();
-    if (!player.isGuest) {
-      this.onRaceStarted?.(race.raceId, [player.id]);
-    }
-    console.log(`[matchmaker] placement race ${race.raceId} start() completed`);
   }
 
   private startRaceWithBots(entries: QueueEntry[], botCount: number) {
@@ -605,7 +528,6 @@ export class Matchmaker implements RaceOwner {
     const race = new RaceManager(
       this.io, entries, this, bots,
       { botWpmMin, botWpmMax, perBotWpm },
-      undefined,
       this.notificationManager,
       modeCategory,
     );
@@ -645,28 +567,9 @@ export class Matchmaker implements RaceOwner {
       }
     }
 
-    // Check placement for each member
-    for (const entry of entries) {
-      if (!entry.player.isGuest) {
-        const playerData = await this.getPlayerData(entry.player.id);
-        if (playerData === undefined) {
-          entries[0].socket.emit("error", {
-            message: "Could not verify placement status. Please try again.",
-          });
-          return;
-        }
-        if (!playerData.placementsCompleted && playerData.racesPlayed < PLACEMENT_RACES) {
-          entries[0].socket.emit("error", {
-            message: `${entry.player.name} needs to complete placement races first`,
-          });
-          return;
-        }
-      }
-    }
-
     // Start race directly — no bots, no queue
     const race = new RaceManager(
-      this.io, entries, this, [], undefined, undefined, this.notificationManager, modeCategory,
+      this.io, entries, this, [], undefined, this.notificationManager, modeCategory,
     );
 
     this.races.set(race.raceId, race);

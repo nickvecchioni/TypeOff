@@ -68,7 +68,6 @@ export default async function ProfilePage({
       rankTier: users.rankTier,
       peakEloRating: users.peakEloRating,
       peakRankTier: users.peakRankTier,
-      placementsCompleted: users.placementsCompleted,
       lastSeen: users.lastSeen,
     })
     .from(users)
@@ -260,7 +259,7 @@ export default async function ProfilePage({
       elo: r.eloAfter!,
     }));
 
-  const rankInfo = user.placementsCompleted ? getRankInfo(user.eloRating) : null;
+  const rankInfo = getRankInfo(user.eloRating);
   const isOnline = user.lastSeen != null && (Date.now() - new Date(user.lastSeen).getTime()) < 3 * 60 * 1000;
 
   return (
@@ -361,26 +360,20 @@ export default async function ProfilePage({
             {/* Rank + WPM stats row */}
             <div className="flex flex-col sm:flex-row sm:items-end gap-6">
               {/* Rank block */}
-              {user.placementsCompleted && rankInfo ? (
-                <div className="flex flex-col gap-3 flex-1 min-w-0">
-                  <RankBadge tier={rankInfo.tier} elo={user.eloRating} />
-                  <div className="space-y-1.5">
-                    {user.peakEloRating > 0 && (
-                      <div className="text-xs text-muted/50 tabular-nums">
-                        Peak{" "}
-                        <span className={user.peakEloRating > user.eloRating ? "text-amber-400/70" : "text-muted/60"}>
-                          {user.peakEloRating}
-                        </span>
-                      </div>
-                    )}
-                    <RankProgressBar elo={user.eloRating} />
-                  </div>
+              <div className="flex flex-col gap-3 flex-1 min-w-0">
+                <RankBadge tier={rankInfo.tier} elo={user.eloRating} />
+                <div className="space-y-1.5">
+                  {user.peakEloRating > 0 && (
+                    <div className="text-xs text-muted/50 tabular-nums">
+                      Peak{" "}
+                      <span className={user.peakEloRating > user.eloRating ? "text-amber-400/70" : "text-muted/60"}>
+                        {user.peakEloRating}
+                      </span>
+                    </div>
+                  )}
+                  <RankProgressBar elo={user.eloRating} />
                 </div>
-              ) : (
-                <div className="flex-1 text-xs text-muted/65 italic">
-                  Placement matches in progress
-                </div>
-              )}
+              </div>
 
               {/* WPM numbers — large, right-aligned */}
               <div className="flex gap-6 sm:gap-8 shrink-0">

@@ -52,7 +52,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               eloRating: users.eloRating,
               rankTier: users.rankTier,
               username: users.username,
-              placementsCompleted: users.placementsCompleted,
               currentStreak: userStats.currentStreak,
               totalXp: userStats.totalXp,
             })
@@ -84,7 +83,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           token.eloRating = row[0].eloRating;
           token.rankTier = row[0].rankTier as any;
           token.username = row[0].username;
-          token.placementsCompleted = row[0].placementsCompleted;
           token.currentStreak = row[0].currentStreak ?? 0;
           token.totalXp = row[0].totalXp ?? 0;
         } else {
@@ -119,7 +117,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.eloRating = (token.eloRating as number) ?? 1000;
         session.user.rankTier = (token.rankTier as any) ?? "bronze";
         session.user.username = (token.username as string) ?? null;
-        session.user.placementsCompleted = (token.placementsCompleted as boolean) ?? false;
         session.user.currentStreak = (token.currentStreak as number) ?? 0;
         session.user.totalXp = (token.totalXp as number) ?? 0;
         session.user.cosmeticLevel = (token.cosmeticLevel as number) ?? 0;

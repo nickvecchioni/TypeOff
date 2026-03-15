@@ -9,7 +9,6 @@ import { CountdownOverlay } from "./CountdownOverlay";
 import { RaceTrack } from "./RaceTrack";
 import { RaceTypingArea } from "./RaceTypingArea";
 import { RaceResults } from "./RaceResults";
-import { PlacementReveal } from "./PlacementReveal";
 import { SpectatorIndicator } from "./SpectatorIndicator";
 import type { EmoteEvent } from "./FloatingEmote";
 import { useSocket } from "@/hooks/useSocket";
@@ -119,30 +118,6 @@ export function RaceArena() {
     if (race.phase === "idle") setEmotes([]);
   }, [race.phase]);
 
-  // Auto-claim guest placement on sign-in
-  React.useEffect(() => {
-    if (!session?.user?.id || session.user.placementsCompleted) return;
-    let stored: string | null = null;
-    try { stored = localStorage.getItem("guest-placement"); } catch {}
-    if (!stored) return;
-    let data: { wpm: number };
-    try { data = JSON.parse(stored); } catch { return; }
-    if (typeof data.wpm !== "number") return;
-
-    fetch("/api/claim-placement", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ wpm: data.wpm }),
-    })
-      .then((res) => {
-        if (res.ok) {
-          localStorage.removeItem("guest-placement");
-          updateSession({});
-        }
-      })
-      .catch(() => {});
-  }, [session?.user?.id, session?.user?.placementsCompleted, updateSession]);
-
   // Smooth transition: hold final race state, then crossfade to results
   // States: "none" → "holding" (final state visible) → "crossfading" (both visible) → "results"
   const [transitionState, setTransitionState] = React.useState<"none" | "holding" | "crossfading" | "results">("none");
@@ -184,7 +159,7 @@ export function RaceArena() {
 
   // Compute rank change as soon as results arrive (for the results panel)
   React.useEffect(() => {
-    const isFinished = race.phase === "finished" || race.phase === "placed";
+    const isFinished = race.phase === "finished";
     if (isFinished && session?.user?.id && race.results.length > 0) {
       const myResult = race.results.find((r) => r.playerId === session.user.id);
       if (myResult?.eloChange != null) {
@@ -220,7 +195,7 @@ export function RaceArena() {
     if (showResults && !sessionRefreshed.current) {
       sessionRefreshed.current = true;
       updateSession({});
-    } else if (race.phase !== "finished" && race.phase !== "placed") {
+    } else if (race.phase !== "finished") {
       sessionRefreshed.current = false;
     }
   }, [showResults, race.phase, updateSession]);
@@ -316,13 +291,9 @@ export function RaceArena() {
   }, [race.phase]);
 
 
-  const isInPlacement = race.raceState?.placementRace != null
-    || race.phase === "placed"
-    || (race.phase === "finished" && race.placementRace != null);
-
   return (
     <div className={`flex flex-col items-center gap-8 w-full max-w-5xl mx-auto flex-1 min-h-0 transition-[padding] duration-500 ease-out ${
-      race.phase === "queuing" || race.phase === "placed" ? "justify-center" :
+      race.phase === "queuing" ? "justify-center" :
       showResults ? "pt-2" :
       "justify-center"
     }`}>
@@ -379,7 +350,6 @@ export function RaceArena() {
                   players={race.raceState.players}
                   progress={race.progress}
                   myPlayerId={myPlayerId}
-                  isPlacement={isInPlacement}
                 />
               </div>
               <div className="relative w-full">
@@ -396,7 +366,6 @@ export function RaceArena() {
                     return (
                       <CountdownOverlay
                         countdown={race.countdown}
-                        placementRace={race.raceState!.placementRace}
                         mode={race.raceState!.mode}
                         codeLanguage={snippet?.language}
                         codeSnippetName={snippet?.name}
@@ -435,8 +404,6 @@ export function RaceArena() {
                 myPlayerId={myPlayerId}
                 onRaceAgain={() => race.raceAgain({ privateRace: partyHook.party?.privateRace, modeCategories })}
                 onGoHome={race.reset}
-                placementRace={race.placementRace}
-                placementTotal={race.placementTotal}
                 rankChange={rankChange}
                 myWpmHistory={wpmHistoryRef.current}
                 party={partyHook.party}
@@ -450,17 +417,6 @@ export function RaceArena() {
           )}
         </div>
       )}
-
-      {race.phase === "placed" && (() => {
-        const myResult = race.results.find((r) => r.playerId === myPlayerId);
-        const elo = myResult?.elo ?? 1000;
-        return (
-          <PlacementReveal
-            elo={elo}
-            onContinue={race.raceAgain}
-          />
-        );
-      })()}
 
     </div>
   );

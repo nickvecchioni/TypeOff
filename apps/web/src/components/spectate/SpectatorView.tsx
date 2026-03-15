@@ -148,7 +148,6 @@ export function SpectatorView({
           players={raceState.players}
           progress={progress}
           myPlayerId={null}
-          isPlacement={raceState.placementRace != null}
         />
       </div>
 

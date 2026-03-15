@@ -17,27 +17,16 @@ interface RankBadgeProps {
   tier: RankTier;
   elo?: number;
   size?: "xs" | "sm" | "md";
-  placementsCompleted?: boolean;
   showElo?: boolean;
 }
 
-export function RankBadge({ tier, elo, size = "sm", placementsCompleted = true, showElo = true }: RankBadgeProps) {
+export function RankBadge({ tier, elo, size = "sm", showElo = true }: RankBadgeProps) {
   const sizeClasses =
     size === "md"
       ? "text-sm px-3 py-1"
       : size === "xs"
       ? "text-xs px-2 py-px"
       : "text-sm px-2.5 py-0.5";
-
-  if (!placementsCompleted) {
-    return (
-      <span
-        className={`rounded-full font-bold inline-flex items-center gap-1 ${sizeClasses} text-muted bg-surface ring-1 ring-muted/25`}
-      >
-        Unranked
-      </span>
-    );
-  }
 
   const info = elo != null ? getRankInfo(elo) : null;
   // Use ELO-derived tier for colors when available (DB tier may be stale)

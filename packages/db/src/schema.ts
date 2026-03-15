@@ -297,6 +297,10 @@ export const userModeStats = pgTable(
     avgWpm: real("avg_wpm").notNull().default(0),
     bestWpm: real("best_wpm").notNull().default(0),
     avgAccuracy: real("avg_accuracy").notNull().default(0),
+    eloRating: integer("elo_rating").notNull().default(1000),
+    rankTier: text("rank_tier").notNull().default("bronze"),
+    peakEloRating: integer("peak_elo_rating").notNull().default(1000),
+    peakRankTier: text("peak_rank_tier").notNull().default("bronze"),
     updatedAt: timestamp("updated_at", { mode: "date" })
       .notNull()
       .$defaultFn(() => new Date()),
