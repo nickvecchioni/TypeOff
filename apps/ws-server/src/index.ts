@@ -150,11 +150,20 @@ io.on("connection", (socket) => {
     try {
       const player = await authenticateSocket(data, socket.id);
       socket.data.userId = player.id;
-      console.log(`[joinQueue] ${socket.id} authenticated as ${player.id} (${player.name})`);
-      // Fire-and-forget: don't block queue join on friend notifications
-      socialManager.trackConnection(socket, player.id).catch(() => {});
+      console.log(`[joinQueue] ${socket.id} authenticated as ${player.id} (${player.name}) guest=${player.isGuest}`);
+      // Fire-and-forget: don't block queue join on friend notifications (skip for guests)
+      if (!player.isGuest) {
+        socialManager.trackConnection(socket, player.id).catch(() => {});
+      }
 
       const modeCategories: ModeCategory[] = data.modeCategories ?? ["words"];
+
+      // Guests skip party logic entirely
+      if (player.isGuest) {
+        await matchmaker.addToQueue(socket, player, modeCategories);
+        console.log(`[joinQueue] ${socket.id} guest addToQueue completed`);
+        return;
+      }
 
       // If this user is a party leader, enqueue the whole party
       const party = partyManager.getPartyForUser(player.id);

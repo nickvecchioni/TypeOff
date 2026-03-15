@@ -9,7 +9,7 @@ import type {
   WpmSample,
   EmoteKey,
 } from "@typeoff/shared";
-import { calculateRaceElo, getRankTier, generateWordsForMode, quotes, EMOTE_KEYS, scoreTextDifficulty, calculatePP, calculateTotalPP, CHALLENGE_MAP, ACHIEVEMENT_MAP, getXpLevel } from "@typeoff/shared";
+import { calculateRaceElo, getRankTier, generateWordsForMode, quotes, EMOTE_KEYS, scoreTextDifficulty, calculatePP, calculateTotalPP, CHALLENGE_MAP, ACHIEVEMENT_MAP, getXpLevel, PLACEMENT_RACES_REQUIRED } from "@typeoff/shared";
 import type { RankTier, RaceMode, ModeCategory, ReplaySnapshot } from "@typeoff/shared";
 import type { NotificationManager } from "./notification-manager.js";
 import { races, raceParticipants, userStats, userModeStats, users, userActiveCosmetics, textLeaderboards } from "@typeoff/db";
@@ -89,6 +89,8 @@ export class RaceManager {
   private playerGraceTimers = new Map<string, ReturnType<typeof setTimeout>>();
   private resultsCleanupTimer: ReturnType<typeof setTimeout> | null = null;
   private spectatorInfo = new Map<string, { userId: string; name: string }>();
+  private isPlacement = false;
+  private placementNumber = 0; // 1-3
 
   private static readonly CATEGORY_MODES: Record<ModeCategory, RaceMode[]> = {
     words: ["standard", "sprint", "marathon"],
@@ -216,6 +218,17 @@ export class RaceManager {
         progressWindowStart: now,
         lastEmoteAt: 0,
       });
+    }
+
+    // Determine placement status from human players
+    for (const entry of entries) {
+      if (entry.player.isGuest) continue;
+      const racesInMode = entry.player.modeRacesPlayed?.[this.modeCategory] ?? 0;
+      if (racesInMode < PLACEMENT_RACES_REQUIRED) {
+        this.isPlacement = true;
+        this.placementNumber = racesInMode + 1; // 1-indexed
+        break; // Use first human's placement status
+      }
     }
   }
 
@@ -567,6 +580,8 @@ export class RaceManager {
       countdown: 0,
       finishTimeoutEnd: this.finishTimeoutEnd != null ? Math.max(0, this.finishTimeoutEnd - Date.now()) : null,
       mode: this.mode,
+      isPlacement: this.isPlacement || undefined,
+      placementNumber: this.isPlacement ? this.placementNumber : undefined,
     };
   }
 
@@ -1062,6 +1077,8 @@ export class RaceManager {
       level?: number;
       previousBestWpm?: number;
       previousTextBestWpm?: number;
+      placementRaceNumber?: number;
+      placementComplete?: boolean;
     }> = [];
 
     // Track per-player data for results
@@ -1670,6 +1687,8 @@ export class RaceManager {
         level: levelMap.get(entry.player.id),
         previousBestWpm: previousBestWpmMap.get(entry.player.id),
         previousTextBestWpm: previousTextBestWpmMap.get(entry.player.id),
+        placementRaceNumber: this.isPlacement && !entry.isBot && !entry.player.isGuest ? this.placementNumber : undefined,
+        placementComplete: this.isPlacement && !entry.isBot && !entry.player.isGuest && this.placementNumber >= PLACEMENT_RACES_REQUIRED ? true : undefined,
       });
     }
 

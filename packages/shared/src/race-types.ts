@@ -18,6 +18,7 @@ export interface RacePlayer {
   isGuest: boolean;
   elo: number;
   modeElos?: Record<string, number>;
+  modeRacesPlayed?: Record<string, number>;
   isPro?: boolean;
   activeBadge?: string | null;
   activeNameColor?: string | null;
@@ -51,6 +52,8 @@ export interface RaceState {
   countdown: number; // seconds remaining in countdown
   finishTimeoutEnd: number | null; // remaining ms until race force-ends (client converts to local deadline)
   mode: RaceMode; // race mode (standard, quotes, marathon, sprint)
+  isPlacement?: boolean; // true if this is a placement race for any human player
+  placementNumber?: number; // which placement race (1-3)
 }
 
 /** Party state */
@@ -165,6 +168,8 @@ export interface ServerToClientEvents {
       level?: number;
       previousBestWpm?: number;
       previousTextBestWpm?: number;
+      placementRaceNumber?: number; // 1-3 if this was a placement race
+      placementComplete?: boolean; // true after 3rd placement race
     }>;
   }) => void;
   // Party events

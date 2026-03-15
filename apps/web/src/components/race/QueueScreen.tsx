@@ -5,8 +5,7 @@ import Link from "next/link";
 import { useSession, signIn } from "next-auth/react";
 import { PartyPanel } from "@/components/social/PartyPanel";
 import { ChallengesWidget } from "@/components/race/ChallengesWidget";
-import { GuestPlacement } from "@/components/race/GuestPlacement";
-import { getXpLevel, COSMETIC_REWARDS, getRankInfo, getRankProgress, getNextDivisionElo, TYPING_THEMES, NAME_COLORS, CURSOR_STYLES } from "@typeoff/shared";
+import { getXpLevel, COSMETIC_REWARDS, getRankInfo, getRankProgress, getNextDivisionElo, TYPING_THEMES, NAME_COLORS, CURSOR_STYLES, PLACEMENT_RACES_REQUIRED } from "@typeoff/shared";
 import { AdBanner } from "@/components/AdBanner";
 import type { PartyState, RankTier, ModeCategory, CosmeticReward } from "@typeoff/shared";
 
@@ -403,15 +402,27 @@ export function QueueScreen({
   const { data: session, status } = useSession();
   const tabPressedRef = React.useRef(false);
   const [modeElos, setModeElos] = React.useState<Record<string, number>>({});
+  const [modeRacesPlayed, setModeRacesPlayed] = React.useState<Record<string, number>>({});
+  const isGuest = !session?.user;
 
-  // Fetch per-mode ELOs
+  // Refresh counter — incremented each time QueueScreen is shown after idle
+  const [fetchKey, setFetchKey] = React.useState(0);
   React.useEffect(() => {
+    if (!isQueuing) setFetchKey((k) => k + 1);
+  }, [isQueuing]);
+
+  // Fetch per-mode ELOs + races played
+  React.useEffect(() => {
+    if (status === "loading") return;
     if (!session?.user?.id) return;
     fetch("/api/mode-elos")
       .then((r) => r.ok ? r.json() : null)
-      .then((data) => { if (data?.modeElos) setModeElos(data.modeElos); })
+      .then((data) => {
+        if (data?.modeElos) setModeElos(data.modeElos);
+        if (data?.modeRacesPlayed) setModeRacesPlayed(data.modeRacesPlayed);
+      })
       .catch(() => {});
-  }, [session?.user?.id]);
+  }, [session?.user?.id, status, fetchKey]);
 
   function toggleMode(id: ModeCategory) {
     onSetModeCategories(
@@ -436,7 +447,7 @@ export function QueueScreen({
 
   // Tab+Enter shortcut to join queue (or mark ready for non-leaders)
   React.useEffect(() => {
-    if (isQueuing || !session?.user || !connected) return;
+    if (isQueuing || !connected) return;
 
     function handleKeyDown(e: KeyboardEvent) {
       const tag = (e.target as HTMLElement)?.tagName;
@@ -464,7 +475,6 @@ export function QueueScreen({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [
     isQueuing,
-    session?.user,
     connected,
     inPartyNotLeader,
     amReady,
@@ -551,10 +561,38 @@ export function QueueScreen({
   /* ── Idle state ───────────────────────────────────────────────────────── */
   return (
     <div className="flex flex-col items-center w-full max-w-5xl gap-3">
-      {session?.user ? (
         <>
+          {/* ── Guest banner ──────────────────────────────────────────── */}
+          {isGuest && (
+            <div
+              className="w-full rounded-lg bg-accent/[0.06] ring-1 ring-accent/15 px-4 py-3 flex items-center justify-between animate-fade-in"
+              style={{ animationDelay: "0ms", animationFillMode: "both" }}
+            >
+              <div className="flex flex-col gap-0.5">
+                <span className="text-sm font-semibold text-text/90">
+                  Playing as Guest
+                </span>
+                <span className="text-xs text-muted/65">
+                  Sign in to save your progress and climb the ranks
+                </span>
+              </div>
+              <button
+                onClick={() => signIn("google")}
+                className="shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-accent bg-accent/[0.08] ring-1 ring-accent/20 hover:bg-accent hover:text-bg hover:ring-accent transition-all"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="shrink-0">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 0 0 1 12c0 1.77.42 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                </svg>
+                Sign in
+              </button>
+            </div>
+          )}
+
           {/* ── Action area ───────────────────────────────────────────── */}
-          {inPartyNotLeader ? (
+          {!isGuest && inPartyNotLeader ? (
             <div
               className="flex flex-col items-center gap-3 w-full animate-fade-in"
               style={{ animationDelay: "50ms", animationFillMode: "both" }}
@@ -646,28 +684,56 @@ export function QueueScreen({
                         >
                           {desc}
                         </span>
-                        {modeRank ? (
-                          <div className="flex flex-col items-center gap-0.5 mt-0.5">
-                            <span
-                              className="text-sm font-black tabular-nums leading-none"
-                              style={{ color: RANK_HEX[modeRank.tier] }}
-                            >
-                              {modeElo}
-                            </span>
-                            <span
-                              className="text-[10px] font-bold leading-none"
-                              style={{ color: RANK_HEX[modeRank.tier] }}
-                            >
-                              {modeRank.label}
-                            </span>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-center gap-0.5 mt-0.5">
-                            <span className="text-[10px] text-muted/40 leading-none">
-                              unranked
-                            </span>
-                          </div>
-                        )}
+                        {(() => {
+                          const racesInMode = modeRacesPlayed[id] ?? 0;
+                          const inPlacement = !isGuest && racesInMode < PLACEMENT_RACES_REQUIRED;
+                          if (isGuest) {
+                            return (
+                              <div className="flex flex-col items-center gap-0.5 mt-0.5">
+                                <span className="text-[10px] text-muted/40 leading-none">
+                                  unranked
+                                </span>
+                              </div>
+                            );
+                          }
+                          if (inPlacement) {
+                            return (
+                              <div className="flex flex-col items-center gap-0.5 mt-0.5">
+                                <span className="text-[10px] font-bold text-accent/70 leading-none tabular-nums">
+                                  {racesInMode}/{PLACEMENT_RACES_REQUIRED}
+                                </span>
+                                <span className="text-[10px] text-accent/50 leading-none">
+                                  placements
+                                </span>
+                              </div>
+                            );
+                          }
+                          if (modeRank) {
+                            return (
+                              <div className="flex flex-col items-center gap-0.5 mt-0.5">
+                                <span
+                                  className="text-sm font-black tabular-nums leading-none"
+                                  style={{ color: RANK_HEX[modeRank.tier] }}
+                                >
+                                  {modeElo}
+                                </span>
+                                <span
+                                  className="text-[10px] font-bold leading-none"
+                                  style={{ color: RANK_HEX[modeRank.tier] }}
+                                >
+                                  {modeRank.label}
+                                </span>
+                              </div>
+                            );
+                          }
+                          return (
+                            <div className="flex flex-col items-center gap-0.5 mt-0.5">
+                              <span className="text-[10px] text-muted/40 leading-none">
+                                unranked
+                              </span>
+                            </div>
+                          );
+                        })()}
                       </button>
                     );
                   })}
@@ -701,7 +767,7 @@ export function QueueScreen({
                   )}
                 </span>
 
-                {!party && (
+                {!party && !isGuest && (
                   <div className="flex items-center gap-2">
                     <button
                       onClick={onCreateParty}
@@ -763,7 +829,7 @@ export function QueueScreen({
           )}
 
           {/* ── Dashboard ─────────────────────────────────────────────── */}
-          {xpInfo && (
+          {xpInfo && !isGuest && (
             <div className="w-full border-t border-white/[0.05] pt-2 shrink-0">
             <div
               className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2 animate-fade-in"
@@ -774,17 +840,13 @@ export function QueueScreen({
                 level={xpInfo.level}
                 currentXp={xpInfo.currentXp}
                 nextLevelXp={xpInfo.nextLevelXp}
-                isPro={session.user.isPro ?? false}
+                isPro={session!.user.isPro ?? false}
               />
             </div>
             <AdBanner slot="queue_screen" format="horizontal" className="w-full mt-3" />
             </div>
           )}
         </>
-      ) : (
-        /* ── Signed-out: Hero landing ───────────────────────────────── */
-        <GuestPlacement />
-      )}
     </div>
   );
 }

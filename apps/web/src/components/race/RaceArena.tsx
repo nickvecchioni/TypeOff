@@ -52,8 +52,8 @@ function rankValue(tier: RankTier, division: number | null): number {
 
 export function RaceArena() {
   const { data: session, update: updateSession } = useSession();
-  const myPlayerId = session?.user?.id ?? null;
-  const race = useRace(myPlayerId);
+  const race = useRace(session?.user?.id ?? null);
+  const myPlayerId = race.effectivePlayerId ?? null;
   const partyHook = useParty();
   const { on } = useSocket();
 
@@ -370,6 +370,8 @@ export function RaceArena() {
                         codeLanguage={snippet?.language}
                         codeSnippetName={snippet?.name}
                         quoteAuthor={race.raceState!.mode === "quotes" ? getQuoteAuthor(race.raceState!.seed) : undefined}
+                        isPlacement={race.raceState!.isPlacement}
+                        placementNumber={race.raceState!.placementNumber}
                       />
                     );
                   })()}

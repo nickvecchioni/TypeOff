@@ -54,6 +54,8 @@ export interface RaceResult {
   level?: number;
   previousBestWpm?: number;
   previousTextBestWpm?: number;
+  placementRaceNumber?: number;
+  placementComplete?: boolean;
 }
 
 export function useRace(myPlayerId?: string | null) {
@@ -69,9 +71,13 @@ export function useRace(myPlayerId?: string | null) {
   const [finishTimeoutEnd, setFinishTimeoutEnd] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Derived player ID from JWT (for guests who don't have session.user.id)
+  const [tokenPlayerId, setTokenPlayerId] = useState<string | null>(null);
+  const effectivePlayerId = myPlayerId ?? tokenPlayerId;
+
   // Keep track of own player id
-  const myPlayerIdRef = useRef<string | null>(myPlayerId ?? null);
-  myPlayerIdRef.current = myPlayerId ?? null;
+  const myPlayerIdRef = useRef<string | null>(effectivePlayerId);
+  myPlayerIdRef.current = effectivePlayerId;
 
   // Track previous connected state for reconnection detection
   const prevConnectedRef = useRef(connected);
@@ -301,7 +307,12 @@ export function useRace(myPlayerId?: string | null) {
       }
 
       if (token) {
-        myPlayerIdRef.current = null; // Will be set from race state
+        // Extract player ID from JWT for guest support
+        try {
+          const payload = JSON.parse(atob(token.split(".")[1]));
+          if (payload.sub) setTokenPlayerId(payload.sub);
+        } catch {}
+
         emit("joinQueue", { token, privateRace: opts?.privateRace, modeCategories: opts?.modeCategories ?? ["words"] });
 
         // Safety timeout: must exceed server BOT_WAIT_MS (20s)
@@ -315,7 +326,7 @@ export function useRace(myPlayerId?: string | null) {
         setError("Too many requests. Please wait a moment and try again");
         setPhase("idle");
       } else {
-        setError("Sign in required to play");
+        setError("Could not connect. Please try again.");
         setPhase("idle");
       }
     },
@@ -477,6 +488,7 @@ export function useRace(myPlayerId?: string | null) {
     results,
     finishTimeoutEnd,
     error,
+    effectivePlayerId,
     joinQueue,
     leaveQueue,
     leaveRace,

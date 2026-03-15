@@ -1,3 +1,6 @@
+/** Number of bot-only races per mode before ranked matchmaking begins */
+export const PLACEMENT_RACES_REQUIRED = 3;
+
 export type RankTier =
   | "bronze"
   | "silver"

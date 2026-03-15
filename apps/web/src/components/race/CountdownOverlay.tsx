@@ -42,6 +42,8 @@ interface CountdownOverlayProps {
   codeLanguage?: string;
   codeSnippetName?: string;
   quoteAuthor?: string;
+  isPlacement?: boolean;
+  placementNumber?: number;
 }
 
 export function CountdownOverlay({
@@ -50,6 +52,8 @@ export function CountdownOverlay({
   codeLanguage,
   codeSnippetName,
   quoteAuthor,
+  isPlacement,
+  placementNumber,
 }: CountdownOverlayProps) {
   const capsLock = useCapsLock();
   const modeLabel = mode ? MODE_LABELS[mode] : null;
@@ -59,6 +63,11 @@ export function CountdownOverlay({
 
   return (
     <div className="flex flex-col items-center gap-2">
+      {isPlacement && placementNumber != null && (
+        <p className="text-accent text-xs font-bold uppercase tracking-widest">
+          Placement {placementNumber}/3
+        </p>
+      )}
       {modeLabel && (
         <p className="text-accent/70 text-xs font-semibold uppercase tracking-widest">
           {modeLabel}

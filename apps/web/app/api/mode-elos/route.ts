@@ -11,7 +11,8 @@ export async function GET() {
     const session = await auth();
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      // Guest: return empty (no persisted data)
+      return NextResponse.json({ modeElos: {}, modeRacesPlayed: {} });
     }
 
     const db = getDb();
@@ -19,16 +20,19 @@ export async function GET() {
       .select({
         modeCategory: userModeStats.modeCategory,
         eloRating: userModeStats.eloRating,
+        racesPlayed: userModeStats.racesPlayed,
       })
       .from(userModeStats)
       .where(eq(userModeStats.userId, session.user.id));
 
     const modeElos: Record<string, number> = {};
+    const modeRacesPlayed: Record<string, number> = {};
     for (const row of rows) {
       modeElos[row.modeCategory] = row.eloRating;
+      modeRacesPlayed[row.modeCategory] = row.racesPlayed;
     }
 
-    return NextResponse.json({ modeElos });
+    return NextResponse.json({ modeElos, modeRacesPlayed });
   } catch (err) {
     console.error("[mode-elos] error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

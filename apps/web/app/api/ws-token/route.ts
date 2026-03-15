@@ -15,8 +15,22 @@ export async function GET() {
     const secret = new TextEncoder().encode(process.env.AUTH_SECRET);
     const session = await auth();
 
+    // Guest token — unauthenticated users can still race (no persistence)
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      const guestId = `guest_${crypto.randomUUID()}`;
+      const token = await new SignJWT({
+        sub: guestId,
+        name: "Guest",
+        isGuest: true,
+        elo: 1000,
+        modeElos: {},
+        modeRacesPlayed: {},
+      })
+        .setProtectedHeader({ alg: "HS256" })
+        .setExpirationTime("30m")
+        .sign(secret);
+
+      return NextResponse.json({ token });
     }
 
     const { limited, retryAfter } = getLimit.check(session.user.id);
@@ -26,7 +40,7 @@ export async function GET() {
 
     const db = getDb();
 
-    // Read display ELO + active cosmetics + per-mode ELOs
+    // Read display ELO + active cosmetics + per-mode ELOs + per-mode races played
     const [[row], modeRows] = await Promise.all([
       db
         .select({
@@ -44,16 +58,19 @@ export async function GET() {
         .select({
           modeCategory: userModeStats.modeCategory,
           eloRating: userModeStats.eloRating,
+          racesPlayed: userModeStats.racesPlayed,
         })
         .from(userModeStats)
         .where(eq(userModeStats.userId, session.user.id)),
     ]);
 
-    // Build per-mode ELO map, defaulting to display ELO for modes without stats
+    // Build per-mode ELO and racesPlayed maps
     const displayElo = row?.eloRating ?? 1000;
     const modeElos: Record<string, number> = {};
+    const modeRacesPlayed: Record<string, number> = {};
     for (const m of modeRows) {
       modeElos[m.modeCategory] = m.eloRating;
+      modeRacesPlayed[m.modeCategory] = m.racesPlayed;
     }
 
     const token = await new SignJWT({
@@ -61,6 +78,7 @@ export async function GET() {
       name: row?.username ?? "Anonymous",
       elo: displayElo,
       modeElos,
+      modeRacesPlayed,
       username: row?.username ?? null,
       isPro: session.user.isPro ?? false,
       activeBadge: row?.activeBadge ?? null,

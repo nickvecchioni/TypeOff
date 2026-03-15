@@ -7,6 +7,7 @@ import type {
   WpmSample,
   EmoteKey,
 } from "@typeoff/shared";
+import { PLACEMENT_RACES_REQUIRED } from "@typeoff/shared";
 import { RaceManager } from "./race-manager.js";
 import type { RaceOwner } from "./race-manager.js";
 import type { SocialManager } from "./social-manager.js";
@@ -81,11 +82,18 @@ export class Matchmaker implements RaceOwner {
       console.log(`[matchmaker] player ${player.id} re-queuing after finished race`);
     }
 
-    // Normal ranked queue — use mode-specific ELO for matchmaking
     // Override player.elo with the ELO for the selected mode categories
     const modeElo = this.getModeElo(player, modeCategories);
     const playerWithModeElo = { ...player, elo: modeElo };
 
+    // Placement / guest players get immediate bot races (skip shared queue)
+    if (this.isInPlacement(player, modeCategories)) {
+      const entry: QueueEntry = { socket, player: playerWithModeElo, joinedAt: Date.now(), modeCategories };
+      this.startRaceWithBots([entry], MAX_PLAYERS - 1);
+      return;
+    }
+
+    // Normal ranked queue
     this.queue.push({ socket, player: playerWithModeElo, joinedAt: Date.now(), modeCategories });
     this.broadcastQueueCount();
 
@@ -348,6 +356,16 @@ export class Matchmaker implements RaceOwner {
         this.userIdToRace.delete(userId);
       }
     }
+  }
+
+  /** Check if a player is still in placement for any of the selected modes */
+  private isInPlacement(player: RacePlayer, modeCategories: ModeCategory[]): boolean {
+    if (player.isGuest) return true; // Guests always get bots
+    if (!player.modeRacesPlayed) return true; // No data = new player
+    // If ANY selected mode has < PLACEMENT_RACES_REQUIRED, it's a placement race
+    return modeCategories.some(
+      (m) => (player.modeRacesPlayed?.[m] ?? 0) < PLACEMENT_RACES_REQUIRED
+    );
   }
 
   /** Get mode-specific ELO for matchmaking. Uses average across selected modes. */

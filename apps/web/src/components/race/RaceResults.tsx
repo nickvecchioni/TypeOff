@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import type { RaceResult } from "@/hooks/useRace";
 import type { RankTier, WpmSample, KeyStatsMap } from "@typeoff/shared";
 import {
@@ -54,6 +54,16 @@ interface RaceResultsProps {
   raceMode?: string;
   raceSeed?: number;
 }
+
+const RANK_HEX_LOCAL: Record<RankTier, string> = {
+  bronze: "#d97706",
+  silver: "#9ca3af",
+  gold: "#eab308",
+  platinum: "#67e8f9",
+  diamond: "#3b82f6",
+  master: "#a855f7",
+  grandmaster: "#ef4444",
+};
 
 const RARITY_RING: Record<AchievementRarity, string> = {
   common: "ring-white/[0.08]",
@@ -904,6 +914,7 @@ export function RaceResults({
   const isPro = session?.user?.isPro ?? false;
 
   const myResult = results.find((r) => r.playerId === myPlayerId);
+  const isGuestResult = myPlayerId?.startsWith("guest_") ?? false;
 
   const inParty = party != null && party.members.length >= 2;
   const isLeader = party?.leaderId === myPlayerId;
@@ -1108,9 +1119,50 @@ export function RaceResults({
                     )}
                   </div>
 
-                  {/* ELO */}
+                  {/* ELO / Placement */}
                   <div className="bg-surface/30 px-3 py-2 sm:px-4 flex flex-col items-center justify-center">
-                    {hasElo ? (
+                    {myResult.placementRaceNumber != null ? (
+                      <div className="flex flex-col items-center text-center gap-1">
+                        {myResult.placementComplete ? (
+                          <>
+                            <div className="text-xs font-bold uppercase tracking-wider text-correct/80">
+                              Rank Calibrated
+                            </div>
+                            {myResult.elo != null && (
+                              <>
+                                <span className="text-2xl sm:text-3xl font-black tabular-nums leading-none" style={{ color: RANK_HEX_LOCAL[getRankInfo(myResult.elo).tier] }}>
+                                  {myResult.elo}
+                                </span>
+                                <RankBadge tier={getRankInfo(myResult.elo).tier} elo={myResult.elo} showElo={false} size="xs" />
+                              </>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            <div className="text-xs font-bold uppercase tracking-wider text-accent/80">
+                              Placement {myResult.placementRaceNumber}/3
+                            </div>
+                            {hasElo && (
+                              <AnimatedElo
+                                oldElo={myResult.elo! - myResult.eloChange!}
+                                newElo={myResult.elo!}
+                                change={myResult.eloChange!}
+                                rankChange={null}
+                              />
+                            )}
+                          </>
+                        )}
+                      </div>
+                    ) : isGuestResult ? (
+                      <div className="flex flex-col items-center text-center gap-1">
+                        <div className="text-xs font-bold uppercase tracking-wider text-muted/50">
+                          Guest
+                        </div>
+                        <div className="text-xs text-muted/40">
+                          Sign in to track ELO
+                        </div>
+                      </div>
+                    ) : hasElo ? (
                       <AnimatedElo
                         oldElo={myResult.elo! - myResult.eloChange!}
                         newElo={myResult.elo!}
@@ -1519,6 +1571,19 @@ export function RaceResults({
               </span>
             )}
           </>
+        )}
+
+        {/* Guest CTA */}
+        {isGuestResult && (
+          <div className="w-full rounded-lg bg-accent/[0.06] ring-1 ring-accent/15 px-4 py-3 flex items-center justify-between">
+            <span className="text-xs text-muted/65">Sign in to save your progress and track your rank</span>
+            <button
+              onClick={() => signIn("google")}
+              className="shrink-0 text-xs font-medium text-accent hover:text-accent/80 transition-colors"
+            >
+              Sign in
+            </button>
+          </div>
         )}
 
         {/* Share */}
