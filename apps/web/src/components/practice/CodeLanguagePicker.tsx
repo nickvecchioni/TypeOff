@@ -21,7 +21,7 @@ export function CodeLanguagePicker({ value, onChange }: CodeLanguagePickerProps)
     <div className="flex items-center gap-1">
       <button
         onClick={() => onChange(undefined)}
-        className={`px-2.5 py-1.5 rounded-md text-sm font-medium transition-all ${
+        className={`px-2.5 py-1.5 rounded-md text-sm font-medium transition-colors ${
           value === undefined
             ? "text-accent/80 bg-accent/10"
             : "text-muted/55 hover:text-muted/70 hover:bg-white/[0.03]"
@@ -33,7 +33,7 @@ export function CodeLanguagePicker({ value, onChange }: CodeLanguagePickerProps)
         <button
           key={lang}
           onClick={() => onChange(lang)}
-          className={`px-2.5 py-1.5 rounded-md text-sm font-medium transition-all ${
+          className={`px-2.5 py-1.5 rounded-md text-sm font-medium transition-colors ${
             value === lang
               ? "text-accent/80 bg-accent/10"
               : "text-muted/55 hover:text-muted/70 hover:bg-white/[0.03]"
