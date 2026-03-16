@@ -332,15 +332,13 @@ export class RaceManager {
       });
     }
 
-    // Safety net: auto-finish player when progress reaches 1.0 but raceFinish
-    // event was never received (e.g. client-side finish detection failed, socket
-    // reconnected with new id dropping the event, etc.)
-    // Also trust the client's progress=1 when finalStats are piggybacked, even if
-    // the server's validated progress is < 1 (can happen when a micro-disconnect
-    // caused earlier progress events to be dropped, making the server's word-index
-    // lag behind the client's actual position).
+    // Safety net: auto-finish player when the CLIENT explicitly reports completion
+    // (progress >= 1 with finalStats piggybacked). Don't trust validated.progress
+    // alone — it's computed from charIndex (cursor position) which reaches 1.0 when
+    // all chars of the last word are typed, even if some are incorrect. The player
+    // must be allowed to backspace and fix errors before finishing.
     const clientReportsFinished = data.progress >= 1 && data.finalStats && data.finalStats.wpm > 0;
-    if ((validated.progress >= 1 || clientReportsFinished) && !entry.progress.finished && (validated.wpm > 0 || clientReportsFinished)) {
+    if (clientReportsFinished && !entry.progress.finished) {
       // Use piggybacked finalStats if available (more accurate than progress-event WPM)
       const finishData = data.finalStats && data.finalStats.wpm > 0
         ? { wpm: data.finalStats.wpm, rawWpm: data.finalStats.rawWpm, accuracy: data.finalStats.accuracy, misstypedChars: data.finalStats.misstypedChars }

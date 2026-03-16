@@ -161,7 +161,14 @@ export function RaceTypingArea({
 
       // Character-level progress for smooth race track
       // Include inter-word spaces to match server's bot progress denominator
-      let typedChars = engine.currentCharIndex;
+      // Only count CORRECT chars on the current word to avoid inflated progress
+      // when the last word is mistyped (which would trigger the server's
+      // auto-finish stall safety net prematurely).
+      const currentWord = engine.words[engine.currentWordIndex];
+      const correctCharsInCurrentWord = currentWord
+        ? currentWord.chars.filter((c) => c.status === "correct").length
+        : 0;
+      let typedChars = correctCharsInCurrentWord;
       for (let i = 0; i < engine.currentWordIndex; i++) {
         typedChars += (engine.words[i]?.chars.length ?? 0) + 1; // +1 for space after each completed word
       }
@@ -177,7 +184,7 @@ export function RaceTypingArea({
 
       onProgress({
         wordIndex: engine.currentWordIndex,
-        charIndex: engine.currentCharIndex,
+        charIndex: correctCharsInCurrentWord,
         wpm: engine.liveWpm,
         progress: prog,
       });
