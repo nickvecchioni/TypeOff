@@ -11,7 +11,7 @@ interface ZenArenaProps {
 }
 
 function getVisibleLines(): number {
-  return 3;
+  return 5;
 }
 
 export function ZenArena({ engine }: ZenArenaProps) {

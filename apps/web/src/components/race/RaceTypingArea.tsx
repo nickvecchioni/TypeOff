@@ -31,7 +31,7 @@ interface RaceTypingAreaProps {
   disabled: boolean;
 }
 
-const VISIBLE_LINES = 3;
+const VISIBLE_LINES = 5;
 
 export function RaceTypingArea({
   seed,

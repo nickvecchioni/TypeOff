@@ -72,7 +72,7 @@ export function GuestPlacement({
     mode: "wordcount",
   });
 
-  const visibleLines = 3;
+  const visibleLines = 5;
   const containerHeight = lineHeight * visibleLines;
 
   /* ── Social proof fetch ──────────────────────────────────────────────────── */
