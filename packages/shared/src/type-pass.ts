@@ -460,6 +460,8 @@ export function calculateSoloXp(data: {
   accuracy: number;
   elapsedSeconds: number;
 }): number {
+  // Require minimum effort to earn XP (prevents AFK farming on timed modes)
+  if (data.wpm < 5) return 0;
   const base = 15;
   // Speed bonus: up to +30 (half of race)
   const speedBonus = Math.min(30, Math.max(0, Math.round(((data.wpm - 30) / 120) * 30)));
