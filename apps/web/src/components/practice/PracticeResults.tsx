@@ -443,7 +443,7 @@ export function PracticeResults({ stats, config, isPb, onRestart, seed, xpProgre
         return (
           <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-4 py-3 text-center">
             <div className="text-sm text-text/70 leading-relaxed">
-              &ldquo;{quote.text}&rdquo; — <span className="italic">{quote.author}</span>
+              &ldquo;{quote.text}&rdquo; <span className="italic">{quote.author}</span>
             </div>
           </div>
         );
