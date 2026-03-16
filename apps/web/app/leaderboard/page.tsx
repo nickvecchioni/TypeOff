@@ -146,6 +146,7 @@ async function SoloLeaderboard({
         lastSeen: users.lastSeen,
         eloRating: users.eloRating,
         rankTier: users.rankTier,
+        placementsCompleted: users.placementsCompleted,
         bestWpm: sql<number>`max(${soloResults.wpm})`.as("best_wpm"),
         avgWpm: sql<number>`avg(${soloResults.wpm})`.as("avg_wpm"),
         bestRawWpm: sql<number>`(array_agg(${soloResults.rawWpm} ORDER BY ${soloResults.wpm} DESC))[1]`.as("best_raw_wpm"),
