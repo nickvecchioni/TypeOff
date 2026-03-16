@@ -39,7 +39,7 @@ export function TextLeaderboard({ seed, mode, limit = 10 }: TextLeaderboardProps
   return (
     <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] overflow-hidden">
       <div className="px-3 py-2 border-b border-white/[0.04]">
-        <span className="text-xs uppercase tracking-wider text-muted/65 font-bold">
+        <span className="text-sm uppercase tracking-wider text-text/50 font-bold">
           Text Leaderboard
         </span>
       </div>
@@ -62,7 +62,7 @@ export function TextLeaderboard({ seed, mode, limit = 10 }: TextLeaderboardProps
               <span className="text-xs font-bold text-text tabular-nums">
                 {Math.floor(entry.bestWpm)}
               </span>
-              <span className="text-xs text-muted/60 tabular-nums w-10 text-right">
+              <span className="text-xs text-text/50 tabular-nums w-10 text-right">
                 {Math.floor(entry.bestAccuracy)}%
               </span>
             </div>

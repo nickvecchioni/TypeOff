@@ -69,7 +69,7 @@ export function CountdownOverlay({
         </p>
       )}
       {modeLabel && (
-        <p className="text-accent/70 text-xs font-semibold uppercase tracking-widest">
+        <p className="text-accent/80 text-sm font-semibold uppercase tracking-widest">
           {modeLabel}
         </p>
       )}
@@ -80,15 +80,15 @@ export function CountdownOverlay({
         {countdown}
       </div>
       {modeDesc && (
-        <p className="text-muted/50 text-xs text-center mt-1">{modeDesc}</p>
+        <p className="text-text/50 text-sm text-center mt-1">{modeDesc}</p>
       )}
       {/* Code snippet name below language */}
       {mode === "code" && codeSnippetName && (
-        <p className="text-muted/60 text-xs text-center -mt-0.5">{codeSnippetName}</p>
+        <p className="text-text/55 text-sm text-center -mt-0.5">{codeSnippetName}</p>
       )}
       {/* Quote author */}
       {mode === "quotes" && quoteAuthor && (
-        <p className="text-muted/60 text-xs text-center -mt-0.5"><span className="italic">{quoteAuthor}</span></p>
+        <p className="text-text/55 text-sm text-center -mt-0.5"><span className="italic">{quoteAuthor}</span></p>
       )}
       {capsLock && (
         <span className="px-2 py-0.5 rounded text-xs font-medium bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/20 mt-1">

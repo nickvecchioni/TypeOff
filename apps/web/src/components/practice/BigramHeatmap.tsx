@@ -47,7 +47,7 @@ export function BigramHeatmap({ bigrams }: BigramHeatmapProps) {
       <div className="grid mb-px" style={{ gridTemplateColumns: gridCols }}>
         <div />
         {LETTERS.map((col) => (
-          <div key={col} className="text-[9px] text-muted/45 font-medium text-center leading-none py-0.5">
+          <div key={col} className="text-[10px] text-text/45 font-medium text-center leading-none py-0.5">
             {col}
           </div>
         ))}
@@ -56,7 +56,7 @@ export function BigramHeatmap({ bigrams }: BigramHeatmapProps) {
       {/* Rows */}
       {LETTERS.map((row) => (
         <div key={row} className="grid gap-px mb-px" style={{ gridTemplateColumns: gridCols }}>
-          <div className="text-[9px] text-muted/45 font-medium flex items-center justify-center leading-none">
+          <div className="text-[10px] text-text/45 font-medium flex items-center justify-center leading-none">
             {row}
           </div>
           {LETTERS.map((col) => {

@@ -259,7 +259,7 @@ export function ConfigBar({
         <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 ${
           ct === "custom" || ct === "zen" ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}>
-          <span className="text-xs text-muted/45">
+          <span className="text-sm text-text/45">
             paste any text to start typing
           </span>
         </div>
@@ -299,7 +299,7 @@ function Chip({
       }`}
     >
       {children}
-      {proLocked && <span className="text-[10px] font-bold text-accent/50 leading-none">PRO</span>}
+      {proLocked && <span className="text-xs font-bold text-accent/60 leading-none">PRO</span>}
     </button>
   );
 }

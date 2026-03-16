@@ -60,7 +60,7 @@ export function PPLeaderboard({ userId }: PPLeaderboardProps) {
     <div>
       {/* Header */}
       <div
-        className={`grid ${gridCols} items-center gap-3 px-4 py-2.5 text-xs text-muted/60 uppercase tracking-wider border-b border-white/[0.04]`}
+        className={`grid ${gridCols} items-center gap-3 px-4 py-2.5 text-xs text-text/50 uppercase tracking-wider border-b border-white/[0.04]`}
       >
         <span></span>
         <span>Player</span>

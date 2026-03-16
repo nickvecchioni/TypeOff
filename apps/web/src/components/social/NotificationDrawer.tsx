@@ -199,8 +199,8 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
                         <span className="w-1 h-1 rounded-full bg-accent shrink-0" />
                       )}
                     </div>
-                    <p className="text-xs text-muted/65 truncate mt-0.5">{notif.body}</p>
-                    <span className="text-xs text-muted/65 tabular-nums mt-0.5 block">
+                    <p className="text-sm text-text/55 truncate mt-0.5">{notif.body}</p>
+                    <span className="text-xs text-text/45 tabular-nums mt-0.5 block">
                       {timeAgo(notif.createdAt)}
                     </span>
                   </div>

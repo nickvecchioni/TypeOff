@@ -59,7 +59,7 @@ function SpeedAnalysis({ wpmHistory, wpm }: { wpmHistory: WpmSample[]; wpm: numb
   return (
     <div className="w-full rounded-xl bg-surface/20 ring-1 ring-white/[0.05] px-3 pt-2 pb-3 flex flex-col gap-2.5">
       <div className="flex items-center justify-between">
-        <div className="text-xs font-bold text-muted/50 uppercase tracking-widest">Speed Analysis</div>
+        <div className="text-sm font-bold text-text/50 uppercase tracking-widest">Speed Analysis</div>
         <span className="text-xs font-black text-accent/50 bg-accent/[0.06] ring-1 ring-accent/15 rounded px-1.5 py-0.5 uppercase tracking-wider leading-none">
           PRO
         </span>
@@ -67,34 +67,34 @@ function SpeedAnalysis({ wpmHistory, wpm }: { wpmHistory: WpmSample[]; wpm: numb
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2">
-          <div className="text-xs text-muted/50 uppercase tracking-widest mb-1">Peak Sustained</div>
+          <div className="text-xs text-text/50 uppercase tracking-widest mb-1">Peak Sustained</div>
           <div className="text-lg font-black text-accent tabular-nums leading-none">
             {Math.floor(peakSustained)}
             <span className="text-[0.6em] opacity-40">.{(peakSustained % 1).toFixed(2).slice(2)}</span>
           </div>
-          <div className="text-xs text-muted/60 mt-0.5">3-sec rolling avg</div>
+          <div className="text-xs text-text/50 mt-0.5">3-sec rolling avg</div>
         </div>
 
         <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2">
-          <div className="text-xs text-muted/50 uppercase tracking-widest mb-1">Fastest</div>
+          <div className="text-xs text-text/50 uppercase tracking-widest mb-1">Fastest</div>
           <div className="text-lg font-black text-correct tabular-nums leading-none">{Math.floor(fastest.wpm)}</div>
-          <div className="text-xs text-muted/60 mt-0.5">at {fastest.elapsed}s</div>
+          <div className="text-xs text-text/50 mt-0.5">at {fastest.elapsed}s</div>
         </div>
 
         <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2">
-          <div className="text-xs text-muted/50 uppercase tracking-widest mb-1">Slowest</div>
+          <div className="text-xs text-text/50 uppercase tracking-widest mb-1">Slowest</div>
           <div className="text-lg font-black text-error/80 tabular-nums leading-none">{Math.floor(slowest.wpm)}</div>
-          <div className="text-xs text-muted/60 mt-0.5">at {slowest.elapsed}s</div>
+          <div className="text-xs text-text/50 mt-0.5">at {slowest.elapsed}s</div>
         </div>
 
         <div className="rounded-lg bg-surface/40 ring-1 ring-white/[0.04] px-3 py-2">
-          <div className="text-xs text-muted/50 uppercase tracking-widest mb-1">Stability</div>
+          <div className="text-xs text-text/50 uppercase tracking-widest mb-1">Stability</div>
           <div className={`text-sm font-black leading-none ${stabilityColor}`}>{stabilityLabel}</div>
-          <div className="text-xs text-muted/60 mt-0.5">{Math.round((1 - cv) * 100)}% stable</div>
+          <div className="text-xs text-text/50 mt-0.5">{Math.round((1 - cv) * 100)}% stable</div>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted/60">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text/50">
         <div className="flex items-center gap-1.5">
           <span className="text-muted/60">Warmup:</span>
           <span className="tabular-nums">{Math.floor(firstAvg)} → {Math.floor(secondAvg)} WPM</span>

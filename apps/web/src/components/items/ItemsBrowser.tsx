@@ -190,7 +190,7 @@ export function ItemsBrowser({
       <div className="flex items-end justify-between gap-4">
         <div>
           <h1 className="text-lg font-bold text-text tracking-tight">Cosmetics</h1>
-          <p className="text-sm text-muted/60 mt-0.5">Earn cosmetics by levelling up through gameplay</p>
+          <p className="text-sm text-text/55 mt-0.5">Earn cosmetics by levelling up through gameplay</p>
         </div>
         <div className="flex items-center gap-2">
           {saving && (
@@ -209,11 +209,11 @@ export function ItemsBrowser({
         <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center gap-3">
             <span className="text-sm font-black text-accent tabular-nums">Level {xpInfo.level}</span>
-            <span className="text-sm text-muted/55 tabular-nums">
+            <span className="text-sm text-text/50 tabular-nums">
               {xpInfo.currentXp.toLocaleString()} / {xpInfo.nextLevelXp.toLocaleString()} XP
             </span>
           </div>
-          <span className="text-sm text-muted/65 tabular-nums">
+          <span className="text-sm text-text/55 tabular-nums">
             {(xpInfo.nextLevelXp - xpInfo.currentXp).toLocaleString()} to next level
           </span>
         </div>
@@ -224,7 +224,7 @@ export function ItemsBrowser({
           />
         </div>
         {!isPro && (
-          <p className="text-sm text-muted/60 mt-2">
+          <p className="text-sm text-text/50 mt-2">
             Pro subscribers earn 1.5× XP and unlock exclusive items
           </p>
         )}

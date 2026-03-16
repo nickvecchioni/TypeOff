@@ -579,7 +579,7 @@ export function QueueScreen({
                 <h1 className="relative text-2xl sm:text-3xl font-black text-text tracking-tight text-center leading-tight">
                   Competitive typing, <span className="text-accent">ranked.</span>
                 </h1>
-                <p className="relative text-muted/60 text-sm text-center">
+                <p className="relative text-text/50 text-base text-center">
                   Race against players at your skill level. Try it now as a guest.
                 </p>
               </div>
@@ -590,7 +590,7 @@ export function QueueScreen({
                   <span className="text-sm font-semibold text-text/90">
                     Playing as Guest
                   </span>
-                  <span className="text-xs text-muted/65">
+                  <span className="text-sm text-text/50">
                     Sign in to save your progress and climb the ranks
                   </span>
                 </div>
@@ -699,7 +699,7 @@ export function QueueScreen({
                         </span>
                         <span className="text-xs font-semibold leading-none">{label}</span>
                         <span
-                          className={`text-[11px] leading-tight hidden sm:block ${active ? "text-accent/70" : "text-text/50"}`}
+                          className={`text-xs leading-tight hidden sm:block ${active ? "text-accent/80" : "text-text/60"}`}
                         >
                           {desc}
                         </span>
@@ -709,7 +709,7 @@ export function QueueScreen({
                           if (isGuest) {
                             return (
                               <div className="flex flex-col items-center gap-0.5 mt-0.5">
-                                <span className="text-[10px] text-muted/40 leading-none">
+                                <span className="text-xs text-text/40 leading-none">
                                   unranked
                                 </span>
                               </div>
@@ -718,10 +718,10 @@ export function QueueScreen({
                           if (inPlacement) {
                             return (
                               <div className="flex flex-col items-center gap-0.5 mt-0.5">
-                                <span className="text-[10px] font-bold text-accent/70 leading-none tabular-nums">
+                                <span className="text-xs font-bold text-accent/80 leading-none tabular-nums">
                                   {racesInMode}/{PLACEMENT_RACES_REQUIRED}
                                 </span>
-                                <span className="text-[10px] text-accent/50 leading-none">
+                                <span className="text-xs text-accent/60 leading-none">
                                   placements
                                 </span>
                               </div>
@@ -737,7 +737,7 @@ export function QueueScreen({
                                   {modeElo}
                                 </span>
                                 <span
-                                  className="text-[10px] font-bold leading-none"
+                                  className="text-xs font-bold leading-none"
                                   style={{ color: RANK_HEX[modeRank.tier] }}
                                 >
                                   {modeRank.label}
@@ -757,7 +757,7 @@ export function QueueScreen({
                     );
                   })}
                 </div>
-                  <p className="text-sm text-muted/70 mt-2 leading-relaxed text-center">
+                  <p className="text-sm text-text/50 mt-2 leading-relaxed text-center">
                     Select one or more modes. One is picked at random each race. Each mode has its own ELO rating.
                   </p>
                 </div>
@@ -917,14 +917,14 @@ export function QueueScreen({
                       <span className="text-accent/60">{item.icon}</span>
                       <span className="text-sm font-bold text-text/90">{item.title}</span>
                     </div>
-                    <p className="text-xs text-muted/55 leading-relaxed">{item.desc}</p>
+                    <p className="text-sm text-text/50 leading-relaxed">{item.desc}</p>
                   </div>
                 ))}
               </div>
 
               {/* Rank tier strip */}
               <div className="rounded-xl bg-surface/30 ring-1 ring-white/[0.04] px-4 py-3">
-                <div className="text-xs font-bold text-muted/50 uppercase tracking-wider mb-2.5">7 Ranks to climb</div>
+                <div className="text-sm font-bold text-text/50 uppercase tracking-wider mb-2.5">7 Ranks to climb</div>
                 <div className="flex items-center gap-1.5">
                   {([
                     { tier: "bronze" as const, label: "Bronze", elo: "0" },
@@ -946,7 +946,7 @@ export function QueueScreen({
                       >
                         {r.label}
                       </span>
-                      <span className="text-[10px] text-muted/40 tabular-nums leading-none">{r.elo}+</span>
+                      <span className="text-xs text-text/40 tabular-nums leading-none">{r.elo}+</span>
                     </div>
                   ))}
                 </div>
@@ -956,7 +956,7 @@ export function QueueScreen({
               <div className="flex items-center justify-center gap-4 pt-1">
                 <Link
                   href="/solo"
-                  className="text-xs text-muted/50 hover:text-accent/70 transition-colors"
+                  className="text-sm text-text/45 hover:text-accent/70 transition-colors"
                 >
                   or try Solo Practice →
                 </Link>

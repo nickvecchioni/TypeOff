@@ -108,7 +108,7 @@ export function NotificationToast() {
             <span className="text-sm shrink-0">{TYPE_ICONS[toast.type] ?? "📌"}</span>
             <div className="min-w-0 flex-1">
               <div className="text-xs font-medium text-text truncate">{toast.title}</div>
-              <div className="text-xs text-muted/60 truncate">{toast.body}</div>
+              <div className="text-sm text-text/55 truncate">{toast.body}</div>
             </div>
             <button
               onClick={() => dismiss(toast.id)}

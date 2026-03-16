@@ -98,7 +98,7 @@ export function KeyboardHeatmap({ keyStats }: KeyboardHeatmapProps) {
           </div>
         )}
       </div>
-      <div className="flex items-center gap-4 text-[11px] text-muted/50">
+      <div className="flex items-center gap-4 text-xs text-text/50">
         {[
           { acc: 1, label: "100%" },
           { acc: 0.85, label: "85%" },

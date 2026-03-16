@@ -56,7 +56,7 @@ export function AnalyticsInsights({ weakKeys, weakBigrams, avgWpm }: AnalyticsIn
             </div>
 
             {/* Accuracy + WPM cost */}
-            <span className="text-[11px] text-muted/45 tabular-nums shrink-0">{accPct}%</span>
+            <span className="text-xs text-text/45 tabular-nums shrink-0">{accPct}%</span>
             <span className="text-xs font-bold text-error/75 tabular-nums shrink-0 w-14 text-right">
               -{cost} wpm
             </span>
