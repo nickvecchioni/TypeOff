@@ -268,7 +268,8 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     }
   }, [words, currentWordIndex, currentCharIndex, status, config, isWordcountBehavior, finishTest]);
 
-  const restart = useCallback((keepText?: boolean) => {
+  const restart = useCallback((keepText?: boolean, configOverride?: TestConfig) => {
+    const cfg = configOverride ?? config;
     stopTimer();
     let newWords: WordState[];
     if (keepText && wordsRef.current.length > 0) {
@@ -287,13 +288,13 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     } else {
       const seed = Date.now();
       seedRef.current = seed;
-      const wordStrings = generateSoloWords(config, seed);
+      const wordStrings = generateSoloWords(cfg, seed);
       newWords = createWordStates(wordStrings);
       // Normalize seed for quotes/code so PB keys are stable per-text
-      if (config.contentType === "quotes") {
+      if (cfg.contentType === "quotes") {
         seedRef.current = normalizeQuoteSeed(seed);
-      } else if (config.contentType === "code") {
-        seedRef.current = normalizeCodeSeed(seed, config.codeLanguage);
+      } else if (cfg.contentType === "code") {
+        seedRef.current = normalizeCodeSeed(seed, cfg.codeLanguage);
       }
     }
     setWords(newWords);
@@ -319,10 +320,12 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     replaySnapshotsRef.current = [];
   }, [stopTimer, config]);
 
-  // Reset when config changes
-  useEffect(() => {
-    restart();
-  }, [config]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Atomic config change + word reset — updates config and generates new words
+  // in the same React batch to prevent a frame of stale content (flash/jitter)
+  const handleSetConfig = useCallback((newConfig: TestConfig) => {
+    setConfig(newConfig);
+    restart(false, newConfig);
+  }, [restart]);
 
   const handleCharacter = useCallback(
     (char: string) => {
@@ -793,7 +796,7 @@ export function useTypingEngine(external?: ExternalConfig): TypingEngine {
     liveWpm,
     liveAccuracy,
     stats,
-    setConfig,
+    setConfig: handleSetConfig,
     restart,
     stopZen,
     forceFinish,

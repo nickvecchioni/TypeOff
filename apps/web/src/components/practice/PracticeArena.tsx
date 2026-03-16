@@ -24,6 +24,8 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
   const settings = useSettings();
   const engine = useTypingEngine();
   const visibleLines = getVisibleLines();
+  const ct = engine.config.contentType ?? "words";
+  const isCodeMode = ct === "code";
   const containerRef = useRef<HTMLDivElement>(null);
   const wordsInnerRef = useRef<HTMLDivElement>(null);
   const hasSavedRef = useRef(false);
@@ -122,12 +124,15 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
   }, [engine.words]);
 
   // Word scrolling: keep active word visible within VISIBLE_LINES window
+  // (disabled for code mode — all lines are visible at once)
   useEffect(() => {
     if (engine.status === "idle") {
       suppressTransitionRef.current = true;
       setScrollOffset(0);
       return;
     }
+
+    if (isCodeMode) return;
 
     const inner = wordsInnerRef.current;
     if (!inner) return;
@@ -142,7 +147,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
     if (wordLine > scrollLine + 1) {
       setScrollOffset((wordLine - 1) * lineHeight);
     }
-  }, [engine.currentWordIndex, engine.status, lineHeight, scrollOffset]);
+  }, [engine.currentWordIndex, engine.status, lineHeight, scrollOffset, isCodeMode]);
 
   // Clear suppress flag after the instant reset renders
   useEffect(() => {
@@ -306,7 +311,6 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
   const containerHeight = lineHeight * visibleLines;
 
   // Whether to show a stopwatch (elapsed time) instead of countdown
-  const ct = engine.config.contentType ?? "words";
   const showStopwatch = ct === "quotes" || ct === "custom" || ct === "code" || ct === "zen" ||
     ((ct === "words" || ct === "practice") && engine.config.mode === "wordcount");
 
@@ -522,15 +526,20 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
         );
       })()}
 
-      {/* Typing area with scroll clipping */}
+      {/* Typing area — scroll-clipped for words/quotes, full height for code */}
       {!isFinished && (
         <div
           ref={containerRef}
           tabIndex={0}
           onKeyDown={isCustomEmpty ? undefined : engine.handleKeyDown}
           onPaste={handlePaste}
-          className="relative w-full outline-none cursor-default select-none overflow-hidden opacity-0 animate-fade-in"
-          style={{ height: containerHeight, animationDelay: "40ms", animationFillMode: "both" }}
+          className={`relative w-full outline-none cursor-default select-none opacity-0 animate-fade-in ${
+            isCodeMode ? "" : "overflow-hidden"
+          }`}
+          style={isCodeMode
+            ? { animationDelay: "40ms", animationFillMode: "both" as const }
+            : { height: containerHeight, animationDelay: "40ms", animationFillMode: "both" as const }
+          }
           role="textbox"
           aria-label="Solo typing area"
         >
@@ -542,8 +551,8 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
           ) : (
             <div
               ref={wordsInnerRef}
-              className={suppressTransitionRef.current ? "" : "transition-transform duration-150 ease-out"}
-              style={{ transform: `translateY(-${scrollOffset}px)` }}
+              className={isCodeMode || suppressTransitionRef.current ? "" : "transition-transform duration-150 ease-out"}
+              style={isCodeMode ? undefined : { transform: `translateY(-${scrollOffset}px)` }}
             >
               <WordDisplay
                 words={engine.words}
