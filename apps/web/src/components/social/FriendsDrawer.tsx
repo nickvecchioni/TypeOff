@@ -40,21 +40,6 @@ export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
   const { party, inviteToParty } = useParty();
   const { openDm, unreadFrom } = useDm();
 
-  const panelRef = useRef<HTMLDivElement>(null);
-
-  // Clamp panel so it doesn't overflow the right edge of the viewport
-  useEffect(() => {
-    if (!open || !panelRef.current) return;
-    const el = panelRef.current;
-    const rect = el.getBoundingClientRect();
-    const overflow = rect.right - window.innerWidth + 8; // 8px margin
-    if (overflow > 0) {
-      el.style.transform = `translateX(-${overflow}px)`;
-    } else {
-      el.style.transform = "";
-    }
-  }, [open]);
-
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<
     Array<{ userId: string; username: string | null }>
@@ -214,8 +199,7 @@ export function FriendsDrawer({ open, onClose }: FriendsDrawerProps) {
 
       {/* Dropdown panel */}
       <div
-        ref={panelRef}
-        className="absolute top-full left-0 mt-2 w-80 z-50 flex flex-col overflow-hidden"
+        className="absolute top-full right-0 mt-2 w-80 z-50 flex flex-col overflow-hidden"
         style={{
           background: "#0d0d16",
           border: "1px solid rgba(255,255,255,0.08)",

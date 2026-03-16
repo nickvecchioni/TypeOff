@@ -115,7 +115,7 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
 
       {/* Dropdown panel */}
       <div
-        className="absolute top-full left-0 mt-2 w-80 z-50 flex flex-col overflow-hidden"
+        className="absolute top-full right-0 mt-2 w-80 z-50 flex flex-col overflow-hidden"
         style={{
           background: "#0d0d16",
           border: "1px solid rgba(255,255,255,0.08)",
