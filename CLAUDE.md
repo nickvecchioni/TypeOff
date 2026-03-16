@@ -8,7 +8,7 @@ Competitive typing game — ranked multiplayer with ELO matchmaking, solo practi
 apps/web/           — Next.js 15 frontend (App Router, React 19, Tailwind v4)
 apps/ws-server/     — Socket.io WebSocket server (matchmaking, race lifecycle)
 packages/shared/    — Types, ELO math, word lists, seeded PRNG (JIT — exports .ts)
-packages/db/        — Drizzle ORM schema + Neon Postgres connection
+packages/db/        — Drizzle ORM schema + Railway Postgres connection
 ```
 
 ## Commands
@@ -17,7 +17,7 @@ packages/db/        — Drizzle ORM schema + Neon Postgres connection
 npm run dev          # Start everything (Turborepo)
 npm run build        # Build all packages
 npm run lint         # Typecheck all packages
-npm run db:push --workspace=packages/db    # Push schema to Neon
+npm run db:push --workspace=packages/db    # Push schema to Railway Postgres
 npm run db:studio --workspace=packages/db  # Open Drizzle Studio
 ```
 
@@ -46,7 +46,7 @@ No test runner is configured. No CI/CD pipelines exist. No ESLint/Prettier confi
 
 | Variable | Purpose |
 |----------|---------|
-| `DATABASE_URL` | Neon Postgres connection string |
+| `DATABASE_URL` | Railway Postgres connection string |
 | `AUTH_SECRET` | NextAuth JWT secret (must match ws-server) |
 | `AUTH_TRUST_HOST` | Set to `true` for local dev |
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID |
@@ -66,7 +66,7 @@ No test runner is configured. No CI/CD pipelines exist. No ESLint/Prettier confi
 
 | Variable | Purpose |
 |----------|---------|
-| `DATABASE_URL` | Neon Postgres connection (same as web) |
+| `DATABASE_URL` | Railway Postgres connection (same as web) |
 | `AUTH_SECRET` | JWT secret (must match web) |
 | `PORT` | Server port (default 3001) |
 | `CORS_ORIGIN` | Allowed CORS origin (default `http://localhost:3000`) |
@@ -100,11 +100,11 @@ Core state machine for both solo and race modes. Key design:
 
 ## Database (`packages/db/`)
 
-Neon Serverless Postgres with Drizzle ORM. Uses `@neondatabase/serverless` HTTP driver.
+Railway Postgres with Drizzle ORM. Uses `postgres` (postgres-js) driver.
 
 Schema changes: edit `packages/db/src/schema.ts`, then `npm run db:push --workspace=packages/db`.
 
-**Files**: `schema.ts` (table definitions), `client.ts` (Neon HTTP driver + `createDb()`), `index.ts` (re-exports).
+**Files**: `schema.ts` (table definitions), `client.ts` (postgres-js driver + `createDb()`), `index.ts` (re-exports).
 
 Key tables:
 
@@ -283,7 +283,7 @@ JIT TypeScript — no build needed. All modules re-exported from `index.ts`.
 | File | Purpose |
 |------|---------|
 | `auth.ts` | NextAuth v5 configuration (providers, adapter, JWT callbacks) |
-| `db.ts` | Lazy singleton `getDb()` for Neon Postgres connection |
+| `db.ts` | Lazy singleton `getDb()` for Railway Postgres connection |
 | `admin-auth.ts` | `validateAdminSecret()` — timing-safe admin secret comparison |
 | `rate-limit.ts` | `createRateLimit()` — in-memory sliding-window rate limiter for API routes |
 
