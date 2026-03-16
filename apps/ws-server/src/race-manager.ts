@@ -422,18 +422,26 @@ export class RaceManager {
       if (this.finishTimeoutTimer) clearTimeout(this.finishTimeoutTimer);
       this.endRace();
     } else {
-      // Diagnostic: log which players are still unfinished
-      const unfinished = [...this.players.values()]
-        .filter((p) => !p.progress.finished)
-        .map((p) => `${p.player.name}(${p.player.id.slice(0, 8)}, bot=${p.isBot}, progress=${p.progress.progress.toFixed(3)}, wpm=${p.progress.wpm})`);
-      console.log(
-        `[race-manager] handleFinish: player ${entry.player.id} finished but race continues. ` +
-        `Unfinished: [${unfinished.join(", ")}] race=${this.raceId}`,
-      );
-      if (this.finishTimeoutEnd === null) {
-        // First finish — start the finish timeout
-        this.finishTimeoutEnd = Date.now() + FINISH_TIMEOUT_SECONDS * 1000;
-        this.finishTimeoutTimer = setTimeout(() => this.endRace(), FINISH_TIMEOUT_SECONDS * 1000);
+      // If only bots remain unfinished, end the race immediately
+      const unfinishedPlayers = [...this.players.values()].filter((p) => !p.progress.finished);
+      const onlyBotsLeft = unfinishedPlayers.every((p) => p.isBot);
+      if (onlyBotsLeft) {
+        console.log(`[race-manager] handleFinish: only bots remain, ending race ${this.raceId} immediately`);
+        if (this.finishTimeoutTimer) clearTimeout(this.finishTimeoutTimer);
+        this.endRace();
+      } else {
+        // Diagnostic: log which players are still unfinished
+        const unfinished = unfinishedPlayers
+          .map((p) => `${p.player.name}(${p.player.id.slice(0, 8)}, bot=${p.isBot}, progress=${p.progress.progress.toFixed(3)}, wpm=${p.progress.wpm})`);
+        console.log(
+          `[race-manager] handleFinish: player ${entry.player.id} finished but race continues. ` +
+          `Unfinished: [${unfinished.join(", ")}] race=${this.raceId}`,
+        );
+        if (this.finishTimeoutEnd === null) {
+          // First finish — start the finish timeout
+          this.finishTimeoutEnd = Date.now() + FINISH_TIMEOUT_SECONDS * 1000;
+          this.finishTimeoutTimer = setTimeout(() => this.endRace(), FINISH_TIMEOUT_SECONDS * 1000);
+        }
       }
     }
   }
