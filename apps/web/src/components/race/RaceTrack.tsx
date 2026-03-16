@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useSession } from "next-auth/react";
 import type { RacePlayer, RacePlayerProgress } from "@typeoff/shared";
 import { getRankTier } from "@typeoff/shared";
 import { RankBadge } from "@/components/RankBadge";
@@ -13,6 +14,9 @@ interface RaceTrackProps {
 }
 
 export function RaceTrack({ players, progress, myPlayerId }: RaceTrackProps) {
+  const { data: session } = useSession();
+  const myPlacementsCompleted = session?.user?.placementsCompleted ?? false;
+
   // Sort: other players first (preserving order), current user always last
   const sorted = [...players].sort((a, b) => {
     const aMe = a.id === myPlayerId ? 1 : 0;
@@ -34,7 +38,7 @@ export function RaceTrack({ players, progress, myPlayerId }: RaceTrackProps) {
           <div key={player.id} className="relative flex flex-col gap-1">
             <div className="flex justify-between text-sm">
               <span className={`flex items-center gap-2 min-w-0 ${isMe ? "text-accent font-bold" : "text-text"}`}>
-                {!isBot && <RankBadge tier={getRankTier(player.elo)} />}
+                {!isBot && (isMe ? myPlacementsCompleted : true) && <RankBadge tier={getRankTier(player.elo)} />}
                 {!isBot && <CosmeticBadge badge={player.activeBadge} />}
                 <span className="truncate">
                   {isBot ? (

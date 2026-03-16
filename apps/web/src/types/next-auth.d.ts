@@ -14,6 +14,7 @@ declare module "next-auth" {
       totalXp: number;
       cosmeticLevel: number;
       isPro: boolean;
+      placementsCompleted: boolean;
       activeBadge: string | null;
       activeTitle: string | null;
       activeNameColor: string | null;
@@ -35,6 +36,7 @@ declare module "next-auth/jwt" {
     totalXp?: number;
     cosmeticLevel?: number;
     isPro?: boolean;
+    placementsCompleted?: boolean;
     activeBadge?: string | null;
     activeTitle?: string | null;
     activeNameColor?: string | null;

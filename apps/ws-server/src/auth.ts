@@ -33,6 +33,7 @@ export async function authenticateSocket(
       elo: (payload.elo as number) ?? 1000,
       modeElos: (payload.modeElos as Record<string, number>) ?? {},
       modeRacesPlayed: (payload.modeRacesPlayed as Record<string, number>) ?? {},
+      avgWpm: (payload.avgWpm as number) ?? 0,
       isPro: (payload.isPro as boolean) ?? false,
       activeBadge: (payload.activeBadge as string) ?? null,
       activeNameColor: (payload.activeNameColor as string) ?? null,

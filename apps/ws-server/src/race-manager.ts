@@ -9,7 +9,7 @@ import type {
   WpmSample,
   EmoteKey,
 } from "@typeoff/shared";
-import { calculateRaceElo, getRankTier, generateWordsForMode, quotes, EMOTE_KEYS, scoreTextDifficulty, calculatePP, calculateTotalPP, CHALLENGE_MAP, ACHIEVEMENT_MAP, getXpLevel, PLACEMENT_RACES_REQUIRED } from "@typeoff/shared";
+import { calculateRaceElo, getRankTier, calibrateElo, generateWordsForMode, quotes, EMOTE_KEYS, scoreTextDifficulty, calculatePP, calculateTotalPP, CHALLENGE_MAP, ACHIEVEMENT_MAP, getXpLevel, PLACEMENT_RACES_REQUIRED } from "@typeoff/shared";
 import type { RankTier, RaceMode, ModeCategory, ReplaySnapshot } from "@typeoff/shared";
 import type { NotificationManager } from "./notification-manager.js";
 import { races, raceParticipants, userStats, userModeStats, users, userActiveCosmetics, textLeaderboards } from "@typeoff/db";
@@ -982,7 +982,7 @@ export class RaceManager {
         rawWpm: entry.progress.finalStats?.rawWpm ?? 0,
         accuracy: entry.progress.finalStats?.accuracy ?? 0,
         eloChange: null as number | null,
-        elo: entry.player.elo,
+        elo: (this.isPlacement && !entry.isBot) ? undefined : entry.player.elo,
         activeBadge: entry.player.activeBadge,
         activeNameColor: entry.player.activeNameColor,
         activeNameEffect: entry.player.activeNameEffect,
@@ -1255,132 +1255,220 @@ export class RaceManager {
         const modeEloMap = new Map(modeStatsRows.map((r) => [r.userId, r]));
         const modeStatsMap = modeEloMap;
 
-        // Include bots as virtual opponents for ELO calculation
-        const eloInput = [
-          ...authPlayers.map((e) => ({
-            id: e.player.id,
-            elo: modeEloMap.get(e.player.id)?.eloRating ?? 1000,
-            placement: e.progress.placement!,
-            gamesPlayed: modeStatsMap.get(e.player.id)?.racesPlayed ?? 0,
-            wpm: e.progress.finalStats?.wpm ?? 0,
-            accuracy: e.progress.finalStats?.accuracy,
-            isBot: false,
-          })),
-          ...botEntries.map((e) => ({
-            id: e.player.id,
-            elo: e.player.elo,
-            placement: e.progress.placement!,
-            gamesPlayed: 30, // Bots use experienced K-factor
-            wpm: e.progress.finalStats?.wpm ?? 0,
-            isBot: true,
-          })),
-        ];
-
-        const changes = calculateRaceElo(eloInput);
-
-        // Apply ELO changes to per-mode stats
-        for (const [userId, change] of changes) {
-          if (botEntries.some((b) => b.player.id === userId)) continue;
-          eloChanges.set(userId, change);
-
-          const [updated] = await tx
-            .update(userModeStats)
-            .set({
-              eloRating: sql`GREATEST(0, ${userModeStats.eloRating} + ${change})`,
-              rankTier: sql`CASE
-                WHEN GREATEST(0, ${userModeStats.eloRating} + ${change}) >= 2500 THEN 'grandmaster'
-                WHEN GREATEST(0, ${userModeStats.eloRating} + ${change}) >= 2200 THEN 'master'
-                WHEN GREATEST(0, ${userModeStats.eloRating} + ${change}) >= 1900 THEN 'diamond'
-                WHEN GREATEST(0, ${userModeStats.eloRating} + ${change}) >= 1600 THEN 'platinum'
-                WHEN GREATEST(0, ${userModeStats.eloRating} + ${change}) >= 1300 THEN 'gold'
-                WHEN GREATEST(0, ${userModeStats.eloRating} + ${change}) >= 1000 THEN 'silver'
-                ELSE 'bronze'
-              END`,
-              peakEloRating: sql`GREATEST(${userModeStats.peakEloRating}, GREATEST(0, ${userModeStats.eloRating} + ${change}))`,
-              peakRankTier: sql`CASE
-                WHEN GREATEST(${userModeStats.peakEloRating}, GREATEST(0, ${userModeStats.eloRating} + ${change})) >= 2500 THEN 'grandmaster'
-                WHEN GREATEST(${userModeStats.peakEloRating}, GREATEST(0, ${userModeStats.eloRating} + ${change})) >= 2200 THEN 'master'
-                WHEN GREATEST(${userModeStats.peakEloRating}, GREATEST(0, ${userModeStats.eloRating} + ${change})) >= 1900 THEN 'diamond'
-                WHEN GREATEST(${userModeStats.peakEloRating}, GREATEST(0, ${userModeStats.eloRating} + ${change})) >= 1600 THEN 'platinum'
-                WHEN GREATEST(${userModeStats.peakEloRating}, GREATEST(0, ${userModeStats.eloRating} + ${change})) >= 1300 THEN 'gold'
-                WHEN GREATEST(${userModeStats.peakEloRating}, GREATEST(0, ${userModeStats.eloRating} + ${change})) >= 1000 THEN 'silver'
-                ELSE 'bronze'
-              END`,
-            })
-            .where(
-              and(
-                eq(userModeStats.userId, userId),
-                eq(userModeStats.modeCategory, this.modeCategory),
-              )
-            )
-            .returning({ eloRating: userModeStats.eloRating });
-
-          const newElo = updated?.eloRating ?? 1000;
-          eloAfterMap.set(userId, newElo);
-
-          // Sync users.eloRating to best ELO across all modes
-          await tx
-            .update(users)
-            .set({
-              eloRating: sql`(SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${userId})`,
-              rankTier: sql`CASE
-                WHEN (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${userId}) >= 2500 THEN 'grandmaster'
-                WHEN (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${userId}) >= 2200 THEN 'master'
-                WHEN (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${userId}) >= 1900 THEN 'diamond'
-                WHEN (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${userId}) >= 1600 THEN 'platinum'
-                WHEN (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${userId}) >= 1300 THEN 'gold'
-                WHEN (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${userId}) >= 1000 THEN 'silver'
-                ELSE 'bronze'
-              END`,
-              peakEloRating: sql`GREATEST(${users.peakEloRating}, (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${userId}))`,
-              peakRankTier: sql`CASE
-                WHEN GREATEST(${users.peakEloRating}, (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${userId})) >= 2500 THEN 'grandmaster'
-                WHEN GREATEST(${users.peakEloRating}, (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${userId})) >= 2200 THEN 'master'
-                WHEN GREATEST(${users.peakEloRating}, (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${userId})) >= 1900 THEN 'diamond'
-                WHEN GREATEST(${users.peakEloRating}, (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${userId})) >= 1600 THEN 'platinum'
-                WHEN GREATEST(${users.peakEloRating}, (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${userId})) >= 1300 THEN 'gold'
-                WHEN GREATEST(${users.peakEloRating}, (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${userId})) >= 1000 THEN 'silver'
-                ELSE 'bronze'
-              END`,
-            })
-            .where(eq(users.id, userId));
-        }
-
-        // Notify rank changes (based on per-mode ELO)
-        if (this.notificationManager) {
+        if (this.isPlacement && this.placementNumber < PLACEMENT_RACES_REQUIRED) {
+          // Placement in progress (races 1-2) — no ELO calculation
+          // eloChanges stays empty, eloAfterMap stays empty
+        } else if (this.isPlacement && this.placementNumber >= PLACEMENT_RACES_REQUIRED) {
+          // Placement complete (race 3) — calibrate ELO from average WPM across placement races
           for (const entry of authPlayers) {
-            const modeElo = modeEloMap.get(entry.player.id);
-            const oldElo = modeElo?.eloRating ?? 1000;
-            const newElo = eloAfterMap.get(entry.player.id) ?? oldElo;
-            const oldTier = getRankTier(oldElo);
-            const newTier = getRankTier(newElo);
-            if (oldTier !== newTier) {
-              const direction = newElo > oldElo ? "up" : "down";
-              const modeName = this.modeCategory.charAt(0).toUpperCase() + this.modeCategory.slice(1);
-              this.notificationManager.notify(entry.player.id, {
-                type: direction === "up" ? "rank_up" : "rank_down",
-                title: direction === "up" ? "Rank Up!" : "Rank Down",
-                body: `${modeName}: ${direction === "up" ? "promoted" : "demoted"} to ${newTier.charAt(0).toUpperCase() + newTier.slice(1)}`,
-                actionUrl: `/profile/${usernameMap.get(entry.player.id) ?? entry.player.name}`,
-              });
+            const modeStats = modeEloMap.get(entry.player.id);
+            const avgWpm = modeStats?.avgWpm ?? entry.progress.finalStats?.wpm ?? 50;
+            const calibrated = calibrateElo(avgWpm);
+
+            await tx
+              .update(userModeStats)
+              .set({
+                eloRating: calibrated.elo,
+                rankTier: calibrated.tier,
+                peakEloRating: calibrated.elo,
+                peakRankTier: calibrated.tier,
+              })
+              .where(
+                and(
+                  eq(userModeStats.userId, entry.player.id),
+                  eq(userModeStats.modeCategory, this.modeCategory),
+                )
+              );
+
+            eloAfterMap.set(entry.player.id, calibrated.elo);
+
+            // Sync users.eloRating to best ELO across all modes
+            await tx
+              .update(users)
+              .set({
+                eloRating: sql`(SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${entry.player.id})`,
+                rankTier: sql`CASE
+                  WHEN (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${entry.player.id}) >= 2500 THEN 'grandmaster'
+                  WHEN (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${entry.player.id}) >= 2200 THEN 'master'
+                  WHEN (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${entry.player.id}) >= 1900 THEN 'diamond'
+                  WHEN (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${entry.player.id}) >= 1600 THEN 'platinum'
+                  WHEN (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${entry.player.id}) >= 1300 THEN 'gold'
+                  WHEN (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${entry.player.id}) >= 1000 THEN 'silver'
+                  ELSE 'bronze'
+                END`,
+                peakEloRating: sql`GREATEST(${users.peakEloRating}, (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${entry.player.id}))`,
+                peakRankTier: sql`CASE
+                  WHEN GREATEST(${users.peakEloRating}, (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${entry.player.id})) >= 2500 THEN 'grandmaster'
+                  WHEN GREATEST(${users.peakEloRating}, (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${entry.player.id})) >= 2200 THEN 'master'
+                  WHEN GREATEST(${users.peakEloRating}, (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${entry.player.id})) >= 1900 THEN 'diamond'
+                  WHEN GREATEST(${users.peakEloRating}, (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${entry.player.id})) >= 1600 THEN 'platinum'
+                  WHEN GREATEST(${users.peakEloRating}, (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${entry.player.id})) >= 1300 THEN 'gold'
+                  WHEN GREATEST(${users.peakEloRating}, (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${entry.player.id})) >= 1000 THEN 'silver'
+                  ELSE 'bronze'
+                END`,
+                placementsCompleted: true,
+              })
+              .where(eq(users.id, entry.player.id));
+
+            // Update participant records with calibrated ELO
+            await tx
+              .update(raceParticipants)
+              .set({ eloBefore: null, eloAfter: calibrated.elo })
+              .where(
+                and(
+                  eq(raceParticipants.raceId, this.raceId),
+                  eq(raceParticipants.userId, entry.player.id),
+                )
+              );
+          }
+
+          // Notify rank calibration
+          if (this.notificationManager) {
+            for (const entry of authPlayers) {
+              const calibratedElo = eloAfterMap.get(entry.player.id);
+              if (calibratedElo != null) {
+                const tier = getRankTier(calibratedElo);
+                const tierName = tier.charAt(0).toUpperCase() + tier.slice(1);
+                const modeName = this.modeCategory.charAt(0).toUpperCase() + this.modeCategory.slice(1);
+                this.notificationManager.notify(entry.player.id, {
+                  type: "rank_up",
+                  title: "Rank Calibrated!",
+                  body: `${modeName}: placed at ${tierName}`,
+                  actionUrl: `/profile/${usernameMap.get(entry.player.id) ?? entry.player.name}`,
+                });
+              }
             }
           }
-        }
+        } else {
+          // Normal ranked race — standard ELO calculation
 
-        // Update participant records with elo data
-        for (const entry of authPlayers) {
-          const change = eloChanges.get(entry.player.id) ?? 0;
-          const newElo = eloAfterMap.get(entry.player.id) ?? entry.player.elo;
-          const eloBefore = newElo - change; // derive pre-race ELO from the atomic result
-          await tx
-            .update(raceParticipants)
-            .set({ eloBefore, eloAfter: newElo })
-            .where(
-              and(
-                eq(raceParticipants.raceId, this.raceId),
-                eq(raceParticipants.userId, entry.player.id),
+          // Include bots as virtual opponents for ELO calculation
+          const eloInput = [
+            ...authPlayers.map((e) => ({
+              id: e.player.id,
+              elo: modeEloMap.get(e.player.id)?.eloRating ?? 1000,
+              placement: e.progress.placement!,
+              gamesPlayed: modeStatsMap.get(e.player.id)?.racesPlayed ?? 0,
+              wpm: e.progress.finalStats?.wpm ?? 0,
+              accuracy: e.progress.finalStats?.accuracy,
+              isBot: false,
+            })),
+            ...botEntries.map((e) => ({
+              id: e.player.id,
+              elo: e.player.elo,
+              placement: e.progress.placement!,
+              gamesPlayed: 30, // Bots use experienced K-factor
+              wpm: e.progress.finalStats?.wpm ?? 0,
+              isBot: true,
+            })),
+          ];
+
+          const changes = calculateRaceElo(eloInput);
+
+          // Apply ELO changes to per-mode stats
+          for (const [userId, change] of changes) {
+            if (botEntries.some((b) => b.player.id === userId)) continue;
+            eloChanges.set(userId, change);
+
+            const [updated] = await tx
+              .update(userModeStats)
+              .set({
+                eloRating: sql`GREATEST(0, ${userModeStats.eloRating} + ${change})`,
+                rankTier: sql`CASE
+                  WHEN GREATEST(0, ${userModeStats.eloRating} + ${change}) >= 2500 THEN 'grandmaster'
+                  WHEN GREATEST(0, ${userModeStats.eloRating} + ${change}) >= 2200 THEN 'master'
+                  WHEN GREATEST(0, ${userModeStats.eloRating} + ${change}) >= 1900 THEN 'diamond'
+                  WHEN GREATEST(0, ${userModeStats.eloRating} + ${change}) >= 1600 THEN 'platinum'
+                  WHEN GREATEST(0, ${userModeStats.eloRating} + ${change}) >= 1300 THEN 'gold'
+                  WHEN GREATEST(0, ${userModeStats.eloRating} + ${change}) >= 1000 THEN 'silver'
+                  ELSE 'bronze'
+                END`,
+                peakEloRating: sql`GREATEST(${userModeStats.peakEloRating}, GREATEST(0, ${userModeStats.eloRating} + ${change}))`,
+                peakRankTier: sql`CASE
+                  WHEN GREATEST(${userModeStats.peakEloRating}, GREATEST(0, ${userModeStats.eloRating} + ${change})) >= 2500 THEN 'grandmaster'
+                  WHEN GREATEST(${userModeStats.peakEloRating}, GREATEST(0, ${userModeStats.eloRating} + ${change})) >= 2200 THEN 'master'
+                  WHEN GREATEST(${userModeStats.peakEloRating}, GREATEST(0, ${userModeStats.eloRating} + ${change})) >= 1900 THEN 'diamond'
+                  WHEN GREATEST(${userModeStats.peakEloRating}, GREATEST(0, ${userModeStats.eloRating} + ${change})) >= 1600 THEN 'platinum'
+                  WHEN GREATEST(${userModeStats.peakEloRating}, GREATEST(0, ${userModeStats.eloRating} + ${change})) >= 1300 THEN 'gold'
+                  WHEN GREATEST(${userModeStats.peakEloRating}, GREATEST(0, ${userModeStats.eloRating} + ${change})) >= 1000 THEN 'silver'
+                  ELSE 'bronze'
+                END`,
+              })
+              .where(
+                and(
+                  eq(userModeStats.userId, userId),
+                  eq(userModeStats.modeCategory, this.modeCategory),
+                )
               )
-            );
+              .returning({ eloRating: userModeStats.eloRating });
+
+            const newElo = updated?.eloRating ?? 1000;
+            eloAfterMap.set(userId, newElo);
+
+            // Sync users.eloRating to best ELO across all modes
+            await tx
+              .update(users)
+              .set({
+                eloRating: sql`(SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${userId})`,
+                rankTier: sql`CASE
+                  WHEN (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${userId}) >= 2500 THEN 'grandmaster'
+                  WHEN (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${userId}) >= 2200 THEN 'master'
+                  WHEN (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${userId}) >= 1900 THEN 'diamond'
+                  WHEN (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${userId}) >= 1600 THEN 'platinum'
+                  WHEN (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${userId}) >= 1300 THEN 'gold'
+                  WHEN (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${userId}) >= 1000 THEN 'silver'
+                  ELSE 'bronze'
+                END`,
+                peakEloRating: sql`GREATEST(${users.peakEloRating}, (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${userId}))`,
+                peakRankTier: sql`CASE
+                  WHEN GREATEST(${users.peakEloRating}, (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${userId})) >= 2500 THEN 'grandmaster'
+                  WHEN GREATEST(${users.peakEloRating}, (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${userId})) >= 2200 THEN 'master'
+                  WHEN GREATEST(${users.peakEloRating}, (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${userId})) >= 1900 THEN 'diamond'
+                  WHEN GREATEST(${users.peakEloRating}, (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${userId})) >= 1600 THEN 'platinum'
+                  WHEN GREATEST(${users.peakEloRating}, (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${userId})) >= 1300 THEN 'gold'
+                  WHEN GREATEST(${users.peakEloRating}, (SELECT COALESCE(MAX(elo_rating), 1000) FROM user_mode_stats WHERE user_id = ${userId})) >= 1000 THEN 'silver'
+                  ELSE 'bronze'
+                END`,
+              })
+              .where(eq(users.id, userId));
+          }
+
+          // Notify rank changes (based on per-mode ELO)
+          if (this.notificationManager) {
+            for (const entry of authPlayers) {
+              const modeElo = modeEloMap.get(entry.player.id);
+              const oldElo = modeElo?.eloRating ?? 1000;
+              const newElo = eloAfterMap.get(entry.player.id) ?? oldElo;
+              const oldTier = getRankTier(oldElo);
+              const newTier = getRankTier(newElo);
+              if (oldTier !== newTier) {
+                const direction = newElo > oldElo ? "up" : "down";
+                const modeName = this.modeCategory.charAt(0).toUpperCase() + this.modeCategory.slice(1);
+                this.notificationManager.notify(entry.player.id, {
+                  type: direction === "up" ? "rank_up" : "rank_down",
+                  title: direction === "up" ? "Rank Up!" : "Rank Down",
+                  body: `${modeName}: ${direction === "up" ? "promoted" : "demoted"} to ${newTier.charAt(0).toUpperCase() + newTier.slice(1)}`,
+                  actionUrl: `/profile/${usernameMap.get(entry.player.id) ?? entry.player.name}`,
+                });
+              }
+            }
+          }
+
+          // Update participant records with elo data
+          for (const entry of authPlayers) {
+            const change = eloChanges.get(entry.player.id) ?? 0;
+            const newElo = eloAfterMap.get(entry.player.id) ?? entry.player.elo;
+            const eloBefore = newElo - change; // derive pre-race ELO from the atomic result
+            await tx
+              .update(raceParticipants)
+              .set({ eloBefore, eloAfter: newElo })
+              .where(
+                and(
+                  eq(raceParticipants.raceId, this.raceId),
+                  eq(raceParticipants.userId, entry.player.id),
+                )
+              );
+          }
         }
       }
       }); // end transaction
@@ -1490,7 +1578,7 @@ export class RaceManager {
           .where(inArray(users.id, authPlayerIds));
         for (const row of userRows) {
           if (row.username) usernameMap.set(row.id, row.username);
-          if (!eloAfterMap.has(row.id)) eloAfterMap.set(row.id, row.eloRating);
+          if (!eloAfterMap.has(row.id) && !this.isPlacement) eloAfterMap.set(row.id, row.eloRating);
         }
 
         // Load active cosmetics
@@ -1673,7 +1761,9 @@ export class RaceManager {
         accuracy: stats.accuracy,
         misstypedChars: entry.misstypedChars,
         eloChange: eloChanges.get(entry.player.id) ?? null,
-        elo: eloAfterMap.get(entry.player.id) ?? entry.player.elo,
+        elo: this.isPlacement && !entry.isBot && !entry.player.isGuest && !eloAfterMap.has(entry.player.id)
+          ? undefined
+          : eloAfterMap.get(entry.player.id) ?? entry.player.elo,
         streak: streak !== undefined ? streak : undefined,
         wpmHistory: !entry.isBot ? entry.wpmHistory : undefined,
         newAchievements: achievementMap.get(entry.player.id),

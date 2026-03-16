@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { getDb } from "@/lib/db";
 import { users, userStats, userActiveCosmetics, soloResults, raceParticipants, races, userModeStats } from "@typeoff/db";
-import { and, desc, eq, gt, isNotNull, isNull, like, or, sql, inArray } from "drizzle-orm";
+import { and, desc, eq, gt, gte, isNotNull, isNull, like, or, sql, inArray } from "drizzle-orm";
 import type { RankTier } from "@typeoff/shared";
 import { getRankInfo, getXpLevel, TITLE_TEXTS } from "@typeoff/shared";
 import { AdBanner } from "@/components/AdBanner";
@@ -116,6 +116,7 @@ async function SoloLeaderboard({
       lastSeen: users.lastSeen,
       eloRating: users.eloRating,
       rankTier: users.rankTier,
+      placementsCompleted: users.placementsCompleted,
       bestWpm: sql<number>`max(${soloResults.wpm})`.as("best_wpm"),
       avgWpm: sql<number>`avg(${soloResults.wpm})`.as("avg_wpm"),
       bestRawWpm: sql<number>`(array_agg(${soloResults.rawWpm} ORDER BY ${soloResults.wpm} DESC))[1]`.as("best_raw_wpm"),
@@ -127,7 +128,7 @@ async function SoloLeaderboard({
     .innerJoin(users, eq(soloResults.userId, users.id))
     .leftJoin(userStats, eq(soloResults.userId, userStats.userId))
     .where(and(...mainFilters))
-    .groupBy(soloResults.userId, users.username, users.lastSeen, users.eloRating, users.rankTier, userStats.totalXp)
+    .groupBy(soloResults.userId, users.username, users.lastSeen, users.eloRating, users.rankTier, users.placementsCompleted, userStats.totalXp)
     .orderBy(sql`best_wpm desc`)
     .limit(100);
 
@@ -156,7 +157,7 @@ async function SoloLeaderboard({
       .innerJoin(users, eq(soloResults.userId, users.id))
       .leftJoin(userStats, eq(soloResults.userId, userStats.userId))
       .where(and(...myFilters))
-      .groupBy(soloResults.userId, users.username, users.lastSeen, users.eloRating, users.rankTier, userStats.totalXp)
+      .groupBy(soloResults.userId, users.username, users.lastSeen, users.eloRating, users.rankTier, users.placementsCompleted, userStats.totalXp)
       .limit(1);
 
     if (myRow) {
@@ -252,8 +253,8 @@ async function SoloLeaderboard({
               const isMe = userId === row.usrId;
               const soloCosmetic = soloCosmeticMap.get(row.usrId);
               const isOnline = row.lastSeen != null && (Date.now() - new Date(row.lastSeen).getTime()) < 3 * 60 * 1000;
-              const info = getRankInfo(row.eloRating ?? 1000);
-              const tierColor = TIER_TEXT[info.tier];
+              const info = row.placementsCompleted ? getRankInfo(row.eloRating ?? 1000) : null;
+              const tierColor = info ? TIER_TEXT[info.tier] : "text-muted/40";
 
               const rankDisplay = rank === 1
                 ? "text-rank-gold"
@@ -287,7 +288,7 @@ async function SoloLeaderboard({
                       </CosmeticName>
                     </span>
                     <span className="text-xs font-bold text-accent/70 tabular-nums bg-accent/[0.08] px-1.5 py-0.5 rounded shrink-0">{getXpLevel(row.totalXp ?? 0).level}</span>
-                    <span className={`text-xs shrink-0 ${tierColor}`}>{info.label}</span>
+                    <span className={`text-xs shrink-0 ${tierColor}`}>{info?.label ?? "Unranked"}</span>
                     {soloCosmetic?.activeTitle && (
                       <span className="text-xs text-text/70 shrink-0 hidden sm:inline">{TITLE_TEXTS[soloCosmetic.activeTitle] ?? soloCosmetic.activeTitle}</span>
                     )}
@@ -409,7 +410,7 @@ async function ModeEloLeaderboard({
       and(
         eq(userModeStats.modeCategory, modeCategory),
         isNotNull(users.username),
-        gt(userModeStats.racesPlayed, 0),
+        gte(userModeStats.racesPlayed, 3),
       ),
     )
     .orderBy(desc(userModeStats.eloRating))
@@ -454,7 +455,7 @@ async function ModeEloLeaderboard({
             eq(userModeStats.modeCategory, modeCategory),
             gt(userModeStats.eloRating, myRow.eloRating),
             isNotNull(users.username),
-            gt(userModeStats.racesPlayed, 0),
+            gte(userModeStats.racesPlayed, 3),
           ),
         );
 

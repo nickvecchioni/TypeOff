@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { SignJWT } from "jose";
-import { eq } from "drizzle-orm";
-import { users, userActiveCosmetics, userModeStats } from "@typeoff/db";
+import { eq, desc } from "drizzle-orm";
+import { users, userActiveCosmetics, userModeStats, userStats, soloResults } from "@typeoff/db";
 import { createRateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -40,8 +40,8 @@ export async function GET() {
 
     const db = getDb();
 
-    // Read display ELO + active cosmetics + per-mode ELOs + per-mode races played
-    const [[row], modeRows] = await Promise.all([
+    // Read display ELO + active cosmetics + per-mode ELOs + per-mode races played + avgWpm
+    const [[row], modeRows, [statsRow]] = await Promise.all([
       db
         .select({
           eloRating: users.eloRating,
@@ -62,7 +62,26 @@ export async function GET() {
         })
         .from(userModeStats)
         .where(eq(userModeStats.userId, session.user.id)),
+      db
+        .select({ avgWpm: userStats.avgWpm })
+        .from(userStats)
+        .where(eq(userStats.userId, session.user.id))
+        .limit(1),
     ]);
+
+    // Derive avgWpm for bot calibration during placements
+    let avgWpm = statsRow?.avgWpm ?? 0;
+    if (avgWpm === 0) {
+      const soloRows = await db
+        .select({ wpm: soloResults.wpm })
+        .from(soloResults)
+        .where(eq(soloResults.userId, session.user.id))
+        .orderBy(desc(soloResults.createdAt))
+        .limit(10);
+      if (soloRows.length > 0) {
+        avgWpm = soloRows.reduce((sum, r) => sum + r.wpm, 0) / soloRows.length;
+      }
+    }
 
     // Build per-mode ELO and racesPlayed maps
     const displayElo = row?.eloRating ?? 1000;
@@ -79,6 +98,7 @@ export async function GET() {
       elo: displayElo,
       modeElos,
       modeRacesPlayed,
+      avgWpm,
       username: row?.username ?? null,
       isPro: session.user.isPro ?? false,
       activeBadge: row?.activeBadge ?? null,

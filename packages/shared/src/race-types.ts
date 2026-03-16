@@ -19,6 +19,7 @@ export interface RacePlayer {
   elo: number;
   modeElos?: Record<string, number>;
   modeRacesPlayed?: Record<string, number>;
+  avgWpm?: number;
   isPro?: boolean;
   activeBadge?: string | null;
   activeNameColor?: string | null;

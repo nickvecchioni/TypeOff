@@ -7,7 +7,7 @@ import type {
   WpmSample,
   EmoteKey,
 } from "@typeoff/shared";
-import { PLACEMENT_RACES_REQUIRED } from "@typeoff/shared";
+import { PLACEMENT_RACES_REQUIRED, calibrateElo } from "@typeoff/shared";
 import { RaceManager } from "./race-manager.js";
 import type { RaceOwner } from "./race-manager.js";
 import type { SocialManager } from "./social-manager.js";
@@ -502,7 +502,13 @@ export class Matchmaker implements RaceOwner {
       entries[0]?.modeCategories ?? ["words"],
     );
     const modeCategory = shared[Math.floor(Math.random() * shared.length)] ?? "words";
-    const elos = entries.map((e) => e.player.elo);
+    // For placement players, derive ELO from avgWpm so bots match their skill
+    const elos = entries.map((e) => {
+      if (this.isInPlacement(e.player, e.modeCategories) && e.player.avgWpm && e.player.avgWpm > 0) {
+        return calibrateElo(e.player.avgWpm).elo;
+      }
+      return e.player.elo;
+    });
     const minElo = Math.min(...elos);
     const maxElo = Math.max(...elos);
     const avgElo = elos.reduce((a, b) => a + b, 0) / elos.length;
