@@ -23,6 +23,7 @@ import { DirectMessageWindow } from "@/components/social/DirectMessageWindow";
 import { CosmeticProvider } from "@/contexts/CosmeticContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { FocusWrapper } from "@/components/FocusWrapper";
+import { WelcomeTutorial } from "@/components/WelcomeTutorial";
 import "./globals.css";
 
 const jetbrainsMono = JetBrains_Mono({
@@ -112,6 +113,7 @@ export default function RootLayout({
               <ReportIssueButton />
             </footer>
             </FocusWrapper>
+            <WelcomeTutorial />
             <NotificationToast />
             <PartyInviteToast />
             <DirectMessageWindow />
