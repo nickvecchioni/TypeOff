@@ -245,25 +245,25 @@ function LevelWidget({
         <div className="flex items-center gap-3.5">
           <div className="shrink-0 relative">
             <div
-              className="w-12 h-12 rounded-lg flex flex-col items-center justify-center"
+              className="w-14 h-14 rounded-lg flex flex-col items-center justify-center"
               style={{
                 background: "linear-gradient(135deg, rgba(77,158,255,0.12) 0%, rgba(77,158,255,0.04) 100%)",
                 boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04), 0 0 20px rgba(77,158,255,0.06)",
               }}
             >
-              <div className="text-[9px] font-black text-accent/50 uppercase tracking-widest leading-none">LVL</div>
-              <div className="text-xl font-black text-accent tabular-nums leading-none mt-0.5">{level}</div>
+              <div className="text-[10px] font-black text-accent/50 uppercase tracking-widest leading-none">LVL</div>
+              <div className="text-2xl font-black text-accent tabular-nums leading-none mt-0.5">{level}</div>
             </div>
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-baseline justify-between mb-1">
-              <span className="text-sm font-bold text-accent tabular-nums">
+              <span className="text-base font-bold text-accent tabular-nums">
                 {currentXp.toLocaleString()}
                 <span className="text-muted/60 font-normal"> / {nextLevelXp.toLocaleString()} XP</span>
               </span>
-              <span className="text-sm font-bold text-accent/60 tabular-nums">{xpPct}%</span>
+              <span className="text-base font-bold text-accent/60 tabular-nums">{xpPct}%</span>
             </div>
-            <div className="h-2 rounded-full bg-white/[0.04] overflow-hidden relative">
+            <div className="h-2.5 rounded-full bg-white/[0.04] overflow-hidden relative">
               <div
                 className="h-full rounded-full transition-all relative overflow-hidden"
                 style={{
@@ -281,7 +281,7 @@ function LevelWidget({
                 />
               </div>
             </div>
-            <div className="text-xs text-muted/65 mt-0.5 tabular-nums">
+            <div className="text-sm text-muted/65 mt-0.5 tabular-nums">
               {xpRemaining.toLocaleString()} XP to level {level + 1}
             </div>
           </div>
@@ -675,7 +675,7 @@ export function QueueScreen({
               />
 
               {/* Mode selector */}
-              <div className="relative w-full mb-2">
+              <div className="relative w-full mb-2" data-tour="mode-selector">
                 <div className="grid grid-cols-4 gap-1.5">
                   {MODES.map(({ id, label, icon, desc }) => {
                     const active = modeCategories.includes(id);
@@ -692,9 +692,9 @@ export function QueueScreen({
                             : "ring-1 ring-white/[0.09] bg-white/[0.02] text-text/70 hover:text-text/90 hover:ring-white/[0.15] hover:bg-white/[0.04]"
                         }`}
                       >
-                        <span className="text-xs font-semibold leading-none">{label}</span>
+                        <span className="text-sm font-semibold leading-none">{label}</span>
                         <span
-                          className={`text-xs leading-tight hidden sm:block ${active ? "text-accent/80" : "text-text/60"}`}
+                          className={`text-sm leading-tight hidden sm:block ${active ? "text-accent/80" : "text-text/60"}`}
                         >
                           {desc}
                         </span>
