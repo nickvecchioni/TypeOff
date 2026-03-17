@@ -22,7 +22,7 @@ import leoProfanity from "leo-profanity";
 // If horizontal scaling is needed, extract state into Redis or a shared store.
 const PORT = parseInt(process.env.PORT ?? "3001", 10);
 const CORS_ORIGIN = process.env.CORS_ORIGIN ?? "http://localhost:3000";
-const BUILD_TS = new Date().toISOString();
+const BUILD_TS = new Date().toISOString(); // rebuild trigger
 
 const httpServer = createServer((req, res) => {
   if (req.url === "/health") {
