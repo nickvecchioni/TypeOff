@@ -7,7 +7,7 @@ import type {
   WpmSample,
   EmoteKey,
 } from "@typeoff/shared";
-import { PLACEMENT_RACES_REQUIRED, calibrateElo } from "@typeoff/shared";
+import { PLACEMENT_RACES_REQUIRED, calibrateElo, getModeWpmMultiplier } from "@typeoff/shared";
 import { RaceManager } from "./race-manager.js";
 import type { RaceOwner } from "./race-manager.js";
 import type { SocialManager } from "./social-manager.js";
@@ -505,7 +505,7 @@ export class Matchmaker implements RaceOwner {
     // For placement players, derive ELO from avgWpm so bots match their skill
     const elos = entries.map((e) => {
       if (this.isInPlacement(e.player, e.modeCategories) && e.player.avgWpm && e.player.avgWpm > 0) {
-        return calibrateElo(e.player.avgWpm).elo;
+        return calibrateElo(e.player.avgWpm, modeCategory).elo;
       }
       return e.player.elo;
     });
@@ -540,12 +540,16 @@ export class Matchmaker implements RaceOwner {
         elo: botElo,
       });
 
-      // Per-bot WPM from individual ELO: wpm = (elo - 500) / 10
-      perBotWpm.push(Math.max(20, (botElo - 500) / 10));
+      // Per-bot WPM from individual ELO, un-normalized for the mode so bots
+      // type at mode-appropriate speeds: normalizedWpm = (elo - 500) / 10,
+      // rawWpm = normalizedWpm / multiplier
+      const modeMultiplier = getModeWpmMultiplier(modeCategory);
+      perBotWpm.push(Math.max(20, (botElo - 500) / 10 / modeMultiplier));
     }
 
     // Fallback range (used if perBotWpm not supported)
-    const baseWpm = Math.max(20, (avgElo - 500) / 10);
+    const modeMultiplierFallback = getModeWpmMultiplier(modeCategory);
+    const baseWpm = Math.max(20, (avgElo - 500) / 10 / modeMultiplierFallback);
     const botWpmMin = Math.max(20, baseWpm - 10);
     const botWpmMax = baseWpm + 10;
 

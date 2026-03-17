@@ -109,11 +109,40 @@ export function getNextDivisionElo(elo: number): number | null {
 }
 
 /**
- * Calibrate initial ELO from a single WPM result (used for placements).
- * Formula: clamp(600, 2600, round(500 + wpm * 10))
+ * WPM normalization multipliers per mode category.
+ * Harder modes produce lower raw WPM, so we scale up to make ELO comparable
+ * across modes. A 50 WPM code typist ≈ 78 WPM words typist in skill.
+ *
+ *   words:   baseline (plain lowercase)
+ *   quotes:  ~15% slower (capitals, some punctuation)
+ *   special: ~35% slower (heavy punctuation + numbers)
+ *   code:    ~55% slower (special chars, syntax, indentation)
  */
-export function calibrateElo(wpm: number): { elo: number; tier: RankTier } {
-  const elo = Math.min(2600, Math.max(600, Math.round(500 + wpm * 10)));
+export const MODE_WPM_MULTIPLIERS: Record<string, number> = {
+  words: 1.0,
+  quotes: 1.15,
+  special: 1.35,
+  code: 1.55,
+};
+
+/** Get the WPM multiplier for a mode (defaults to 1.0 for unknown modes) */
+export function getModeWpmMultiplier(modeCategory?: string): number {
+  return (modeCategory && MODE_WPM_MULTIPLIERS[modeCategory]) ?? 1.0;
+}
+
+/** Normalize raw WPM by mode difficulty for cross-mode ELO comparability */
+export function normalizeWpm(wpm: number, modeCategory?: string): number {
+  return wpm * getModeWpmMultiplier(modeCategory);
+}
+
+/**
+ * Calibrate initial ELO from a single WPM result (used for placements).
+ * Applies mode normalization so equivalent skill produces equivalent ELO.
+ * Formula: clamp(600, 2600, round(500 + normalizedWpm * 10))
+ */
+export function calibrateElo(wpm: number, modeCategory?: string): { elo: number; tier: RankTier } {
+  const normalized = normalizeWpm(wpm, modeCategory);
+  const elo = Math.min(2600, Math.max(600, Math.round(500 + normalized * 10)));
   return { elo, tier: getRankTier(elo) };
 }
 

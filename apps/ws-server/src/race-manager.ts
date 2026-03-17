@@ -9,7 +9,7 @@ import type {
   WpmSample,
   EmoteKey,
 } from "@typeoff/shared";
-import { calculateRaceElo, getRankTier, calibrateElo, generateWordsForMode, quotes, EMOTE_KEYS, scoreTextDifficulty, calculatePP, calculateTotalPP, CHALLENGE_MAP, ACHIEVEMENT_MAP, getXpLevel, PLACEMENT_RACES_REQUIRED } from "@typeoff/shared";
+import { calculateRaceElo, getRankTier, calibrateElo, normalizeWpm, generateWordsForMode, quotes, EMOTE_KEYS, scoreTextDifficulty, calculatePP, calculateTotalPP, CHALLENGE_MAP, ACHIEVEMENT_MAP, getXpLevel, PLACEMENT_RACES_REQUIRED } from "@typeoff/shared";
 import type { RankTier, RaceMode, ModeCategory, ReplaySnapshot } from "@typeoff/shared";
 import type { NotificationManager } from "./notification-manager.js";
 import { races, raceParticipants, userStats, userModeStats, users, userActiveCosmetics, textLeaderboards } from "@typeoff/db";
@@ -1266,10 +1266,11 @@ export class RaceManager {
           // eloChanges stays empty, eloAfterMap stays empty
         } else if (this.isPlacement && this.placementNumber >= PLACEMENT_RACES_REQUIRED) {
           // Placement complete (race 3) — calibrate ELO from average WPM across placement races
+          // Mode multiplier normalizes WPM so equivalent skill → equivalent ELO across modes
           for (const entry of authPlayers) {
             const modeStats = modeEloMap.get(entry.player.id);
             const avgWpm = modeStats?.avgWpm ?? entry.progress.finalStats?.wpm ?? 50;
-            const calibrated = calibrateElo(avgWpm);
+            const calibrated = calibrateElo(avgWpm, this.modeCategory);
 
             await tx
               .update(userModeStats)
@@ -1349,13 +1350,14 @@ export class RaceManager {
           // Normal ranked race — standard ELO calculation
 
           // Include bots as virtual opponents for ELO calculation
+          // Normalize WPM by mode so the sigmoid comparison is fair across modes
           const eloInput = [
             ...authPlayers.map((e) => ({
               id: e.player.id,
               elo: modeEloMap.get(e.player.id)?.eloRating ?? 1000,
               placement: e.progress.placement!,
               gamesPlayed: modeStatsMap.get(e.player.id)?.racesPlayed ?? 0,
-              wpm: e.progress.finalStats?.wpm ?? 0,
+              wpm: normalizeWpm(e.progress.finalStats?.wpm ?? 0, this.modeCategory),
               accuracy: e.progress.finalStats?.accuracy,
               isBot: false,
             })),
@@ -1364,7 +1366,7 @@ export class RaceManager {
               elo: e.player.elo,
               placement: e.progress.placement!,
               gamesPlayed: 30, // Bots use experienced K-factor
-              wpm: e.progress.finalStats?.wpm ?? 0,
+              wpm: normalizeWpm(e.progress.finalStats?.wpm ?? 0, this.modeCategory),
               isBot: true,
             })),
           ];
