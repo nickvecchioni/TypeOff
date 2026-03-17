@@ -692,11 +692,6 @@ export function QueueScreen({
                             : "ring-1 ring-white/[0.09] bg-white/[0.02] text-text/70 hover:text-text/90 hover:ring-white/[0.15] hover:bg-white/[0.04]"
                         }`}
                       >
-                        <span
-                          className={`text-sm font-bold font-mono leading-none [font-variant-ligatures:none] ${active ? "text-accent" : ""}`}
-                        >
-                          {icon}
-                        </span>
                         <span className="text-xs font-semibold leading-none">{label}</span>
                         <span
                           className={`text-xs leading-tight hidden sm:block ${active ? "text-accent/80" : "text-text/60"}`}
