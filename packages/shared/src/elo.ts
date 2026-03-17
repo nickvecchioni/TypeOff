@@ -127,7 +127,8 @@ export const MODE_WPM_MULTIPLIERS: Record<string, number> = {
 
 /** Get the WPM multiplier for a mode (defaults to 1.0 for unknown modes) */
 export function getModeWpmMultiplier(modeCategory?: string): number {
-  return (modeCategory && MODE_WPM_MULTIPLIERS[modeCategory]) ?? 1.0;
+  if (!modeCategory) return 1.0;
+  return MODE_WPM_MULTIPLIERS[modeCategory] ?? 1.0;
 }
 
 /** Normalize raw WPM by mode difficulty for cross-mode ELO comparability */
