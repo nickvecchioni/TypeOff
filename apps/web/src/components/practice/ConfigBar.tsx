@@ -255,12 +255,12 @@ export function ConfigBar({
           />
         </div>
 
-        {/* Custom: paste hint */}
+        {/* Custom: hint */}
         <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 ${
           ct === "custom" || ct === "zen" ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}>
           <span className="text-sm text-text/45">
-            paste any text to start typing
+            paste text or just start typing
           </span>
         </div>
       </div>

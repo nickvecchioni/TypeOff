@@ -96,7 +96,6 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed && typeof parsed === "object") {
-          if (parsed.contentType === "zen") parsed.contentType = "custom";
           engine.setConfig({ ...engine.config, ...parsed });
         }
       }
@@ -313,6 +312,15 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
   // Custom mode: waiting for paste (no text yet)
   const isCustomEmpty = ct === "custom" && !engine.config.customText;
 
+  // Handle keydown in custom empty state — switch to freeform on first keypress
+  const handleCustomEmptyKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key.length === 1) {
+      e.preventDefault();
+      engine.setConfig({ ...engine.config, contentType: "zen" });
+    }
+  }, [engine]);
+
   // Handle paste for custom mode
   const handlePaste = useCallback((e: React.ClipboardEvent) => {
     if (ct !== "custom") return;
@@ -334,7 +342,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
     }
   }, [ct, engine]);
 
-  // Route only legacy zen to freeform arena
+  // Route zen/freeform to its own arena
   const isFreeform = ct === "zen";
   if (isFreeform) {
     return (
@@ -342,7 +350,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
         {/* Config bar — always accessible for mode switching */}
         <div className="focus-fade flex flex-col items-center gap-2">
           <ConfigBar
-            config={{ ...engine.config, contentType: "custom" }}
+            config={engine.config}
             status={engine.status}
             onConfigChange={(c) => {
               if (c.contentType === "practice") {
@@ -527,7 +535,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
         <div
           ref={containerRef}
           tabIndex={0}
-          onKeyDown={isCustomEmpty ? undefined : engine.handleKeyDown}
+          onKeyDown={isCustomEmpty ? handleCustomEmptyKeyDown : engine.handleKeyDown}
           onPaste={handlePaste}
           className="relative w-full outline-none cursor-default select-none overflow-hidden opacity-0 animate-fade-in"
           style={{ height: containerHeight, animationDelay: "40ms", animationFillMode: "both" }}
@@ -537,7 +545,7 @@ export function PracticeArena({ initialDrill = false, initialBigrams }: { initia
           {isCustomEmpty ? (
             /* Custom mode placeholder — muted hint text in typing position */
             <div className="text-2xl leading-[40px] text-muted/20 no-ligatures select-none">
-              paste text to start typing...
+              paste text or just start typing...
             </div>
           ) : (
             <div
