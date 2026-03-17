@@ -759,6 +759,7 @@ export function QueueScreen({
 
               {/* Find Race button */}
               <button
+                data-tour="find-race"
                 onClick={() => onJoin({ privateRace, modeCategories })}
                 disabled={!connected || (inParty && !allMembersReady)}
                 className="relative w-full rounded-xl bg-accent/[0.08] ring-1 ring-accent/25 text-accent py-4 text-base font-bold tracking-wide glow-accent hover:bg-accent hover:text-bg hover:ring-accent hover:glow-accent-strong transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent/[0.08] disabled:hover:text-accent disabled:hover:ring-accent/25"
@@ -849,13 +850,15 @@ export function QueueScreen({
               className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2 animate-fade-in"
               style={{ animationDelay: "120ms", animationFillMode: "both" }}
             >
-              <ChallengesWidget />
-              <LevelWidget
-                level={xpInfo.level}
-                currentXp={xpInfo.currentXp}
-                nextLevelXp={xpInfo.nextLevelXp}
-                isPro={session!.user.isPro ?? false}
-              />
+              <div data-tour="challenges"><ChallengesWidget /></div>
+              <div data-tour="level-widget">
+                <LevelWidget
+                  level={xpInfo.level}
+                  currentXp={xpInfo.currentXp}
+                  nextLevelXp={xpInfo.nextLevelXp}
+                  isPro={session!.user.isPro ?? false}
+                />
+              </div>
             </div>
             <AdBanner slot="queue_screen" format="horizontal" className="w-full mt-3" />
             </div>

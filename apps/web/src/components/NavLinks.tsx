@@ -26,6 +26,7 @@ export function NavLinks() {
           <Link
             key={link.href}
             href={link.href}
+            data-tour={`nav-${link.label.toLowerCase()}`}
             className={`hidden md:inline text-sm transition-colors ${
               isActive
                 ? link.isPro

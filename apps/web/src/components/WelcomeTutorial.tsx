@@ -1,149 +1,76 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter, usePathname } from "next/navigation";
 
 const TUTORIAL_KEY = "typeoff-tutorial-v1";
+const SPOTLIGHT_PAD = 8;
+const SPOTLIGHT_RADIUS = 12;
 
-interface Step {
+type TooltipPosition = "bottom" | "top" | "left" | "right";
+
+interface TourStep {
+  target?: string; // data-tour attribute value (omit for centered card)
   title: string;
-  body: React.ReactNode;
+  body: string;
+  position?: TooltipPosition;
+  route?: string; // navigate here before showing this step
 }
 
-const RANK_TIERS = [
-  { name: "Bronze", color: "#d97706" },
-  { name: "Silver", color: "#9ca3af" },
-  { name: "Gold", color: "#eab308" },
-  { name: "Platinum", color: "#67e8f9" },
-  { name: "Diamond", color: "#3b82f6" },
-  { name: "Master", color: "#a855f7" },
-  { name: "Grandmaster", color: "#ef4444" },
-];
-
-const MODES = [
-  { label: "Words", desc: "Plain lowercase words" },
-  { label: "Mixed", desc: "Punctuation & numbers" },
-  { label: "Quotes", desc: "Famous quotations" },
-  { label: "Code", desc: "Real syntax, real pain" },
-];
-
-const STEPS: Step[] = [
+const STEPS: TourStep[] = [
   {
     title: "Welcome to TypeOff",
-    body: (
-      <div className="flex flex-col items-center gap-4">
-        <p className="text-text/70 text-center leading-relaxed max-w-sm">
-          Competitive typing, ranked. Race against other typists and bots,
-          climb through the ranks, and prove you're the fastest.
-        </p>
-        <div className="flex items-center gap-3 mt-2">
-          {["Race", "Rank Up", "Compete"].map((w) => (
-            <span
-              key={w}
-              className="px-3 py-1 rounded-full text-xs font-bold bg-accent/[0.08] text-accent ring-1 ring-accent/20"
-            >
-              {w}
-            </span>
-          ))}
-        </div>
-      </div>
-    ),
+    body: "Competitive typing, ranked. Let's take a quick look around.",
   },
   {
-    title: "Multiplayer Racing",
-    body: (
-      <div className="flex flex-col gap-3">
-        <p className="text-text/70 text-center leading-relaxed max-w-sm">
-          Queue up and race against other players and bots. ELO matchmaking
-          keeps it fair. Complete <span className="text-accent font-bold">3 placement races</span> per
-          mode to calibrate your rank.
-        </p>
-        <div className="flex items-center justify-center gap-6 mt-2">
-          <div className="flex flex-col items-center gap-1">
-            <span className="text-2xl">4</span>
-            <span className="text-xs text-muted/60">players per race</span>
-          </div>
-          <div className="w-px h-8 bg-white/[0.06]" />
-          <div className="flex flex-col items-center gap-1">
-            <span className="text-2xl">3</span>
-            <span className="text-xs text-muted/60">placement races</span>
-          </div>
-          <div className="w-px h-8 bg-white/[0.06]" />
-          <div className="flex flex-col items-center gap-1">
-            <span className="text-2xl font-mono text-accent">ELO</span>
-            <span className="text-xs text-muted/60">matchmaking</span>
-          </div>
-        </div>
-      </div>
-    ),
+    target: "mode-selector",
+    title: "Pick Your Modes",
+    body: "Choose one or more game modes. Each mode has its own ELO rating. One is picked at random each race.",
+    position: "bottom",
+    route: "/",
   },
   {
-    title: "Four Game Modes",
-    body: (
-      <div className="flex flex-col gap-3">
-        <p className="text-text/70 text-center leading-relaxed max-w-sm">
-          Each mode has its own ELO rating. Select one or more before racing.
-        </p>
-        <div className="grid grid-cols-2 gap-2 mt-1">
-          {MODES.map((m) => (
-            <div
-              key={m.label}
-              className="rounded-lg bg-surface-bright/40 ring-1 ring-white/[0.04] px-3 py-2.5 text-center"
-            >
-              <div className="text-sm font-bold text-text/90">{m.label}</div>
-              <div className="text-xs text-muted/50 mt-0.5">{m.desc}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    ),
+    target: "find-race",
+    title: "Find a Race",
+    body: "Queue up to race against other players and bots. ELO matchmaking keeps it fair.",
+    position: "top",
+    route: "/",
   },
   {
-    title: "Climb the Ranks",
-    body: (
-      <div className="flex flex-col gap-3">
-        <p className="text-text/70 text-center leading-relaxed max-w-sm">
-          Seven tiers from Bronze to Grandmaster. Win races to climb, and track
-          your peak rating on your profile.
-        </p>
-        <div className="flex items-center justify-center gap-1.5 mt-2 flex-wrap">
-          {RANK_TIERS.map((r) => (
-            <span
-              key={r.name}
-              className="px-2 py-1 rounded text-xs font-bold"
-              style={{ color: r.color, backgroundColor: `${r.color}15` }}
-            >
-              {r.name}
-            </span>
-          ))}
-        </div>
-      </div>
-    ),
+    target: "challenges",
+    title: "Daily Challenges",
+    body: "Complete challenges to earn bonus XP. New ones appear daily and weekly.",
+    position: "top",
+    route: "/",
   },
   {
-    title: "Track Your Progress",
-    body: (
-      <div className="flex flex-col gap-3">
-        <p className="text-text/70 text-center leading-relaxed max-w-sm">
-          Practice solo to sharpen your skills. Track per-key and bigram
-          accuracy, earn XP, unlock cosmetics, and complete daily challenges.
-        </p>
-        <div className="grid grid-cols-3 gap-2 mt-1">
-          {[
-            { label: "Solo Practice", sub: "Train at your pace" },
-            { label: "Analytics", sub: "Key & bigram stats" },
-            { label: "Cosmetics", sub: "Badges, titles & more" },
-          ].map((f) => (
-            <div
-              key={f.label}
-              className="rounded-lg bg-surface-bright/40 ring-1 ring-white/[0.04] px-2.5 py-2.5 text-center"
-            >
-              <div className="text-xs font-bold text-text/90">{f.label}</div>
-              <div className="text-[10px] text-muted/50 mt-0.5">{f.sub}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    ),
+    target: "level-widget",
+    title: "Level Up",
+    body: "Earn XP from races to level up and unlock cosmetics like badges, titles, and name effects.",
+    position: "top",
+    route: "/",
+  },
+  {
+    target: "nav-solo",
+    title: "Solo Practice",
+    body: "Practice on your own with customizable modes, durations, and difficulty settings.",
+    position: "bottom",
+  },
+  {
+    target: "nav-leaderboard",
+    title: "Leaderboard",
+    body: "See where you rank against other typists across all modes.",
+    position: "bottom",
+  },
+  {
+    target: "nav-analytics",
+    title: "Analytics",
+    body: "Track your per-key and bigram accuracy to identify weaknesses and improve.",
+    position: "bottom",
+  },
+  {
+    title: "You're All Set",
+    body: "Complete 3 placement races in any mode to get your rank. Good luck!",
   },
 ];
 
@@ -151,14 +78,105 @@ export function WelcomeTutorial() {
   const [visible, setVisible] = useState(false);
   const [step, setStep] = useState(0);
   const [exiting, setExiting] = useState(false);
+  const [spotlightRect, setSpotlightRect] = useState<DOMRect | null>(null);
+  const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const seen = localStorage.getItem(TUTORIAL_KEY);
-    if (!seen) {
-      setVisible(true);
-    }
+    if (!seen) setVisible(true);
   }, []);
+
+  // Position spotlight + tooltip when step changes
+  const positionStep = useCallback(() => {
+    const current = STEPS[step];
+    if (!current?.target) {
+      setSpotlightRect(null);
+      setTooltipStyle({
+        position: "fixed",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+      });
+      return;
+    }
+
+    const el = document.querySelector(`[data-tour="${current.target}"]`);
+    if (!el) {
+      setSpotlightRect(null);
+      setTooltipStyle({
+        position: "fixed",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+      });
+      return;
+    }
+
+    const rect = el.getBoundingClientRect();
+    setSpotlightRect(rect);
+
+    // Scroll element into view if needed
+    el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+    // Calculate tooltip position
+    requestAnimationFrame(() => {
+      const tooltip = tooltipRef.current;
+      const tw = tooltip?.offsetWidth ?? 320;
+      const th = tooltip?.offsetHeight ?? 120;
+      const pos = current.position ?? "bottom";
+      const style: React.CSSProperties = { position: "fixed" };
+
+      // Center horizontally relative to target
+      let left = rect.left + rect.width / 2 - tw / 2;
+      left = Math.max(12, Math.min(left, window.innerWidth - tw - 12));
+
+      if (pos === "bottom") {
+        style.top = rect.bottom + SPOTLIGHT_PAD + 12;
+        style.left = left;
+      } else if (pos === "top") {
+        style.top = rect.top - SPOTLIGHT_PAD - th - 12;
+        style.left = left;
+        if ((style.top as number) < 12) {
+          style.top = rect.bottom + SPOTLIGHT_PAD + 12;
+        }
+      } else if (pos === "left") {
+        style.top = rect.top + rect.height / 2 - th / 2;
+        style.left = rect.left - SPOTLIGHT_PAD - tw - 12;
+      } else {
+        style.top = rect.top + rect.height / 2 - th / 2;
+        style.left = rect.right + SPOTLIGHT_PAD + 12;
+      }
+
+      setTooltipStyle(style);
+    });
+  }, [step]);
+
+  // Navigate and reposition on step change
+  useEffect(() => {
+    if (!visible) return;
+    const current = STEPS[step];
+    if (current?.route && pathname !== current.route) {
+      router.push(current.route);
+      // Wait for navigation + render before positioning
+      const timer = setTimeout(positionStep, 400);
+      return () => clearTimeout(timer);
+    }
+    // Small delay to let DOM settle
+    const timer = setTimeout(positionStep, 80);
+    return () => clearTimeout(timer);
+  }, [step, visible, pathname, router, positionStep]);
+
+  // Reposition on resize
+  useEffect(() => {
+    if (!visible) return;
+    const handler = () => positionStep();
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, [visible, positionStep]);
 
   const dismiss = useCallback(() => {
     setExiting(true);
@@ -169,11 +187,8 @@ export function WelcomeTutorial() {
   }, []);
 
   const next = useCallback(() => {
-    if (step < STEPS.length - 1) {
-      setStep((s) => s + 1);
-    } else {
-      dismiss();
-    }
+    if (step < STEPS.length - 1) setStep((s) => s + 1);
+    else dismiss();
   }, [step, dismiss]);
 
   const prev = useCallback(() => {
@@ -195,34 +210,57 @@ export function WelcomeTutorial() {
 
   const current = STEPS[step];
   const isLast = step === STEPS.length - 1;
+  const hasTarget = !!spotlightRect;
+
+  // Build clip-path to cut out the spotlight area from the overlay
+  const clipPath = spotlightRect
+    ? buildClipPath(spotlightRect)
+    : undefined;
 
   return (
     <div
-      className={`fixed inset-0 z-[60] flex items-center justify-center transition-opacity duration-300 ${
+      className={`fixed inset-0 z-[60] transition-opacity duration-300 ${
         exiting ? "opacity-0" : "opacity-100"
       }`}
     >
-      {/* Backdrop */}
+      {/* Overlay with spotlight cutout */}
       <div
-        className="absolute inset-0 bg-bg/90 backdrop-blur-sm"
+        className="absolute inset-0 bg-bg/85 backdrop-blur-[2px] transition-all duration-300"
+        style={clipPath ? { clipPath } : undefined}
         onClick={dismiss}
       />
 
-      {/* Card */}
+      {/* Spotlight ring glow */}
+      {hasTarget && spotlightRect && (
+        <div
+          className="absolute pointer-events-none rounded-xl ring-2 ring-accent/40 transition-all duration-300"
+          style={{
+            top: spotlightRect.top - SPOTLIGHT_PAD,
+            left: spotlightRect.left - SPOTLIGHT_PAD,
+            width: spotlightRect.width + SPOTLIGHT_PAD * 2,
+            height: spotlightRect.height + SPOTLIGHT_PAD * 2,
+            boxShadow: "0 0 24px 4px rgba(77, 158, 255, 0.15)",
+          }}
+        />
+      )}
+
+      {/* Tooltip card */}
       <div
-        className={`relative w-full max-w-md mx-4 rounded-2xl bg-surface ring-1 ring-white/[0.08] shadow-2xl overflow-hidden transition-all duration-300 ${
+        ref={tooltipRef}
+        className={`z-[61] w-80 rounded-xl bg-surface ring-1 ring-white/[0.1] shadow-2xl transition-all duration-300 ${
           exiting ? "scale-95 opacity-0" : "scale-100 opacity-100"
         }`}
+        style={tooltipStyle}
       >
         {/* Progress dots */}
-        <div className="flex items-center justify-center gap-1.5 pt-5 pb-2">
+        <div className="flex items-center justify-center gap-1.5 pt-4 pb-1">
           {STEPS.map((_, i) => (
             <button
               key={i}
               onClick={() => setStep(i)}
               className={`h-1.5 rounded-full transition-all duration-300 ${
                 i === step
-                  ? "w-6 bg-accent"
+                  ? "w-5 bg-accent"
                   : i < step
                   ? "w-1.5 bg-accent/40"
                   : "w-1.5 bg-white/[0.08]"
@@ -231,40 +269,55 @@ export function WelcomeTutorial() {
           ))}
         </div>
 
-        {/* Content */}
-        <div className="px-6 pt-4 pb-6">
-          <h2 className="text-xl font-black text-center text-text mb-4">
+        <div className="px-5 pt-3 pb-4">
+          <h3 className="text-base font-black text-text mb-1.5">
             {current.title}
-          </h2>
-          <div className="flex justify-center">{current.body}</div>
+          </h3>
+          <p className="text-sm text-text/60 leading-relaxed">{current.body}</p>
         </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-between px-6 pb-5">
+        <div className="flex items-center justify-between px-5 pb-4">
           <button
             onClick={dismiss}
-            className="text-xs text-muted/50 hover:text-muted transition-colors"
+            className="text-xs text-muted/40 hover:text-muted transition-colors"
           >
-            Skip
+            Skip tour
           </button>
           <div className="flex items-center gap-2">
             {step > 0 && (
               <button
                 onClick={prev}
-                className="px-4 py-1.5 rounded-lg text-sm font-medium text-muted/70 hover:text-text hover:bg-white/[0.04] transition-all"
+                className="px-3 py-1.5 rounded-lg text-xs font-medium text-muted/60 hover:text-text hover:bg-white/[0.04] transition-all"
               >
                 Back
               </button>
             )}
             <button
               onClick={next}
-              className="px-5 py-1.5 rounded-lg text-sm font-bold bg-accent/[0.12] text-accent ring-1 ring-accent/25 hover:bg-accent hover:text-bg transition-all"
+              className="px-4 py-1.5 rounded-lg text-xs font-bold bg-accent/[0.12] text-accent ring-1 ring-accent/25 hover:bg-accent hover:text-bg transition-all"
             >
-              {isLast ? "Get Started" : "Next"}
+              {isLast ? "Start Racing" : "Next"}
             </button>
           </div>
         </div>
       </div>
     </div>
   );
+}
+
+/** Build a polygon clip-path that covers everything EXCEPT the spotlight rectangle */
+function buildClipPath(rect: DOMRect): string {
+  const pad = SPOTLIGHT_PAD;
+  const r = SPOTLIGHT_RADIUS;
+  const t = rect.top - pad;
+  const l = rect.left - pad;
+  const b = rect.bottom + pad;
+  const ri = rect.right + pad;
+
+  // Outer rectangle (full viewport) with inner rounded-rect cutout
+  // Using evenodd fill rule: outer polygon + inner polygon = hole
+  return `polygon(evenodd,
+    0 0, 100% 0, 100% 100%, 0 100%, 0 0,
+    ${l + r}px ${t}px, ${ri - r}px ${t}px, ${ri}px ${t + r}px, ${ri}px ${b - r}px, ${ri - r}px ${b}px, ${l + r}px ${b}px, ${l}px ${b - r}px, ${l}px ${t + r}px, ${l + r}px ${t}px
+  )`;
 }
