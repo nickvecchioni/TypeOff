@@ -62,7 +62,7 @@ export function SoloModeSelector() {
         <div className="flex items-center gap-1">
           {CATEGORIES.map((c) => (
             <Chip key={c} active={category === c} onClick={() => update({ category: c })}>
-              {c === "mixed" ? "full" : c}
+              {c === "mixed" ? "punctuation" : c}
             </Chip>
           ))}
         </div>

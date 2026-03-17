@@ -146,7 +146,7 @@ export function ConfigBar({
           words
         </Chip>
         <Chip active={isWordsVariant && (config.punctuation ?? false)} onClick={() => setWordMode(true)}>
-          full
+          punctuation
         </Chip>
         <Chip active={ct === "quotes"} onClick={() => setContentType("quotes")}>
           quotes
