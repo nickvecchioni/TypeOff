@@ -2,6 +2,8 @@
 
 Competitive typing game with ranked multiplayer, ELO matchmaking, and solo practice.
 
+**Live at [typeoff.gg](https://typeoff.gg)**
+
 ## Stack
 
 - **Frontend** — Next.js 15, React 19, Tailwind CSS v4, NextAuth v5
